@@ -1,0 +1,107 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Align knockout applicability with exact stdlib abstract declaration contracts"
+type: fix
+created: "2026-08-19T20:13:10Z"
+metadata:
+  priority: high
+  tags: [knockout, abstractmethod, deep-verify, validation-trust]
+description: |
+  Artifact coverage already omits methods decorated through an exact,
+  unshadowed stdlib `abc.abstractmethod` binding because they are declaration
+  contracts rather than executable obligations. Knockout planning still
+  mutates those bodies and requires a test to detect the injected exception.
+  A consolidated coherence snapshot therefore fails E711 for `BaseCheck.run`
+  even though the corresponding E710 obligation is intentionally absent.
+
+  Apply the same narrow abstract-contract applicability rule while building
+  Python knockout mutation specs. Omit only exact direct stdlib bindings;
+  fake decorators, locally rebound names, undecorated methods, and concrete
+  methods remain mutation targets. Reuse the established binding analysis so
+  coverage and knockout cannot drift through duplicate decorator heuristics.
+temptations:
+  - risk: "Do not add a test that calls an abstract method body through super solely to detect the knockout exception."
+    instead: "Treat exact abstract declaration contracts consistently across E710 and E711 applicability."
+  - risk: "Do not skip artifacts based only on a decorator named abstractmethod."
+    instead: "Reuse the fail-closed stdlib binding analysis, retaining fake and rebound decorators as mutation targets."
+  - risk: "Do not exempt whole abstract classes or all methods on ABC subclasses."
+    instead: "Omit only the individually decorated method contract; concrete siblings remain planned."
+files:
+  create:
+    - path: tests/core/test_knockout_abstract_contracts.py
+      artifacts:
+        - kind: test_function
+          name: test_knockout_plan_omits_exact_stdlib_abstract_contract_only
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "Public knockout planning omits qualified and unqualified exact stdlib abstract methods without consuming the eligible mutation limit before a concrete sibling."
+        - kind: test_function
+          name: test_knockout_plan_keeps_fake_and_rebound_abstractmethod_decorators
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "Fake and locally rebound decorator spellings remain fail-closed knockout mutation targets."
+  scope:
+    - path: maid_runner/core/knockout.py
+      reason: "Apply the established exact abstract-contract applicability rule before grouping public knockout mutation specs."
+  read:
+    - maid_runner/core/artifact_coverage.py
+    - tests/core/test_artifact_coverage_abstract_contracts.py
+    - tests/core/test_knockout.py
+    - manifests/fix-e710-abstract-contract-coverage.manifest.yaml
+    - manifests/snapshot-coherence-checks-dependency-2.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_knockout_abstract_contracts.py tests/core/test_knockout.py tests/core/test_artifact_coverage_abstract_contracts.py
+outcome:
+  status: completed
+  completed_at: "2026-08-20T06:23:28+08:00"
+  summary: >-
+    Knockout planning now omits exact unshadowed stdlib abstract declaration
+    contracts consistently with artifact coverage, without consuming mutation
+    limits or changing eligible concrete ordering.
+  rationale: >-
+    Abstract declaration bodies have no E710 executable obligation, so requiring
+    tests to detect an injected E711 exception manufactured a mutation-only
+    contract. Reusing the established binding analyzer keeps qualified and
+    unqualified stdlib forms aligned while fake, rebound, malformed, and
+    concrete targets remain fail-closed.
+  lessons:
+    - lesson_type: validation-trust
+      summary: >-
+        Coverage and mutation gates must share applicability policy; otherwise
+        consolidation can expose contradictory E710 and E711 obligations for
+        the same declaration contract.
+      tags: [knockout, artifact-coverage, abstractmethod, E711]
+      paths:
+        - maid_runner/core/knockout.py
+        - maid_runner/core/artifact_coverage.py
+    - lesson_type: test-design
+      summary: >-
+        Qualified and unqualified decorator forms must precede a concrete target
+        under limit=1 to prove both recognition and eligible-limit semantics;
+        fake and rebound controls retain the fail-closed boundary.
+      tags: [behavioral-tests, limit, ordering, abstractmethod]
+      paths:
+        - tests/core/test_knockout_abstract_contracts.py
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: ready
+      summary: >-
+        Final read-only review found no findings, confirmed pre-limit policy
+        placement, safe local dependency direction, conservative cache effects,
+        and declared both the fix and pilot consolidation commit-ready.
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_knockout_abstract_contracts.py, tests/core/test_knockout.py, tests/core/test_artifact_coverage_abstract_contracts.py]
+      status: passed
+      summary: "All 25 focused and adjacent abstract/knockout tests passed."
+    - command: [uv, run, maid, validate, manifests/fix-knockout-abstract-contract-applicability.manifest.yaml, --mode, implementation, --packet]
+      status: passed
+      summary: "Implementation validation passed against plan-lock revision 2."
+    - command: [uv, run, maid, verify, --profile, deep, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, d7a0bfe]
+      status: passed
+      summary: "The assessed deep gate passed all 11 stages; only existing non-blocking E307 notices remained."

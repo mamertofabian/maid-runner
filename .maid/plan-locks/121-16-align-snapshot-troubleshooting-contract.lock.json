@@ -1,0 +1,159 @@
+{
+  "manifest_path": "manifests/121-16-align-snapshot-troubleshooting-contract.manifest.yaml",
+  "manifest_hash": "sha256-contract:5ea33a1f73adff3d5fd07ada978072367a2da416002efc9ca441b2404df5a2ad",
+  "test_hashes": {
+    "tests/test_constraint_evidence_docs.py": "sha256-pyast:v2:4d4ced80c92ddcad3313eb9efa7c91be0c11353db6c091c08a41b38e3d00acd6",
+    "tests/test_manifest_outcome_docs.py": "sha256-pyast:v2:4cc72361115799f3ab05e207eff826e4b8fc85b95a4c05af92b8dcd401cb221d"
+  },
+  "created_at": "2026-08-12T09:05:37.877336+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:576f794a8c1525dde8d2a810f59e44cdf98d8a0b40764a172826b26dc3ae9d2b",
+      "prior_test_hashes": {
+        "tests/test_constraint_evidence_docs.py": "sha256-pyast:v2:c825bde4c5cda27bb85c10d4b3662902c2f4d81b4a770d0adbf1f156a0aa3af3",
+        "tests/test_manifest_outcome_docs.py": "sha256-pyast:v2:4cc72361115799f3ab05e207eff826e4b8fc85b95a4c05af92b8dcd401cb221d"
+      },
+      "revised_at": "2026-08-12T09:05:50.053671+00:00",
+      "reason": "Adopt the approved snapshot-era E712 guidance assertions",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:576f794a8c1525dde8d2a810f59e44cdf98d8a0b40764a172826b26dc3ae9d2b",
+      "prior_test_hashes": {
+        "tests/test_constraint_evidence_docs.py": "sha256-pyast:v2:4d4ced80c92ddcad3313eb9efa7c91be0c11353db6c091c08a41b38e3d00acd6",
+        "tests/test_manifest_outcome_docs.py": "sha256-pyast:v2:4cc72361115799f3ab05e207eff826e4b8fc85b95a4c05af92b8dcd401cb221d"
+      },
+      "revised_at": "2026-08-12T09:05:55.597666+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-16-align-snapshot-troubleshooting-contract.manifest.yaml -> manifests/121-16-align-snapshot-troubleshooting-contract.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-16-align-snapshot-troubleshooting-contract.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-16-align-snapshot-troubleshooting-contract.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:5ea33a1f73adff3d5fd07ada978072367a2da416002efc9ca441b2404df5a2ad",
+      "prior_test_hashes": {
+        "tests/test_constraint_evidence_docs.py": "sha256-pyast:v2:4d4ced80c92ddcad3313eb9efa7c91be0c11353db6c091c08a41b38e3d00acd6",
+        "tests/test_manifest_outcome_docs.py": "sha256-pyast:v2:4cc72361115799f3ab05e207eff826e4b8fc85b95a4c05af92b8dcd401cb221d"
+      },
+      "revised_at": "2026-08-12T09:10:39.909816+00:00",
+      "reason": "Restore test-only-green evidence after promotion recaptured ordinary green evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": false,
+    "captured_at": "2026-08-12T09:10:40.808032+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_constraint_evidence_docs.py tests/test_manifest_outcome_docs.py",
+        "exit_code": 0,
+        "output_tail": "......                                                                   [100%]\n6 passed in 0.03s",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-16-align-snapshot-troubleshooting-contract.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ],
+    "mode": "test_only_green"
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/test_constraint_evidence_docs.py:test_constraint_evidence_docs_describe_opt_in_gates",
+      "tests/test_constraint_evidence_docs.py:test_constraint_evidence_docs_describe_opt_in_gates:kind=test_function",
+      "tests/test_constraint_evidence_docs.py:test_review_skill_payloads_quote_constraint_evidence_command",
+      "tests/test_constraint_evidence_docs.py:test_review_skill_payloads_quote_constraint_evidence_command:kind=test_function",
+      "tests/test_constraint_evidence_docs.py:test_troubleshooting_covers_e710_through_e712",
+      "tests/test_constraint_evidence_docs.py:test_troubleshooting_covers_e710_through_e712:kind=test_function"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "tests/test_constraint_evidence_docs.py"
+      ],
+      "read": [
+        ".claude/skills/maid-implementation-review/SKILL.md",
+        ".codex/skills/maid-implementation-review/SKILL.md",
+        "README.md",
+        "docs/maid_specs.md",
+        "docs/troubleshooting.md",
+        "manifests/068-04-document-constraint-evidence-gates.manifest.yaml",
+        "manifests/095-04-migrate-generated-profile-payloads.manifest.yaml",
+        "manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "tests/test_constraint_evidence_docs.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_constraint_evidence_docs_describe_opt_in_gates"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_troubleshooting_covers_e710_through_e712"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_review_skill_payloads_quote_constraint_evidence_command"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "docs/troubleshooting.md",
+        "README.md",
+        "docs/maid_specs.md",
+        ".claude/skills/maid-implementation-review/SKILL.md",
+        ".codex/skills/maid-implementation-review/SKILL.md",
+        "manifests/068-04-document-constraint-evidence-gates.manifest.yaml",
+        "manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml",
+        "manifests/095-04-migrate-generated-profile-payloads.manifest.yaml"
+      ]
+    },
+    "test_files": [
+      "tests/test_constraint_evidence_docs.py",
+      "tests/test_manifest_outcome_docs.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_constraint_evidence_docs.py tests/test_manifest_outcome_docs.py",
+      "uv run maid validate manifests/121-16-align-snapshot-troubleshooting-contract.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

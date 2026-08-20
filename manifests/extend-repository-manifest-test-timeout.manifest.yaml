@@ -1,0 +1,91 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: Give repository manifest-test batches enough bounded time on CI
+type: fix
+created: "2026-08-20T11:37:53Z"
+metadata:
+  planning_state: behavioral-contract
+  promotion_ready: true
+  tests_status: created
+  status: implementation-ready
+  tags: [ci, test-runner, timeout, release]
+  priority: critical
+description: |
+  Preserve the public `run_command` default timeout of 300 seconds, but have
+  the internal prepared-command path used by `maid test` and verify's test
+  stage pass an explicit 600-second bound. GitHub's aggregated repository
+  pytest batch now needs roughly 341 seconds, so the inherited default kills a
+  healthy command at exactly 300 seconds and contaminates the following
+  isolation command. The longer bound remains finite and applies only to
+  manifest-declared test commands.
+
+  This is additive policy coverage and does not supersede the existing
+  duration-informed worker or subprocess-cleanup contracts.
+temptations:
+- risk: Do not raise the public run_command default or remove timeout cleanup.
+  instead: Pass the longer finite bound only from the internal prepared manifest-test path.
+- risk: Do not hide genuine test failures by retrying failed commands.
+  instead: Preserve the first execution result and only prevent premature termination of a still-running command.
+files:
+  scope:
+  - path: maid_runner/core/test_runner.py
+    reason: The internal prepared-command composition owns the timeout passed to the unchanged command executor API.
+  create:
+  - path: tests/core/test_manifest_test_command_timeout.py
+    artifacts:
+    - kind: test_function
+      name: test_manifest_test_commands_use_release_safe_bounded_timeout
+      args:
+      - {name: tmp_path, type: Path}
+      - {name: monkeypatch, type: pytest.MonkeyPatch}
+      returns: None
+      description: Public repository execution aggregates compatible manifest commands and passes a 600-second bound to the command executor while retaining the public 300-second default.
+  read:
+  - maid_runner/core/_test_command_execution.py
+  - tests/core/test_test_runner.py
+validate:
+- uv run python -m pytest -q tests/core/test_manifest_test_command_timeout.py tests/core/test_test_runner.py
+outcome:
+  status: completed
+  completed_at: "2026-08-20T19:47:54+08:00"
+  summary: "Prepared manifest-test commands now receive a finite 600-second execution bound, allowing the aggregated repository suite to finish on GitHub while the public run_command default remains 300 seconds."
+  rationale: "GitHub artifacts proved that healthy aggregated pytest execution was killed at exactly 300 seconds; the later isolation failure was downstream contamination. The narrow internal override fixes the release gate without retrying failures, changing public API defaults, or weakening descendant cleanup."
+  agent:
+    model: gpt-5
+    provider: openai
+    client: codex
+    source: "Self-known model family; exact runtime slug and reasoning effort unavailable."
+    skills: [maid-planner, maid-evolver, maid-plan-review, maid-implementer, maid-implementation-review]
+  lessons:
+  - lesson_type: test-design
+    summary: "Timeout-policy coverage must exercise compatible-command aggregation and independently pin the public default, otherwise a single-command special case or broad default change can game the contract."
+    tags: [ci, timeout, aggregation, behavioral-contract]
+    paths: [tests/core/test_manifest_test_command_timeout.py]
+  - lesson_type: workflow
+    summary: "Machine-readable CI reports need command exit and duration evidence to distinguish a fixed timeout from an assertion failure when console output is redirected."
+    tags: [github-actions, diagnostics, maid-runner-feedback]
+    paths: [maid_runner/core/test_runner.py]
+  review_notes:
+  - source: independent-plan-reviewer
+    severity: fixed
+    summary: "Plan review required aggregated repository-path coverage, an explicit assertion that the public default remains 300, and contract wording aligned to that behavior before approval."
+  - source: independent-implementation-reviewer
+    severity: ready
+    summary: "The final review found no blockers and confirmed finite internal scope, unchanged cleanup/public semantics, behavioral coverage, plan-lock integrity, and additive no-supersede evolution."
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/core/test_manifest_test_command_timeout.py, tests/core/test_test_runner.py]
+    status: passed
+    summary: "All 89 focused timeout and test-runner tests passed."
+  - command: [uv, run, maid, validate]
+    status: passed
+    summary: "All 282 active manifests passed; 358 superseded manifests were skipped and none failed."
+  - command: [uv, run, maid, test]
+    status: passed
+    summary: "All 295 repository manifest commands passed."
+  - command: [uv, run, maid, verify, --base-ref, origin/main, --test-jobs, "1", --summary]
+    status: passed
+    summary: "The exact GitHub-equivalent verification passed all 8 stages in 243 seconds with only the known E307 advisory."

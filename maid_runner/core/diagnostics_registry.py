@@ -195,6 +195,11 @@ _DESCRIPTION_OVERRIDES = {
         "The delivery target is not a named branch ref, cannot be resolved, or "
         "contains covered committed bytes that differ from the attestation.",
     ),
+    ErrorCode.CHAIN_MERGE_EQUIVALENCE_REGRESSION.value: (
+        "Chain-merge evidence equivalence regressed",
+        "Recorded candidate coverage or knockout evidence is incomplete or weaker "
+        "than the pre-consolidation acceptance bar.",
+    ),
 }
 
 _RECIPE_TEMPLATES = {
@@ -305,6 +310,15 @@ _RECIPE_TEMPLATES = {
         instruction=(
             "Inspect {file} and the configured destination branch. Deliver the "
             "validated covered bytes or approve a new plan and attestation."
+        ),
+    ),
+    ErrorCode.CHAIN_MERGE_EQUIVALENCE_REGRESSION.value: RepairRecipe(
+        kind="edit-tests",
+        target="candidate tests for {file}",
+        instruction=(
+            "Restore coverage and knockout detection for {file}, regenerate "
+            "complete recorded evidence, and rerun the equivalence gate before "
+            "retiring any old tests."
         ),
     ),
 }

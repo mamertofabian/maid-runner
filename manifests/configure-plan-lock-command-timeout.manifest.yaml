@@ -1,0 +1,178 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Allow an explicit bounded command timeout when capturing plan-lock evidence
+type: fix
+created: '2026-08-20T08:41:42Z'
+metadata:
+  planning_state: behavioral-contract
+  promotion_ready: true
+  tests_status: created-red-confirmed
+  status: implementation-ready
+  source_bug_report: /home/atomrem/.maid/bug-report/20260820-142515-maid-runner-legacy-baseline-timeout.md
+  tags:
+  - plan-lock
+  - legacy-baseline
+  - timeout
+  - release-blocker
+  priority: high
+description: |
+  Add `maid plan lock --command-timeout <seconds>` so operators can raise the
+  existing 300-second per-command evidence-capture limit for legitimately slow
+  validation commands. The default remains 300 seconds, values must be positive,
+  and the override applies identically to ordinary red-phase capture and audited
+  legacy-green capture.
+
+  This is a backward-compatible additive evolution: both public capture
+  functions gain one optional integer argument, while existing callers retain
+  the current timeout. The CLI makes the override explicit and auditable in the
+  invoked command instead of trusting a hidden environment variable. Timeout
+  exits remain invalid evidence; the change only permits waiting longer for the
+  exact locked validation command.
+
+  The immediate reproduction is the committed 8110ca1 canonical snapshot batch:
+  `snapshot-cli-commands--main-2` includes `pytest tests/ -v`, which is green but
+  exceeds the fixed supervisor timeout before legacy evidence can be recorded.
+temptations:
+- risk: Do not relabel timeout exit -1 as red or green evidence.
+  instead: Preserve existing classification and only pass the explicit timeout to the owned command runner.
+- risk: Do not read an unrecorded environment variable to extend capture time.
+  instead: Expose a positive CLI integer with the current 300-second value as its visible default.
+- risk: Do not special-case the snapshot slug or weaken its historical validate commands.
+  instead: Fix the general evidence-capture boundary and rerun the exact committed command with a larger bound.
+- risk: Do not apply the override only to legacy capture while ordinary plan locking silently retains different behavior.
+  instead: Thread the same option through both public evidence-capture functions and cover both paths behaviorally.
+files:
+  edit:
+  - path: maid_runner/core/plan_lock.py
+    artifacts:
+    - kind: function
+      name: capture_red_phase_evidence
+      args:
+      - name: manifest_path
+        type: Path
+      - name: project_root
+        type: Path
+      - name: command_timeout_seconds
+        type: int
+        default: '300'
+      returns: RedPhaseEvidence
+      description: Capture ordinary red-phase evidence with a positive caller-selected per-command timeout while preserving invalid timeout classification.
+    - kind: function
+      name: capture_legacy_baseline_evidence
+      args:
+      - name: manifest_path
+        type: Path
+      - name: project_root
+        type: Path
+      - name: reason
+        type: str
+      - name: command_timeout_seconds
+        type: int
+        default: '300'
+      returns: LegacyBaselineEvidence
+      description: Capture audited legacy-green evidence with the same positive caller-selected per-command timeout.
+  scope:
+  - path: maid_runner/cli/commands/_main.py
+    reason: Register the positive --command-timeout plan-lock option with a 300-second default.
+  - path: maid_runner/cli/commands/plan.py
+    reason: Forward the parsed timeout to ordinary and legacy evidence capture without changing evidence classification.
+  create:
+  - path: tests/cli/test_plan_lock_command_timeout.py
+    artifacts:
+    - kind: test_function
+      name: test_plan_lock_parser_exposes_positive_command_timeout
+      args: []
+      returns: None
+      description: The parser defaults to 300 seconds, accepts a positive override, and rejects zero, negative, and non-integer values.
+    - kind: test_function
+      name: test_red_capture_uses_explicit_command_timeout
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: A sleeping red command times out as invalid under a short bound and records genuine red evidence under a sufficient bound.
+    - kind: test_function
+      name: test_legacy_capture_uses_explicit_command_timeout
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: A committed sleeping green command fails legacy migration under a short bound and records audited green evidence under a sufficient bound.
+    - kind: test_function
+      name: test_plan_lock_cli_forwards_command_timeout_to_legacy_capture
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: The public CLI fails without a sufficient override and creates a valid legacy lock when the explicit bound is long enough.
+    - kind: test_function
+      name: test_plan_lock_cli_forwards_command_timeout_to_red_capture
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: The public CLI preserves invalid timeout classification under a short bound and creates a red-evidence lock under a sufficient bound.
+  read:
+  - maid_runner/core/_test_command_execution.py
+  - tests/core/test_plan_lock_red_evidence.py
+  - tests/cli/test_plan_legacy_baseline_cmd.py
+validate:
+- uv run python -m pytest -q tests/cli/test_plan_lock_command_timeout.py tests/core/test_plan_lock_red_evidence.py tests/cli/test_plan_legacy_baseline_cmd.py
+outcome:
+  status: completed
+  completed_at: "2026-08-20T16:51:44+08:00"
+  summary: "Plan-lock evidence capture now accepts an explicit positive per-command timeout while preserving the 300-second default and invalid timeout classification for both ordinary red and audited legacy-green evidence."
+  rationale: "The fixed supervisor timeout blocked legitimate long-running legacy migrations. A narrow CLI option now forwards one validated bound through the existing capture functions and owned command runner without weakening command provenance, mutation guards, atomic lock publication, or exit-code-only evidence semantics."
+  lessons:
+  - lesson_type: validation
+    summary: "Operational evidence bounds should be explicit, positive, and threaded through the existing owned runner; extending wait time must not become a new evidence classification or bypass provenance and mutation guards."
+    tags:
+    - plan-lock
+    - command-timeout
+    - validation-trust
+    - maid-runner-feedback
+    paths:
+    - maid_runner/core/plan_lock.py
+    - maid_runner/cli/commands/plan.py
+    - tests/cli/test_plan_lock_command_timeout.py
+  - lesson_type: test-design
+    summary: "A manifest that declares existing behavioral tests as read dependencies must run them in its validation command; maid test E230 exposed the incomplete contract and stash-backed plan revision restored honest red evidence."
+    tags:
+    - behavioral-contract
+    - plan-revision
+    - test-coverage
+    - maid-runner-feedback
+    paths:
+    - manifests/configure-plan-lock-command-timeout.manifest.yaml
+    - tests/core/test_plan_lock_red_evidence.py
+    - tests/cli/test_plan_legacy_baseline_cmd.py
+  review_notes:
+  - source: independent-reviewer-subagent-timeout_impl_review
+    severity: ready
+    summary: "The fresh verdict-neutral review found no blocking findings and confirmed that timeout classification, defaults, CLI forwarding, legacy mutation guards, provenance, and atomic persistence remain intact."
+  - source: independent-reviewer-subagent-timeout_impl_review
+    severity: advisory
+    summary: "Optional future hardening could reject bool and positive float values for direct Python calls; the public CLI already enforces positive integers and the current typed API contract is satisfied."
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/cli/test_plan_lock_command_timeout.py]
+    status: passed
+    summary: "All five focused parser, direct-capture, timeout-classification, and CLI-forwarding scenarios passed."
+  - command: [uv, run, python, -m, pytest, -q, tests/core/test_plan_lock_red_evidence.py, tests/cli/test_plan_legacy_baseline_cmd.py, tests/cli/test_plan_cmd_red_evidence.py, tests/cli/test_plan_cmd.py]
+    status: passed
+    summary: "All 57 related plan-lock regression tests passed."
+  - command: [uv, run, maid, validate, manifests/configure-plan-lock-command-timeout.manifest.yaml, --mode, implementation, --packet]
+    status: passed
+    summary: "Implementation validation passed against plan-lock revision 3."
+  - command: [uv, run, maid, validate, --packet]
+    status: passed
+    summary: "All 282 active manifests passed; 354 superseded manifests were skipped and none failed."
+  - command: [uv, run, maid, test]
+    status: passed
+    summary: "All 299 repository manifest commands passed."
+  - command: [uv, run, maid, verify, --profile, deep, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, 107d2fd35b9a43182af64bcadc32b572601f18cc]
+    status: passed
+    summary: "All 11 deep handoff stages passed with zero blockers; only existing non-blocking E307 notices remained."

@@ -1,0 +1,303 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Record content-bound pytest timings and choose worker policy without changing execution"
+type: feature
+created: "2026-08-11T01:44:41Z"
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - pytest
+    - scheduling
+description: |
+  Prior measurements show runner-native workers are 3.1-3.4x faster for
+  expensive 80-284-file batches but slower for small batches; target count is
+  not a runtime predictor. Introduce only the advisory data and pure scheduling
+  decision in this child. It does not inject `-n`, execute pytest, or reuse a
+  pass.
+
+  Bind timing history to a format version, normalized node IDs, behavior-group
+  identity, and repository/test/config content digest. Missing, corrupt, stale,
+  or partially matching history follows an explicit unknown-history policy and
+  never filters nodes. The decision explains whether serial or workers would
+  be chosen; 121-07 owns resolved-environment capability checks, command
+  mutation, notices, and execution.
+temptations:
+  - risk: "Do not choose workers from target-file count."
+    instead: "Predict serial cost from recorded stable node IDs and use an explicit unknown-history policy."
+  - risk: "Do not treat timing history as test evidence or remove an unrecorded node."
+    instead: "Use history only to choose a scheduler and retain the exact selected node set."
+  - risk: "Do not silently trust stale or partially matching timing metadata."
+    instead: "Return a typed stale/partial state and apply the configured unknown-history decision."
+  - risk: "Do not combine policy and xdist execution before the isolation gate is green."
+    instead: "Keep this child side-effect-free; 121-07 depends on the full-suite 121-03 acceptance evidence."
+files:
+  create:
+    - path: maid_runner/core/_pytest_parallelism.py
+      artifacts:
+        - kind: class
+          name: PytestTimingHistory
+          description: "Immutable advisory per-node timing table with behavior/content bindings."
+        - kind: attribute
+          name: durations_ms
+          of: PytestTimingHistory
+          type: Mapping[str, float]
+        - kind: attribute
+          name: behavior_group_digest
+          of: PytestTimingHistory
+          type: str
+        - kind: attribute
+          name: input_digest
+          of: PytestTimingHistory
+          type: str
+        - kind: attribute
+          name: collected_at
+          of: PytestTimingHistory
+          type: str
+        - kind: attribute
+          name: format_version
+          of: PytestTimingHistory
+          type: int
+        - kind: class
+          name: PytestTimingHistoryLoad
+          description: "Typed load result that distinguishes current, missing, stale, corrupt, and unsupported advisory history."
+        - kind: attribute
+          name: history
+          of: PytestTimingHistoryLoad
+          type: PytestTimingHistory | None
+        - kind: attribute
+          name: state
+          of: PytestTimingHistoryLoad
+          type: str
+        - kind: class
+          name: PytestWorkerDecision
+          description: "Pure serial/worker decision plus stable disclosure reason."
+        - kind: attribute
+          name: use_workers
+          of: PytestWorkerDecision
+          type: bool
+        - kind: attribute
+          name: workers
+          of: PytestWorkerDecision
+          type: int | str
+        - kind: attribute
+          name: predicted_duration_ms
+          of: PytestWorkerDecision
+          type: float | None
+        - kind: attribute
+          name: history_state
+          of: PytestWorkerDecision
+          type: str
+        - kind: attribute
+          name: reason
+          of: PytestWorkerDecision
+          type: str
+        - kind: function
+          name: load_pytest_timing_history
+          args:
+            - name: project_root
+              type: Path
+            - name: behavior_group_digest
+              type: str
+            - name: input_digest
+              type: str
+          returns: PytestTimingHistoryLoad
+          description: "Returns current advisory history or a typed fail-closed reason why it cannot be used."
+        - kind: function
+          name: record_pytest_timing_history
+          args:
+            - name: project_root
+              type: Path
+            - name: behavior_group_digest
+              type: str
+            - name: input_digest
+              type: str
+            - name: node_durations_ms
+              type: Mapping[str, float]
+          returns: None
+          description: "Atomically records advisory timings without storing node outcomes or pass state."
+        - kind: function
+          name: predict_pytest_duration_ms
+          args:
+            - name: selected_nodeids
+              type: Sequence[str]
+            - name: history
+              type: PytestTimingHistory | None
+          returns: float | None
+          description: "Returns predicted serial cost only when every selected node has a valid timing."
+        - kind: function
+          name: choose_pytest_worker_policy
+          args:
+            - name: selected_nodeids
+              type: Sequence[str]
+            - name: history_load
+              type: PytestTimingHistoryLoad
+            - name: configured_workers
+              type: int | str
+            - name: threshold_ms
+              type: float
+            - name: parallel_without_history
+              type: bool
+          returns: PytestWorkerDecision
+          description: "Chooses serial/workers without changing, sorting, or filtering the selected nodes."
+    - path: tests/core/test_pytest_parallelism_policy.py
+      artifacts:
+        - kind: test_function
+          name: test_small_predicted_batch_stays_serial
+          args: []
+        - kind: test_function
+          name: test_expensive_predicted_batch_chooses_configured_workers
+          args: []
+        - kind: test_function
+          name: test_decision_never_changes_selected_nodeids
+          args: []
+        - kind: test_function
+          name: test_missing_or_partial_history_uses_explicit_unknown_policy
+          args: []
+        - kind: test_function
+          name: test_content_or_behavior_digest_change_invalidates_history
+          args: []
+        - kind: test_function
+          name: test_corrupt_history_is_not_treated_as_pass_or_zero_duration
+          args: []
+        - kind: test_function
+          name: test_recorded_history_contains_no_test_outcome
+          args: []
+        - kind: test_function
+          name: test_recording_preserves_other_behavior_groups_without_partial_files
+          args: []
+        - kind: test_function
+          name: test_recorded_nodeids_are_normalized_and_invalid_durations_rejected
+          args: []
+        - kind: test_function
+          name: test_empty_selection_and_single_worker_stay_serial
+          args: []
+        - kind: test_function
+          name: test_unsupported_format_is_typed_unknown_history
+          args: []
+        - kind: test_function
+          name: test_timing_records_and_decisions_are_immutable
+          args: []
+        - kind: test_function
+          name: test_invalid_timing_identity_or_worker_policy_fails_closed
+          args: []
+        - kind: test_function
+          name: test_concurrent_recording_preserves_every_behavior_group
+          args: []
+        - kind: test_function
+          name: test_duration_prediction_overflow_is_unknown
+          args: []
+  read:
+    - manifests/drafts/121-00-fast-verification-roadmap.epic.yaml
+    - manifests/drafts/121-03-prove-pytest-process-isolation-before-parallelism.manifest.yaml
+    - maid_runner/core/_test_command_batching.py
+    - maid_runner/core/_pytest_command_normalization.py
+    - docs/plans/full-and-deep-verification-performance-redesign.md
+validate:
+  - uv run python -m pytest -q tests/core/test_pytest_parallelism_policy.py
+  - uv run maid validate manifests/121-06-record-duration-informed-pytest-policy.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-11T02:29:18Z"
+  summary: "Added immutable, content-bound pytest timing history and a pure duration-informed serial/worker policy without changing test selection, command execution, or enabling xdist."
+  rationale: "121-06 establishes the advisory scheduling boundary required by 121-07: normalized node durations are stored without outcomes in independently atomic behavior-group files, stale/corrupt/unsupported/partial history is typed and fail-closed, and the pure decision uses stable reasons while preserving the caller's exact node sequence. Per-group hashed files prevent unrelated concurrent command groups from losing one another's records without relying on a process-local lock. This policy-only slice does not claim runtime savings by itself; the measured deep gate remained dominated by serialized artifact coverage at 1645.31 seconds."
+  lessons:
+    - lesson_type: design
+      summary: "Advisory timing state needs a typed load result; collapsing missing, stale, corrupt, and unsupported history to None erases the automation-visible reason needed for safe scheduler fallback."
+      tags:
+        - pytest
+        - scheduling
+        - fail-closed
+      paths:
+        - maid_runner/core/_pytest_parallelism.py
+    - lesson_type: concurrency
+      summary: "Atomic replacement prevents partial JSON but does not prevent lost updates in a shared read-modify-write file; independent content-keyed behavior-group files remove that cross-process race."
+      tags:
+        - persistence
+        - atomicity
+        - pytest
+      paths:
+        - maid_runner/core/_pytest_parallelism.py
+        - tests/core/test_pytest_parallelism_policy.py
+    - lesson_type: review-hardening
+      summary: "Independent review caught swapped manifest keyword signatures, non-canonical path aliases, duration-sum overflow, outcome-tainted persistence, and concurrent lost updates that structural validation and the initial focused suite missed."
+      tags:
+        - implementation-review
+        - signatures
+        - validation-trust
+      paths:
+        - manifests/121-06-record-duration-informed-pytest-policy.manifest.yaml
+        - tests/core/test_pytest_parallelism_policy.py
+  review_notes:
+    - source: independent-reviewer-subagent
+      severity: needs_changes
+      summary: "Initial review found five blockers: swapped public signature abstractions, shared-file concurrent lost updates, preservation of malformed outcome data, non-canonical node aliases, and unchecked prediction overflow."
+    - source: independent-reviewer-subagent
+      severity: ready
+      summary: "Final re-review reported no findings after all five blockers were corrected through one revision-4 contract update and focused adversarial tests."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_pytest_parallelism_policy.py
+      status: passed
+      summary: "All 15 focused policy, persistence, concurrency, normalization, corruption, and overflow tests passed in 0.14 seconds."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/121-06-record-duration-informed-pytest-policy.manifest.yaml
+      status: passed
+      summary: "Both manifest-declared commands passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository validation passed all 420 active manifests with 112 superseded manifests skipped."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --profile
+        - handoff
+        - --summary
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - b2ad62a
+      status: passed
+      summary: "Strict task-scoped handoff verification passed all 9 stages in 22.649 seconds with only pre-existing no-validator warnings."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: failed
+      summary: "The repository-wide gate completed in 200.55 seconds with 249 of 250 commands passing; the sole failure was the pre-existing live-121 epic inventory assertion, while the 121-06 command passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --profile
+        - deep
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - b2ad62a
+      status: failed
+      summary: "The exact assessed deep gate ran for 1645.31 seconds; schema, behavioral, and implementation passed before artifact coverage stopped with 1711 repository-wide historical E710/dataclass limitations and the known live-121 E900 inventory failure. This policy-only slice is not wired into execution and did not cause or improve that long pole."

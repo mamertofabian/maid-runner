@@ -212,6 +212,24 @@ def _batch_compatible_pytest_commands(
                 seen.add(part)
                 test_files.append(part)
 
+    selected_directories = []
+    root = Path(cwd).resolve()
+    for selector in test_files:
+        candidate = root / selector.partition("::")[0]
+        if "::" not in selector and candidate.is_dir():
+            selected_directories.append(candidate.resolve())
+    if selected_directories:
+        retained = []
+        for selector in test_files:
+            candidate = (root / selector.partition("::")[0]).resolve()
+            if any(
+                candidate != directory and candidate.is_relative_to(directory)
+                for directory in selected_directories
+            ):
+                continue
+            retained.append(selector)
+        test_files = retained
+
     options = first_options if len(option_sets) == 1 else behavior_options
     return prefix + tuple(test_files) + options
 

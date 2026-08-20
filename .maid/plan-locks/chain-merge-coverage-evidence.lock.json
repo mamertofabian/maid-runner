@@ -1,0 +1,571 @@
+{
+  "manifest_path": "manifests/chain-merge-coverage-evidence.manifest.yaml",
+  "manifest_hash": "sha256-contract:96370777d502fb234cae815fc3629e2a52e1d6579b42090520acc56cfaca3e61",
+  "test_hashes": {
+    "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:ca084737f48b674c42e30c09389da06391fdc7e5dbb409b4f2791d3c30707fc8",
+    "tests/core/test_chain_merge.py": "sha256-pyast:v2:4ecfb16d489d06abe016fdfc2dde560afd99c855cd68b9a1ce8a4dab9ef03587",
+    "tests/core/test_chain_merge_evidence.py": "sha256-pyast:v2:cc1a86d9af1b8f5cea8ba7f0d97cdbbc5de230b1c764996395b855d5a338431e",
+    "tests/core/test_chain_merge_detection_wiring.py": "sha256-pyast:v2:85164564b440cb333181134e3477b5588f7b8619f6e5225a50deb032813afc60",
+    "tests/cli/test_chain_merge_command.py": "sha256-pyast:v2:3415edc8f9171902e360f2a4a212f019b14d8dec6246aab1e4a9526209e09580",
+    "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3"
+  },
+  "created_at": "2026-08-15T22:15:58.356351+00:00",
+  "revision": 10,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:0933e6ecb8aa123d70e26f2c04adc29ad5b6f87da2f02613b70db7c16bd1b65f",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:038a3a011aebb1303ee373281710737b1137b9a92a74166f9d3142ef7749a785",
+        "tests/core/test_chain_merge.py": "sha256-pyast:v2:56817c04e3976e11dcea7a7f3c999412d26da2769594715ad2adfd10583bbbbf",
+        "tests/core/test_chain_merge_evidence.py": "sha256-pyast:v2:cc1a86d9af1b8f5cea8ba7f0d97cdbbc5de230b1c764996395b855d5a338431e",
+        "tests/core/test_chain_merge_detection_wiring.py": "sha256-pyast:v2:85164564b440cb333181134e3477b5588f7b8619f6e5225a50deb032813afc60",
+        "tests/cli/test_chain_merge_command.py": "sha256-pyast:v2:3415edc8f9171902e360f2a4a212f019b14d8dec6246aab1e4a9526209e09580",
+        "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3"
+      },
+      "revised_at": "2026-08-15T22:16:13.999218+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/chain-merge-coverage-evidence.manifest.yaml -> manifests/chain-merge-coverage-evidence.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:10a4aeda763770669057dbe5896c71c9b16fe98fb551b5bdca4251d822798fe2",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:038a3a011aebb1303ee373281710737b1137b9a92a74166f9d3142ef7749a785",
+        "tests/core/test_chain_merge.py": "sha256-pyast:v2:56817c04e3976e11dcea7a7f3c999412d26da2769594715ad2adfd10583bbbbf",
+        "tests/core/test_chain_merge_evidence.py": "sha256-pyast:v2:cc1a86d9af1b8f5cea8ba7f0d97cdbbc5de230b1c764996395b855d5a338431e",
+        "tests/core/test_chain_merge_detection_wiring.py": "sha256-pyast:v2:85164564b440cb333181134e3477b5588f7b8619f6e5225a50deb032813afc60",
+        "tests/cli/test_chain_merge_command.py": "sha256-pyast:v2:3415edc8f9171902e360f2a4a212f019b14d8dec6246aab1e4a9526209e09580",
+        "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3"
+      },
+      "revised_at": "2026-08-15T22:20:06.675736+00:00",
+      "reason": "Replace the coverage fixture's constant-return stub with equivalent non-stub logic so deep verification reaches the artifact-coverage cache; behavioral assertions and production contract are unchanged.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:10a4aeda763770669057dbe5896c71c9b16fe98fb551b5bdca4251d822798fe2",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:038a3a011aebb1303ee373281710737b1137b9a92a74166f9d3142ef7749a785",
+        "tests/core/test_chain_merge.py": "sha256-pyast:v2:56817c04e3976e11dcea7a7f3c999412d26da2769594715ad2adfd10583bbbbf",
+        "tests/core/test_chain_merge_evidence.py": "sha256-pyast:v2:cc1a86d9af1b8f5cea8ba7f0d97cdbbc5de230b1c764996395b855d5a338431e",
+        "tests/core/test_chain_merge_detection_wiring.py": "sha256-pyast:v2:85164564b440cb333181134e3477b5588f7b8619f6e5225a50deb032813afc60",
+        "tests/cli/test_chain_merge_command.py": "sha256-pyast:v2:3415edc8f9171902e360f2a4a212f019b14d8dec6246aab1e4a9526209e09580",
+        "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3"
+      },
+      "revised_at": "2026-08-15T22:20:35.532502+00:00",
+      "reason": "Use equivalent non-stub fixture logic so verify reaches artifact coverage; no behavioral assertion or production contract changed.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:10a4aeda763770669057dbe5896c71c9b16fe98fb551b5bdca4251d822798fe2",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:fba5c4d75724f2ebfa98ce4c0ce7c6a839339e841013987bd4fb74a857bce599",
+        "tests/core/test_chain_merge.py": "sha256-pyast:v2:56817c04e3976e11dcea7a7f3c999412d26da2769594715ad2adfd10583bbbbf",
+        "tests/core/test_chain_merge_evidence.py": "sha256-pyast:v2:cc1a86d9af1b8f5cea8ba7f0d97cdbbc5de230b1c764996395b855d5a338431e",
+        "tests/core/test_chain_merge_detection_wiring.py": "sha256-pyast:v2:85164564b440cb333181134e3477b5588f7b8619f6e5225a50deb032813afc60",
+        "tests/cli/test_chain_merge_command.py": "sha256-pyast:v2:3415edc8f9171902e360f2a4a212f019b14d8dec6246aab1e4a9526209e09580",
+        "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3"
+      },
+      "revised_at": "2026-08-15T22:22:00.989106+00:00",
+      "reason": "Make uncovered fixtures reference target through callable(target) without executing its body, so behavioral validation passes and artifact coverage records the intended E710; assertions about child 3b remain unchanged.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:10a4aeda763770669057dbe5896c71c9b16fe98fb551b5bdca4251d822798fe2",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:492a56df3f41451c4c7ac48c14473d687563e734974956b42957f61d0ba4ea67",
+        "tests/core/test_chain_merge.py": "sha256-pyast:v2:56817c04e3976e11dcea7a7f3c999412d26da2769594715ad2adfd10583bbbbf",
+        "tests/core/test_chain_merge_evidence.py": "sha256-pyast:v2:cc1a86d9af1b8f5cea8ba7f0d97cdbbc5de230b1c764996395b855d5a338431e",
+        "tests/core/test_chain_merge_detection_wiring.py": "sha256-pyast:v2:85164564b440cb333181134e3477b5588f7b8619f6e5225a50deb032813afc60",
+        "tests/cli/test_chain_merge_command.py": "sha256-pyast:v2:3415edc8f9171902e360f2a4a212f019b14d8dec6246aab1e4a9526209e09580",
+        "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3"
+      },
+      "revised_at": "2026-08-15T23:06:49.299178+00:00",
+      "reason": "Replace the child 5 draft read dependency with its sanctioned promoted manifest path after promotion.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "read:manifests/chain-merge-equivalence-gate.manifest.yaml"
+        ],
+        "files_removed": [
+          "read:manifests/drafts/chain-merge-equivalence-gate.manifest.yaml"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:96370777d502fb234cae815fc3629e2a52e1d6579b42090520acc56cfaca3e61",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:492a56df3f41451c4c7ac48c14473d687563e734974956b42957f61d0ba4ea67",
+        "tests/core/test_chain_merge.py": "sha256-pyast:v2:56817c04e3976e11dcea7a7f3c999412d26da2769594715ad2adfd10583bbbbf",
+        "tests/core/test_chain_merge_evidence.py": "sha256-pyast:v2:cc1a86d9af1b8f5cea8ba7f0d97cdbbc5de230b1c764996395b855d5a338431e",
+        "tests/core/test_chain_merge_detection_wiring.py": "sha256-pyast:v2:85164564b440cb333181134e3477b5588f7b8619f6e5225a50deb032813afc60",
+        "tests/cli/test_chain_merge_command.py": "sha256-pyast:v2:3415edc8f9171902e360f2a4a212f019b14d8dec6246aab1e4a9526209e09580",
+        "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3"
+      },
+      "revised_at": "2026-08-17T12:12:19.572147+00:00",
+      "reason": "Accept approved duplicate-owner E710 union regression evolution from fix-e710-chain-merged-coverage.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:96370777d502fb234cae815fc3629e2a52e1d6579b42090520acc56cfaca3e61",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:043d1553075ce9460a8299cf136e49e74287eeeb32f29e8d26b4ab44cdc2b39e",
+        "tests/core/test_chain_merge.py": "sha256-pyast:v2:56817c04e3976e11dcea7a7f3c999412d26da2769594715ad2adfd10583bbbbf",
+        "tests/core/test_chain_merge_evidence.py": "sha256-pyast:v2:cc1a86d9af1b8f5cea8ba7f0d97cdbbc5de230b1c764996395b855d5a338431e",
+        "tests/core/test_chain_merge_detection_wiring.py": "sha256-pyast:v2:85164564b440cb333181134e3477b5588f7b8619f6e5225a50deb032813afc60",
+        "tests/cli/test_chain_merge_command.py": "sha256-pyast:v2:3415edc8f9171902e360f2a4a212f019b14d8dec6246aab1e4a9526209e09580",
+        "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3"
+      },
+      "revised_at": "2026-08-17T12:13:11.971511+00:00",
+      "reason": "Accept approved aggregate-pass and persisted-conflict-UNKNOWN regression evolution.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:96370777d502fb234cae815fc3629e2a52e1d6579b42090520acc56cfaca3e61",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:5a6274e0945c05b118d74ee8f73fa213effe25ea7aab7dd3518d48105cd62783",
+        "tests/core/test_chain_merge.py": "sha256-pyast:v2:56817c04e3976e11dcea7a7f3c999412d26da2769594715ad2adfd10583bbbbf",
+        "tests/core/test_chain_merge_evidence.py": "sha256-pyast:v2:cc1a86d9af1b8f5cea8ba7f0d97cdbbc5de230b1c764996395b855d5a338431e",
+        "tests/core/test_chain_merge_detection_wiring.py": "sha256-pyast:v2:85164564b440cb333181134e3477b5588f7b8619f6e5225a50deb032813afc60",
+        "tests/cli/test_chain_merge_command.py": "sha256-pyast:v2:3415edc8f9171902e360f2a4a212f019b14d8dec6246aab1e4a9526209e09580",
+        "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3"
+      },
+      "revised_at": "2026-08-17T12:13:53.058992+00:00",
+      "reason": "Accept corrected approved duplicate-owner UNKNOWN assertion placement.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:96370777d502fb234cae815fc3629e2a52e1d6579b42090520acc56cfaca3e61",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_coverage_wiring.py": "sha256-pyast:v2:eaf7da1a0406eac585166cf21e2c6bb3fc4ed4af6910d3ea61c5f1749119b64a",
+        "tests/core/test_chain_merge.py": "sha256-pyast:v2:56817c04e3976e11dcea7a7f3c999412d26da2769594715ad2adfd10583bbbbf",
+        "tests/core/test_chain_merge_evidence.py": "sha256-pyast:v2:cc1a86d9af1b8f5cea8ba7f0d97cdbbc5de230b1c764996395b855d5a338431e",
+        "tests/core/test_chain_merge_detection_wiring.py": "sha256-pyast:v2:85164564b440cb333181134e3477b5588f7b8619f6e5225a50deb032813afc60",
+        "tests/cli/test_chain_merge_command.py": "sha256-pyast:v2:3415edc8f9171902e360f2a4a212f019b14d8dec6246aab1e4a9526209e09580",
+        "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3"
+      },
+      "revised_at": "2026-08-18T10:34:43.014804+00:00",
+      "reason": "accept approved shared-test change",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-15T22:22:06.878720+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_chain_merge_coverage_wiring.py",
+        "exit_code": 1,
+        "output_tail": "        )\n        payload = json.loads(capsys.readouterr().out)\n    \n>       assert payload[\"verdict\"] == \"blocked\"\nE       AssertionError: assert 'lean' == 'blocked'\nE         \nE         - blocked\nE         + lean\n\n/home/atomrem/projects/codefrost-dev/maid-runner-chain-merge/tests/core/test_chain_merge_coverage_wiring.py:250: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_chain_merge_coverage_wiring.py::test_recorded_coverage_source_distinguishes_covered_uncovered_and_unknown\nFAILED tests/core/test_chain_merge_coverage_wiring.py::test_recorded_coverage_source_satisfies_protocol\nFAILED tests/core/test_chain_merge_coverage_wiring.py::test_recorded_coverage_cache_reader_rejects_stale_evidence\nFAILED tests/core/test_chain_merge_coverage_wiring.py::test_recorded_coverage_source_keeps_e710_when_duplicate_evidence_conflicts\nFAILED tests/core/test_chain_merge_coverage_wiring.py::test_report_records_covered_and_unknown_coverage\nFAILED tests/core/test_chain_merge_coverage_wiring.py::test_report_blocks_recorded_e710_gap\nFAILED tests/core/test_chain_merge_coverage_wiring.py::test_absent_coverage_source_preserves_unknown_fallback\nFAILED tests/core/test_chain_merge_coverage_wiring.py::test_chain_merge_cli_emits_recorded_coverage_acceptance\n8 failed in 0.66s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest -q tests/core/test_chain_merge.py tests/core/test_chain_merge_evidence.py tests/core/test_chain_merge_detection_wiring.py tests/cli/test_chain_merge_command.py tests/cli/test_artifact_coverage_evidence_cache.py",
+        "exit_code": 0,
+        "output_tail": ".......................                                                  [100%]\n23 passed in 4.87s",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/chain_merge.py:attribute:ChainMergeAcceptanceSpec.coverage_available",
+      "maid_runner/core/chain_merge.py:attribute:ChainMergeAcceptanceSpec.coverage_available:kind=attribute",
+      "maid_runner/core/chain_merge.py:attribute:ChainMergeAcceptanceSpec.coverage_available:of=ChainMergeAcceptanceSpec",
+      "maid_runner/core/chain_merge.py:attribute:ChainMergeAcceptanceSpec.coverage_available:type=bool",
+      "maid_runner/core/chain_merge.py:attribute:ChainMergeAcceptanceSpec.required_covered_artifacts",
+      "maid_runner/core/chain_merge.py:attribute:ChainMergeAcceptanceSpec.required_covered_artifacts:kind=attribute",
+      "maid_runner/core/chain_merge.py:attribute:ChainMergeAcceptanceSpec.required_covered_artifacts:of=ChainMergeAcceptanceSpec",
+      "maid_runner/core/chain_merge.py:attribute:ChainMergeAcceptanceSpec.required_covered_artifacts:type=tuple[str, ...]",
+      "maid_runner/core/chain_merge.py:attribute:ChainMergeAcceptanceSpec.uncovered_coverage_artifacts",
+      "maid_runner/core/chain_merge.py:attribute:ChainMergeAcceptanceSpec.uncovered_coverage_artifacts:kind=attribute",
+      "maid_runner/core/chain_merge.py:attribute:ChainMergeAcceptanceSpec.uncovered_coverage_artifacts:of=ChainMergeAcceptanceSpec",
+      "maid_runner/core/chain_merge.py:attribute:ChainMergeAcceptanceSpec.uncovered_coverage_artifacts:type=tuple[str, ...]",
+      "maid_runner/core/chain_merge.py:attribute:ChainMergeAcceptanceSpec.unknown_coverage_artifacts",
+      "maid_runner/core/chain_merge.py:attribute:ChainMergeAcceptanceSpec.unknown_coverage_artifacts:kind=attribute",
+      "maid_runner/core/chain_merge.py:attribute:ChainMergeAcceptanceSpec.unknown_coverage_artifacts:of=ChainMergeAcceptanceSpec",
+      "maid_runner/core/chain_merge.py:attribute:ChainMergeAcceptanceSpec.unknown_coverage_artifacts:type=tuple[str, ...]",
+      "maid_runner/core/chain_merge.py:class:CoverageEvidenceSource",
+      "maid_runner/core/chain_merge.py:class:CoverageEvidenceSource:kind=class",
+      "maid_runner/core/chain_merge.py:function:build_chain_merge_report",
+      "maid_runner/core/chain_merge.py:function:build_chain_merge_report:arg=chain:type=ManifestChain:default=None",
+      "maid_runner/core/chain_merge.py:function:build_chain_merge_report:arg=coverage_source:type=CoverageEvidenceSource | None:default=None",
+      "maid_runner/core/chain_merge.py:function:build_chain_merge_report:arg=detection_source:type=DetectionEvidenceSource | None:default=None",
+      "maid_runner/core/chain_merge.py:function:build_chain_merge_report:arg=file_path:type=str:default=None",
+      "maid_runner/core/chain_merge.py:function:build_chain_merge_report:kind=function",
+      "maid_runner/core/chain_merge.py:function:build_chain_merge_report:returns=ChainMergeReport",
+      "maid_runner/core/chain_merge.py:method:CoverageEvidenceSource.coverage_for",
+      "maid_runner/core/chain_merge.py:method:CoverageEvidenceSource.coverage_for:arg=artifact_key:type=str:default=None",
+      "maid_runner/core/chain_merge.py:method:CoverageEvidenceSource.coverage_for:arg=file_path:type=str:default=None",
+      "maid_runner/core/chain_merge.py:method:CoverageEvidenceSource.coverage_for:kind=method",
+      "maid_runner/core/chain_merge.py:method:CoverageEvidenceSource.coverage_for:of=CoverageEvidenceSource",
+      "maid_runner/core/chain_merge.py:method:CoverageEvidenceSource.coverage_for:returns=Union[bool, None]",
+      "maid_runner/core/chain_merge_evidence.py:class:RecordedCoverageEvidenceSource",
+      "maid_runner/core/chain_merge_evidence.py:class:RecordedCoverageEvidenceSource:kind=class",
+      "maid_runner/core/chain_merge_evidence.py:function:coverage_source_for_file",
+      "maid_runner/core/chain_merge_evidence.py:function:coverage_source_for_file:arg=chain:type=ManifestChain:default=None",
+      "maid_runner/core/chain_merge_evidence.py:function:coverage_source_for_file:arg=file_path:type=str:default=None",
+      "maid_runner/core/chain_merge_evidence.py:function:coverage_source_for_file:arg=manifest_dir:type=str:default='manifests'",
+      "maid_runner/core/chain_merge_evidence.py:function:coverage_source_for_file:arg=project_root:type=str:default='.'",
+      "maid_runner/core/chain_merge_evidence.py:function:coverage_source_for_file:kind=function",
+      "maid_runner/core/chain_merge_evidence.py:function:coverage_source_for_file:returns=RecordedCoverageEvidenceSource",
+      "maid_runner/core/chain_merge_evidence.py:method:RecordedCoverageEvidenceSource.coverage_for",
+      "maid_runner/core/chain_merge_evidence.py:method:RecordedCoverageEvidenceSource.coverage_for:arg=artifact_key:type=str:default=None",
+      "maid_runner/core/chain_merge_evidence.py:method:RecordedCoverageEvidenceSource.coverage_for:arg=file_path:type=str:default=None",
+      "maid_runner/core/chain_merge_evidence.py:method:RecordedCoverageEvidenceSource.coverage_for:kind=method",
+      "maid_runner/core/chain_merge_evidence.py:method:RecordedCoverageEvidenceSource.coverage_for:of=RecordedCoverageEvidenceSource",
+      "maid_runner/core/chain_merge_evidence.py:method:RecordedCoverageEvidenceSource.coverage_for:returns=Union[bool, None]",
+      "maid_runner/core/chain_merge_evidence.py:method:RecordedCoverageEvidenceSource.from_cache",
+      "maid_runner/core/chain_merge_evidence.py:method:RecordedCoverageEvidenceSource.from_cache:arg=manifest_dir:type=str:default=None",
+      "maid_runner/core/chain_merge_evidence.py:method:RecordedCoverageEvidenceSource.from_cache:arg=manifests:type=Sequence[Manifest]:default=None",
+      "maid_runner/core/chain_merge_evidence.py:method:RecordedCoverageEvidenceSource.from_cache:arg=project_root:type=str:default=None",
+      "maid_runner/core/chain_merge_evidence.py:method:RecordedCoverageEvidenceSource.from_cache:kind=method",
+      "maid_runner/core/chain_merge_evidence.py:method:RecordedCoverageEvidenceSource.from_cache:of=RecordedCoverageEvidenceSource",
+      "maid_runner/core/chain_merge_evidence.py:method:RecordedCoverageEvidenceSource.from_cache:returns=RecordedCoverageEvidenceSource",
+      "tests/core/test_chain_merge_coverage_wiring.py:test_absent_coverage_source_preserves_unknown_fallback",
+      "tests/core/test_chain_merge_coverage_wiring.py:test_absent_coverage_source_preserves_unknown_fallback:kind=test_function",
+      "tests/core/test_chain_merge_coverage_wiring.py:test_chain_merge_cli_emits_recorded_coverage_acceptance",
+      "tests/core/test_chain_merge_coverage_wiring.py:test_chain_merge_cli_emits_recorded_coverage_acceptance:kind=test_function",
+      "tests/core/test_chain_merge_coverage_wiring.py:test_recorded_coverage_cache_reader_rejects_stale_evidence",
+      "tests/core/test_chain_merge_coverage_wiring.py:test_recorded_coverage_cache_reader_rejects_stale_evidence:kind=test_function",
+      "tests/core/test_chain_merge_coverage_wiring.py:test_recorded_coverage_source_distinguishes_covered_uncovered_and_unknown",
+      "tests/core/test_chain_merge_coverage_wiring.py:test_recorded_coverage_source_distinguishes_covered_uncovered_and_unknown:kind=test_function",
+      "tests/core/test_chain_merge_coverage_wiring.py:test_recorded_coverage_source_keeps_e710_when_duplicate_evidence_conflicts",
+      "tests/core/test_chain_merge_coverage_wiring.py:test_recorded_coverage_source_keeps_e710_when_duplicate_evidence_conflicts:kind=test_function",
+      "tests/core/test_chain_merge_coverage_wiring.py:test_recorded_coverage_source_satisfies_protocol",
+      "tests/core/test_chain_merge_coverage_wiring.py:test_recorded_coverage_source_satisfies_protocol:kind=test_function",
+      "tests/core/test_chain_merge_coverage_wiring.py:test_report_blocks_recorded_e710_gap",
+      "tests/core/test_chain_merge_coverage_wiring.py:test_report_blocks_recorded_e710_gap:kind=test_function",
+      "tests/core/test_chain_merge_coverage_wiring.py:test_report_records_covered_and_unknown_coverage",
+      "tests/core/test_chain_merge_coverage_wiring.py:test_report_records_covered_and_unknown_coverage:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_chain_merge_coverage_wiring.py"
+      ],
+      "edit": [
+        "maid_runner/core/chain_merge.py",
+        "maid_runner/core/chain_merge_evidence.py"
+      ],
+      "read": [
+        "AGENTS.md",
+        "maid_runner/core/artifact_coverage.py",
+        "maid_runner/core/chain.py",
+        "maid_runner/core/result.py",
+        "maid_runner/core/types.py",
+        "manifests/121-21-persist-artifact-coverage-evidence-cache.manifest.yaml",
+        "manifests/chain-merge-equivalence-gate.manifest.yaml",
+        "manifests/chain-merge-evidence-sources.manifest.yaml",
+        "manifests/chain-merge-fragmentation-report.manifest.yaml",
+        "manifests/chain-merge-report-consumes-evidence.manifest.yaml"
+      ],
+      "scope": [
+        "maid_runner/cli/commands/_format.py",
+        "maid_runner/cli/commands/chain.py",
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/core/_artifact_coverage_cache.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_chain_merge_coverage_wiring.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_recorded_coverage_source_distinguishes_covered_uncovered_and_unknown"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_recorded_coverage_source_satisfies_protocol"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_recorded_coverage_cache_reader_rejects_stale_evidence"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_recorded_coverage_source_keeps_e710_when_duplicate_evidence_conflicts"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_report_records_covered_and_unknown_coverage"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_report_blocks_recorded_e710_gap"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_absent_coverage_source_preserves_unknown_fallback"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_chain_merge_cli_emits_recorded_coverage_acceptance"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/chain_merge.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "CoverageEvidenceSource",
+              "description": "Narrow injected Protocol returning recorded execution coverage for one file-qualified artifact, or None when evidence is unknown."
+            },
+            {
+              "kind": "method",
+              "name": "coverage_for",
+              "of": "CoverageEvidenceSource",
+              "args": [
+                {
+                  "name": "file_path",
+                  "type": "str"
+                },
+                {
+                  "name": "artifact_key",
+                  "type": "str"
+                }
+              ],
+              "returns": "Union[bool, None]"
+            },
+            {
+              "kind": "attribute",
+              "name": "coverage_available",
+              "of": "ChainMergeAcceptanceSpec",
+              "type": "bool"
+            },
+            {
+              "kind": "attribute",
+              "name": "required_covered_artifacts",
+              "of": "ChainMergeAcceptanceSpec",
+              "type": "tuple[str, ...]"
+            },
+            {
+              "kind": "attribute",
+              "name": "uncovered_coverage_artifacts",
+              "of": "ChainMergeAcceptanceSpec",
+              "type": "tuple[str, ...]"
+            },
+            {
+              "kind": "attribute",
+              "name": "unknown_coverage_artifacts",
+              "of": "ChainMergeAcceptanceSpec",
+              "type": "tuple[str, ...]"
+            },
+            {
+              "kind": "function",
+              "name": "build_chain_merge_report",
+              "description": "Preserve the existing detection report while optionally recording coverage acceptance and forcing BLOCKED for recorded E710 gaps.",
+              "args": [
+                {
+                  "name": "file_path",
+                  "type": "str"
+                },
+                {
+                  "name": "chain",
+                  "type": "ManifestChain"
+                },
+                {
+                  "name": "detection_source",
+                  "type": "DetectionEvidenceSource | None"
+                },
+                {
+                  "name": "coverage_source",
+                  "type": "CoverageEvidenceSource | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "ChainMergeReport"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/chain_merge_evidence.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "RecordedCoverageEvidenceSource",
+              "description": "File-qualified CoverageEvidenceSource backed only by a current validated artifact-coverage report."
+            },
+            {
+              "kind": "method",
+              "name": "coverage_for",
+              "of": "RecordedCoverageEvidenceSource",
+              "args": [
+                {
+                  "name": "file_path",
+                  "type": "str"
+                },
+                {
+                  "name": "artifact_key",
+                  "type": "str"
+                }
+              ],
+              "returns": "Union[bool, None]"
+            },
+            {
+              "kind": "method",
+              "name": "from_cache",
+              "of": "RecordedCoverageEvidenceSource",
+              "args": [
+                {
+                  "name": "manifests",
+                  "type": "Sequence[Manifest]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "str"
+                },
+                {
+                  "name": "manifest_dir",
+                  "type": "str"
+                }
+              ],
+              "returns": "RecordedCoverageEvidenceSource"
+            },
+            {
+              "kind": "function",
+              "name": "coverage_source_for_file",
+              "args": [
+                {
+                  "name": "chain",
+                  "type": "ManifestChain"
+                },
+                {
+                  "name": "file_path",
+                  "type": "str"
+                },
+                {
+                  "name": "project_root",
+                  "type": "str",
+                  "default": "'.'"
+                },
+                {
+                  "name": "manifest_dir",
+                  "type": "str",
+                  "default": "'manifests'"
+                }
+              ],
+              "returns": "RecordedCoverageEvidenceSource"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/artifact_coverage.py",
+        "maid_runner/core/chain.py",
+        "maid_runner/core/result.py",
+        "maid_runner/core/types.py",
+        "manifests/121-21-persist-artifact-coverage-evidence-cache.manifest.yaml",
+        "manifests/chain-merge-fragmentation-report.manifest.yaml",
+        "manifests/chain-merge-evidence-sources.manifest.yaml",
+        "manifests/chain-merge-report-consumes-evidence.manifest.yaml",
+        "manifests/chain-merge-equivalence-gate.manifest.yaml",
+        "AGENTS.md"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_artifact_coverage_cache.py",
+          "reason": "Extract the existing private hermetic key, validated reader/writer, and payload reconstruction from verify.py so verification and chain merge reuse one implementation; expose no public artifacts."
+        },
+        {
+          "path": "maid_runner/cli/commands/verify.py",
+          "reason": "Import the extracted private cache helpers without changing verification behavior or public signatures; existing 121-21 and hardening tests pin the producer contract."
+        },
+        {
+          "path": "maid_runner/cli/commands/chain.py",
+          "reason": "Wire the per-file recorded coverage source into the existing single-file report without changing cmd_chain's public signature."
+        },
+        {
+          "path": "maid_runner/cli/commands/_format.py",
+          "reason": "Extend the existing public formatter's JSON and text payload with the new coverage acceptance fields without changing its signature."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_artifact_coverage_evidence_cache.py",
+      "tests/cli/test_chain_merge_command.py",
+      "tests/core/test_chain_merge.py",
+      "tests/core/test_chain_merge_coverage_wiring.py",
+      "tests/core/test_chain_merge_detection_wiring.py",
+      "tests/core/test_chain_merge_evidence.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_chain_merge_coverage_wiring.py",
+      "uv run python -m pytest -q tests/core/test_chain_merge.py tests/core/test_chain_merge_evidence.py tests/core/test_chain_merge_detection_wiring.py tests/cli/test_chain_merge_command.py tests/cli/test_artifact_coverage_evidence_cache.py"
+    ]
+  }
+}

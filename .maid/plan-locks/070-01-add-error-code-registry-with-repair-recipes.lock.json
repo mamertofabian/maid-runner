@@ -2,10 +2,10 @@
   "manifest_path": "manifests/070-01-add-error-code-registry-with-repair-recipes.manifest.yaml",
   "manifest_hash": "sha256-contract:97ae13e7ad8d432ef05c0ccd82a114bfdde79463f7935c98ff21b0e2279eda53",
   "test_hashes": {
-    "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:eaccf39d4fc8c9f04327c0eebe78f5bca46918b1c9d4616c58564f27f2157748"
+    "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:d9428231f4f91827521a818c261dca44a3eaa08aaa343a14aa9ed13a48badb4b"
   },
   "created_at": "2026-06-13T21:43:28.711525+00:00",
-  "revision": 5,
+  "revision": 6,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:486873f27c854af1f27084a31f5c96caacfd6f55a9e86dac37b41c616e36a8fa",
@@ -55,6 +55,23 @@
           "read:manifests/drafts/065-00-ci-native-sarif-reporting.epic.yaml",
           "read:tests/core/test_diagnostics_registry.py"
         ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:97ae13e7ad8d432ef05c0ccd82a114bfdde79463f7935c98ff21b0e2279eda53",
+      "prior_test_hashes": {
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:eaccf39d4fc8c9f04327c0eebe78f5bca46918b1c9d4616c58564f27f2157748"
+      },
+      "revised_at": "2026-08-16T08:30:32.260460+00:00",
+      "reason": "Accept the approved E715 diagnostics-registry test expansion from chain-merge child 5",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
         "files_removed": [],
         "validate_commands_added": [],
         "validate_commands_removed": []

@@ -1,0 +1,193 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Let chain-merge equivalence require detecting-nodeid evidence only for artifact kinds the knockout engine can actually mutate"
+type: fix
+created: "2026-08-19T14:26:05Z"
+metadata:
+  priority: high
+  tags: [chain-merge, equivalence, knockout, evidence, regression]
+description: |
+  Chain-merge reports currently place every required artifact into the knockout
+  detection partition. The knockout engine deliberately mutates only functions
+  and methods, so classes, attributes, enums, and other declared kinds can never
+  leave `unknown_detection_artifacts`. E715 consequently rejects every baseline
+  containing a non-knockout kind no matter how much deep evidence is generated.
+
+  Add one public artifact-key policy helper and use it consistently in report
+  construction, strict baseline loading, core equivalence invariants, and text
+  progress rendering. The complete `required_artifacts` contract and all
+  artifact-coverage partitions remain unchanged. Detection evidence must form a
+  complete partition of only function and method artifacts; supported artifacts
+  still fail closed when evidence is missing, while evidence claimed for an
+  unsupported kind is malformed rather than silently trusted.
+
+  This is an additive behavioral evolution. Existing public signatures remain
+  unchanged and the new helper is backward compatible, so the manifest chain
+  remains active rather than superseding the large original report and
+  equivalence contracts. The refinement narrows an impossible evidence demand;
+  it does not weaken coverage or contract-identity equivalence.
+temptations:
+  - risk: "Do not remove classes, attributes, enums, or other non-knockout kinds from required_artifacts or artifact-coverage checks."
+    instead: "Keep the complete merged contract and coverage partitions intact; narrow only the detecting-nodeid partition."
+  - risk: "Do not fabricate detecting nodeids for unsupported kinds from coverage or ordinary green tests."
+    instead: "Classify applicability from the declared artifact identity and require real persisted knockout evidence only for functions and methods."
+  - risk: "Do not let baseline JSON omit a function or method from both detection categories, or claim detection for a class or attribute."
+    instead: "Apply the same canonical policy in the strict loader and public core comparator so malformed partitions fail closed."
+  - risk: "Do not special-case outcome_enrichment.py or the current pilot's artifact names."
+    instead: "Derive eligibility generically from the merge key embedded in every artifact contract key, including exact signature keys."
+  - risk: "Do not report detection progress against all contract artifacts once only a subset is applicable."
+    instead: "Render the denominator from the canonical knockout-eligible artifact set while leaving coverage progress based on the full contract."
+files:
+  create:
+    - path: tests/core/test_chain_merge_non_knockout_detection.py
+      artifacts:
+        - kind: test_function
+          name: test_chain_report_limits_detection_to_knockout_capable_artifacts
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+        - kind: test_function
+          name: test_chain_report_keeps_only_supported_artifacts_unknown_when_cold
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+        - kind: test_function
+          name: test_equivalence_accepts_complete_mixed_artifact_evidence
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_equivalence_rejects_detection_claims_for_unsupported_artifacts
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_equivalence_does_not_require_detection_source_without_eligible_artifacts
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_cli_accepts_mixed_baseline_and_reports_only_candidate_debt
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: monkeypatch, type: pytest.MonkeyPatch}
+            - {name: capsys, type: "pytest.CaptureFixture[str]"}
+          returns: None
+        - kind: test_function
+          name: test_cli_rejects_detection_claimed_for_unsupported_artifact
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: monkeypatch, type: pytest.MonkeyPatch}
+            - {name: capsys, type: "pytest.CaptureFixture[str]"}
+          returns: None
+        - kind: test_function
+          name: test_cli_rejects_supported_artifact_missing_from_detection_partition
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: monkeypatch, type: pytest.MonkeyPatch}
+            - {name: capsys, type: "pytest.CaptureFixture[str]"}
+          returns: None
+  edit:
+    - path: maid_runner/core/chain_merge.py
+      artifacts:
+        - kind: function
+          name: artifact_requires_knockout_detection
+          args:
+            - {name: artifact_key, type: str}
+          returns: bool
+          description: "Return whether an artifact contract key identifies a function or method that the knockout engine can mutate."
+        - kind: function
+          name: build_chain_merge_report
+          args:
+            - {name: file_path, type: str}
+            - {name: chain, type: ManifestChain}
+            - {name: detection_source, type: "DetectionEvidenceSource | None"}
+            - {name: coverage_source, type: "CoverageEvidenceSource | None", default: "None"}
+          returns: ChainMergeReport
+          description: "Build the complete chain report while requesting detecting-nodeid evidence only for knockout-capable artifacts."
+    - path: maid_runner/core/chain_merge_equivalence.py
+      artifacts:
+        - kind: function
+          name: check_merge_equivalence
+          args:
+            - {name: file_path, type: str}
+            - {name: acceptance_bar, type: ChainMergeAcceptanceSpec}
+            - {name: candidate, type: ChainMergeAcceptanceSpec}
+            - {name: baseline_blocked, type: bool, default: "False"}
+          returns: MergeEquivalenceResult
+          description: "Require complete contract and coverage evidence plus a complete detection partition for every knockout-capable artifact on both sides."
+    - path: maid_runner/cli/commands/_format.py
+      artifacts:
+        - kind: function
+          name: format_chain_merge_report
+          args:
+            - {name: report, type: ChainMergeReport}
+            - {name: json_mode, type: bool, default: "False"}
+          returns: str
+          description: "Render detection progress against the knockout-capable subset and coverage progress against the full contract."
+  scope:
+    - path: maid_runner/cli/commands/chain.py
+      reason: "Make the private strict baseline loader validate detection partitions against the canonical knockout-applicability policy without changing CLI signatures or JSON fields."
+  read:
+    - maid_runner/core/knockout.py
+    - maid_runner/core/types.py
+    - maid_runner/core/chain_merge_evidence.py
+    - manifests/chain-merge-fragmentation-report.manifest.yaml
+    - manifests/chain-merge-equivalence-gate.manifest.yaml
+    - manifests/chain-merge-coverage-evidence.manifest.yaml
+    - tests/core/test_chain_merge.py
+    - tests/core/test_chain_merge_equivalence.py
+    - tests/cli/test_chain_merge_equivalence_command.py
+    - tests/cli/test_chain_merge_formatter_contract.py
+validate:
+  - uv run python -m pytest -q tests/core/test_chain_merge_non_knockout_detection.py tests/core/test_chain_merge.py tests/core/test_chain_merge_equivalence.py
+  - uv run python -m pytest -q tests/cli/test_chain_merge_equivalence_command.py tests/cli/test_chain_merge_formatter_contract.py tests/core/test_chain_merge_deep_detection_roundtrip.py
+outcome:
+  status: completed
+  completed_at: "2026-08-19T14:48:43Z"
+  summary: "Chain-merge equivalence now requires detecting-nodeid evidence only for function and method artifacts that the knockout engine can actually mutate, while preserving full contract and coverage checks."
+  rationale: |
+    A single public artifact-key policy now drives report construction, strict
+    baseline loading, core equivalence validation, and text progress rendering.
+    Classes, attributes, enums, interfaces, types, namespaces, and test
+    functions remain in the complete required-artifact and coverage partitions
+    but no longer create impossible detection debt. Exact signature keys are
+    decoded through their length-prefixed merge key, and malformed mixed-kind
+    detection partitions continue to fail closed. Implementation review found
+    and closed the all-non-knockout edge case by requiring an available
+    detection source only when at least one eligible artifact exists.
+  lessons:
+    - lesson_type: validation-trust
+      summary: "Evidence availability is meaningful only when the corresponding canonical evidence domain is non-empty; unrelated artifact kinds must not create impossible proof obligations."
+      tags: [maid-runner-feedback, chain-merge, knockout, equivalence]
+      paths:
+        - maid_runner/core/chain_merge.py
+        - maid_runner/core/chain_merge_equivalence.py
+        - maid_runner/cli/commands/chain.py
+  review_notes:
+    - source: independent-implementation-reviewer-non_knockout_impl_review
+      severity: ready
+      summary: "Review identified and verified the all-non-knockout availability correction, then confirmed scope compliance, strict partitions, independent baseline/candidate eligibility, plan-lock integrity, and no remaining findings."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_chain_merge_non_knockout_detection.py, tests/core/test_chain_merge.py, tests/core/test_chain_merge_equivalence.py]
+      status: passed
+      summary: "All 36 focused report, comparator, classifier, and strict-loader contract tests passed."
+    - command: [uv, run, python, -m, pytest, -q, tests/cli/test_chain_merge_equivalence_command.py, tests/cli/test_chain_merge_formatter_contract.py, tests/core/test_chain_merge_deep_detection_roundtrip.py]
+      status: passed
+      summary: "All 9 adjacent CLI, formatter, and deep-evidence tests passed."
+    - command: [uv, run, python, -m, pytest, -q, "$(rg --files tests | rg 'chain_merge')"]
+      status: passed
+      summary: "All 97 chain-merge tests passed."
+    - command: [uv, run, maid, validate, manifests/fix-chain-equivalence-non-knockout-artifacts.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "Implementation validation matched the approved revision-3 contract and recorded red evidence."
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: "All 273 active manifests passed with no failures."
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: "All 299 repository manifest command groups passed after installing the worktree's locked TypeScript dependency."
+    - command: [uv, run, maid, verify, --profile, deep, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, 3164f31]
+      status: passed
+      summary: "Independent review ran the exact assessed deep gate and all 11 stages passed with only existing E307 advisories."

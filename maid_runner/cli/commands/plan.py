@@ -115,6 +115,7 @@ def cmd_plan_lock(args: argparse.Namespace) -> int:
     ctx = _PlanContext.from_args(args)
     legacy_baseline = bool(getattr(args, "legacy_baseline", False))
     reason = getattr(args, "reason", None)
+    command_timeout = getattr(args, "command_timeout", 300)
 
     if legacy_baseline and getattr(args, "no_run", False):
         print_error(
@@ -157,15 +158,29 @@ def cmd_plan_lock(args: argparse.Namespace) -> int:
             lock = replace(
                 lock,
                 legacy_baseline=capture_legacy_baseline_evidence(
-                    ctx.manifest_path, ctx.project_root, reason
+                    ctx.manifest_path,
+                    ctx.project_root,
+                    reason,
+                    command_timeout_seconds=command_timeout,
                 ).to_payload(),
             )
         elif not getattr(args, "no_run", False):
+            captured = capture_red_phase_evidence(
+                ctx.manifest_path,
+                ctx.project_root,
+                command_timeout_seconds=command_timeout,
+            )
+            evidence = captured.to_payload()
+            if not _red_evidence_payload_is_valid(evidence):
+                print_error(
+                    "maid plan lock did not capture valid red evidence.\n"
+                    + _format_red_evidence_capture_details(evidence),
+                    json_mode=ctx.json_mode,
+                )
+                return 1
             lock = replace(
                 lock,
-                red_evidence=capture_red_phase_evidence(
-                    ctx.manifest_path, ctx.project_root
-                ).to_payload(),
+                red_evidence=evidence,
             )
         temporary_lock_path = ctx.lock_path.with_name(
             f".{ctx.lock_path.name}.{uuid.uuid4().hex}.tmp"
@@ -284,7 +299,8 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
     if preserve_red_evidence and preserved_evidence_class is None:
         print_error(
             "--preserve-red-evidence requires existing valid red or "
-            "test-only-green evidence, or a valid legacy baseline.",
+            "test-only-green evidence, or a valid legacy baseline in the "
+            "existing plan lock.",
             json_mode=ctx.json_mode,
         )
         return 2
@@ -626,8 +642,12 @@ def _test_only_green_payload_is_valid(evidence: object) -> bool:
         and isinstance(commands, list)
         and all(
             isinstance(command, dict)
+            and isinstance(command.get("command"), str)
+            and bool(command.get("command"))
             and command.get("classification") == "not_red"
+            and type(command.get("exit_code")) is int
             and command.get("exit_code") == 0
+            and isinstance(command.get("output_tail"), str)
             for command in commands
         )
     )

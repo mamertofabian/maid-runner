@@ -4,10 +4,10 @@
   "test_hashes": {
     "tests/core/test_manifest_event_log.py": "sha256-pyast:v2:0fbf2d9d0c67b4c61697225fd132979c7da8d70e4d7900ee42a17dfab4235238",
     "tests/cli/test_validate_cmd.py": "sha256-pyast:v2:f4d15bda00505a0416994fbe2cdefa40891b53d1cc311b4e0b0c5395e7cdeb81",
-    "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec"
+    "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d"
   },
   "created_at": "2026-06-17T03:00:03.061118+00:00",
-  "revision": 24,
+  "revision": 26,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:140eed0b7817ce7f44c1a7a42bf7945ac82a75dcf8adcdfbb92ec7eb2f2db9d2",
@@ -300,6 +300,44 @@
           "read:manifests/059-01-warn-all-ambiguous-created-timestamps.manifest.yaml",
           "read:manifests/060-01-keep-created-chain-warnings-advisory-in-verify.manifest.yaml"
         ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:63ce7334e67b98fa592eea006aa52d2dc5b25d40569a7ed11237244d7b0b74ba",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_event_log.py": "sha256-pyast:v2:0fbf2d9d0c67b4c61697225fd132979c7da8d70e4d7900ee42a17dfab4235238",
+        "tests/cli/test_validate_cmd.py": "sha256-pyast:v2:f4d15bda00505a0416994fbe2cdefa40891b53d1cc311b4e0b0c5395e7cdeb81",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:ab8e7bb6947299981d0f4188554d8076ded447eeedc5afe9ffb29fb78cdaa8ec"
+      },
+      "revised_at": "2026-08-11T03:36:50.706733+00:00",
+      "reason": "accept approved 121-07 shared behavioral contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:63ce7334e67b98fa592eea006aa52d2dc5b25d40569a7ed11237244d7b0b74ba",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_event_log.py": "sha256-pyast:v2:0fbf2d9d0c67b4c61697225fd132979c7da8d70e4d7900ee42a17dfab4235238",
+        "tests/cli/test_validate_cmd.py": "sha256-pyast:v2:f4d15bda00505a0416994fbe2cdefa40891b53d1cc311b4e0b0c5395e7cdeb81",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:644faa55d5cbc97db5634d13174e552ce292e45875a1078d6d521234fc950a83"
+      },
+      "revised_at": "2026-08-11T04:03:22.089089+00:00",
+      "reason": "accept final approved 121-07 shared implementation and test hashes",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
         "files_removed": [],
         "validate_commands_added": [],
         "validate_commands_removed": []

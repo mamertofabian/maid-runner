@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Sequence
 
@@ -17,6 +18,8 @@ def test_strict_preview_propagates_strict_defaults_to_nested_validation(
     outer_manifest = _write_nested_validation_project(tmp_path)
     monkeypatch.chdir(tmp_path)
     relative_manifest = str(outer_manifest.relative_to(tmp_path))
+    executor = _StrictAwareExecutor(tmp_path)
+    _install_executor(monkeypatch, executor)
 
     default_exit = main(
         [
@@ -84,6 +87,8 @@ def test_strict_delta_reports_nested_default_gate_regression_without_failing_def
 
     outer_manifest = _write_nested_validation_project(tmp_path)
     monkeypatch.chdir(tmp_path)
+    executor = _StrictAwareExecutor(tmp_path)
+    _install_executor(monkeypatch, executor)
 
     exit_code = main(
         [
@@ -113,6 +118,9 @@ def test_inherited_strict_boundary_blocks_explicit_nested_coverage_modes(
     capsys,
 ) -> None:
     from maid_runner.cli.commands._main import main
+    from maid_runner.core._test_command_execution import (
+        _strict_validation_test_environment,
+    )
 
     modes = {
         "artifact-coverage": ("--artifact-coverage",),
@@ -132,24 +140,27 @@ def test_inherited_strict_boundary_blocks_explicit_nested_coverage_modes(
             guard_reentry=True,
         )
         monkeypatch.chdir(project_root)
+        executor = _StrictAwareExecutor(project_root)
+        _install_executor(monkeypatch, executor)
 
-        exit_code = main(
-            [
-                "validate",
-                str(outer_manifest.relative_to(project_root)),
-                "--mode",
-                "schema",
-                "--no-chain",
-                "--strict-preview",
-                "--json",
-            ]
-        )
+        with _strict_validation_test_environment(True, process_wide=True):
+            exit_code = main(
+                [
+                    "validate",
+                    str(outer_manifest.relative_to(project_root)),
+                    "--mode",
+                    "schema",
+                    "--no-chain",
+                    *nested_options,
+                    "--json",
+                ]
+            )
 
         payload = json.loads(capsys.readouterr().out)
         assert exit_code == 0, label
-        assert payload["strict_preview"] is True
-        assert payload["artifact_coverage"]["success"] is True
-        assert (project_root / ".nested-execution-count").read_text() == "1"
+        assert payload["success"] is True
+        assert executor.calls == []
+        assert not (project_root / ".nested-execution-count").exists()
 
 
 def test_forged_internal_environment_cannot_suppress_top_level_artifact_coverage(
@@ -176,6 +187,8 @@ def test_forged_internal_environment_cannot_suppress_top_level_artifact_coverage
         "chosen-token",
     )
     monkeypatch.chdir(tmp_path)
+    executor = _StrictAwareExecutor(tmp_path, always_unexecuted=True)
+    _install_executor(monkeypatch, executor)
 
     exit_code = main(
         [
@@ -195,9 +208,79 @@ def test_forged_internal_environment_cannot_suppress_top_level_artifact_coverage
     assert [error["code"] for error in payload["artifact_coverage"]["errors"]] == [
         "E710"
     ]
+    assert len(executor.calls) == 1
 
 
 def test_inherited_strict_boundary_reaches_nested_validation_in_worker_thread(
+    tmp_path: Path,
+    monkeypatch,
+    capsys,
+) -> None:
+    from maid_runner.cli.commands._main import main
+    from maid_runner.core._test_command_execution import (
+        _strict_validation_test_environment,
+    )
+
+    outer_manifest = _write_nested_validation_project(
+        tmp_path,
+        inner_source=(
+            'def inner() -> str:\n    parts = ("in", "ner")\n'
+            '    return "".join(parts)\n'
+        ),
+        nested_options=("--artifact-coverage",),
+        guard_reentry=True,
+        nested_in_thread=True,
+    )
+    monkeypatch.chdir(tmp_path)
+    executor = _StrictAwareExecutor(tmp_path)
+    _install_executor(monkeypatch, executor)
+
+    args = [
+        "validate",
+        str(outer_manifest.relative_to(tmp_path)),
+        "--mode",
+        "schema",
+        "--no-chain",
+        "--artifact-coverage",
+        "--json",
+    ]
+    with _strict_validation_test_environment(True, process_wide=True):
+        with ThreadPoolExecutor(max_workers=1) as worker:
+            exit_code = worker.submit(main, args).result()
+
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["success"] is True
+    assert executor.calls == []
+    assert not (tmp_path / ".nested-execution-count").exists()
+
+
+def test_strict_boundary_policy_matrix_restores_state_without_nested_subprocesses() -> (
+    None
+):
+    from maid_runner.core._test_command_execution import (
+        _strict_validation_test_active,
+        _strict_validation_test_environment,
+    )
+
+    assert _strict_validation_test_active() is False
+    with _strict_validation_test_environment(True, process_wide=True):
+        assert _strict_validation_test_active() is True
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            assert executor.submit(_strict_validation_test_active).result() is True
+        with _strict_validation_test_environment(False):
+            assert _strict_validation_test_active() is True
+    assert _strict_validation_test_active() is False
+
+    try:
+        with _strict_validation_test_environment(True, process_wide=True):
+            raise RuntimeError("prove restoration")
+    except RuntimeError:
+        pass
+    assert _strict_validation_test_active() is False
+
+
+def test_real_nested_strict_preview_adapter_still_propagates_once(
     tmp_path: Path,
     monkeypatch,
     capsys,
@@ -212,7 +295,6 @@ def test_inherited_strict_boundary_reaches_nested_validation_in_worker_thread(
         ),
         nested_options=("--artifact-coverage",),
         guard_reentry=True,
-        nested_in_thread=True,
     )
     monkeypatch.chdir(tmp_path)
 
@@ -233,6 +315,58 @@ def test_inherited_strict_boundary_reaches_nested_validation_in_worker_thread(
     assert payload["strict_preview"] is True
     assert payload["artifact_coverage"]["success"] is True
     assert (tmp_path / ".nested-execution-count").read_text() == "1"
+
+
+class _StrictAwareExecutor:
+    def __init__(self, root: Path, *, always_unexecuted: bool = False) -> None:
+        self.root = root
+        self.always_unexecuted = always_unexecuted
+        self.calls: list[tuple[str, ...]] = []
+
+    def execute(
+        self,
+        command: tuple[str, ...],
+        target_files: set[str],
+        project_root: Path,
+        timeout_seconds: float,
+    ):
+        from maid_runner.core._runtime_command_executor import (
+            RuntimeCommandRecord,
+            RuntimeFileExecution,
+        )
+        from maid_runner.core._test_command_execution import (
+            _strict_validation_test_active,
+        )
+
+        self.calls.append(command)
+        strict = _strict_validation_test_active()
+        executed_lines = frozenset() if self.always_unexecuted else frozenset({2})
+        called_qualnames = (
+            frozenset() if self.always_unexecuted else frozenset({"outer"})
+        )
+        return RuntimeCommandRecord(
+            command=command,
+            returncode=1 if strict else 0,
+            stdout=("E310: Function 'inner' appears to be a stub\n" if strict else ""),
+            stderr="",
+            execution_data={
+                str((self.root / "src/outer.py").resolve()): RuntimeFileExecution(
+                    executed_lines=executed_lines,
+                    called_qualnames=called_qualnames,
+                )
+            },
+            report_errors=(),
+        )
+
+
+def _install_executor(monkeypatch, executor: _StrictAwareExecutor) -> None:
+    from maid_runner.core import artifact_coverage
+
+    monkeypatch.setattr(
+        artifact_coverage,
+        "SubprocessRuntimeCommandExecutor",
+        lambda: executor,
+    )
 
 
 def _write_nested_validation_project(

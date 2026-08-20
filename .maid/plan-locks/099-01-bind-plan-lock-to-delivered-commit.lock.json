@@ -3,10 +3,10 @@
   "manifest_hash": "sha256-contract:ecee4dc186dc888ea62f34e36f37a64652fc65cdf2405d9ae7868b4dc1c6460c",
   "test_hashes": {
     "tests/core/test_delivery_attestation.py": "sha256-pyast:v2:37f354c63e2d21cc05ab8cb548aa167e60a585d7eb49db599629163b9034ffb6",
-    "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:eaccf39d4fc8c9f04327c0eebe78f5bca46918b1c9d4616c58564f27f2157748"
+    "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:d9428231f4f91827521a818c261dca44a3eaa08aaa343a14aa9ed13a48badb4b"
   },
   "created_at": "2026-08-09T23:31:03.011435+00:00",
-  "revision": 12,
+  "revision": 13,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:de98eb03ec3a229cd1abcb987fb8a097c0b537935d6f1bdb608c318dfe305916",
@@ -211,6 +211,24 @@
       },
       "revised_at": "2026-08-10T00:42:45.142004+00:00",
       "reason": "reject non-standard JSON constants in attestation parsing and rendering",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ecee4dc186dc888ea62f34e36f37a64652fc65cdf2405d9ae7868b4dc1c6460c",
+      "prior_test_hashes": {
+        "tests/core/test_delivery_attestation.py": "sha256-pyast:v2:37f354c63e2d21cc05ab8cb548aa167e60a585d7eb49db599629163b9034ffb6",
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:eaccf39d4fc8c9f04327c0eebe78f5bca46918b1c9d4616c58564f27f2157748"
+      },
+      "revised_at": "2026-08-16T08:30:32.988535+00:00",
+      "reason": "Accept the approved E715 diagnostics-registry test expansion from chain-merge child 5",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

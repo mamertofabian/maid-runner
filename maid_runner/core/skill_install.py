@@ -13,7 +13,11 @@ import shutil
 import stat
 from pathlib import Path
 
-from maid_runner.core.uninstall import UninstallReport
+from maid_runner.core.uninstall import (
+    UninstallReport,
+    _is_link_or_reparse_point,
+    _remove_path_on_windows,
+)
 
 
 _USER_SKILL_TOOLS = ("claude", "codex")
@@ -118,7 +122,7 @@ def uninstall_onboard_skill(
 
 
 def _installed_tree_matches(source: Path, destination: Path) -> bool:
-    if destination.is_symlink() or not destination.is_dir():
+    if _is_link_or_reparse_point(destination) or not destination.is_dir():
         return False
     source_entries = {
         path.relative_to(source).as_posix(): path
@@ -160,7 +164,7 @@ def _has_symlinked_parent(target_root: Path, destination: Path) -> bool:
     current = target_root
     for component in relative.parts[:-1]:
         current = current / component
-        if current.is_symlink():
+        if _is_link_or_reparse_point(current):
             return True
     return False
 
@@ -180,9 +184,16 @@ def _remove_owned_skill_tree(
     if not _installed_tree_matches(source, destination):
         raise ValueError(f"{destination} changed after uninstall planning")
     if not _supports_descriptor_relative_skill_removal():
+        if os.name == "nt":
+            _remove_path_on_windows(
+                target_root,
+                destination,
+                lambda candidate: _revalidate_owned_skill_tree(candidate, source),
+            )
+            return
         raise OSError(
-            "safe descriptor-relative skill uninstall is unavailable on this "
-            "platform; refusing pathname-based mutation"
+            "safe uninstall is unavailable on this platform; refusing "
+            "pathname-based mutation"
         )
 
     flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | getattr(os, "O_NOFOLLOW", 0)
@@ -201,6 +212,11 @@ def _remove_owned_skill_tree(
             os.unlink(name, dir_fd=descriptor)
     finally:
         os.close(descriptor)
+
+
+def _revalidate_owned_skill_tree(destination: Path, source: Path) -> None:
+    if not _installed_tree_matches(source, destination):
+        raise ValueError(f"{destination} changed after uninstall planning")
 
 
 def _reset_directory(path: Path) -> None:

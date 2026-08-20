@@ -1,0 +1,147 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Surface differential knockout as a website strength"
+type: feature
+created: "2026-08-17T14:43:08Z"
+metadata:
+  planning_state: completed
+  tags:
+    - website
+    - static-site
+    - product-copy
+    - knockout
+  priority: low
+description: |
+  The landing page sells MAID's four core strengths but never surfaces
+  differential knockout -- the README-documented `maid verify --knockout` gate
+  that replaces a declared function body with
+  `raise NotImplementedError("maid-knockout")` and requires the validate
+  command to pass before mutation, fail with the mutant, and pass after
+  restoration. That gate is the most direct answer to "agents rewrite or delete
+  tests instead of proving the fix", yet the site answers test rewriting only
+  with red-phase evidence.
+
+  Add a fifth "Proven, not just covered" strength card and extend the
+  "Test rewriting" problem answer to name the knockout defense, keeping the copy
+  limited to capabilities documented in README.md and honestly disclosing that
+  knockout is Python-only and opt-in. Switch the strengths grid to a responsive
+  auto-fit layout so the fifth card flows cleanly without orphaning a row. This
+  is an additive chain-merge onto the active website contract; it does not
+  supersede or redeclare the existing landing-page or MAID-in-practice
+  contracts, and preserves every existing hero, navigation, workflow,
+  capability, tools, quick-start, accessibility, fallback, SEO, brand, and
+  deployment assertion.
+temptations:
+  - risk: "Do not over-promise knockout as always-on or language-agnostic."
+    instead: "Keep the card copy grounded in README.md and disclose that the gate is Python-only and opt-in."
+  - risk: "Do not orphan a fifth strength card under the fixed four-column grid or otherwise regress the mockup-aligned layout."
+    instead: "Switch the strengths grid to a responsive auto-fit template so four or five cards both read as intentional, and assert the new copy in the behavioral contract."
+  - risk: "Do not redeclare or supersede the existing landing-page or practice website contracts to add one card."
+    instead: "Chain-merge additively: declare only the new behavioral test and the two touched website files, and let validation union the contract."
+files:
+  scope:
+    - path: website/index.html
+      reason: "Homepage gains a fifth 'Proven, not just covered' strength card and a knockout clause in the test-rewriting answer, within the existing mockup-aligned page contract."
+    - path: website/styles.css
+      reason: "The strengths grid switches to a responsive auto-fit template so the added fifth card flows cleanly; the layout is CSS-only and covered by source-contract assertions."
+  edit:
+    - path: tests/test_website_static_contract.py
+      artifacts:
+        - kind: test_function
+          name: test_homepage_surfaces_knockout_strength
+          args: []
+          returns: None
+          source_scenario: "A visitor scans the homepage for evidence that MAID's tests actually catch bugs, not just execute lines."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The homepage surfaces differential knockout as a strength -- a 'Proven, not just covered' card describing that deep verification can delete a function's body and require the tests to fail -- and the test-rewriting answer names the knockout defense so a gutted test cannot quietly pass."
+  read:
+    - README.md
+validate:
+  - uv run python -m pytest -q tests/test_website_static_contract.py
+  - uv run maid validate manifests/surface-knockout-strength.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/surface-knockout-strength.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-17T15:05:00Z"
+  summary: "Surfaced differential knockout as a website strength: added a fifth 'Proven, not just covered' strength card and a knockout clause to the 'Test rewriting' problem answer, and switched the strengths grid to a responsive auto-fit layout so the fifth card flows cleanly. Copy stays limited to README-documented capability and discloses that knockout is Python-only and opt-in."
+  rationale: "The landing page answered test rewriting only with red-phase evidence, which proves a test failed before implementation but not that it still depends on the code afterward. Differential knockout is the direct defense against a gutted or faked test, so the page now names it as a strength. The change is an additive chain-merge onto the active website contract -- it does not supersede or redeclare the landing-page or MAID-in-practice contracts -- and a new behavioral test pins the copy."
+  lessons:
+    - lesson_type: workflow
+      summary: "maid manifest promote re-runs the validate commands and re-captures red evidence during migration. If the implementation stash is popped before promote, the migration records green and the lock fails E705 RED_PHASE_EVIDENCE_INVALID. Either keep the implementation stashed through promote, or re-capture afterward with maid plan revise --stash-implementation (add --allow-sibling-dirty when a reconciled sibling lock is dirty)."
+      tags:
+        - plan-lock
+        - red-evidence
+        - manifest-promote
+      paths:
+        - manifests/surface-knockout-strength.manifest.yaml
+        - .maid/plan-locks/surface-knockout-strength.lock.json
+    - lesson_type: contract-scope
+      summary: "Adding one website card is an additive chain-merge: declare the edited HTML/CSS under files.scope (edited files need scope, not read) and the new behavioral test under files.edit, with no supersede. Full redeclaration is only needed for breaking changes like the earlier logo.svg -> logo.png swap."
+      tags:
+        - manifest-authoring
+        - chain-merge
+        - website
+      paths:
+        - manifests/surface-knockout-strength.manifest.yaml
+        - tests/test_website_static_contract.py
+  review_notes:
+    - source: local-read-only-self-review
+      severity: ready
+      summary: "Independent reviewer subagent not spawned (harness constrains agent spawning to explicit user request); performed the documented self-review fallback. Findings: changed files stay within declared scope (verify file_tracking/worktree_scope/changed_scope passed); the new behavioral test is a genuine red->green assertion, not a tautology (red evidence exit 1); card copy is accurate to README.md and discloses Python-only + opt-in; the auto-fit grid change is test-safe and preserves the accessibility contract. One advisory: eyeball the rendered strengths band in a browser, since the grid switched from fixed four-column to responsive auto-fit."
+  validation:
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --profile
+        - deep
+        - --test-scope
+        - task
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+      status: passed
+      summary: "Deep handoff verification passed 0 blocking with 11 stages green (schema, behavioral, implementation, artifact_coverage, knockout, coherence, file_tracking, plan_lock, worktree_scope, changed_scope, tests). Remaining warnings are pre-existing E307 no-validator advisories for declared non-code files."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "All active manifests validated: 266 passed, 0 failed, 346 superseded."
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/test_website_static_contract.py
+      status: passed
+      summary: "Focused website contract tests passed: 10 passed (adds test_homepage_surfaces_knockout_strength)."
+    - command:
+        - uv
+        - run
+        - ruff
+        - check
+        - tests/test_website_static_contract.py
+      status: passed
+      summary: "Ruff reported no issues on the touched test module."
+    - command:
+        - uv
+        - run
+        - black
+        - --check
+        - tests/test_website_static_contract.py
+      status: passed
+      summary: "Black reported the touched test module unchanged."

@@ -23,6 +23,10 @@ on:
         required: false
         type: number
         default: 1
+      pytest-workers:
+        description: "Optional pytest-xdist workers override for manifest test commands."
+        required: false
+        type: number
       coverage-command:
         description: "Coverage command to run after maid test passes."
         required: false
@@ -78,10 +82,16 @@ jobs:
         env:
           MANIFEST_DIR: ${{ inputs['manifest-dir'] || 'manifests/' }}
           TEST_JOBS: ${{ inputs['test-jobs'] || 1 }}
+          PYTEST_WORKERS: ${{ inputs['pytest-workers'] || (github.repository == 'mamertofabian/maid-runner' && 4) || '' }}
         run: |
+          # _maid_test_pytest_worker_wiring
           set +e
           mkdir -p .maid
-          uv run maid test --json --manifest-dir "$MANIFEST_DIR" --jobs "$TEST_JOBS" > .maid/maid-test.json
+          PYTEST_WORKER_ARGS=()
+          if [[ -n "$PYTEST_WORKERS" ]]; then
+            PYTEST_WORKER_ARGS=(--pytest-workers "$PYTEST_WORKERS")
+          fi
+          uv run maid test --json --manifest-dir "$MANIFEST_DIR" --jobs "$TEST_JOBS" "${PYTEST_WORKER_ARGS[@]}" > .maid/maid-test.json
           TEST_EXIT=$?
           {
             echo "## MAID tests"
@@ -135,7 +145,10 @@ jobs:
       - name: Install dependencies
         run: uv sync --group dev
 
-      - name: Run Windows init portability regression
-        run: uv run python -m pytest -q tests/cli/test_init_windows_portability.py
+      - name: Run Windows init and uninstall portability regressions
+        run: >-
+          uv run python -m pytest -q
+          tests/cli/test_init_windows_portability.py
+          tests/cli/test_uninstall_windows_portability.py
 
 # _maid_test_reusable_workflow

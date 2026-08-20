@@ -1,13 +1,13 @@
 {
   "manifest_path": "manifests/fix-legacy-plan-lock-baseline-migration.manifest.yaml",
-  "manifest_hash": "sha256:40b2f4be623b9b1b192c763f0715d4c6bbf352819af200a5a9fbd31bf2205dc1",
+  "manifest_hash": "sha256-contract:2af5d6f62085e51cdedb838e349247ae6c17a2ac978c5ab9e1674628a8c7d4b2",
   "test_hashes": {
-    "tests/cli/test_plan_cmd_red_evidence.py": "sha256:0b1047681260013ef3bbc5559476da51bd2b2597bc441bb4e9271bc432108664",
-    "tests/core/test_plan_lock_enforcement.py": "sha256:17343ce9b980a94cb8659eacf4dc8741d9aaf097371576991fb64ffd648fc53f",
-    "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256:a05e3ec4d6f47e86a92715a8eb27d6e2041506860afc700c13562f47369a0f23"
+    "tests/cli/test_plan_cmd_red_evidence.py": "sha256-pyast:v2:086e427bec1a019407beda4a0a88bef23b5fb18cef6bc649176a78d3cf5143fd",
+    "tests/core/test_plan_lock_enforcement.py": "sha256-pyast:v2:248fcd6fc079d1bf4951f42260144d3e75e5fc67968a83e5e1bae070715066e3",
+    "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:63d776c7c667178c5cc136c3945cc4b8c5a651523763b34f08330408e4528054"
   },
   "created_at": "2026-07-13T03:14:50.003354+00:00",
-  "revision": 8,
+  "revision": 10,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:5ac9eeea0c1ae5eb38eb4418ee38f286cb14dd58d10e2667750f801fa35d9bd9",
@@ -203,6 +203,44 @@
         "client": "codex",
         "source": "flags"
       },
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256:40b2f4be623b9b1b192c763f0715d4c6bbf352819af200a5a9fbd31bf2205dc1",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_red_evidence.py": "sha256:0b1047681260013ef3bbc5559476da51bd2b2597bc441bb4e9271bc432108664",
+        "tests/core/test_plan_lock_enforcement.py": "sha256:17343ce9b980a94cb8659eacf4dc8741d9aaf097371576991fb64ffd648fc53f",
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256:a05e3ec4d6f47e86a92715a8eb27d6e2041506860afc700c13562f47369a0f23"
+      },
+      "revised_at": "2026-08-11T00:27:08.801269+00:00",
+      "reason": "accept approved 121-05 shared-test performance refactor",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2af5d6f62085e51cdedb838e349247ae6c17a2ac978c5ab9e1674628a8c7d4b2",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_red_evidence.py": "sha256-pyast:v2:086e427bec1a019407beda4a0a88bef23b5fb18cef6bc649176a78d3cf5143fd",
+        "tests/core/test_plan_lock_enforcement.py": "sha256-pyast:v2:248fcd6fc079d1bf4951f42260144d3e75e5fc67968a83e5e1bae070715066e3",
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:376f8f306819360f715826d50de03be6f0675ab4fed0c09b8076a2613c2bac1d"
+      },
+      "revised_at": "2026-08-11T01:13:17.732346+00:00",
+      "reason": "accept review-hardened 121-05 shared-test refactor",
+      "agent": null,
       "contract_delta": {
         "artifacts_added": [],
         "artifacts_removed": [],

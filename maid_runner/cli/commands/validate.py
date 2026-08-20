@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from collections.abc import Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -19,7 +20,9 @@ from maid_runner.core.diagnostic_policy import warning_is_advisory
 
 if TYPE_CHECKING:
     from maid_runner.coherence.result import CoherenceResult
+    from maid_runner.core.artifact_coverage import ArtifactCoverageReport
     from maid_runner.core.result import BatchTestResult, ValidationError
+    from maid_runner.core.runtime_evidence import RuntimeEvidenceBundle
 
 
 def cmd_validate(args: argparse.Namespace) -> int:
@@ -359,20 +362,15 @@ def _run_artifact_coverage_for_manifest_dir(
     project_root: Path,
     *,
     strict_context: bool = False,
+    manifest_paths: Sequence[str] | None = None,
 ):
-    from maid_runner.core.artifact_coverage import ArtifactCoverageReport
-
     reports = _run_artifact_coverage_by_manifest(
         manifest_dir,
         project_root,
         strict_context=strict_context,
+        manifest_paths=manifest_paths,
     ).values()
-    findings = []
-    errors = []
-    for report in reports:
-        findings.extend(report.findings)
-        errors.extend(report.errors)
-    return ArtifactCoverageReport(findings=tuple(findings), errors=tuple(errors))
+    return _merge_artifact_coverage_reports(reports)
 
 
 def _run_artifact_coverage_by_manifest(
@@ -380,27 +378,103 @@ def _run_artifact_coverage_by_manifest(
     project_root: Path,
     *,
     strict_context: bool = False,
-):
+    evidence: RuntimeEvidenceBundle | None = None,
+    manifest_paths: Sequence[str] | None = None,
+) -> dict[str, ArtifactCoverageReport]:
     from maid_runner.core.chain import get_cached_manifest_chain
-    from maid_runner.core.artifact_coverage import run_artifact_coverage_batch
+    from maid_runner.core.artifact_coverage import (
+        ArtifactCoverageReport,
+        _coverage_targets,
+        evaluate_artifact_coverage_from_evidence,
+        run_artifact_coverage_batch,
+    )
     from maid_runner.core._test_command_execution import (
         _strict_validation_test_environment,
     )
+    from maid_runner.core.result import ErrorCode, Severity, ValidationError
+    from maid_runner.core.config import load_config
 
     chain = get_cached_manifest_chain(project_root / manifest_dir, project_root)
+    active = chain.active_manifests()
+    selected = active
+    if manifest_paths is not None:
+        wanted = {str(Path(path).as_posix()) for path in manifest_paths}
+        selected = tuple(
+            manifest
+            for manifest in active
+            if manifest.source_path in wanted
+            or Path(manifest.source_path).as_posix() in wanted
+        )
+    config = load_config(project_root)
     with _strict_validation_test_environment(strict_context):
-        return run_artifact_coverage_batch(chain.active_manifests(), project_root)
+        if evidence is None:
+            batched = run_artifact_coverage_batch(
+                selected,
+                project_root,
+                jobs=config.artifact_coverage.fallback_jobs,
+                max_processes=config.test_execution.max_processes,
+            )
+            return {
+                manifest.source_path: batched.get(
+                    manifest.source_path,
+                    ArtifactCoverageReport(findings=(), errors=()),
+                )
+                for manifest in active
+            }
+        evidence_manifest_paths = {
+            command.identity.manifest_path for command in evidence.commands
+        }
+        targets_by_manifest = {
+            manifest.source_path: _coverage_targets(manifest, project_root)
+            for manifest in active
+        }
+        coverage_manifests = tuple(
+            manifest
+            for manifest in selected
+            if targets_by_manifest[manifest.source_path]
+            or manifest.source_path in evidence_manifest_paths
+        )
+        evaluated = dict(
+            evaluate_artifact_coverage_from_evidence(
+                coverage_manifests,
+                project_root,
+                evidence,
+                fallback_jobs=config.artifact_coverage.fallback_jobs,
+                max_processes=config.test_execution.max_processes,
+                evidence_mode=config.artifact_coverage.evidence_mode,
+            ).reports
+        )
+        for manifest in coverage_manifests:
+            if (
+                manifest.source_path in evidence_manifest_paths
+                and not targets_by_manifest[manifest.source_path]
+            ):
+                evaluated[manifest.source_path] = ArtifactCoverageReport(
+                    findings=(),
+                    errors=(
+                        ValidationError(
+                            code=ErrorCode.FILE_READ_ERROR,
+                            message=(
+                                "Artifact coverage target disappeared during "
+                                f"evidence execution for {manifest.source_path}"
+                            ),
+                            severity=Severity.ERROR,
+                        ),
+                    ),
+                )
+        return {
+            manifest.source_path: evaluated.get(
+                manifest.source_path,
+                ArtifactCoverageReport(findings=(), errors=()),
+            )
+            for manifest in active
+        }
 
 
 def _merge_artifact_coverage_reports(reports):
-    from maid_runner.core.artifact_coverage import ArtifactCoverageReport
+    from maid_runner.core.artifact_coverage import merge_artifact_coverage_reports
 
-    findings = []
-    errors = []
-    for report in reports:
-        findings.extend(report.findings)
-        errors.extend(report.errors)
-    return ArtifactCoverageReport(findings=tuple(findings), errors=tuple(errors))
+    return merge_artifact_coverage_reports(reports)
 
 
 def _append_artifact_coverage_output(

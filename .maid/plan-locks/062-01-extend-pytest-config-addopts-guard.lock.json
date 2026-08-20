@@ -1,12 +1,12 @@
 {
   "manifest_path": "manifests/062-01-extend-pytest-config-addopts-guard.manifest.yaml",
-  "manifest_hash": "sha256:3421726ef8675df19e22329c0bc590f307f48f83ef64a827aba49f9d9c5f8cd6",
+  "manifest_hash": "sha256-contract:e077c98e7bbbb6f48b1a6dc2f4af990f784f2f860d9b11b5966ec7aaf05b691a",
   "test_hashes": {
-    "tests/core/test_test_runner.py": "sha256:5cdaa6c9949aec91235edeacb033377c1682591454c148426b551a40468d4b94",
-    "tests/core/test_pytest_config_addopts.py": "sha256:e8d97a7a1419100b4454daef6c164d44d5731b0f2e639185df5b3f9813288929"
+    "tests/core/test_test_runner.py": "sha256-pyast:v2:2a46dba2a774564ad767b932024b33dee078631aa5e13903fe70bd0736e38a0a",
+    "tests/core/test_pytest_config_addopts.py": "sha256-pyast:v2:fcf643c206db3c8e25b92953011f68ba39b90ecb4d57255f0308c78a5aacb325"
   },
   "created_at": "2026-07-03T22:57:41.152355+00:00",
-  "revision": 8,
+  "revision": 10,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:aca5d1be2164ef583569b5ef6bd6171609a1ad54423eb99d2435600b7b455a41",
@@ -15,7 +15,9 @@
         "tests/core/test_pytest_config_addopts.py": "sha256:f543bac2c90533ccbf6d13213a555d8e1584506421ae0263c6f5ec20b94644af"
       },
       "revised_at": "2026-07-03T22:57:49.776269+00:00",
-      "reason": "Migrated by maid manifest promote: manifests/drafts/062-01-extend-pytest-config-addopts-guard.manifest.yaml -> manifests/062-01-extend-pytest-config-addopts-guard.manifest.yaml"
+      "reason": "Migrated by maid manifest promote: manifests/drafts/062-01-extend-pytest-config-addopts-guard.manifest.yaml -> manifests/062-01-extend-pytest-config-addopts-guard.manifest.yaml",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:692bbb223bf65b342d10468c47ccad3aac58292a8657d6626f3d16b559fcfff4",
@@ -24,7 +26,9 @@
         "tests/core/test_pytest_config_addopts.py": "sha256:f543bac2c90533ccbf6d13213a555d8e1584506421ae0263c6f5ec20b94644af"
       },
       "revised_at": "2026-07-03T22:59:01.834622+00:00",
-      "reason": "Revise tests so red evidence captures reproduced pytest config bypass behavior instead of import-time missing-helper failure"
+      "reason": "Revise tests so red evidence captures reproduced pytest config bypass behavior instead of import-time missing-helper failure",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:692bbb223bf65b342d10468c47ccad3aac58292a8657d6626f3d16b559fcfff4",
@@ -33,7 +37,9 @@
         "tests/core/test_pytest_config_addopts.py": "sha256:9e031ccc2bac499b7f2181b284df8e9f730b05dba7e0380df7ad8c0c5cdbb16d"
       },
       "revised_at": "2026-07-03T23:04:14.660496+00:00",
-      "reason": "Add direct assertions to pytest config bypass tests so strict assertion checking accepts the behavioral contract"
+      "reason": "Add direct assertions to pytest config bypass tests so strict assertion checking accepts the behavioral contract",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:692bbb223bf65b342d10468c47ccad3aac58292a8657d6626f3d16b559fcfff4",
@@ -42,7 +48,9 @@
         "tests/core/test_pytest_config_addopts.py": "sha256:333aa5fbd06a7cdc3aeda678498095cff290c00ca222825fa05f7d1701143c09"
       },
       "revised_at": "2026-07-03T23:13:37.608657+00:00",
-      "reason": "Add review-driven coverage for arbitrary explicit pytest config files and literal percent INI addopts"
+      "reason": "Add review-driven coverage for arbitrary explicit pytest config files and literal percent INI addopts",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:858176d82a9e8d37158d5838ac26de7311edb975b1b5903dab69082f850392c0",
@@ -51,7 +59,9 @@
         "tests/core/test_pytest_config_addopts.py": "sha256:9a6f943952817bf8d8dfa8515c7cea60ffbaf4abcc89b5571acad16af15f7e4d"
       },
       "revised_at": "2026-07-03T23:25:26.730002+00:00",
-      "reason": "Add review-driven coverage for arbitrary explicit TOML pytest config files"
+      "reason": "Add review-driven coverage for arbitrary explicit TOML pytest config files",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:302f3a2a4c6c6d565d14cbd17fe91c2b50536e95dc1d3471cf610394656d5294",
@@ -60,7 +70,9 @@
         "tests/core/test_pytest_config_addopts.py": "sha256:e8d97a7a1419100b4454daef6c164d44d5731b0f2e639185df5b3f9813288929"
       },
       "revised_at": "2026-07-03T23:31:54.313405+00:00",
-      "reason": "Capture completed Outcome after ready implementation review"
+      "reason": "Capture completed Outcome after ready implementation review",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:01897fc3920c905a12e8f6267cd2e32ead5b1a81bf654a8e1b9afe932b89876b",
@@ -69,7 +81,54 @@
         "tests/core/test_pytest_config_addopts.py": "sha256:e8d97a7a1419100b4454daef6c164d44d5731b0f2e639185df5b3f9813288929"
       },
       "revised_at": "2026-07-03T23:39:00.710644+00:00",
-      "reason": "Update Outcome verify evidence after 083 inventory blocker was fixed"
+      "reason": "Update Outcome verify evidence after 083 inventory blocker was fixed",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:3421726ef8675df19e22329c0bc590f307f48f83ef64a827aba49f9d9c5f8cd6",
+      "prior_test_hashes": {
+        "tests/core/test_test_runner.py": "sha256:5cdaa6c9949aec91235edeacb033377c1682591454c148426b551a40468d4b94",
+        "tests/core/test_pytest_config_addopts.py": "sha256:e8d97a7a1419100b4454daef6c164d44d5731b0f2e639185df5b3f9813288929"
+      },
+      "revised_at": "2026-08-11T03:36:49.501305+00:00",
+      "reason": "accept approved 121-07 shared behavioral contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "create:tests/core/test_pytest_config_addopts.py",
+          "edit:maid_runner/core/_pytest_config_addopts.py",
+          "edit:maid_runner/core/_validation_test_artifacts.py",
+          "read:docs/plans/maid-validate-hardening-backlog.md",
+          "read:maid_runner/core/_test_runner_invocation.py",
+          "read:maid_runner/core/result.py",
+          "read:manifests/044-01-reject-pytest-config-selector-addopts.manifest.yaml",
+          "read:tests/core/test_test_runner.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:e077c98e7bbbb6f48b1a6dc2f4af990f784f2f860d9b11b5966ec7aaf05b691a",
+      "prior_test_hashes": {
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:c8caf787df77e0f79782734c18ca9617cc202048b949de12f3ad1f4adfffe00f",
+        "tests/core/test_pytest_config_addopts.py": "sha256-pyast:v2:fcf643c206db3c8e25b92953011f68ba39b90ecb4d57255f0308c78a5aacb325"
+      },
+      "revised_at": "2026-08-13T13:57:57.467677+00:00",
+      "reason": "Accept reviewed shared-test changes from the 121 performance checkpoint.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -96,6 +155,8 @@
       }
     ]
   },
+  "legacy_baseline": null,
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       "maid_runner/core/_pytest_config_addopts.py:function:pytest_config_addopts_args",
@@ -144,6 +205,341 @@
       "tests/core/test_pytest_config_addopts.py:test_validate_manifest_test_commands_rejects_effective_pytest_config_addopts",
       "tests/core/test_pytest_config_addopts.py:test_validate_manifest_test_commands_rejects_effective_pytest_config_addopts:kind=test_function"
     ],
+    "files": {
+      "create": [
+        "tests/core/test_pytest_config_addopts.py"
+      ],
+      "edit": [
+        "maid_runner/core/_pytest_config_addopts.py",
+        "maid_runner/core/_validation_test_artifacts.py"
+      ],
+      "read": [
+        "docs/plans/maid-validate-hardening-backlog.md",
+        "maid_runner/core/_test_runner_invocation.py",
+        "maid_runner/core/result.py",
+        "manifests/044-01-reject-pytest-config-selector-addopts.manifest.yaml",
+        "tests/core/test_test_runner.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_pytest_config_addopts.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_run_manifest_tests_rejects_pytest_ini_selector_addopts",
+              "source_scenario": "A declared behavioral test would fail, but pytest.ini addopts inject `-k test_other`.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "run_manifest_tests"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "run_manifest_tests returns an unsuccessful BatchTestResult with VALIDATE_COMMAND_DOES_NOT_RUN_TESTS before pytest runs."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_run_manifest_tests_rejects_tox_ini_collect_only_addopts",
+              "source_scenario": "A declared behavioral test would fail, but tox.ini [pytest] addopts inject `--collect-only`.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "run_manifest_tests"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "run_manifest_tests returns an unsuccessful BatchTestResult with VALIDATE_COMMAND_DOES_NOT_RUN_TESTS before pytest runs."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_run_manifest_tests_rejects_setup_cfg_selector_addopts",
+              "source_scenario": "A declared behavioral test would fail, but setup.cfg [tool:pytest] addopts inject `-k test_other`.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "run_manifest_tests"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "run_manifest_tests returns an unsuccessful BatchTestResult with VALIDATE_COMMAND_DOES_NOT_RUN_TESTS before pytest runs."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_pytest_config_addopts_uses_pytest_precedence",
+              "source_scenario": "Multiple pytest config files exist and a malicious shadowed config has addopts.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "pytest_config_addopts_args"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Only the highest-precedence effective config file contributes addopts."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_pytest_config_addopts_skips_ini_files_without_pytest_sections",
+              "source_scenario": "tox.ini lacks [pytest] or setup.cfg lacks [tool:pytest].",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "pytest_config_addopts_args"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The resolver skips non-pytest INI files and falls through to the next effective config."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_run_manifest_tests_allows_benign_addopts_in_each_config_format",
+              "source_scenario": "Each supported config format sets harmless pytest display addopts.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "run_manifest_tests"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "run_manifest_tests executes pytest normally without command-integrity errors."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_pytest_config_addopts_fails_closed_for_malformed_effective_config",
+              "source_scenario": "The effective pytest config file has malformed syntax or a non-string/list addopts value.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "pytest_config_addopts_errors"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The helper returns a visible inspection error for the effective config file."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_pytest_config_addopts_ignores_malformed_shadowed_config",
+              "source_scenario": "A higher-precedence pytest.ini is effective while a lower-precedence tox.ini is malformed.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "pytest_config_addopts_errors"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The malformed shadowed file produces no inspection error."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_pytest_config_addopts_respects_explicit_config_file",
+              "source_scenario": "The validate command passes `-c pytest.ini` while pyproject.toml has malicious addopts.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "pytest_config_addopts_args"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Only the explicit config file contributes addopts."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_run_manifest_tests_rejects_explicit_custom_ini_selector_addopts",
+              "source_scenario": "The validate command passes `-c custom.ini` while that explicit INI file has selector addopts.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "run_manifest_tests"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "run_manifest_tests returns VALIDATE_COMMAND_DOES_NOT_RUN_TESTS for selector addopts in an arbitrary explicit pytest config file."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_run_manifest_tests_rejects_explicit_custom_toml_selector_addopts",
+              "source_scenario": "The validate command passes `-c custom.toml` while that explicit TOML file has pytest selector addopts.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "run_manifest_tests"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "run_manifest_tests returns VALIDATE_COMMAND_DOES_NOT_RUN_TESTS for selector addopts in an arbitrary explicit TOML pytest config file."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_pytest_config_addopts_fails_closed_for_malformed_explicit_toml",
+              "source_scenario": "The validate command passes `-c custom.toml` and that explicit TOML file is malformed.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "pytest_config_addopts_errors"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The helper returns a visible inspection error naming the malformed explicit TOML config file."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_pytest_config_addopts_allows_literal_percent_in_ini_addopts",
+              "source_scenario": "The effective INI config file contains benign addopts with a literal percent sign accepted by pytest.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "pytest_config_addopts_errors"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The helper returns no inspection error and preserves the literal percent argument."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_pytest_config_addopts_respects_override_ini_addopts",
+              "source_scenario": "The validate command passes `-o addopts=` while project config files have malicious addopts.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "pytest_config_addopts_args"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "No config-file addopts are effective when command-line addopts override is present."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_validate_manifest_test_commands_rejects_effective_pytest_config_addopts",
+              "source_scenario": "The effective pytest config file injects selector addopts into an otherwise valid validate command.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "validate_manifest_test_commands"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "validate_manifest_test_commands returns VALIDATE_COMMAND_DOES_NOT_RUN_TESTS for effective config-file addopts that can deselect behavioral tests."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/_pytest_config_addopts.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "pytest_config_addopts_args",
+              "description": "Return pytest addopts arguments from the effective config file (pytest.ini, pyproject.toml, tox.ini, or setup.cfg) when it applies to a validate command.",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "command",
+                  "type": "tuple[str, ...]"
+                }
+              ],
+              "returns": "tuple[str, ...]"
+            },
+            {
+              "kind": "function",
+              "name": "pytest_config_addopts_errors",
+              "description": "Return human-readable inspection errors for the effective pytest config file that should make command integrity fail closed.",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "command",
+                  "type": "tuple[str, ...]"
+                }
+              ],
+              "returns": "tuple[str, ...]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/_validation_test_artifacts.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "validate_manifest_test_commands",
+              "description": "Reject validate commands whose effective pytest config file (any supported format) can deselect or avoid discovered behavioral tests.",
+              "args": [
+                {
+                  "name": "manifest",
+                  "type": "Manifest"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                }
+              ],
+              "returns": "list[ValidationError]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_test_runner_invocation.py",
+        "maid_runner/core/result.py",
+        "manifests/044-01-reject-pytest-config-selector-addopts.manifest.yaml",
+        "docs/plans/maid-validate-hardening-backlog.md",
+        "tests/core/test_test_runner.py"
+      ]
+    },
     "test_files": [
       "tests/core/test_pytest_config_addopts.py",
       "tests/core/test_test_runner.py"

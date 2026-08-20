@@ -2,8 +2,8 @@
 
 **Project:** MAID Runner - validation framework for Manifest-driven AI Development
 **Status:** Active v2 development
-**Current Version:** 2.26.0
-**Last Updated:** 2026-08-10
+**Current Version:** 2.27.0
+**Last Updated:** 2026-08-20
 
 ## Purpose
 
@@ -18,7 +18,7 @@ agent orchestration, code generation, or product workflows outside validation.
 ## Current State
 
 MAID Runner is now a v2 YAML-manifest package published as `maid-runner`.
-The local CLI reports `maid 2.26.0`.
+The local CLI reports `maid 2.27.0`.
 
 Supported languages:
 
@@ -43,16 +43,28 @@ Core validation surfaces:
 Current CLI commands:
 
 - `maid validate`
+- `maid validators`
 - `maid test`
+- `maid pgtap`
 - `maid verify`
+- `maid assess`
+- `maid plan`
+- `maid task`
+- `maid hook`
 - `maid snapshot`
 - `maid snapshot-system`
 - `maid bootstrap`
 - `maid learn`
 - `maid recall`
 - `maid insights`
+- `maid feedback`
 - `maid enrich`
-- `maid manifest create`
+- `maid evaluate`
+- `maid benchmark`
+- `maid incident`
+- `maid daemon`
+- `maid skills`
+- `maid manifest`
 - `maid manifests`
 - `maid files`
 - `maid init`
@@ -60,8 +72,11 @@ Current CLI commands:
 - `maid coherence`
 - `maid schema`
 - `maid howto`
+- `maid chain`
 - `maid chain log`
 - `maid chain replay`
+- `maid chain merge`
+- `maid audit`
 - `maid audit supersessions`
 - `maid serve`
 

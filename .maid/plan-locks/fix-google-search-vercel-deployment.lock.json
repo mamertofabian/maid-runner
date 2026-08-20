@@ -2,12 +2,12 @@
   "manifest_path": "manifests/fix-google-search-vercel-deployment.manifest.yaml",
   "manifest_hash": "sha256-contract:457137f101a22914770254b890dffc3d1c0be34a5e74ac78e3d743e60a68137f",
   "test_hashes": {
-    "tests/test_website_static_contract.py": "sha256-pyast:v2:6361439f470966221453204649077517f8856bd6dc2b17d51bb798334385d753",
+    "tests/test_website_static_contract.py": "sha256-pyast:v2:4a1fd790c0a781920cd7dfe7aee56f695a65f4adda9c8d48175e1dae36e8de85",
     "tests/test_website_google_analytics.py": "sha256-pyast:v2:82cd6c1a0b1408c17b2b16528e2613ee086c4a0aa0a38fb6aaff853b8fa923b2",
     "tests/test_bootstrap_installers.py": "sha256-pyast:v2:b05150f0383b8b6e12f735c7fda51ad0cdb1089dbb4b637669935ac46c1eefd1"
   },
   "created_at": "2026-08-17T00:09:12.364180+00:00",
-  "revision": 4,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:ed8ff84175eec600fbdafee7eee4f69114d0bbff5bb7fb989d411571d1459dc4",
@@ -97,6 +97,25 @@
         "validate_commands_removed": [
           "uv run python -m pytest -q tests/test_website_static_contract.py"
         ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:457137f101a22914770254b890dffc3d1c0be34a5e74ac78e3d743e60a68137f",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:6361439f470966221453204649077517f8856bd6dc2b17d51bb798334385d753",
+        "tests/test_website_google_analytics.py": "sha256-pyast:v2:82cd6c1a0b1408c17b2b16528e2613ee086c4a0aa0a38fb6aaff853b8fa923b2",
+        "tests/test_bootstrap_installers.py": "sha256-pyast:v2:b05150f0383b8b6e12f735c7fda51ad0cdb1089dbb4b637669935ac46c1eefd1"
+      },
+      "revised_at": "2026-08-20T10:35:01.594145+00:00",
+      "reason": "accept merged-main website contract before v2.27.0 tag",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
       }
     }
   ],

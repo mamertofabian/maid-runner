@@ -18,6 +18,10 @@ from maid_runner.coherence.result import CoherenceResult
 if TYPE_CHECKING:
     from maid_runner.core.artifact_coverage import ArtifactCoverageReport
     from maid_runner.core.bootstrap import BootstrapReport
+    from maid_runner.core.chain_merge import ChainMergeReport
+    from maid_runner.core.chain_merge_apply import ChainMergeApplyResult
+    from maid_runner.core.chain_merge_equivalence import MergeEquivalenceResult
+    from maid_runner.core.chain_merge_sweep import ChainMergeSweepSummary
     from maid_runner.core.supersession_audit import SupersessionViolation
 
 
@@ -207,7 +211,9 @@ def format_test_result(
     json_mode: bool = False,
 ) -> str:
     if json_mode:
-        return json.dumps(_test_result_to_dict(result), indent=2)
+        return json.dumps(
+            _test_result_to_dict(result, include_failure_output=True), indent=2
+        )
 
     acceptance = result.acceptance_results
     implementation = result.implementation_results
@@ -224,6 +230,7 @@ def format_test_result(
             lines.append(f"  Chain issues: {len(result.chain_errors)}")
             for err in result.chain_errors:
                 lines.append(f"  {err.code.value} {err.message}")
+        lines.extend(_format_scheduling_notices(result))
 
         for r in result.results:
             lines.append(_format_test_command_line(r))
@@ -248,6 +255,7 @@ def format_test_result(
         lines.append(f"  Chain issues: {len(result.chain_errors)}")
         for err in result.chain_errors:
             lines.append(f"  {err.code.value} {err.message}")
+    lines.extend(_format_scheduling_notices(result))
     lines.append("")
 
     acc_passed = sum(1 for r in acceptance if r.success)
@@ -424,8 +432,7 @@ def format_verify_summary(
     if summary.passed_stages:
         lines.append("")
         lines.append(
-            f"PASSED ({len(summary.passed_stages)}): "
-            f"{', '.join(summary.passed_stages)}"
+            f"PASSED ({len(summary.passed_stages)}): {', '.join(summary.passed_stages)}"
         )
 
     skipped_stages = [
@@ -468,7 +475,7 @@ def format_verify_summary(
     if summary.info_groups:
         lines.append("")
         lines.append(
-            "INFO " f"(deduplicated {summary.raw_info_count} -> {info_unique_count}):"
+            f"INFO (deduplicated {summary.raw_info_count} -> {info_unique_count}):"
         )
         for group in summary.info_groups:
             prefix = group.code or "info"
@@ -514,6 +521,9 @@ def _append_artifact_coverage_result(
 def _format_artifact_coverage_report(report) -> str:
     status = "PASS" if report.success else "FAIL"
     lines = [f"Artifact coverage: {status}"]
+    execution = getattr(report, "execution", None)
+    if execution is not None:
+        lines.append(f"  Execution: {execution.describe()}")
     if getattr(report, "findings", ()):
         lines.append(f"  Findings: {len(report.findings)}")
         for finding in report.findings:
@@ -626,7 +636,7 @@ def _verify_stage_details(stage) -> dict:
 
     tests = getattr(stage, "_tests", None)
     if tests is not None:
-        return _test_result_to_dict(tests)
+        return _test_result_to_dict(tests, include_failure_output=True)
 
     errors = getattr(stage, "_errors", ())
     knockout_report = _knockout_report_from_errors(errors)
@@ -728,6 +738,18 @@ def _format_knockout_report(report) -> str:
                 f"  {state}: {name} ({result.file_path}) "
                 f"Duration: {result.duration_ms:.0f}ms"
             )
+            proof = getattr(result, "proof", None)
+            if proof is not None:
+                detector = ", ".join(proof.detecting_nodeids) or "exact command"
+                fallback = "yes" if proof.used_exact_fallback else "no"
+                lines.append(f"    detector: {detector}")
+                lines.append(f"    exact fallback: {fallback}")
+                lines.append(
+                    "    exits: "
+                    f"baseline={proof.baseline_exit_code}, "
+                    f"mutant={proof.mutant_exit_code}, "
+                    f"restored={proof.restored_exit_code}"
+                )
     if getattr(report, "errors", ()):
         lines.append(f"  Errors ({len(report.errors)}):")
         for error in report.errors:
@@ -911,7 +933,9 @@ def _is_warning(error) -> bool:
     return getattr(severity, "value", severity) == "warning"
 
 
-def _test_result_to_dict(result: BatchTestResult) -> dict:
+def _test_result_to_dict(
+    result: BatchTestResult, *, include_failure_output: bool = False
+) -> dict:
     return {
         "success": result.success,
         "total": result.total,
@@ -919,6 +943,15 @@ def _test_result_to_dict(result: BatchTestResult) -> dict:
         "failed": result.failed,
         "duration_ms": result.duration_ms,
         "chain_errors": [e.to_dict() for e in result.chain_errors],
+        "scheduling_notices": [
+            {
+                "command_group": list(notice.command_group),
+                "mode": notice.mode,
+                "workers": notice.workers,
+                "reason": notice.reason,
+            }
+            for notice in result.scheduling_notices
+        ],
         "results": [
             {
                 "manifest": r.manifest_slug,
@@ -927,10 +960,30 @@ def _test_result_to_dict(result: BatchTestResult) -> dict:
                 "success": r.success,
                 "duration_ms": r.duration_ms,
                 "stream": r.stream.value,
+                **(
+                    {"stdout_tail": r.stdout[-16_384:]}
+                    if include_failure_output and not r.success and r.stdout
+                    else {}
+                ),
+                **(
+                    {"stderr_tail": r.stderr[-16_384:]}
+                    if include_failure_output and not r.success and r.stderr
+                    else {}
+                ),
             }
             for r in result.results
         ],
     }
+
+
+def _format_scheduling_notices(result: BatchTestResult) -> list[str]:
+    return [
+        (
+            f"  Scheduling: {notice.mode} workers={notice.workers} "
+            f"reason={notice.reason} command={' '.join(notice.command_group)}"
+        )
+        for notice in result.scheduling_notices
+    ]
 
 
 def _format_test_command_line(result) -> str:
@@ -1171,6 +1224,176 @@ def format_replay_result(
     for path, artifacts in sorted(result.items()):
         names = [a.name for a in artifacts]
         lines.append(f"{path}: {', '.join(names)}")
+    return "\n".join(lines)
+
+
+def format_chain_merge_report(
+    report: "ChainMergeReport",
+    *,
+    json_mode: bool = False,
+) -> str:
+    """Format a ChainMergeReport for `maid chain merge`.
+
+    Args:
+        report: The read-only report built by build_chain_merge_report.
+        json_mode: If True, output a single JSON document.
+    """
+    acceptance = report.acceptance
+    from maid_runner.core.chain_merge import artifact_requires_knockout_detection
+
+    detection_artifact_count = sum(
+        artifact_requires_knockout_detection(artifact)
+        for artifact in acceptance.required_artifacts
+    )
+    if json_mode:
+        payload = {
+            "file_path": report.file_path,
+            "verdict": report.verdict.value,
+            "active_manifest_count": report.active_manifest_count,
+            "superseded_manifest_count": report.superseded_manifest_count,
+            "distinct_artifact_count": report.distinct_artifact_count,
+            "total_declaration_count": report.total_declaration_count,
+            "redundant_declaration_count": report.redundant_declaration_count,
+            "blocking_reasons": list(report.blocking_reasons),
+            "acceptance": {
+                "required_artifacts": list(acceptance.required_artifacts),
+                "detection_available": acceptance.detection_available,
+                "required_detecting_nodeids": {
+                    key: list(nodeids)
+                    for key, nodeids in acceptance.required_detecting_nodeids.items()
+                },
+                "unknown_detection_artifacts": list(
+                    acceptance.unknown_detection_artifacts
+                ),
+                "coverage_available": acceptance.coverage_available,
+                "required_covered_artifacts": list(
+                    acceptance.required_covered_artifacts
+                ),
+                "uncovered_coverage_artifacts": list(
+                    acceptance.uncovered_coverage_artifacts
+                ),
+                "unknown_coverage_artifacts": list(
+                    acceptance.unknown_coverage_artifacts
+                ),
+            },
+        }
+        return json.dumps(payload, indent=2)
+
+    lines = [
+        f"{report.file_path}: {report.verdict.value.upper()}",
+        f"  active manifests:      {report.active_manifest_count}",
+        f"  superseded manifests:  {report.superseded_manifest_count}",
+        f"  distinct artifacts:    {report.distinct_artifact_count}",
+        f"  total declarations:    {report.total_declaration_count}",
+        f"  redundant declarations:{report.redundant_declaration_count}",
+    ]
+    for reason in report.blocking_reasons:
+        lines.append(f"  blocked: {reason}")
+    if acceptance.detection_available:
+        lines.append(
+            f"  detection: recorded for "
+            f"{len(acceptance.required_detecting_nodeids)}/"
+            f"{detection_artifact_count} artifacts"
+        )
+    else:
+        lines.append("  detection: UNKNOWN (no evidence source)")
+    if acceptance.coverage_available:
+        lines.append(
+            f"  coverage: recorded for "
+            f"{len(acceptance.required_covered_artifacts)}/"
+            f"{len(acceptance.required_artifacts)} artifacts"
+        )
+        if acceptance.uncovered_coverage_artifacts:
+            lines.append(
+                "  coverage E710: " + ", ".join(acceptance.uncovered_coverage_artifacts)
+            )
+    else:
+        lines.append("  coverage: UNKNOWN (no evidence source)")
+    return "\n".join(lines)
+
+
+def format_chain_merge_summary(
+    summary: "ChainMergeSweepSummary",
+    *,
+    json_mode: bool = False,
+) -> str:
+    """Format a ChainMergeSweepSummary for `maid chain merge --all`."""
+    if json_mode:
+        payload = {
+            "defrag_count": summary.defrag_count,
+            "lean_count": summary.lean_count,
+            "blocked_count": summary.blocked_count,
+            "swept_file_count": summary.swept_file_count,
+            "worst_offenders": list(summary.worst_offenders),
+        }
+        return json.dumps(payload, indent=2)
+
+    lines = [
+        f"swept {summary.swept_file_count} file(s): "
+        f"{summary.defrag_count} DEFRAG, "
+        f"{summary.lean_count} LEAN, "
+        f"{summary.blocked_count} BLOCKED",
+    ]
+    if summary.worst_offenders:
+        lines.append("worst offenders (by redundant declarations):")
+        for path in summary.worst_offenders:
+            lines.append(f"  {path}")
+    return "\n".join(lines)
+
+
+def format_chain_merge_equivalence_result(
+    result: "MergeEquivalenceResult",
+    *,
+    json_mode: bool = False,
+) -> str:
+    """Format a chain-merge artifact-evidence equivalence result."""
+    if json_mode:
+        payload = {
+            "file_path": result.file_path,
+            "success": result.success,
+            "detection_regressions": list(result.detection_regressions),
+            "coverage_regressions": list(result.coverage_regressions),
+            "evidence_regressions": list(result.evidence_regressions),
+            "errors": [error.to_dict() for error in result.errors],
+        }
+        return json.dumps(payload, indent=2)
+
+    if result.success:
+        return f"{result.file_path}: EQUIVALENT"
+
+    lines = [f"{result.file_path}: NOT EQUIVALENT"]
+    for error in result.errors:
+        lines.append(f"  {error.code.value} {error.message}")
+    return "\n".join(lines)
+
+
+def format_chain_merge_apply_result(
+    result: "ChainMergeApplyResult",
+    *,
+    json_mode: bool = False,
+) -> str:
+    """Format a ChainMergeApplyResult for `maid chain merge --apply`."""
+    if json_mode:
+        payload = {
+            "applied": result.applied,
+            "snapshot_path": result.snapshot_path,
+            "superseded_slugs": list(result.superseded_slugs),
+            "refused_reason": result.refused_reason,
+            "missing_artifacts": list(result.missing_artifacts),
+        }
+        return json.dumps(payload, indent=2)
+
+    if result.applied:
+        lines = [
+            f"applied: wrote {result.snapshot_path}",
+            f"  superseded {len(result.superseded_slugs)} manifest(s): "
+            f"{', '.join(result.superseded_slugs)}",
+        ]
+        return "\n".join(lines)
+
+    lines = [f"refused: {result.refused_reason}"]
+    for key in result.missing_artifacts:
+        lines.append(f"  missing: {key}")
     return "\n".join(lines)
 
 

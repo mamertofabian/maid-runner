@@ -1,0 +1,306 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Prepare maid-runner 2.27.0 release metadata and changelog
+type: feature
+created: '2026-08-20T05:27:30Z'
+supersedes:
+- bump-version-2.26.0
+metadata:
+  planning_state: behavioral-contract
+  promotion_ready: true
+  tests_status: created-red-confirmed
+  status: implementation-ready
+  tags:
+  - release
+  - version
+  - changelog
+  priority: high
+description: |
+  Bump maid-runner from the published 2.26.0 release to 2.27.0 and synchronize
+  package metadata, editable lock metadata, changelog, roadmap version/date
+  references, and the shared release-metadata behavioral contract.
+
+  This is a SemVer minor release because the post-v2.26.0 branch adds the
+  backward-compatible `maid chain merge` command family, differential knockout
+  proof, recorded evidence reuse, and substantial deep-verification performance
+  improvements. The branch also adds exact Python TypeAlias support and fixes
+  plan-lock evidence integrity, merge-aware worktree scope, Windows uninstall,
+  release-PR reuse, snapshot timestamp portability, evidence-cache isolation,
+  reviewer-prompt anchoring, and bounded plan-lock command timeouts.
+
+  Prior release Outcomes require package metadata, the editable lock, changelog,
+  roadmap, runtime assertions, comparison links, built artifacts, and independent
+  review evidence to remain synchronized. Release notes therefore summarize the
+  observable feature groups and their fail-closed boundaries rather than copying
+  commit subjects or exposing internal implementation churn.
+
+  This task prepares local release metadata only. Tagging, publishing, pushing,
+  merging to main, and creating a GitHub release remain separate actions requiring
+  explicit authorization.
+temptations:
+- risk: Do not update only pyproject.toml while leaving uv.lock, roadmap, runtime assertions, or changelog stale.
+  instead: Update all 2.27.0 mirrors together and regenerate uv.lock through uv.
+- risk: Do not describe chain merging without its preservation and evidence-equivalence boundaries.
+  instead: State that apply is refusal-based and retains unrelated multi-file contracts and validation obligations.
+- risk: Do not turn the 121 performance series into dozens of implementation-level changelog bullets.
+  instead: Summarize the observable deep-verification speedup, isolation, cache, and fail-closed behavior as cohesive entries.
+- risk: Do not tag, publish, push, merge, or create a GitHub release because local preparation is green.
+  instead: Stop after build, metadata checks, independent review, Outcome capture, and handoff verification.
+- risk: Do not reuse the earlier ready verdict after post-review fixes landed on the release branch.
+  instead: Add the late fixes to the release inventory, rerun release-wide validation and packaging, and obtain a fresh verdict-neutral implementation review.
+files:
+  scope:
+  - path: pyproject.toml
+    reason: Package version metadata has no analyzer-visible public artifact.
+  - path: uv.lock
+    reason: Editable package lock metadata must mirror pyproject and be regenerated through uv.
+  - path: CHANGELOG.md
+    reason: Release notes document the complete 2.27.0 behavior, date, safety boundaries, and comparison link.
+  - path: docs/ROADMAP.md
+    reason: Roadmap current-version references and command inventory mirror the prepared CLI release.
+  edit:
+  - path: tests/integration/test_library_api.py
+    artifacts:
+    - kind: test_function
+      name: test_release_metadata_is_current_version
+      of: TestPublicAPIImports
+      args:
+      - name: self
+        type: TestPublicAPIImports
+      returns: None
+      description: Runtime version, package metadata, editable lock metadata, changelog heading/content/compare link, and roadmap all report 2.27.0; the roadmap lists every registered top-level CLI command.
+  read:
+  - maid_runner/__version__.py
+  - manifests/bump-version-2.26.0.manifest.yaml
+  - manifests/121-03-prove-pytest-process-isolation-before-parallelism.manifest.yaml
+  - manifests/121-04-separate-runtime-policy-from-subprocess-tests.manifest.yaml
+  - manifests/121-05-reuse-fast-real-git-test-projects.manifest.yaml
+  - manifests/121-06-record-duration-informed-pytest-policy.manifest.yaml
+  - manifests/121-07-integrate-duration-informed-pytest-workers.manifest.yaml
+  - manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml
+  - manifests/121-09-prove-runtime-evidence-artifact-coverage-equivalence.manifest.yaml
+  - manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml
+  - manifests/121-11-deduplicate-knockout-mutation-specs.manifest.yaml
+  - manifests/121-12-require-differential-knockout-detection.manifest.yaml
+  - manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml
+  - manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml
+  - manifests/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml
+  - manifests/121-16-align-snapshot-troubleshooting-contract.manifest.yaml
+  - manifests/121-17-isolate-nested-test-process-identities.manifest.yaml
+  - manifests/121-18-preserve-safe-snapshot-test-prerequisites.manifest.yaml
+  - manifests/121-19-route-exact-coverage-batch-through-isolated-lanes.manifest.yaml
+  - manifests/121-20-escalate-only-affected-coverage-identities.manifest.yaml
+  - manifests/121-21-persist-artifact-coverage-evidence-cache.manifest.yaml
+  - manifests/121-22-persist-knockout-evidence-cache.manifest.yaml
+  - manifests/121-23-default-derived-coverage-evidence.manifest.yaml
+  - manifests/121-24-task-scoped-deep-verification.manifest.yaml
+  - manifests/121-25-tune-maid-test-command-jobs.manifest.yaml
+  - manifests/121-26-bind-coverage-runner-monitoring-disable.manifest.yaml
+  - manifests/121-27-share-coverage-lane-dependency-environments.manifest.yaml
+  - manifests/121-28-reuse-ordinary-tests-after-isolated-knockout.manifest.yaml
+  - manifests/121-29-keep-grouped-coverage-under-command-jobs.manifest.yaml
+  - manifests/121-30-project-grouped-command-failures.manifest.yaml
+  - manifests/121-31-focused-knockout-with-collection-incompleteness.manifest.yaml
+  - manifests/121-32-focused-knockout-despite-sibling-unproven-lifecycles.manifest.yaml
+  - manifests/121-33-reuse-ordinary-tests-with-collection-incompleteness.manifest.yaml
+  - manifests/121-34-trust-grouped-knockout-command-order.manifest.yaml
+  - manifests/121-35-focus-knockout-despite-broad-selector-unproven.manifest.yaml
+  - manifests/121-36-focus-knockout-on-proven-detecting-nodeids.manifest.yaml
+  - manifests/121-37-bound-focused-knockout-nodeids.manifest.yaml
+  - manifests/121-38-keep-detecting-nodeids-despite-fixture-calls.manifest.yaml
+  - manifests/121-39-retain-knockout-worker-dependency-environments.manifest.yaml
+  - manifests/121-40-restore-optimized-artifact-coverage-equivalence.manifest.yaml
+  - manifests/121-41-bind-knockout-cache-to-declarations.manifest.yaml
+  - manifests/121-42-retain-dependencies-across-fresh-knockout-roots.manifest.yaml
+  - manifests/121-43-bound-command-supervisor-procfs-traversal.manifest.yaml
+  - manifests/121-44-overlap-external-tests-with-cached-validation.manifest.yaml
+  - manifests/121-45-scope-assessed-deep-to-task.manifest.yaml
+  - manifests/121-46-checkpoint-knockout-cache-per-worker.manifest.yaml
+  - manifests/121-47-template-fresh-knockout-roots.manifest.yaml
+  - manifests/121-48-share-knockout-command-controls.manifest.yaml
+  - manifests/121-49-clear-release-knockout-blockers.manifest.yaml
+  - manifests/121-50-ignore-git-excluded-runtime-evidence-content.manifest.yaml
+  - manifests/add-chain-merge-target-evidence-refresh.manifest.yaml
+  - manifests/add-python-type-alias-artifacts.manifest.yaml
+  - manifests/canonicalize-merged-artifact-order.manifest.yaml
+  - manifests/chain-merge-apply-materialize.manifest.yaml
+  - manifests/chain-merge-coverage-evidence.manifest.yaml
+  - manifests/chain-merge-docs.manifest.yaml
+  - manifests/chain-merge-equivalence-gate.manifest.yaml
+  - manifests/chain-merge-evidence-sources.manifest.yaml
+  - manifests/chain-merge-file-scoped-apply.manifest.yaml
+  - manifests/chain-merge-fragmentation-report.manifest.yaml
+  - manifests/chain-merge-repo-wide-sweep.manifest.yaml
+  - manifests/chain-merge-report-consumes-evidence.manifest.yaml
+  - manifests/configure-plan-lock-command-timeout.manifest.yaml
+  - manifests/cover-remaining-deep-artifacts.manifest.yaml
+  - manifests/fix-approved-fixture-derived-coverage.manifest.yaml
+  - manifests/fix-artifact-coverage-resolver-permit-starvation.manifest.yaml
+  - manifests/fix-branch-introduced-e710-coverage-debt.manifest.yaml
+  - manifests/fix-chain-equivalence-non-knockout-artifacts.manifest.yaml
+  - manifests/fix-chain-merge-formatter-contract.manifest.yaml
+  - manifests/fix-chain-merge-full-artifact-spec.manifest.yaml
+  - manifests/fix-chain-merge-knockout-cache-scope.manifest.yaml
+  - manifests/fix-chain-merge-protocol-e310.manifest.yaml
+  - manifests/fix-chain-merge-target-contract-equivalence.manifest.yaml
+  - manifests/fix-chain-refresh-pytest-timing-cache.manifest.yaml
+  - manifests/fix-deep-verification-cache-and-timeout-hardening.manifest.yaml
+  - manifests/fix-e710-abstract-contract-coverage.manifest.yaml
+  - manifests/fix-e710-chain-merged-coverage.manifest.yaml
+  - manifests/fix-e710-reexport-artifact-coverage.manifest.yaml
+  - manifests/fix-isolated-pytest-payload-sync.manifest.yaml
+  - manifests/fix-knockout-abstract-contract-applicability.manifest.yaml
+  - manifests/fix-knockout-cache-key-context.manifest.yaml
+  - manifests/fix-plan-lock-invalid-red-success.manifest.yaml
+  - manifests/fix-promotion-red-evidence-preservation.manifest.yaml
+  - manifests/fix-merge-aware-worktree-scope.manifest.yaml
+  - manifests/fix-windows-uninstall-portability.manifest.yaml
+  - manifests/fix-release-pr-open-record-parsing.manifest.yaml
+  - manifests/fix-snapshot-created-utc-z.manifest.yaml
+  - manifests/fix-runtime-digest-unrelated-git-config.manifest.yaml
+  - manifests/fix-runtime-evidence-identity-test-wrapper.manifest.yaml
+  - manifests/fix-runtime-preparation-snapshot-environment.manifest.yaml
+  - manifests/fix-shared-dependency-hardlink-identity.manifest.yaml
+  - manifests/fix-reviewer-prompt-anchoring.manifest.yaml
+  - manifests/snapshot-cli-commands--main-2.manifest.yaml
+  - manifests/surface-knockout-strength.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/integration/test_library_api.py
+outcome:
+  status: completed
+  completed_at: '2026-08-20T18:23:07+08:00'
+  summary: Prepared maid-runner 2.27.0 by synchronizing package and editable
+    lock metadata, the August 20 changelog and comparison link, roadmap
+    references and command inventory, runtime release assertions, historical
+    shared-test locks, the audited snapshot-command legacy plan lock, and built
+    distribution metadata.
+  rationale: The post-v2.26.0 branch adds backward-compatible public workflows
+    for manifest-chain consolidation, differential knockout proof, recorded
+    chain evidence, and substantially faster deep verification, making a SemVer
+    minor release appropriate. Release metadata preparation passed focused,
+    repository-wide, packaging, release-wide handoff, and task-scoped deep
+    validation. The missing snapshot-command plan lock exposed by the first
+    release-wide handoff run was reconciled through an audited legacy-baseline
+    migration, then the release and shared-test locks were refreshed only through
+    sanctioned preserved-red-evidence revisions. Independent review also traced
+    the detailed performance and cache claims to their direct manifests and
+    prompted revision 5 to make the roadmap inventory self-check against every
+    registered top-level CLI command. Revision 6 replaced sampled provenance
+    with the complete post-v2.26 behavior-manifest inventory and narrowed the
+    fast-test changelog entry to behavior introduced after v2.26.0.
+  lessons:
+  - lesson_type: release-version-consistency
+    summary: Release preparation stays auditable when pyproject, uv.lock,
+      runtime metadata, changelog date and compare link, roadmap, behavioral
+      assertions, wheel, and source distribution all identify the same release;
+      deriving the documented command inventory from CLI help prevents partial
+      command-list updates.
+    tags:
+    - release
+    - version
+    - changelog
+    - packaging
+    paths:
+    - pyproject.toml
+    - uv.lock
+    - CHANGELOG.md
+    - docs/ROADMAP.md
+    - tests/integration/test_library_api.py
+  - lesson_type: validation-trust
+    summary: Changelog provenance must be checked against the actual release-tag
+      ancestry, because a manifest file touched by later consolidation can make
+      an older feature appear in the current Git path diff even when its behavior
+      shipped in the previous release.
+    tags:
+    - release
+    - changelog
+    - git-history
+    - review
+    paths:
+    - CHANGELOG.md
+    - manifests/bump-version-2.27.0.manifest.yaml
+  - lesson_type: plan-lock
+    summary: A release-wide handoff failure caused by a historical unlocked
+      snapshot contract should be reconciled with an explicit audited
+      legacy-baseline migration; raising the configurable command timeout lets
+      the real 419-file behavioral suite finish without fabricating red evidence.
+    tags:
+    - release
+    - plan-lock
+    - validation
+    - maid-runner-feedback
+    paths:
+    - .maid/plan-locks/snapshot-cli-commands--main-2.lock.json
+    - manifests/snapshot-cli-commands--main-2.manifest.yaml
+  review_notes:
+  - source: independent-implementation-reviewer-release_227_review
+    severity: blocking
+    summary: The read-only reviewer found no release-content defect but identified
+      that the Outcome still described revision-3 validation and the earlier
+      failed handoff result; this refreshed record now cites revision 4 and the
+      successful reconciliation evidence.
+  - source: independent-implementation-reviewer-release_227_review_refresh
+    severity: blocking
+    summary: The read-only reviewer found incomplete direct provenance for
+      detailed changelog claims and an incomplete roadmap command inventory;
+      revision 5 declares those sources and adds a CLI-help-backed completeness
+      assertion that failed before the roadmap was synchronized.
+  - source: independent-implementation-reviewer-release_227_review_revision5
+    severity: blocking
+    summary: The read-only reviewer traced two fast-test claims to v2.18.0 and
+      found additional direct provenance omitted from the release inventory;
+      revision 6 narrows that bullet to post-v2.26 reuse and overlap behavior
+      and enumerates the full post-tag behavior-manifest set.
+  - source: independent-implementation-reviewer-release_227_review_revision6
+    severity: ready
+    summary: Fresh read-only review found no blocking findings and confirmed
+      release-note ancestry, exhaustive behavior-manifest provenance, metadata
+      mirrors, roadmap command coverage, lock integrity, Outcome accuracy, and
+      the intentionally scoped deep-verification boundary.
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/integration/test_library_api.py]
+    status: passed
+    summary: All 29 focused release metadata and public API tests passed.
+  - command: [uv, run, maid, validate, manifests/bump-version-2.27.0.manifest.yaml, --mode, implementation, --packet]
+    status: passed
+    summary: Implementation validation passed against the promoted revision-6 locked contract.
+  - command: [uv, run, maid, validate, --packet]
+    status: passed
+    summary: Repository validation passed 282 active and 355 superseded manifests with no failures.
+  - command: [uv, run, maid, coherence]
+    status: passed
+    summary: Repository coherence passed with zero errors; 178 known warnings remained advisory.
+  - command: [uv, run, maid, files, --json]
+    status: passed
+    summary: File inventory reported 166 tracked, 13 scope-only, and zero undeclared files.
+  - command: [uv, run, python, -m, pytest, tests/, -q, -n, '8', --dist, loadscope]
+    status: passed
+    summary: Full suite passed 4,539 tests with 14 skipped; the direct rerun distinguished one earlier transient command-group failure from a regression.
+  - command: [uv, run, maid, test]
+    status: passed
+    summary: Rerun passed all 299 repository manifest command groups.
+  - command: [uv, run, maid, plan, lock, manifests/snapshot-cli-commands--main-2.manifest.yaml, --legacy-baseline, --reason, 'Adopt committed canonical chain snapshot from 8110ca1 with audited green evidence; historical red evidence is unavailable because consolidation was completed and reviewed before lock migration', --command-timeout, '900']
+    status: passed
+    summary: The real 419-file behavioral suite completed under the explicit timeout and created the audited legacy-baseline lock; a sanctioned preserved-red-evidence revision then synchronized the shared release test.
+  - command: [uv, run, maid, verify, --profile, deep, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, HEAD]
+    status: passed
+    summary: Correct task-baseline deep verification passed all 11 gates after the review fix.
+  - command: [uv, run, ruff, check, .]
+    status: passed
+    summary: Ruff reported no issues.
+  - command: [uv, run, black, --check, .]
+    status: passed
+    summary: Black would leave all 614 files unchanged.
+  - command: [make, build]
+    status: passed
+    summary: Built maid_runner-2.27.0.tar.gz and maid_runner-2.27.0-py3-none-any.whl with synchronized packaged assets.
+  - command: [uv, run, twine, check, dist/maid_runner-2.27.0.tar.gz, dist/maid_runner-2.27.0-py3-none-any.whl]
+    status: passed
+    summary: Twine metadata validation passed for both 2.27.0 artifacts.
+  - command: [uv, run, maid, verify, --profile, handoff, --since, v2.26.0]
+    status: passed
+    summary: Release-wide handoff passed all 9 stages after the snapshot lock migration and shared-test lock refreshes.

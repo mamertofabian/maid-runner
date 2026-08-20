@@ -1,0 +1,81 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Reuse ordinary tests when grouped evidence is incomplete only for coverage"
+type: refactor
+created: "2026-08-13T10:33:02Z"
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - verify
+    - runtime-evidence
+description: |
+  121-28 already reuses matching grouped pytest at the tests stage after
+  snapshot knockout when runtime_evidence_is_current succeeds. The
+  implementation still requires bundle completeness.complete. Grouped unions
+  mark collection:global unresolved and merge sibling unproven fixtures, so
+  this repo never reuses the ~87s coverage pytest at the tests stage.
+
+  Completeness.complete means coverage attribution is fully proven, not that
+  the physical pytest results are missing. After snapshot knockout, reuse
+  matching ordinary pytest groups when knockout executed and the evidence is
+  still current, even if the bundle is incomplete due to collection:global or
+  unproven fixture lifecycles. Missing workers still keep tests fresh because
+  some nodes may not have run. Residual and non-overlapping commands still
+  run. knockout_limit=0 and digest changes still keep tests fresh.
+
+  Do not claim the five-minute deep budget in this contract.
+temptations:
+  - risk: "Do not require bundle completeness.complete to reuse already-executed pytest results."
+    instead: "Reuse when knockout results are non-empty and runtime_evidence_is_current succeeds, even if collection:global or unproven fixtures mark the bundle incomplete."
+  - risk: "Do not reuse tests when workers were lost during the grouped pytest."
+    instead: "Keep tests fresh when completeness.missing_worker_ids is non-empty."
+  - risk: "Do not skip residual or non-overlapping commands because incomplete evidence was reused."
+    instead: "Keep 121-28 residual partitioning; execute every command that is not in the current evidence bundle."
+files:
+  create:
+    - path: tests/cli/test_reuse_ordinary_tests_with_collection_incompleteness.py
+      artifacts:
+        - kind: test_function
+          name: test_collection_global_incompleteness_still_reuses_ordinary_tests
+          args: []
+        - kind: test_function
+          name: test_missing_workers_keep_ordinary_tests_fresh
+          args: []
+  scope:
+    - path: maid_runner/cli/commands/verify.py
+      reason: "Tests-stage reuse must not require bundle completeness.complete when the grouped pytest already ran."
+  read:
+    - tests/cli/test_reuse_ordinary_tests_after_knockout.py
+    - manifests/121-28-reuse-ordinary-tests-after-isolated-knockout.manifest.yaml
+    - maid_runner/core/runtime_evidence.py
+validate:
+  - uv run python -m pytest -q tests/cli/test_reuse_ordinary_tests_with_collection_incompleteness.py tests/cli/test_reuse_ordinary_tests_after_knockout.py
+  - uv run maid validate manifests/121-33-reuse-ordinary-tests-with-collection-incompleteness.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-13T10:45:00Z"
+  summary: "After snapshot knockout, matching ordinary pytest groups are reused even when the evidence bundle is incomplete due to collection:global or sibling unproven fixtures. Missing workers still keep tests fresh."
+  rationale: "completeness.complete means coverage attribution is fully proven, not that the physical pytest results are missing. Requiring it made this repo pay a second ~87s pytest after grouped coverage. Residual partitioning and knockout_limit=0 freshness are unchanged."
+  lessons:
+    - lesson_type: performance
+      summary: "Reuse already-executed grouped pytest results at the tests stage unless workers were lost; collection:global incompleteness is not a missing-test signal."
+      tags: [performance, verify, runtime-evidence]
+      paths:
+        - maid_runner/cli/commands/verify.py
+  review_notes:
+    - source: self-review
+      severity: ready
+      summary: "Reuse no longer requires bundle completeness.complete. Missing workers still force a fresh tests stage. 121-28 residual and digest-change pins still pass. User rule disabled reviewer subagents; this is a local-only review."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/cli/test_reuse_ordinary_tests_with_collection_incompleteness.py, tests/cli/test_reuse_ordinary_tests_after_knockout.py]
+      status: passed
+      summary: "5 tests passed."
+    - command: [uv, run, maid, validate, manifests/121-33-reuse-ordinary-tests-with-collection-incompleteness.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "Implementation validation passed."

@@ -1,0 +1,119 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: Bound GitHub pytest workers to hosted-runner capacity
+type: fix
+created: "2026-08-20T12:15:30Z"
+metadata:
+  planning_state: behavioral-contract
+  promotion_ready: true
+  tests_status: created
+  status: implementation-ready
+  tags: [ci, pytest, xdist, reliability, release]
+  priority: critical
+description: |
+  Keep the repository's local eight-worker policy, but make both reusable
+  GitHub workflows accept an optional pytest-workers input and cap this
+  repository's direct CI runs at four. Reusable callers that omit the input
+  retain their own repository worker policy; explicit caller overrides pass
+  through to `maid test` and `maid verify`. Hosted runners are
+  oversubscribed at eight workers: the 4,544-test aggregate takes 254-442
+  seconds instead of 124 locally and repeatedly trips timing-sensitive tests.
+  Four remains parallel, fits the accepted worker policy, and is caller
+  overridable for larger runners.
+
+  This is an additive chain extension rather than a supersession: it adds one
+  optional input to each reusable workflow, preserves every existing input,
+  trigger, default command, report, and failure semantic, and leaves the
+  repository's existing eight-worker local policy intact.
+temptations:
+- risk: Do not disable xdist or retry failed test commands.
+  instead: Match the default CI worker count to hosted capacity and preserve first-run failures.
+- risk: Do not lower the repository's local default from eight workers.
+  instead: Add four to accepted explicit counts and wire only workflow defaults to four.
+files:
+  scope:
+  - path: .maidrc.yaml
+    reason: Accept four as a validated explicit pytest worker count while retaining eight as the repository default.
+  edit:
+  - path: .github/workflows/maid-test.yml
+    artifacts:
+    - kind: attribute
+      name: _maid_test_pytest_worker_wiring
+      of: github_actions
+      type: workflow input and command wiring
+      description: Optional numeric pytest-workers input preserves an omitted reusable caller's repository policy, defaults this repository's direct CI to four, and passes explicit overrides through to maid test.
+  - path: .github/workflows/maid-validation.yml
+    artifacts:
+    - kind: attribute
+      name: _maid_validation_pytest_worker_wiring
+      of: github_actions
+      type: workflow input and command wiring
+      description: Optional numeric pytest-workers input preserves an omitted reusable caller's repository policy, defaults this repository's direct CI to four, and passes explicit overrides through to maid verify.
+  - path: docs/github-actions.md
+    artifacts:
+    - kind: attribute
+      name: _github_actions_pytest_worker_guidance
+      of: documentation
+      type: markdown section
+      description: Documents the four-worker direct-CI default, reusable-caller policy preservation, explicit override, and unchanged eight-worker repository-local policy.
+  - path: tests/core/test_config.py
+    artifacts:
+    - kind: test_function
+      name: test_repository_maidrc_opts_into_proven_eight_worker_loadscope_policy
+      args: []
+      returns: None
+      description: The repository keeps eight as its local pytest worker default while accepting both the four-worker hosted-runner override and the proven eight-worker local value.
+  create:
+  - path: tests/ci/test_github_pytest_worker_wiring.py
+    artifacts:
+    - kind: test_function
+      name: test_github_workflows_bound_pytest_workers_without_lowering_local_default
+      args: []
+      returns: None
+      description: Both workflows structurally cap this repository's direct CI at four, omit an explicit override for reusable callers by default, pass caller overrides through, and retain eight as the local default.
+  read:
+  - maid_runner/core/config.py
+  - tests/ci/test_github_actions_templates.py
+validate:
+- uv run python -m pytest -q tests/ci/test_github_pytest_worker_wiring.py tests/ci/test_github_actions_templates.py tests/core/test_config.py
+outcome:
+  status: completed
+  completed_at: "2026-08-20T20:45:39+08:00"
+  summary: "Direct GitHub CI for maid-runner now caps aggregated pytest execution at four workers, while reusable-workflow callers that omit the optional override retain their own repository worker policy and local execution remains at eight workers."
+  rationale: "Hosted Linux runs repeatedly failed under eight-worker oversubscription after the aggregate timeout was extended. Scoping the automatic four-worker fallback to direct runs in this repository removes that pressure without imposing an unaccepted explicit count on downstream reusable-workflow callers."
+  agent:
+    model: gpt-5
+    provider: openai
+    client: codex
+    source: "Self-known model family; exact runtime slug and reasoning effort unavailable."
+    skills: [maid-planner, maid-evolver, maid-plan-review, maid-implementer, maid-implementation-review]
+  lessons:
+  - lesson_type: compatibility
+    summary: "Reusable CI workflow defaults must respect policy owned by the caller repository; an omitted optional override should not become an explicit CLI value that the caller has not accepted."
+    tags: [github-actions, reusable-workflows, pytest, compatibility]
+    paths: [.github/workflows/maid-test.yml, .github/workflows/maid-validation.yml]
+  - lesson_type: test-design
+    summary: "Worker-wiring tests should distinguish canonical direct runs, omitted downstream inputs, and explicit caller overrides instead of validating only the host repository's configuration."
+    tags: [ci, behavioral-contract, downstream-policy]
+    paths: [tests/ci/test_github_pytest_worker_wiring.py]
+  review_notes:
+  - source: independent-implementation-reviewer
+    severity: fixed
+    summary: "The first implementation review found that a universal explicit four-worker default could reject downstream caller policies; revision 6 made the fallback repository-scoped and conditional."
+  - source: independent-implementation-reviewer
+    severity: ready
+    summary: "The final review found no blockers or should-fix items and confirmed downstream policy preservation, exact optional argument wiring, documentation, behavioral coverage, and lock integrity."
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/ci/test_github_pytest_worker_wiring.py, tests/ci/test_github_actions_templates.py, tests/core/test_config.py]
+    status: passed
+    summary: "All 23 focused workflow and configuration tests passed."
+  - command: [uv, run, maid, verify, --base-ref, origin/main, --test-jobs, "1", --pytest-workers, "4", --summary, --require-plan-lock, --require-red-evidence]
+    status: passed
+    summary: "All nine handoff stages passed, including the complete four-worker repository test aggregate, in 286 seconds."
+  - command: [uv, run, maid, verify, --profile, deep, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, e64929c]
+    status: passed
+    summary: "All 11 deep stages passed, including artifact coverage and knockout, after the downstream-safe revision."

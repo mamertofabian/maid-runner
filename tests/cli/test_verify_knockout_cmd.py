@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -268,13 +269,12 @@ def test_targets_behavior():
     ]
 
 
-def test_verify_knockout_dirty_refusal_and_allow_dirty_override(
+def test_verify_knockout_dirty_source_needs_no_override_in_snapshot(
     tmp_path: Path,
     monkeypatch,
     capsys,
 ) -> None:
     from maid_runner.cli.commands._main import main
-    from maid_runner.core import knockout
 
     _write_knockout_project(
         tmp_path,
@@ -291,11 +291,20 @@ def test_target_behavior():
     assert target() == "honest"
 """,
     )
-    monkeypatch.setattr(knockout, "changed_files", lambda root: ("src/target.py",))
+    for command in (
+        ("git", "init"),
+        ("git", "config", "user.email", "snapshot@example.test"),
+        ("git", "config", "user.name", "Snapshot Test"),
+        ("git", "add", "."),
+        ("git", "commit", "-m", "fixture"),
+    ):
+        subprocess.run(command, cwd=tmp_path, check=True, capture_output=True)
+    source_path = tmp_path / "src/target.py"
+    source_path.write_text(source_path.read_text() + "\n# current dirty bytes\n")
     monkeypatch.chdir(tmp_path)
 
-    refused = main(["verify", "--knockout", "--no-changed-scope", "--json"])
-    refused_payload = json.loads(capsys.readouterr().out)
+    without_override = main(["verify", "--knockout", "--no-changed-scope", "--json"])
+    without_override_payload = json.loads(capsys.readouterr().out)
 
     allowed = main(
         [
@@ -308,14 +317,27 @@ def test_target_behavior():
     )
     allowed_payload = json.loads(capsys.readouterr().out)
 
-    assert refused == 1
-    refused_stage = _stage(refused_payload, "knockout")
-    assert refused_stage["details"]["errors"][0]["code"] == "E712"
-    assert "dirty source file" in refused_stage["details"]["errors"][0]["message"]
-    assert allowed == 0
+    assert without_override == allowed == 0
+    without_override_stage = _stage(without_override_payload, "knockout")
     allowed_stage = _stage(allowed_payload, "knockout")
+    assert without_override_stage["success"] is True
+    assert without_override_stage["details"]["results"][0]["detected"] is True
     assert allowed_stage["success"] is True
     assert allowed_stage["details"]["results"][0]["detected"] is True
+
+
+def test_deprecated_allow_dirty_flag_remains_parseable(capsys) -> None:
+    from maid_runner.cli.commands._main import build_parser
+
+    parser = build_parser()
+
+    args = parser.parse_args(["verify", "--knockout", "--knockout-allow-dirty"])
+    with pytest.raises(SystemExit) as exit_info:
+        parser.parse_args(["verify", "--help"])
+
+    assert args.knockout_allow_dirty is True
+    assert exit_info.value.code == 0
+    assert "deprecated" in capsys.readouterr().out.lower()
 
 
 def test_verify_knockout_text_and_json_include_same_e711_result_shape(
@@ -377,6 +399,50 @@ def test_mentions_target_without_calling_it():
     assert error["code"] == "E711"
     assert "target" in error["message"]
     assert "src/target.py" in error["message"]
+
+
+def test_configured_knockout_workers_preserve_text_and_json_results(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    from maid_runner.cli.commands._main import main
+
+    for mode in ("text", "json"):
+        root = tmp_path / mode
+        _write_knockout_project(
+            root,
+            source="""
+def alpha() -> str:
+    value = "alpha"
+    return value
+
+def beta() -> str:
+    value = "beta"
+    return value
+""",
+            test="""
+from src.target import alpha, beta
+
+def test_targets():
+    assert alpha() == "alpha"
+    assert beta() == "beta"
+""",
+            artifacts=("alpha", "beta"),
+        )
+        (root / ".maidrc.yaml").write_text(
+            "test_execution:\n  max_processes: 2\n" "knockout_execution:\n  jobs: 2\n"
+        )
+
+    monkeypatch.chdir(tmp_path / "text")
+    text_exit = main(["verify", "--knockout", "--no-changed-scope"])
+    text_output = capsys.readouterr().out
+    monkeypatch.chdir(tmp_path / "json")
+    json_exit = main(["verify", "--knockout", "--no-changed-scope", "--json"])
+    payload = json.loads(capsys.readouterr().out)
+    results = _stage(payload, "knockout")["details"]["results"]
+
+    assert text_exit == json_exit == 0
+    assert text_output.index("detected: alpha") < text_output.index("detected: beta")
+    assert [result["artifact_name"] for result in results] == ["alpha", "beta"]
 
 
 def _write_knockout_project(

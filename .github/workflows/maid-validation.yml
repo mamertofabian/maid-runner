@@ -28,6 +28,10 @@ on:
         required: false
         type: number
         default: 1
+      pytest-workers:
+        description: "Optional pytest-xdist workers override for verify's test stage."
+        required: false
+        type: number
       extra-verify-args:
         description: "Additional arguments passed to maid verify."
         required: false
@@ -91,11 +95,17 @@ jobs:
           MANIFEST_DIR: ${{ inputs['manifest-dir'] || 'manifests/' }}
           BASE_REF_INPUT: ${{ inputs['base-ref'] || '' }}
           TEST_JOBS: ${{ inputs['test-jobs'] || 1 }}
+          PYTEST_WORKERS: ${{ inputs['pytest-workers'] || (github.repository == 'mamertofabian/maid-runner' && 4) || '' }}
           EXTRA_VERIFY_ARGS: ${{ inputs['extra-verify-args'] || '' }}
           UPLOAD_SARIF: ${{ inputs['upload-sarif'] || false }}
         run: |
+          # _maid_validation_pytest_worker_wiring
           set +e
           mkdir -p .maid
+          PYTEST_WORKER_ARGS=()
+          if [[ -n "$PYTEST_WORKERS" ]]; then
+            PYTEST_WORKER_ARGS=(--pytest-workers "$PYTEST_WORKERS")
+          fi
           SARIF_PATH=".maid/maid-verify.sarif"
           VERIFY_SARIF_ARGS=()
           if [[ "$UPLOAD_SARIF" == "true" ]]; then
@@ -105,15 +115,15 @@ jobs:
           VERIFY_EXIT=0
           if [[ -n "$BASE_REF_INPUT" ]]; then
             BASE_REF="$BASE_REF_INPUT"
-            uv run maid verify --manifest-dir "$MANIFEST_DIR" --base-ref "$BASE_REF" --test-jobs "$TEST_JOBS" --json "${VERIFY_SARIF_ARGS[@]}" $EXTRA_VERIFY_ARGS > .maid/maid-verify.json
+            uv run maid verify --manifest-dir "$MANIFEST_DIR" --base-ref "$BASE_REF" --test-jobs "$TEST_JOBS" "${PYTEST_WORKER_ARGS[@]}" --json "${VERIFY_SARIF_ARGS[@]}" $EXTRA_VERIFY_ARGS > .maid/maid-verify.json
             VERIFY_EXIT=$?
           elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
             git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
             BASE_REF="origin/${{ github.base_ref }}"
-            uv run maid verify --manifest-dir "$MANIFEST_DIR" --base-ref "$BASE_REF" --test-jobs "$TEST_JOBS" --json "${VERIFY_SARIF_ARGS[@]}" $EXTRA_VERIFY_ARGS > .maid/maid-verify.json
+            uv run maid verify --manifest-dir "$MANIFEST_DIR" --base-ref "$BASE_REF" --test-jobs "$TEST_JOBS" "${PYTEST_WORKER_ARGS[@]}" --json "${VERIFY_SARIF_ARGS[@]}" $EXTRA_VERIFY_ARGS > .maid/maid-verify.json
             VERIFY_EXIT=$?
           else
-            uv run maid verify --manifest-dir "$MANIFEST_DIR" --no-changed-scope --test-jobs "$TEST_JOBS" --json "${VERIFY_SARIF_ARGS[@]}" $EXTRA_VERIFY_ARGS > .maid/maid-verify.json
+            uv run maid verify --manifest-dir "$MANIFEST_DIR" --no-changed-scope --test-jobs "$TEST_JOBS" "${PYTEST_WORKER_ARGS[@]}" --json "${VERIFY_SARIF_ARGS[@]}" $EXTRA_VERIFY_ARGS > .maid/maid-verify.json
             VERIFY_EXIT=$?
           fi
 

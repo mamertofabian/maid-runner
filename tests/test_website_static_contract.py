@@ -98,6 +98,21 @@ def test_homepage_leads_with_core_strengths() -> None:
     assert "Make AI coding follow the plan" not in homepage
 
 
+def test_homepage_surfaces_knockout_strength() -> None:
+    homepage = _read(HOMEPAGE)
+
+    # Differential knockout is surfaced as a strength: deep verification can
+    # delete a declared function's body and require the tests to fail, proving
+    # the tests exercise the code rather than just executing a line. This is the
+    # README-documented --knockout gate, presented without over-promising.
+    assert "Proven, not just covered" in homepage
+    assert "delete a function's body and require your tests to fail" in homepage
+
+    # The "test rewriting" answer names the knockout defense, so a gutted test
+    # that no longer asserts anything cannot quietly pass.
+    assert "knock out the code to confirm a test actually fails without it" in homepage
+
+
 def test_homepage_renders_workflow_capabilities_tools_and_quickstart() -> None:
     homepage = _read(HOMEPAGE)
 

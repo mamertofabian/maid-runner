@@ -1,0 +1,120 @@
+{
+  "manifest_path": "manifests/fix-runtime-evidence-identity-test-wrapper.manifest.yaml",
+  "manifest_hash": "sha256-contract:361e9a59314c130da82afdd242f307512f4acb649414dd5f560aae53af52893f",
+  "test_hashes": {
+    "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:0bfcbeae6328eb1bda7ba15e14e5961d06a0be5e328c153788852292842c8a4a",
+    "tests/core/test_runtime_evidence_preparation_environment.py": "sha256-pyast:v2:c8075518c7cc7459fadd53c6124f8787d2d3da00ad5587be5270e10207edabba"
+  },
+  "created_at": "2026-08-19T23:06:30.030818+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:5a51a41807ec730ef576ea80c4c7489fb1b19c97c1b543d8e36fc0aa3ab20d97",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:2a4168c0fe3cdb68f2ab4707e0bc2cbeaffe94ba62aaf3282dea13cc76dee643",
+        "tests/core/test_runtime_evidence_preparation_environment.py": "sha256-pyast:v2:c8075518c7cc7459fadd53c6124f8787d2d3da00ad5587be5270e10207edabba"
+      },
+      "revised_at": "2026-08-19T23:06:43.082931+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-runtime-evidence-identity-test-wrapper.manifest.yaml -> manifests/fix-runtime-evidence-identity-test-wrapper.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:361e9a59314c130da82afdd242f307512f4acb649414dd5f560aae53af52893f",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:2a4168c0fe3cdb68f2ab4707e0bc2cbeaffe94ba62aaf3282dea13cc76dee643",
+        "tests/core/test_runtime_evidence_preparation_environment.py": "sha256-pyast:v2:c8075518c7cc7459fadd53c6124f8787d2d3da00ad5587be5270e10207edabba"
+      },
+      "revised_at": "2026-08-19T23:07:22.931792+00:00",
+      "reason": "Audit the approved test-only compatibility implementation: the wrapper now forwards child_environment and the focused regression is green.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": false,
+    "captured_at": "2026-08-19T23:07:37.712907+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_verify_deep_evidence_reuse.py::test_changed_resolved_environment_identity_runs_exact_coverage_fallback",
+        "exit_code": 0,
+        "output_tail": ".                                                                        [100%]\n1 passed in 0.86s",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_verify_deep_evidence_reuse.py tests/core/test_runtime_evidence_preparation_environment.py",
+        "exit_code": 0,
+        "output_tail": "..................                                                       [100%]\n18 passed in 13.42s",
+        "classification": "not_red"
+      }
+    ],
+    "mode": "test_only_green"
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_changed_resolved_environment_identity_runs_exact_coverage_fallback",
+      "tests/cli/test_verify_deep_evidence_reuse.py:test_changed_resolved_environment_identity_runs_exact_coverage_fallback:kind=test_function"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "tests/cli/test_verify_deep_evidence_reuse.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/validate.py",
+        "maid_runner/core/artifact_coverage.py",
+        "maid_runner/core/runtime_evidence.py",
+        "manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml",
+        "manifests/fix-runtime-preparation-snapshot-environment.manifest.yaml"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "tests/cli/test_verify_deep_evidence_reuse.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_changed_resolved_environment_identity_runs_exact_coverage_fallback",
+              "description": "Forwards evaluator-owned child environment policy while perturbing the resolved version and proving exact coverage fallback."
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/runtime_evidence.py",
+        "maid_runner/core/artifact_coverage.py",
+        "maid_runner/cli/commands/validate.py",
+        "manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml",
+        "manifests/fix-runtime-preparation-snapshot-environment.manifest.yaml"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_verify_deep_evidence_reuse.py",
+      "tests/core/test_runtime_evidence_preparation_environment.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_verify_deep_evidence_reuse.py::test_changed_resolved_environment_identity_runs_exact_coverage_fallback",
+      "uv run python -m pytest -q tests/cli/test_verify_deep_evidence_reuse.py tests/core/test_runtime_evidence_preparation_environment.py"
+    ]
+  }
+}

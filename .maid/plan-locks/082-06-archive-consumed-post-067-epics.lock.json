@@ -2,10 +2,10 @@
   "manifest_path": "manifests/082-06-archive-consumed-post-067-epics.manifest.yaml",
   "manifest_hash": "sha256-contract:04f8731f91394aa0225805d9e274585c01a8d5888175a130afcc3b5837ab721e",
   "test_hashes": {
-    "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:3691d93602c64b384ccb32177fc955f1ebf454b2294ff5a7796024350be13bf0"
+    "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:aec491773aff74ab4bf6a912fd2aa2eef6648b4efa0b9bd0a9388ea0430cde0a"
   },
   "created_at": "2026-07-03T05:21:55.702548+00:00",
-  "revision": 20,
+  "revision": 21,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:ee976f26a3ce9f25f63f9f1b5fa0349474891031a7d06b2082f4d92095187fdd",
@@ -335,6 +335,23 @@
       },
       "revised_at": "2026-08-10T11:47:37.928534+00:00",
       "reason": "accept approved archived-121 shared inventory test change",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:04f8731f91394aa0225805d9e274585c01a8d5888175a130afcc3b5837ab721e",
+      "prior_test_hashes": {
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:3691d93602c64b384ccb32177fc955f1ebf454b2294ff5a7796024350be13bf0"
+      },
+      "revised_at": "2026-08-11T03:04:46.833262+00:00",
+      "reason": "accept reopened 121 live-inventory assertion",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

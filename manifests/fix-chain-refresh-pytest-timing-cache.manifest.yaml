@@ -1,0 +1,113 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Allow isolated chain evidence to discard only MAID's advisory pytest timing cache writes"
+type: fix
+created: "2026-08-19T19:54:41Z"
+metadata:
+  priority: high
+  tags: [chain-merge, evidence, pytest, cache, isolation]
+description: |
+  Runtime evidence records advisory pytest duration history under
+  `.maid/cache/pytest-timing-*.json`. During chain-merge evidence refresh that
+  cache is written inside a disposable snapshot and then discarded, but the
+  material-write guard currently treats it as a project input mutation and
+  raises E712.
+
+  Treat only MAID's exact pytest timing history files and their atomic temporary
+  siblings under `.maid/cache` as non-material snapshot output. Continue to
+  reject arbitrary files in `.maid/cache`, every other project write, and
+  restored or deleted writes. Do not broaden the snapshot input set or copy
+  Git-ignored caches from the source project.
+temptations:
+  - risk: "Do not classify the entire .maid/cache directory as non-material."
+    instead: "Match only the owned pytest-timing JSON filename family and its atomic temporary siblings."
+  - risk: "Do not disable the material-write journal or ignore all Git-ignored output."
+    instead: "Keep the existing fail-closed guard and narrow the advisory-output classification."
+  - risk: "Do not copy source timing caches into the snapshot."
+    instead: "Let scheduling start without ignored cache input and discard advisory timing output with the snapshot."
+files:
+  edit:
+    - path: tests/cli/test_chain_merge_refresh_evidence_command.py
+      artifacts:
+        - kind: test_function
+          name: test_chain_merge_refresh_discards_only_owned_pytest_timing_cache
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: monkeypatch, type: pytest.MonkeyPatch}
+            - {name: capsys, type: "pytest.CaptureFixture[str]"}
+          returns: None
+          description: "A real public refresh configured to collect timing evidence succeeds without persisting snapshot timing output into the source project."
+        - kind: test_function
+          name: test_chain_merge_refresh_rejects_unowned_maid_cache_write
+          args:
+            - {name: relative_path, type: str}
+            - {name: tmp_path, type: Path}
+            - {name: monkeypatch, type: pytest.MonkeyPatch}
+            - {name: capsys, type: "pytest.CaptureFixture[str]"}
+          returns: None
+          description: "An arbitrary project-created file under .maid/cache remains a blocking E712 material write."
+  scope:
+    - path: maid_runner/core/_artifact_coverage_fallback_worker.py
+      reason: "Narrow the shared snapshot material-output classifier to the exact owned advisory pytest timing cache family."
+  read:
+    - maid_runner/core/_pytest_parallelism.py
+    - maid_runner/core/_pytest_worker_execution.py
+    - maid_runner/core/chain_merge_evidence.py
+    - manifests/add-chain-merge-target-evidence-refresh.manifest.yaml
+    - manifests/fix-isolated-pytest-payload-sync.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/cli/test_chain_merge_refresh_evidence_command.py tests/core/test_artifact_coverage_fallback_workers.py
+outcome:
+  status: completed
+  completed_at: "2026-08-20T04:03:07+08:00"
+  summary: >-
+    Isolated chain-evidence refresh now discards only MAID-owned advisory pytest
+    timing JSON and atomic temporary output while retaining E712 for every
+    unowned cache path and other material project write.
+  rationale: >-
+    The timing history is generated inside and discarded with the snapshot, so
+    it cannot benefit future scheduling and is not a project input. Exact path
+    depth and full-match filename grammar avoid weakening the shared material
+    guard or reintroducing ignored source-cache inputs.
+  lessons:
+    - lesson_type: validation-trust
+      summary: >-
+        Non-material output exemptions must bind ownership, directory depth,
+        digest grammar, and atomic suffixes; a directory or prefix exemption
+        would turn ignored project state into a fail-open boundary.
+      tags: [E712, chain-merge, cache, fail-closed]
+      paths:
+        - maid_runner/core/_artifact_coverage_fallback_worker.py
+        - tests/cli/test_chain_merge_refresh_evidence_command.py
+    - lesson_type: test-design
+      summary: >-
+        A real positive producer plus invalid-digest, nested, backup, malformed
+        temporary, and arbitrary-file controls closes broad regex shortcuts
+        without testing the private classifier directly.
+      tags: [behavioral-tests, pytest-timing, isolation]
+      paths:
+        - tests/cli/test_chain_merge_refresh_evidence_command.py
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: ready
+      summary: >-
+        Final read-only review found no blockers or should-fix findings and
+        independently confirmed exact Path and regex behavior, atomic temp
+        compatibility, dependent lock integrity, and shared fallback coverage.
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/cli/test_chain_merge_refresh_evidence_command.py, tests/core/test_artifact_coverage_fallback_workers.py]
+      status: passed
+      summary: "All 33 declared CLI and shared fallback-worker tests passed."
+    - command: [uv, run, maid, validate, manifests/fix-chain-refresh-pytest-timing-cache.manifest.yaml, --mode, implementation, --packet]
+      status: passed
+      summary: "Implementation validation passed against plan-lock revision 2."
+    - command: [uv, run, maid, chain, merge, maid_runner/coherence/checks/dependency.py, --refresh-evidence, --json]
+      status: passed
+      summary: "The real pilot target returned DEFRAG with complete detection and coverage evidence and no unknown artifacts."
+    - command: [uv, run, maid, verify, --profile, deep, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, 4a7abd8]
+      status: passed
+      summary: "The assessed deep gate passed all 11 stages in 75.559 seconds with only existing non-blocking E307 notices."

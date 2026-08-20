@@ -1,0 +1,142 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Execute the twelve genuine artifact-coverage gaps left after owner consolidation"
+type: fix
+created: "2026-08-17T06:35:13Z"
+metadata:
+  priority: critical
+  tags:
+    - artifact-coverage
+    - deep-verification
+    - compatibility
+    - automation
+description: |
+  Owner consolidation removes duplicate E710 reports and leaves twelve genuine
+  unexecuted bodies. Give the coherence package facade its own executable
+  get_checks entry point while preserving the existing filtering signature and
+  result. Strengthen focused tests so the legacy assertion compatibility
+  delegates, session-scoped Git template fixture, and public Claude/Codex loop
+  wrappers execute through observable behavior.
+
+  The assertion delegates are private compatibility surfaces already declared
+  by the active chain. Their narrow characterization compares results with the
+  extracted public helpers rather than coupling tests to private state. The
+  automation wrappers are exercised directly because callers rely on their
+  root binding, packet conversion, approval delegation, and stream-process file
+  contract. No production change is required outside the coherence facade.
+temptations:
+  - risk: "Do not exempt the twelve findings or mark ordinary helpers as default hooks."
+    instead: "Execute each body through focused behavior and confirm the deep artifact-coverage report reaches zero E710."
+  - risk: "Do not duplicate the automation core implementation in wrapper tests."
+    instead: "Patch only the owned core delegation boundary and assert arguments, return values, packet conversion, and repository binding."
+  - risk: "Do not mock the internals of Claude stream processing to manufacture coverage."
+    instead: "Run a deterministic local Python subprocess and assert the returned result plus persisted stdout, stderr, and final-message files."
+  - risk: "Do not broaden the coherence facade signature or change check filtering behavior."
+    instead: "Delegate the exact optional enabled/disabled arguments to the existing checks implementation and assert facade ownership plus filtering."
+files:
+  edit:
+    - path: maid_runner/coherence/__init__.py
+      artifacts:
+        - kind: function
+          name: get_checks
+          args:
+            - name: enabled
+              type: Optional[list[str]]
+              default: None
+            - name: disabled
+              type: Optional[list[str]]
+              default: None
+          returns: list[BaseCheck]
+          description: "Return filtered coherence checks through an executable package-facade entry point."
+    - path: tests/coherence/test_coherence_v2.py
+      artifacts:
+        - kind: test_function
+          name: test_coherence_facade_get_checks_has_local_executable_entry_point
+          args: []
+          returns: None
+    - path: tests/core/validation/test_assertion_checking.py
+      artifacts:
+        - kind: test_function
+          name: test_legacy_behavioral_assertion_wrappers_preserve_extracted_behavior
+          args: []
+          returns: None
+    - path: tests/core/test_git_project_templates.py
+      artifacts:
+        - kind: test_function
+          name: test_session_fixture_executes_factory_body
+          args: []
+          returns: None
+    - path: tests/ci/test_claude_maid_loop.py
+      artifacts:
+        - kind: test_function
+          name: test_public_automation_wrappers_execute_delegates_and_stream_process
+          args: []
+          returns: None
+    - path: tests/ci/test_codex_maid_loop.py
+      artifacts:
+        - kind: test_function
+          name: test_public_automation_wrappers_execute_core_delegates
+          args: []
+          returns: None
+  read:
+    - maid_runner/coherence/checks/base.py
+    - maid_runner/core/_behavioral_validation.py
+    - maid_runner/core/_test_assertions.py
+    - tests/conftest.py
+    - tests/support/git_project_templates.py
+    - tools/maid_loop_core.py
+    - tools/claude_maid_loop.py
+    - tools/codex_maid_loop.py
+    - manifests/consolidate-coherence-contracts.manifest.yaml
+    - manifests/snapshot-cli-commands--main-2.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/coherence/test_coherence_v2.py tests/core/validation/test_assertion_checking.py tests/core/test_git_project_templates.py tests/ci/test_claude_maid_loop.py tests/ci/test_codex_maid_loop.py
+outcome:
+  status: completed
+  completed_at: "2026-08-17T18:01:54+08:00"
+  summary: Executed all twelve remaining artifact-coverage gaps and reduced the completed repository artifact-coverage report to zero E710 findings.
+  rationale: |
+    The coherence package now owns an executable filtering facade, while
+    focused characterization executes the existing assertion delegates, Git
+    template fixture, and Claude/Codex automation wrappers through observable
+    behavior. The completed artifact-coverage cache records 983 executed
+    findings, zero unexecuted artifacts, and zero errors. The assessment-selected
+    deep gate was stopped during knockout after more than three hours because
+    that duration is operationally unacceptable; its performance is follow-up
+    diagnostic work rather than evidence against the completed E710 result.
+  lessons:
+    - lesson_type: validation
+      summary: Artifact-coverage success and knockout completion should remain separately observable because zero E710 can be proven before an unexpectedly long knockout stage finishes.
+      tags:
+        - artifact-coverage
+        - knockout
+        - deep-verification
+      paths:
+        - maid_runner/coherence/__init__.py
+        - tests/coherence/test_coherence_v2.py
+        - tests/ci/test_claude_maid_loop.py
+        - tests/ci/test_codex_maid_loop.py
+  review_notes:
+    - source: independent-implementation-reviewer-remaining_e710_impl_review
+      severity: ready
+      summary: No actionable findings; all twelve named targets executed, the facade preserved filtering and runtime type hints, and the completed coverage cache reported zero unexecuted artifacts.
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/coherence/test_coherence_v2.py, tests/core/validation/test_assertion_checking.py, tests/core/test_git_project_templates.py, tests/ci/test_claude_maid_loop.py, tests/ci/test_codex_maid_loop.py]
+      status: passed
+      summary: All 161 focused behavioral and characterization tests passed.
+    - command: [uv, run, maid, validate, manifests/cover-remaining-deep-artifacts.manifest.yaml, --mode, implementation, --packet]
+      status: passed
+      summary: Implementation validation passed against the locked contract.
+    - command: [uv, run, maid, validate, --packet]
+      status: passed
+      summary: All 263 active manifests passed; 346 superseded manifests were skipped.
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: All 294 manifest command groups passed.
+    - command: [uv, run, maid, verify, --profile, deep, --require-plan-lock, --require-red-evidence, --since, 8110ca1]
+      status: aborted-environment
+      summary: Artifact coverage completed with 983 executed findings, zero unexecuted artifacts, and zero errors; the run was stopped during knockout after roughly three hours and seventeen minutes at the user's direction due unacceptable duration.

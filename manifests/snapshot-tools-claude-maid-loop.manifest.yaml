@@ -1,0 +1,1786 @@
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Snapshot of tools/claude_maid_loop.py
+type: snapshot
+files:
+  create:
+  - path: .claude/skills/maid-runner-draft-implement/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: maid_runner_draft_implement_skill_guidance
+      description: Claude Code skill guidance explicitly limiting loop-invoked runs
+        to the selected draft manifests listed by automation
+      of: maid-runner Claude draft implement skill
+      type: markdown
+  - path: tests/ci/test_claude_maid_loop.py
+    artifacts:
+    - kind: test_function
+      name: test_auto_commit_skips_interactive_prompt
+    - kind: test_function
+      name: test_build_implementation_command_requires_verbose_for_stream_json
+    - kind: test_function
+      name: test_build_implementation_command_scopes_prompt_to_selected_draft
+    - kind: test_function
+      name: test_build_implementation_command_uses_claude_print_stream_and_repo_skill
+    - kind: test_function
+      name: test_claude_draft_implement_skill_requires_claude_review_guidance
+    - kind: test_function
+      name: test_claude_draft_implement_skill_requires_lock_aware_promotion_guidance
+      source_scenario: Claude Code uses the repo-local draft implementation skill
+        to promote a selected draft.
+      actions:
+      - type: api_call
+        subject:
+          function: Path.read_text
+      expected:
+        behavior: The Claude skill requires `uv run maid manifest promote`, requires
+          a pre-promotion plan lock, forbids manual move/copy promotion, and names
+          the handoff verify gate.
+    - kind: test_function
+      name: test_claude_draft_implement_skill_requires_selected_scope_guidance
+    - kind: test_function
+      name: test_dirty_worktree_blocks_new_passes
+    - kind: test_function
+      name: test_find_implementable_drafts_excludes_epics
+    - kind: test_function
+      name: test_gitignore_excludes_claude_automation_logs
+    - kind: test_function
+      name: test_loop_rechecks_future_drafts_after_each_ready_commit
+    - kind: test_function
+      name: test_main_accepts_auto_commit_flag
+    - kind: test_function
+      name: test_package_script_exposes_claude_loop
+    - kind: test_function
+      name: test_parse_automation_status_uses_last_valid_status
+    - kind: test_function
+      name: test_parse_commit_packet_stops_at_first_non_file_line
+    - kind: test_function
+      name: test_parse_commit_packet_uses_last_complete_packet
+    - kind: test_function
+      name: test_parser_documents_auto_commit_and_permission_mode
+    - kind: test_function
+      name: test_parser_documents_explicit_batch_size
+    - kind: test_function
+      name: test_ready_pass_adds_matching_promoted_draft_deletion_to_commit_packet
+    - kind: test_function
+      name: test_ready_pass_prompts_for_commit_by_default
+    - kind: test_function
+      name: test_ready_pass_rejects_copy_status_unselected_promotions
+    - kind: test_function
+      name: test_ready_pass_rejects_rename_status_unselected_promotion_source
+    - kind: test_function
+      name: test_ready_pass_rejects_unlisted_dirty_paths_before_commit
+    - kind: test_function
+      name: test_ready_pass_rejects_unselected_draft_promotions
+    - kind: test_function
+      name: test_render_claude_stream_event_handles_session_text_and_result
+    - kind: test_function
+      name: test_render_claude_stream_event_includes_task_payload_summaries
+    - kind: test_function
+      name: test_stage_commit_packet_files_rejects_directories_and_unsafe_paths
+    - kind: test_function
+      name: test_stage_commit_packet_files_rejects_missing_untracked_paths
+  - path: tools/maid_loop_core.py
+    artifacts:
+    - kind: attribute
+      name: files
+      of: CommitPacket
+      type: list[str]
+    - kind: attribute
+      name: message
+      of: CommitPacket
+      type: str
+    - kind: attribute
+      name: attempts
+      of: RetryLoopResult
+      type: int
+    - kind: attribute
+      name: escalated
+      of: RetryLoopResult
+      type: bool
+    - kind: attribute
+      name: final_packet
+      of: RetryLoopResult
+      type: dict | None
+    - kind: attribute
+      name: success
+      of: RetryLoopResult
+      type: bool
+    - kind: class
+      name: CommitPacket
+      description: Parsed READY commit message and exact file list, shared by both
+        loop tools.
+    - kind: class
+      name: RetryLoopResult
+      description: 'Outcome of a bounded retry loop run: attempts used, success, escalation,
+        and the final failure packet if any.'
+    - kind: function
+      name: ask_commit_approval
+      description: Require a per-pass typed approval before committing a READY packet.
+      args:
+      - name: pass_number
+        type: int
+      - name: status
+        type: str
+      returns: bool
+    - kind: function
+      name: commit_ready_changes
+      description: Stage and commit a READY packet after approval.
+      args:
+      - name: packet
+        type: CommitPacket
+      - name: root
+        type: Path
+      returns: int
+    - kind: function
+      name: find_implementable_drafts
+      description: Return sorted non-epic draft MAID manifests that remain to be implemented.
+      args:
+      - name: draft_dir
+        type: Path
+      returns: list[Path]
+    - kind: function
+      name: git_status_short
+      description: Return `git status --short` output for worktree preflight.
+      args:
+      - name: root
+        type: Path
+      returns: str
+    - kind: function
+      name: parse_automation_status
+      description: Extract the final AUTOMATION_STATUS marker from an agent's final
+        message.
+      args:
+      - name: final_message
+        type: str
+      returns: str | None
+    - kind: function
+      name: parse_commit_packet
+      description: Extract the commit message and explicit file list from a READY
+        final message; last complete packet wins.
+      args:
+      - name: final_message
+        type: str
+      returns: CommitPacket | None
+    - kind: function
+      name: read_failure_packet
+      description: Read and parse the failure packet JSON written by a failed gate
+        run; return None for a missing or unreadable packet.
+      args:
+      - name: path
+        type: Union[str, Path]
+      returns: dict | None
+    - kind: function
+      name: run_bounded_retry_loop
+      description: 'Drive the documented loop contract: run gate, on failure read
+        packet and hand it to the next attempt, re-run, stop and escalate with the
+        final packet after max_attempts.'
+      args:
+      - name: run_gate
+        type: Callable[[], int]
+      - name: run_attempt
+        type: Callable[[dict | None], str]
+      - name: packet_path
+        type: Union[str, Path]
+      - name: max_attempts
+        type: int
+        default: '5'
+      returns: RetryLoopResult
+    - kind: function
+      name: stage_commit_packet_files
+      description: Stage the exact existing or tracked-deleted files named by a READY
+        packet; refuse absolute or parent-relative paths.
+      args:
+      - name: files
+        type: list[str]
+      - name: root
+        type: Path
+      returns: int
+  - path: tests/ci/test_maid_loop_core.py
+    artifacts:
+    - kind: test_function
+      name: test_agent_retry_protocol_document_names_packet_cycle_and_escalation
+      source_scenario: A maintainer reads the documented retry protocol.
+      actions:
+      - type: api_call
+        subject:
+          function: Path.read_text
+      expected:
+        behavior: The document specifies running gates with --packet, reading the
+          packet, applying next_action-guided fixes, rerunning, defaulting to five
+          attempts, and escalating to a human with the final packet.
+    - kind: test_function
+      name: test_bounded_retry_loop_escalates_after_default_attempt_bound
+      source_scenario: The MAID gate continues to fail after every retry attempt.
+      actions:
+      - type: api_call
+        subject:
+          function: run_bounded_retry_loop
+      expected:
+        behavior: The loop stops after the default bound of five attempts and returns
+          escalated=True with the final packet.
+    - kind: test_function
+      name: test_bounded_retry_loop_passes_packet_to_attempt_and_records_outcomes
+      source_scenario: A gate fails, writes a failure packet, then passes after the
+        agent attempt consumes that packet.
+      actions:
+      - type: api_call
+        subject:
+          function: run_bounded_retry_loop
+      expected:
+        behavior: The loop reads the packet, passes it to the next attempt callable,
+          records per-attempt outcomes, and returns a successful RetryLoopResult.
+    - kind: test_function
+      name: test_bounded_retry_loop_stops_immediately_when_gate_passes
+      source_scenario: The first MAID gate run passes before any agent retry is needed.
+      actions:
+      - type: api_call
+        subject:
+          function: run_bounded_retry_loop
+      expected:
+        behavior: The loop returns success without invoking the attempt callable or
+          reading stale packet state.
+    - kind: test_function
+      name: test_discovery_excludes_epic_drafts
+      source_scenario: The automation loop discovers implementable draft manifests
+        before starting a pass.
+      actions:
+      - type: api_call
+        subject:
+          function: find_implementable_drafts
+      expected:
+        behavior: Only non-epic `.manifest.yaml` drafts are returned, sorted by path.
+    - kind: test_function
+      name: test_git_commit_helpers_delegate_through_public_commit_packet
+      source_scenario: A READY packet names safe repository-relative paths and commit
+        approval is requested for a pass.
+      actions:
+      - type: api_call
+        subject:
+          function: git_status_short
+      - type: api_call
+        subject:
+          function: commit_ready_changes
+      - type: api_call
+        subject:
+          function: ask_commit_approval
+      expected:
+        behavior: Git helpers run in the supplied root, commit_ready_changes stages
+          only packet files before committing, and typed approval accepts only `commit`.
+    - kind: test_function
+      name: test_read_failure_packet_returns_dict_or_none
+      source_scenario: The retry loop reads the packet emitted by a failed MAID gate.
+      actions:
+      - type: api_call
+        subject:
+          function: read_failure_packet
+      expected:
+        behavior: Valid packet JSON is returned as a dict, while missing or unreadable
+          packet files return None.
+    - kind: test_function
+      name: test_stage_commit_packet_files_rejects_unsafe_paths
+      source_scenario: A READY packet names absolute or parent-relative paths.
+      actions:
+      - type: api_call
+        subject:
+          function: stage_commit_packet_files
+      expected:
+        behavior: The staging helper refuses unsafe paths without invoking git.
+    - kind: test_function
+      name: test_status_and_commit_packet_parsing_preserves_existing_protocol
+      source_scenario: An agent final message contains automation status and READY
+        commit packet markers.
+      actions:
+      - type: api_call
+        subject:
+          function: parse_automation_status
+      - type: api_call
+        subject:
+          function: parse_commit_packet
+      expected:
+        behavior: The last valid AUTOMATION_STATUS is selected, the last complete
+          commit packet wins, and malformed packets are rejected.
+  - path: tests/core/test_reasoning_effort_provenance.py
+    artifacts:
+    - kind: test_function
+      name: test_outcome_agent_round_trips_reasoning_effort
+      description: "load_manifest/save_manifest round-trip an outcome.agent reasoning_effort\
+        \ losslessly and omission-preservingly \u2014 absent field emits no key."
+      returns: None
+    - kind: test_function
+      name: test_outcome_index_round_trips_reasoning_effort
+      description: build/write/read of the outcome index carries agent reasoning_effort;
+        pre-provenance index files load with None.
+      returns: None
+    - kind: test_function
+      name: test_plan_lock_round_trips_reasoning_effort_and_legacy_loads_none
+      description: A lock saved with reasoning_effort loads it back; pre-existing
+        lock payloads without the field load with reasoning_effort None; lock verification
+        results are identical with and without the field.
+      returns: None
+    - kind: test_function
+      name: test_reasoning_effort_without_model_warns_and_drops
+      description: reasoning_effort input without model yields provenance None plus
+        the labeled model-required warning, never silent loss.
+      returns: None
+    - kind: test_function
+      name: test_resolver_reads_reasoning_effort_from_env_fallback
+      description: A model flag plus MAID_AGENT_REASONING_EFFORT env yields the env
+        value with source 'mixed'; env-only input yields source 'environment'.
+      returns: None
+    - kind: test_function
+      name: test_resolver_reads_reasoning_effort_from_flags
+      description: resolve_agent_provenance with model and reasoning_effort flags
+        yields provenance carrying the exact reasoning_effort with source 'flags'.
+      returns: None
+    - kind: test_function
+      name: test_schema_accepts_reasoning_effort_and_rejects_unknown_fields
+      description: validate_manifest_schema accepts a reasoning_effort string, rejects
+        an empty string, and still rejects unknown agent keys.
+      returns: None
+  - path: tests/cli/test_plan_lock_reasoning_effort_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_plan_lock_stores_reasoning_effort_from_env
+      description: With MAID_AGENT_MODEL and MAID_AGENT_REASONING_EFFORT env set,
+        the stored agent carries reasoning_effort with source 'environment'.
+      returns: None
+    - kind: test_function
+      name: test_plan_lock_stores_reasoning_effort_from_flag
+      description: maid plan lock --agent-model --agent-reasoning-effort stores reasoning_effort
+        on the lock agent payload.
+      returns: None
+    - kind: test_function
+      name: test_plan_status_reports_reasoning_effort
+      description: plan status --json includes reasoning_effort inside the agent object
+        when set and omits the key when absent; text mode mentions it only when present.
+      returns: None
+  - path: tests/ci/test_codex_loop_agent_provenance_env.py
+    artifacts:
+    - kind: test_function
+      name: test_agent_provenance_env_returns_ground_truth_mapping
+      description: agent_provenance_env('gpt-5.5', 'medium') equals exactly the four-key
+        MAID_AGENT_* mapping with provider 'openai' and client 'codex-cli'.
+      returns: None
+    - kind: test_function
+      name: test_implementation_prompt_instructs_env_sourced_outcome_agent
+      description: The prompt string returned by build_implementation_command instructs
+        sourcing outcome.agent model and reasoning_effort from MAID_AGENT_* env ground
+        truth rather than self-description.
+      returns: None
+    - kind: test_function
+      name: test_run_codex_json_command_injects_extra_env_into_child
+      description: Running a stub executable through run_codex_json_command with extra_env
+        makes the child process observe the injected MAID_AGENT_* values; without
+        extra_env they are absent.
+      returns: None
+  - path: tests/test_exact_model_provenance_docs.py
+    artifacts:
+    - kind: test_function
+      name: test_outcome_docs_document_reasoning_effort_and_exact_model_rule
+      description: docs/manifest-outcome-records.md and the packaged copy document
+        reasoning_effort, MAID_AGENT_REASONING_EFFORT, and the client-ground-truth-over-self-report
+        preference order, and the two copies stay in sync.
+      returns: None
+    - kind: test_function
+      name: test_review_skill_instructs_env_sourced_outcome_agent
+      description: The .claude maid-implementation-review source and both packaged
+        copies instruct env-sourced outcome.agent capture with the exact-slug-plus-reasoning_effort
+        rule.
+      returns: None
+  edit:
+  - path: package.json
+    artifacts:
+    - kind: attribute
+      name: typescript
+      of: devDependencies
+      type: string
+    - kind: attribute
+      name: maid_claude_loop_script
+      description: npm convenience script for running the Claude Code MAID draft loop
+      of: scripts
+      type: string
+    - kind: attribute
+      name: maid_codex_loop_script
+      description: npm convenience script for running the Codex MAID draft loop
+      of: scripts
+      type: string
+  - path: .gitignore
+    artifacts:
+    - kind: attribute
+      name: claude_automation_ignore
+      description: Local-only Claude Code automation logs and caches
+      of: gitignore
+      type: string
+    - kind: attribute
+      name: codex_automation_ignore
+      description: Local-only Codex automation logs and caches
+      of: gitignore
+      type: string
+    - kind: attribute
+      name: node_modules
+      of: ignored paths
+      type: string
+  - path: .codex/skills/maid-runner-draft-implement/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: maid_runner_draft_implement_skill_guidance
+      description: Codex skill guidance explicitly limiting loop-invoked runs to the
+        selected draft manifests listed by automation
+      of: maid-runner draft implement skill
+      type: markdown
+  - path: tests/ci/test_codex_maid_loop.py
+    artifacts:
+    - kind: method
+      name: test_agents_guidance_requires_plan_lock_promotion_lifecycle
+      of: TestCodexMaidLoopRepoWiring
+    - kind: test_function
+      name: test_agents_guidance_requires_plan_lock_promotion_lifecycle
+      source_scenario: Codex reads repo-level AGENTS.md before implementing MAID work.
+      actions:
+      - type: api_call
+        subject:
+          function: Path.read_text
+      expected:
+        behavior: AGENTS.md requires plan locking before implementation, sanctioned
+          `maid manifest promote` for drafts, no manual draft moves, and the opt-in
+          plan-lock handoff verify gate.
+    - kind: test_function
+      name: test_auto_commit_skips_interactive_prompt
+    - kind: test_function
+      name: test_build_implementation_command_scopes_prompt_to_selected_draft
+    - kind: test_function
+      name: test_build_implementation_command_uses_fresh_exec_session_and_repo_skill
+    - kind: test_function
+      name: test_dirty_worktree_blocks_new_passes
+    - kind: test_function
+      name: test_draft_implement_skill_requires_lock_aware_promotion_guidance
+      source_scenario: Codex uses the repo-local draft implementation skill to promote
+        a selected draft.
+      actions:
+      - type: api_call
+        subject:
+          function: Path.read_text
+      expected:
+        behavior: The Codex source and packaged skills match, require `uv run maid
+          manifest promote`, require a pre-promotion plan lock, forbid manual move/copy
+          promotion, and name the handoff verify gate.
+    - kind: test_function
+      name: test_draft_implement_skill_requires_review_loop_guidance
+    - kind: test_function
+      name: test_draft_implement_skill_requires_selected_scope_guidance
+    - kind: test_function
+      name: test_draft_manifest_workflow_docs_preserve_lifecycle_contract
+    - kind: test_function
+      name: test_find_implementable_drafts_excludes_epics
+    - kind: test_function
+      name: test_gitignore_excludes_codex_automation_logs
+    - kind: test_function
+      name: test_loop_rechecks_future_drafts_after_each_ready_commit
+    - kind: test_function
+      name: test_main_accepts_auto_commit_flag
+    - kind: test_function
+      name: test_package_script_exposes_codex_loop
+    - kind: test_function
+      name: test_parse_automation_status_uses_last_valid_status
+    - kind: test_function
+      name: test_parse_commit_packet
+    - kind: test_function
+      name: test_parse_commit_packet_stops_at_first_non_file_line
+    - kind: test_function
+      name: test_parse_commit_packet_uses_last_complete_packet
+    - kind: test_function
+      name: test_parser_documents_auto_commit_and_default_prompt
+    - kind: test_function
+      name: test_parser_documents_explicit_batch_size
+    - kind: test_function
+      name: test_parser_keeps_commit_approval_explicit
+    - kind: test_function
+      name: test_ready_pass_commits_only_after_explicit_approval
+    - kind: test_function
+      name: test_ready_pass_prompts_for_commit_by_default
+    - kind: test_function
+      name: test_ready_pass_rejects_copy_status_unselected_promotions
+    - kind: test_function
+      name: test_ready_pass_rejects_rename_status_unselected_promotion_source
+    - kind: test_function
+      name: test_ready_pass_rejects_unlisted_dirty_paths_before_commit
+    - kind: test_function
+      name: test_ready_pass_rejects_unselected_draft_promotions
+    - kind: test_function
+      name: test_render_codex_json_event_handles_documented_events
+    - kind: test_function
+      name: test_stage_commit_packet_files_rejects_directories_and_unsafe_paths
+    - kind: test_function
+      name: test_stage_commit_packet_files_rejects_missing_untracked_paths
+  - path: tests/ci/test_outcome_ready_guidance.py
+    artifacts:
+    - kind: test_function
+      name: test_agents_guidance_requires_outcome_capture_before_handoff
+      source_scenario: Codex reads repo-level AGENTS.md while completing MAID-backed
+        work.
+      actions:
+      - type: api_call
+        subject:
+          function: Path.read_text
+      expected:
+        behavior: AGENTS.md requires adding an evidence-backed `outcome:` section
+          to the promoted manifest after implementation review and before final handoff.
+    - kind: test_function
+      name: test_claude_draft_implement_skill_requires_outcome_before_ready
+      source_scenario: Claude Code uses the repo-local draft implementation skill
+        to complete a selected draft.
+      actions:
+      - type: api_call
+        subject:
+          function: Path.read_text
+      expected:
+        behavior: The Claude skill requires Outcome capture before AUTOMATION_STATUS
+          READY and forbids READY when Outcome is missing without an explicit blocking/not-applicable
+          reason.
+    - kind: test_function
+      name: test_claude_loop_prompt_requires_outcome_before_ready
+      source_scenario: The Claude loop starts a fresh implementation pass.
+      actions:
+      - type: api_call
+        subject:
+          function: build_implementation_command
+      expected:
+        behavior: The generated prompt tells Claude Code that READY and commit packets
+          require an evidence-backed `outcome:` section in the promoted manifest.
+    - kind: test_function
+      name: test_codex_draft_implement_skill_requires_outcome_before_ready
+      source_scenario: Codex uses the repo-local draft implementation skill to complete
+        a selected draft.
+      actions:
+      - type: api_call
+        subject:
+          function: Path.read_text
+      expected:
+        behavior: The Codex source and packaged skills match, require Outcome capture
+          before AUTOMATION_STATUS READY, and forbid READY when Outcome is missing
+          without an explicit blocking/not-applicable reason.
+    - kind: test_function
+      name: test_codex_loop_prompt_requires_outcome_before_ready
+      source_scenario: The Codex loop starts a fresh implementation pass.
+      actions:
+      - type: api_call
+        subject:
+          function: build_implementation_command
+      expected:
+        behavior: The generated prompt tells Codex that READY and commit packets require
+          an evidence-backed `outcome:` section in the promoted manifest.
+  - path: maid_runner/core/types.py
+    artifacts:
+    - kind: attribute
+      name: immutable
+      of: AcceptanceConfig
+      type: bool
+    - kind: attribute
+      name: tests
+      of: AcceptanceConfig
+      type: tuple[tuple[str, Ellipsis], Ellipsis]
+    - kind: attribute
+      name: client
+      description: Agent client/harness, e.g. 'claude-code', 'codex-cli'.
+      of: AgentProvenance
+      type: Optional[str]
+    - kind: attribute
+      name: instructions_fingerprint
+      description: Opaque fingerprint of the instruction set/system prompt version.
+      of: AgentProvenance
+      type: Optional[str]
+    - kind: attribute
+      name: model
+      description: Required anchor field, e.g. 'claude-opus-4-8' or 'gpt-5.5-codex';
+        the primary comparison key.
+      of: AgentProvenance
+      type: str
+    - kind: attribute
+      name: provider
+      description: Model provider, e.g. 'anthropic', 'openai', 'local'.
+      of: AgentProvenance
+      type: Optional[str]
+    - kind: attribute
+      name: reasoning_effort
+      description: Client-configured reasoning effort for the recorded run (e.g. 'minimal',
+        'low', 'medium', 'high', 'xhigh'); free-form because client vocabularies differ;
+        None when unknown or for pre-existing records.
+      of: AgentProvenance
+      type: Optional[str]
+    - kind: attribute
+      name: skills
+      description: Skill identifiers in use, free-form 'name@version' strings; defaults
+        to empty.
+      of: AgentProvenance
+      type: tuple[str, ...]
+    - kind: attribute
+      name: source
+      description: 'Capture channel when CLI-captured: ''flags'', ''environment'',
+        or ''mixed''; None for agent-authored outcome YAML.'
+      of: AgentProvenance
+      type: Optional[str]
+    - kind: attribute
+      name: default
+      of: ArgSpec
+      type: Optional[str]
+    - kind: attribute
+      name: name
+      of: ArgSpec
+      type: str
+    - kind: attribute
+      name: type
+      of: ArgSpec
+      type: Optional[str]
+    - kind: attribute
+      name: ATTRIBUTE
+      of: ArtifactKind
+    - kind: attribute
+      name: CLASS
+      of: ArtifactKind
+    - kind: attribute
+      name: ENUM
+      of: ArtifactKind
+    - kind: attribute
+      name: FUNCTION
+      of: ArtifactKind
+    - kind: attribute
+      name: INTERFACE
+      of: ArtifactKind
+    - kind: attribute
+      name: METHOD
+      of: ArtifactKind
+    - kind: attribute
+      name: NAMESPACE
+      of: ArtifactKind
+    - kind: attribute
+      name: TEST_FUNCTION
+      of: ArtifactKind
+    - kind: attribute
+      name: TYPE
+      of: ArtifactKind
+    - kind: attribute
+      name: args
+      of: ArtifactSpec
+      type: tuple[ArgSpec, Ellipsis]
+    - kind: attribute
+      name: bases
+      of: ArtifactSpec
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: default_hook
+      description: True when the manifest acknowledges this artifact's trivial body
+        as an intentional documented default implementation; defaults to False.
+      of: ArtifactSpec
+      type: bool
+    - kind: attribute
+      name: description
+      of: ArtifactSpec
+      type: Optional[str]
+    - kind: attribute
+      name: is_async
+      of: ArtifactSpec
+      type: bool
+    - kind: attribute
+      name: is_private
+      of: ArtifactSpec
+      type: bool
+    - kind: attribute
+      name: kind
+      of: ArtifactSpec
+      type: ArtifactKind
+    - kind: attribute
+      name: name
+      of: ArtifactSpec
+      type: str
+    - kind: attribute
+      name: of
+      of: ArtifactSpec
+      type: Optional[str]
+    - kind: attribute
+      name: qualified_name
+      of: ArtifactSpec
+      type: str
+    - kind: attribute
+      name: raises
+      of: ArtifactSpec
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: returns
+      of: ArtifactSpec
+      type: Optional[str]
+    - kind: attribute
+      name: signature
+      description: Optional opaque exact overload discriminator; None retains representative
+        identity.
+      of: ArtifactSpec
+      type: Optional[str]
+    - kind: attribute
+      name: test_details
+      of: ArtifactSpec
+      type: Optional[TestFunctionDetails]
+    - kind: attribute
+      name: type_annotation
+      of: ArtifactSpec
+      type: Optional[str]
+    - kind: attribute
+      name: type_parameters
+      of: ArtifactSpec
+      type: tuple[str, ...]
+    - kind: attribute
+      name: path
+      of: DeleteSpec
+      type: str
+    - kind: attribute
+      name: reason
+      of: DeleteSpec
+      type: Optional[str]
+    - kind: attribute
+      name: CREATE
+      of: FileMode
+    - kind: attribute
+      name: DELETE
+      of: FileMode
+    - kind: attribute
+      name: EDIT
+      of: FileMode
+    - kind: attribute
+      name: READ
+      of: FileMode
+    - kind: attribute
+      name: SCOPE
+      of: FileMode
+      type: str
+    - kind: attribute
+      name: SNAPSHOT
+      of: FileMode
+    - kind: attribute
+      name: artifacts
+      of: FileSpec
+      type: tuple[ArtifactSpec, Ellipsis]
+    - kind: attribute
+      name: imports
+      of: FileSpec
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: is_absent
+      of: FileSpec
+      type: bool
+    - kind: attribute
+      name: is_strict
+      of: FileSpec
+      type: bool
+    - kind: attribute
+      name: mode
+      of: FileSpec
+      type: FileMode
+    - kind: attribute
+      name: path
+      of: FileSpec
+      type: str
+    - kind: attribute
+      name: status
+      of: FileSpec
+      type: str
+    - kind: attribute
+      name: acceptance
+      of: Manifest
+      type: Optional[AcceptanceConfig]
+    - kind: attribute
+      name: all_file_specs
+      of: Manifest
+      type: list[FileSpec]
+    - kind: attribute
+      name: all_referenced_paths
+      of: Manifest
+      type: set[str]
+    - kind: attribute
+      name: all_writable_paths
+      of: Manifest
+      type: set[str]
+    - kind: attribute
+      name: created
+      of: Manifest
+      type: Optional[str]
+    - kind: attribute
+      name: description
+      of: Manifest
+      type: Optional[str]
+    - kind: attribute
+      name: files_create
+      of: Manifest
+      type: tuple[FileSpec, Ellipsis]
+    - kind: attribute
+      name: files_delete
+      of: Manifest
+      type: tuple[DeleteSpec, Ellipsis]
+    - kind: attribute
+      name: files_edit
+      of: Manifest
+      type: tuple[FileSpec, Ellipsis]
+    - kind: attribute
+      name: files_read
+      of: Manifest
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: files_scope
+      of: Manifest
+      type: tuple[ScopeSpec, ...]
+    - kind: attribute
+      name: files_snapshot
+      of: Manifest
+      type: tuple[FileSpec, Ellipsis]
+    - kind: attribute
+      name: goal
+      of: Manifest
+      type: str
+    - kind: attribute
+      name: is_superseded_by
+      of: Manifest
+      type: bool
+    - kind: attribute
+      name: metadata
+      of: Manifest
+      type: Optional[dict]
+    - kind: attribute
+      name: outcome
+      of: Manifest
+      type: Optional[OutcomeRecord]
+    - kind: attribute
+      name: removed_artifacts
+      of: Manifest
+      type: tuple[RemovedArtifactSpec, ...]
+    - kind: attribute
+      name: schema_version
+      of: Manifest
+      type: str
+    - kind: attribute
+      name: sequence_number
+      of: Manifest
+      type: Optional[int]
+    - kind: attribute
+      name: slug
+      of: Manifest
+      type: str
+    - kind: attribute
+      name: source_path
+      of: Manifest
+      type: str
+    - kind: attribute
+      name: supersedes
+      of: Manifest
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: task_type
+      of: Manifest
+      type: Optional[TaskType]
+    - kind: attribute
+      name: temptations
+      of: Manifest
+      type: tuple[TemptationSpec, ...]
+    - kind: attribute
+      name: validate_commands
+      of: Manifest
+      type: tuple[tuple[str, Ellipsis], Ellipsis]
+    - kind: attribute
+      name: version_tag
+      of: Manifest
+      type: Optional[str]
+    - kind: attribute
+      name: lesson_type
+      of: OutcomeLesson
+      type: str
+    - kind: attribute
+      name: paths
+      of: OutcomeLesson
+      type: tuple[str, ...]
+    - kind: attribute
+      name: summary
+      of: OutcomeLesson
+      type: str
+    - kind: attribute
+      name: tags
+      of: OutcomeLesson
+      type: tuple[str, ...]
+    - kind: attribute
+      name: agent
+      description: Optional provenance of the run that produced this Outcome; None
+        when not recorded.
+      of: OutcomeRecord
+      type: Optional[AgentProvenance]
+    - kind: attribute
+      name: completed_at
+      of: OutcomeRecord
+      type: Optional[str]
+    - kind: attribute
+      name: lessons
+      of: OutcomeRecord
+      type: tuple[OutcomeLesson, ...]
+    - kind: attribute
+      name: rationale
+      of: OutcomeRecord
+      type: Optional[str]
+    - kind: attribute
+      name: review_notes
+      of: OutcomeRecord
+      type: tuple[OutcomeReviewNote, ...]
+    - kind: attribute
+      name: status
+      of: OutcomeRecord
+      type: OutcomeStatus
+    - kind: attribute
+      name: summary
+      of: OutcomeRecord
+      type: str
+    - kind: attribute
+      name: validation
+      of: OutcomeRecord
+      type: tuple[OutcomeValidationEvidence, ...]
+    - kind: attribute
+      name: severity
+      of: OutcomeReviewNote
+      type: str
+    - kind: attribute
+      name: source
+      of: OutcomeReviewNote
+      type: str
+    - kind: attribute
+      name: summary
+      of: OutcomeReviewNote
+      type: str
+    - kind: attribute
+      name: ABANDONED
+      of: OutcomeStatus
+      type: str
+    - kind: attribute
+      name: ARCHIVED
+      of: OutcomeStatus
+      type: str
+    - kind: attribute
+      name: COMPLETED
+      of: OutcomeStatus
+      type: str
+    - kind: attribute
+      name: FAILED
+      of: OutcomeStatus
+      type: str
+    - kind: attribute
+      name: PARTIAL
+      of: OutcomeStatus
+      type: str
+    - kind: attribute
+      name: SUPERSEDED
+      of: OutcomeStatus
+      type: str
+    - kind: attribute
+      name: command
+      of: OutcomeValidationEvidence
+      type: tuple[str, ...]
+    - kind: attribute
+      name: status
+      of: OutcomeValidationEvidence
+      type: str
+    - kind: attribute
+      name: summary
+      of: OutcomeValidationEvidence
+      type: str
+    - kind: attribute
+      name: file
+      of: RemovedArtifactSpec
+      type: str
+    - kind: attribute
+      name: kind
+      of: RemovedArtifactSpec
+      type: ArtifactKind
+    - kind: attribute
+      name: name
+      of: RemovedArtifactSpec
+      type: str
+    - kind: attribute
+      name: of
+      of: RemovedArtifactSpec
+      type: Optional[str]
+    - kind: attribute
+      name: reason
+      of: RemovedArtifactSpec
+      type: str
+    - kind: attribute
+      name: path
+      of: ScopeSpec
+      type: str
+    - kind: attribute
+      name: reason
+      of: ScopeSpec
+      type: str
+    - kind: attribute
+      name: FEATURE
+      of: TaskType
+    - kind: attribute
+      name: FIX
+      of: TaskType
+    - kind: attribute
+      name: REFACTOR
+      of: TaskType
+    - kind: attribute
+      name: SNAPSHOT
+      of: TaskType
+    - kind: attribute
+      name: SYSTEM_SNAPSHOT
+      of: TaskType
+    - kind: attribute
+      name: instead
+      of: TemptationSpec
+      type: str
+    - kind: attribute
+      name: risk
+      of: TemptationSpec
+      type: str
+    - kind: attribute
+      name: actions
+      of: TestFunctionDetails
+      type: tuple[dict, Ellipsis]
+    - kind: attribute
+      name: dependencies
+      of: TestFunctionDetails
+      type: dict
+    - kind: attribute
+      name: expected
+      of: TestFunctionDetails
+      type: dict
+    - kind: attribute
+      name: setup
+      of: TestFunctionDetails
+      type: TestFunctionSetup
+    - kind: attribute
+      name: source_scenario
+      of: TestFunctionDetails
+      type: str
+    - kind: attribute
+      name: tags
+      of: TestFunctionDetails
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: auth_required
+      of: TestFunctionSetup
+      type: bool
+    - kind: attribute
+      name: setup_actions
+      of: TestFunctionSetup
+      type: tuple[dict, Ellipsis]
+    - kind: attribute
+      name: test_data
+      of: TestFunctionSetup
+      type: dict
+    - kind: attribute
+      name: ACCEPTANCE
+      of: TestStream
+    - kind: attribute
+      name: IMPLEMENTATION
+      of: TestStream
+    - kind: attribute
+      name: BEHAVIORAL
+      of: ValidationMode
+    - kind: attribute
+      name: IMPLEMENTATION
+      of: ValidationMode
+    - kind: attribute
+      name: SCHEMA
+      of: ValidationMode
+      type: str
+    - kind: class
+      name: AcceptanceConfig
+    - kind: class
+      name: AgentProvenance
+      description: "Frozen dataclass: optional agent identity attached to Outcome\
+        \ records \u2014 who produced a run."
+    - kind: class
+      name: ArgSpec
+    - kind: class
+      name: ArtifactKind
+      bases:
+      - str
+      - Enum
+    - kind: class
+      name: ArtifactSpec
+    - kind: class
+      name: DeleteSpec
+    - kind: class
+      name: FileMode
+      bases:
+      - str
+      - Enum
+    - kind: class
+      name: FileSpec
+    - kind: class
+      name: Manifest
+    - kind: class
+      name: OutcomeLesson
+      description: Structured lesson captured from a completed or otherwise closed
+        manifest.
+    - kind: class
+      name: OutcomeRecord
+      description: Parsed top-level Outcome completion metadata for a manifest.
+    - kind: class
+      name: OutcomeReviewNote
+      description: Structured implementation-review note captured in an Outcome record.
+    - kind: class
+      name: OutcomeStatus
+      description: 'Deterministic manifest Outcome lifecycle statuses with exact values:
+        completed, failed, partial, superseded, archived, abandoned.'
+    - kind: class
+      name: OutcomeValidationEvidence
+      description: Validation command evidence preserved with a manifest Outcome record.
+    - kind: class
+      name: RemovedArtifactSpec
+    - kind: class
+      name: ScopeSpec
+      description: Scope-only writable file declaration with a path and rationale.
+    - kind: class
+      name: TaskType
+      bases:
+      - str
+      - Enum
+    - kind: class
+      name: TemptationSpec
+    - kind: class
+      name: TestFunctionDetails
+    - kind: class
+      name: TestFunctionSetup
+    - kind: class
+      name: TestStream
+      bases:
+      - str
+      - Enum
+    - kind: class
+      name: ValidationMode
+    - kind: method
+      name: contract_key
+      description: Returns merge_key unchanged when unsigned and an exact signature-qualified
+        key otherwise.
+      of: ArtifactSpec
+      returns: str
+    - kind: method
+      name: merge_key
+      of: ArtifactSpec
+      returns: str
+    - kind: method
+      name: artifacts_for
+      of: Manifest
+      args:
+      - name: path
+        type: str
+      returns: tuple[ArtifactSpec, Ellipsis]
+    - kind: method
+      name: file_spec_for
+      of: Manifest
+      args:
+      - name: path
+        type: str
+      returns: Optional[FileSpec]
+  - path: maid_runner/schemas/manifest.v2.schema.json
+    artifacts:
+    - kind: attribute
+      name: type_parameters
+      of: ArtifactSpec schema
+      type: array[string]
+    - kind: attribute
+      name: ScopeSpec
+      description: Schema definition requiring path and reason for scope-only writable
+        files.
+      of: MAID Manifest v2 schema
+      type: object
+    - kind: attribute
+      name: default_hook
+      description: Strict optional boolean artifact property acknowledging an intentional
+        documented default implementation; additionalProperties stays false.
+      of: MAID Manifest v2 schema
+      type: optional boolean on ArtifactSpec
+    - kind: attribute
+      name: outcome
+      description: Strict optional top-level completion metadata schema for explicit
+        manifest Outcome records.
+      of: MAID Manifest v2 schema
+      type: optional OutcomeRecord object
+    - kind: attribute
+      name: removed_artifacts
+      of: MAID Manifest v2
+      type: array
+    - kind: attribute
+      name: temptations
+      of: MAID Manifest v2
+      type: array
+    - kind: attribute
+      name: agent
+      description: Optional provenance property on the Outcome record definition.
+      of: OutcomeRecord schema definition
+      type: optional AgentProvenance object
+    - kind: attribute
+      name: scope
+      description: Optional writable scope-only declarations remain part of manifest
+        schema v2.
+      of: files
+      type: array of ScopeSpec
+  - path: maid_runner/core/agent_provenance.py
+    artifacts:
+    - kind: attribute
+      name: provenance
+      description: The resolved provenance, or None when nothing usable was provided.
+      of: ProvenanceResolution
+      type: Optional[AgentProvenance]
+    - kind: attribute
+      name: warning
+      description: Labeled advisory text when inputs existed but were unusable (e.g.
+        fields without model); None otherwise.
+      of: ProvenanceResolution
+      type: Optional[str]
+    - kind: class
+      name: ProvenanceResolution
+      description: "Frozen dataclass: the outcome of resolving provenance inputs \u2014\
+        \ resolved provenance or an explicit human-readable warning, never a silent\
+        \ drop."
+    - kind: function
+      name: resolve_agent_provenance
+      description: flag_values gains a "reasoning_effort" key with MAID_AGENT_REASONING_EFFORT
+        env fallback; per-field flags-win merge, flags/environment/mixed source semantics,
+        and the model-required visible-drop advisory are unchanged.
+      args:
+      - name: flag_values
+        type: Mapping[str, object]
+      - name: env
+        type: Mapping[str, str]
+      returns: ProvenanceResolution
+  - path: maid_runner/cli/commands/_main.py
+    artifacts:
+    - kind: function
+      name: build_parser
+      description: The manifest promote subparser continues to accept --no-run and
+        --project-root (default '.') alongside its existing options.
+      returns: argparse.ArgumentParser
+    - kind: function
+      name: main
+      description: Dispatches validate, test, and verify with .maidrc.yaml's manifest_dir
+        when the option is omitted, while explicit CLI values retain precedence.
+      args:
+      - name: argv
+        type: list[str] | None
+        default: None
+      returns: int
+  - path: .claude/skills/maid-implementation-review/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: maid_implementation_review_skill
+      of: MAID skill distribution
+      type: skill
+  read:
+  - .claude/skills/maid-implementer/SKILL.md
+  - .claude/skills/maid-plan-review/SKILL.md
+  - .claude/agents/maid-implementation-reviewer.md
+  - manifests/019-01-claude-maid-loop-automation.manifest.yaml
+  - manifests/018-01-codex-maid-loop-automation.manifest.yaml
+  - manifests/018-02-codex-maid-loop-auto-commit.manifest.yaml
+  - manifests/021-01-claude-loop-promoted-draft-deletion.manifest.yaml
+  - manifests/022-01-claude-loop-task-event-rendering.manifest.yaml
+  - manifests/023-01-maid-loop-selected-draft-scope.manifest.yaml
+  - manifests/document-draft-manifest-workflow.manifest.yaml
+  - maid_runner/core/failure_packet.py
+  - docs/draft-manifest-workflow.md
+  - manifests/047-02-add-outcome-workflow-docs-and-review-guidance.manifest.yaml
+  - manifests/050-02-add-init-outcome-draft-guidance.manifest.yaml
+  - scripts/sync_claude_files.py
+  - docs/agent-skills.md
+  - manifests/084-01-add-agent-provenance-to-outcome-records.manifest.yaml
+  - manifests/084-02-capture-agent-provenance-in-plan-locks.manifest.yaml
+  - manifests/070-03-generalize-bounded-retry-loop.manifest.yaml
+  scope:
+  - path: maid_runner/core/manifest.py
+    reason: Add the new optional AgentProvenance field to private Outcome parsing
+      and omission-preserving serialization without changing the public load/save
+      signatures.
+  - path: maid_runner/core/outcomes.py
+    reason: Carry the optional field through private Outcome-index serialization and
+      legacy parsing without changing the public index API.
+  - path: maid_runner/core/plan_lock.py
+    reason: Carry the optional field through private advisory lock payload serialization
+      and fail-closed parsing outside hashes and enforcement decisions.
+  - path: maid_runner/cli/commands/plan.py
+    reason: Extend private provenance composition, status payload formatting, and
+      text display for the new CLI field without changing command signatures.
+  - path: maid_runner/cli/commands/evaluate.py
+    reason: Include the optional field in private evaluate-report serialization while
+      leaving comparison keys unchanged.
+  - path: .codex/skills/maid-implementation-review/SKILL.md
+    reason: Keep the Codex source payload aligned with the Claude review guidance
+      before sanctioned packaging sync copies it into the Codex distribution payload.
+  - path: docs/agent-retry-protocol.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: AGENTS.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: docs/manifest-outcome-records.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/docs/manifest-outcome-records.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/claude/skills/maid-implementation-review/SKILL.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/codex/skills/maid-implementation-review/SKILL.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  snapshot:
+  - path: tools/claude_maid_loop.py
+    artifacts:
+    - kind: attribute
+      name: args
+      description: Claude Code command arguments used for the run
+      of: ClaudeRunResult
+      type: list[str]
+    - kind: attribute
+      name: final_message
+      description: Final text used for automation status and commit packet parsing
+      of: ClaudeRunResult
+      type: str
+    - kind: attribute
+      name: final_message_path
+      description: Path to the saved final assistant/result message
+      of: ClaudeRunResult
+      type: Path
+    - kind: attribute
+      name: returncode
+      description: Claude Code process exit code
+      of: ClaudeRunResult
+      type: int
+    - kind: attribute
+      name: session_id
+      description: Claude Code session identifier when emitted by stream-json events
+      of: ClaudeRunResult
+      type: str | None
+    - kind: attribute
+      name: stderr_path
+      description: Path to the saved stderr log
+      of: ClaudeRunResult
+      type: Path
+    - kind: attribute
+      name: stdout_jsonl_path
+      description: Path to the saved stdout JSONL stream log
+      of: ClaudeRunResult
+      type: Path
+    - kind: attribute
+      name: files
+      description: Exact files to stage for the READY implementation commit
+      of: CommitPacket
+      type: list[str]
+    - kind: attribute
+      name: message
+      description: Commit message requested by the READY implementation pass
+      of: CommitPacket
+      type: str
+    - kind: class
+      name: ClaudeRunResult
+      description: Captured result paths and metadata for one Claude Code pass
+    - kind: class
+      name: CommitPacket
+      description: Parsed READY commit message and exact file list
+    - kind: function
+      name: ask_commit_approval
+      description: Require a per-pass typed approval before committing a READY packet
+        when auto-commit is disabled
+      args:
+      - name: pass_number
+        type: int
+      - name: status
+        type: str
+      returns: bool
+    - kind: function
+      name: build_implementation_command
+      description: Build a fresh Claude Code command whose prompt names the selected
+        draft manifest batch for this pass
+      args:
+      - name: claude
+        type: str
+      - name: selected_drafts
+        type: list[Path]
+      - name: model
+        type: str
+      - name: effort
+        type: str
+      - name: permission_mode
+        type: str
+      returns: list[str]
+    - kind: function
+      name: build_parser
+      description: Expose --batch-size as the explicit multi-draft-per-pass opt-in
+      returns: argparse.ArgumentParser
+    - kind: function
+      name: commit_ready_changes
+      description: Stage and commit a READY packet after approval or opt-in auto-commit
+      args:
+      - name: packet
+        type: CommitPacket
+      returns: int
+    - kind: function
+      name: find_implementable_drafts
+      description: Return non-epic draft MAID manifests that remain to be implemented
+      args:
+      - name: draft_dir
+        type: Path
+      returns: list[Path]
+    - kind: function
+      name: git_status_short
+      description: Return `git status --short` output for worktree preflight
+      returns: str
+    - kind: function
+      name: main
+      description: Claude loop entry point keeps its CLI behavior while delegating
+        shared logic to tools/maid_loop_core.py and consuming failure packets.
+      args:
+      - name: argv
+        type: list[str] | None
+        default: None
+      returns: int
+    - kind: function
+      name: parse_automation_status
+      description: Extract the final AUTOMATION_STATUS marker from Claude Code output
+      args:
+      - name: final_message
+        type: str
+      returns: str | None
+    - kind: function
+      name: parse_commit_packet
+      description: Extract a commit message and explicit file list from a READY final
+        message
+      args:
+      - name: final_message
+        type: str
+      returns: CommitPacket | None
+    - kind: function
+      name: render_claude_stream_event
+      description: Render Claude Code task_started, task_progress, and task_notification
+        payload fields concisely
+      args:
+      - name: event
+        type: dict[str, Any]
+      - name: state
+        type: dict[str, Any]
+      - name: color_enabled
+        type: bool
+      returns: str
+    - kind: function
+      name: run_claude_stream_command
+      description: Run one Claude Code stream-json session while saving and rendering
+        output
+      args:
+      - name: args
+        type: list[str]
+      - name: stdout_jsonl_path
+        type: Path
+      - name: stderr_path
+        type: Path
+      - name: final_message_path
+        type: Path
+      returns: ClaudeRunResult
+    - kind: function
+      name: run_loop
+      description: Reject READY packets that omit any dirty post-run worktree path
+        before prompting, auto-committing, staging, or committing.
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+    - kind: function
+      name: stage_commit_packet_files
+      description: Reject invalid, directory, absolute, parent-traversal, and missing-untracked
+        packet paths before staging exact existing or tracked-deleted files.
+      args:
+      - name: files
+        type: list[str]
+      returns: int
+  - path: tools/codex_maid_loop.py
+    artifacts:
+    - kind: attribute
+      name: args
+      description: Codex command arguments used for the run
+      of: CodexRunResult
+      type: list[str]
+    - kind: attribute
+      name: final_message
+      description: Final assistant message captured by --output-last-message
+      of: CodexRunResult
+      type: str
+    - kind: attribute
+      name: final_message_path
+      description: Path to the saved final assistant message
+      of: CodexRunResult
+      type: Path
+    - kind: attribute
+      name: returncode
+      description: Codex process exit code
+      of: CodexRunResult
+      type: int
+    - kind: attribute
+      name: session_id
+      description: Codex thread/session identifier when emitted by JSONL events
+      of: CodexRunResult
+      type: str | None
+    - kind: attribute
+      name: stderr_path
+      description: Path to the saved stderr log
+      of: CodexRunResult
+      type: Path
+    - kind: attribute
+      name: stdout_jsonl_path
+      description: Path to the saved stdout JSONL event log
+      of: CodexRunResult
+      type: Path
+    - kind: attribute
+      name: files
+      description: Exact files to stage for the READY implementation commit
+      of: CommitPacket
+      type: list[str]
+    - kind: attribute
+      name: message
+      description: Commit message requested by the READY implementation pass
+      of: CommitPacket
+      type: str
+    - kind: class
+      name: CodexRunResult
+      description: Captured result paths and metadata for one Codex exec pass
+    - kind: class
+      name: CommitPacket
+      description: Parsed READY commit message and exact file list
+    - kind: function
+      name: agent_provenance_env
+      description: 'Pure ground-truth mapping for spawned codex sessions: exactly
+        MAID_AGENT_MODEL=model, MAID_AGENT_REASONING_EFFORT=reasoning_effort, MAID_AGENT_PROVIDER="openai",
+        MAID_AGENT_CLIENT="codex-cli"; no os.environ access.'
+      args:
+      - name: model
+        type: str
+      - name: reasoning_effort
+        type: str
+      returns: dict[str, str]
+    - kind: function
+      name: ask_commit_approval
+      description: Require a per-pass typed approval before committing a READY packet
+        when auto-commit is disabled
+      args:
+      - name: pass_number
+        type: int
+      - name: status
+        type: str
+      returns: bool
+    - kind: function
+      name: build_implementation_command
+      description: Unchanged signature; the returned prompt string now instructs the
+        implementing agent to source outcome.agent model and reasoning_effort from
+        the MAID_AGENT_* env ground truth instead of self-description.
+      args:
+      - name: codex
+        type: str
+      - name: final_message_path
+        type: Path
+      - name: selected_drafts
+        type: list[Path]
+      - name: model
+        type: str
+        default: gpt-5.5
+      - name: reasoning_effort
+        type: str
+        default: medium
+      - name: failure_packet
+        type: dict[str, Any] | None
+        default: None
+      returns: list[str]
+    - kind: function
+      name: build_parser
+      description: Expose --batch-size as the explicit multi-draft-per-pass opt-in
+      returns: argparse.ArgumentParser
+    - kind: function
+      name: commit_ready_changes
+      description: Stage and commit a READY packet after approval or opt-in auto-commit
+      args:
+      - name: packet
+        type: CommitPacket
+      returns: int
+    - kind: function
+      name: find_implementable_drafts
+      description: Return non-epic draft MAID manifests that remain to be implemented
+      args:
+      - name: draft_dir
+        type: Path
+      returns: list[Path]
+    - kind: function
+      name: git_status_short
+      description: Return `git status --short` output for worktree preflight
+      returns: str
+    - kind: function
+      name: main
+      description: Codex loop entry point keeps its CLI behavior while delegating
+        shared logic to tools/maid_loop_core.py and consuming failure packets.
+      args:
+      - name: argv
+        type: list[str] | None
+        default: None
+      returns: int
+    - kind: function
+      name: parse_automation_status
+      description: Extract the final AUTOMATION_STATUS marker from the last Codex
+        message
+      args:
+      - name: final_message
+        type: str
+      returns: str | None
+    - kind: function
+      name: parse_commit_packet
+      description: Extract a commit message and explicit file list from a READY final
+        message
+      args:
+      - name: final_message
+        type: str
+      returns: CommitPacket | None
+    - kind: function
+      name: render_codex_json_event
+      description: Render a documented Codex JSONL event as concise terminal progress
+      args:
+      - name: event
+        type: dict[str, Any]
+      - name: state
+        type: dict[str, Any]
+      - name: color_enabled
+        type: bool
+      returns: str
+    - kind: function
+      name: run_codex_json_command
+      description: Runs the codex session as before; extra_env entries are merged
+        over the automation env copy with extra_env winning, so driver-known session
+        ground truth reaches child maid commands.
+      args:
+      - name: args
+        type: list[str]
+      - name: stdout_jsonl_path
+        type: Path
+      - name: stderr_path
+        type: Path
+      - name: final_message_path
+        type: Path
+      - name: color_enabled
+        type: bool
+      - name: extra_env
+        type: Mapping[str, str] | None
+        default: None
+      returns: CodexRunResult
+    - kind: function
+      name: run_loop
+      description: Reject READY packets that omit any dirty post-run worktree path
+        before prompting, auto-committing, staging, or committing.
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+    - kind: function
+      name: stage_commit_packet_files
+      description: Reject invalid, directory, absolute, parent-traversal, and missing-untracked
+        packet paths before staging exact existing or tracked-deleted files.
+      args:
+      - name: files
+        type: list[str]
+      returns: int
+validate:
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/ci/test_claude_maid_loop.py
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/ci/test_codex_maid_loop.py
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/ci/test_codex_maid_loop.py
+  - tests/ci/test_claude_maid_loop.py
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/018-01-codex-maid-loop-automation.manifest.yaml
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/document-draft-manifest-workflow.manifest.yaml
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/ci/test_maid_loop_core.py
+  - tests/ci/test_codex_maid_loop.py
+  - tests/ci/test_claude_maid_loop.py
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/070-03-generalize-bounded-retry-loop.manifest.yaml
+  - --mode
+  - behavioral
+  - --quiet
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/070-03-generalize-bounded-retry-loop.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/ci/test_outcome_ready_guidance.py
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/073-03-require-outcome-before-ready.manifest.yaml
+  - --mode
+  - behavioral
+  - --quiet
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/073-03-require-outcome-before-ready.manifest.yaml
+  - --mode
+  - implementation
+  - --quiet
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/core/test_reasoning_effort_provenance.py
+  - tests/cli/test_plan_lock_reasoning_effort_cmd.py
+  - tests/ci/test_codex_loop_agent_provenance_env.py
+  - tests/test_exact_model_provenance_docs.py
+supersedes:
+- 019-01-claude-maid-loop-automation
+- 020-01-claude-loop-stream-json-verbose
+- 021-01-claude-loop-promoted-draft-deletion
+- 022-01-claude-loop-task-event-rendering
+- snapshot-tools-codex-maid-loop
+created: '2026-08-17T05:22:49Z'

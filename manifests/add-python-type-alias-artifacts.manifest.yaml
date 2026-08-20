@@ -1,0 +1,120 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Collect and exactly validate Python 3.10-compatible TypeAlias artifacts"
+type: fix
+created: "2026-08-19T23:55:26Z"
+metadata:
+  planning_state: behavioral-contract
+  status: implementation-ready
+  promotion_ready: true
+  tests_status: created-red-confirmed
+  priority: high
+  tags: [python, validator, type-alias, structural-contract, bug-report]
+description: |
+  Support PEP 613 aliases written as `Alias: TypeAlias = Target` for projects
+  that must remain compatible with Python 3.10 or 3.11. Recognize only
+  top-level aliases whose marker resolves to the standard-library
+  `typing.TypeAlias`, including direct aliased imports and module aliases.
+  Emit `ArtifactKind.TYPE` with the exact alias target and make implementation
+  validation report E302 when that target differs from the manifest.
+
+  Ordinary annotated assignments, shadowed markers, conditional imports, and
+  unrelated objects named TypeAlias remain fail-closed as attributes rather
+  than being promoted to structural type contracts.
+temptations:
+  - risk: "Do not classify every annotated assignment or every spelling named TypeAlias as a type artifact."
+    instead: "Resolve only unconditional module-level imports from the stdlib typing module and invalidate shadowed bindings."
+  - risk: "Do not accept the right alias name while ignoring its target."
+    instead: "Store the assigned target and compare it with existing normalized type semantics, emitting E302 on mismatch."
+  - risk: "Do not require Python 3.12's native type statement."
+    instead: "Exercise the PEP 613 form that is valid across the package's Python 3.10+ support window."
+files:
+  scope:
+    - path: maid_runner/validators/_python_implementation.py
+      reason: "Recognize stdlib TypeAlias markers and collect their assigned structural target without changing public validator APIs."
+    - path: maid_runner/core/_implementation_validation.py
+      reason: "Compare declared type artifact targets through the existing validator type matcher."
+    - path: maid_runner/core/_type_compare.py
+      reason: "Normalize semantically equivalent quote spellings in string-valued type arguments before exact comparison."
+  create:
+    - path: tests/validators/test_python_type_alias.py
+      artifacts:
+        - kind: test_function
+          name: test_python_type_aliases_pass_exact_implementation_validation
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: source, type: str}
+          returns: None
+          description: "Direct and module-aliased stdlib TypeAlias declarations satisfy exact Python implementation contracts."
+        - kind: test_function
+          name: test_python_type_alias_target_mismatch_reports_e302
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "A declared type alias whose assigned target differs from the manifest reports E302."
+        - kind: test_function
+          name: test_python_type_alias_literal_target_preserves_quoted_values
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "Quoted Literal values survive alias-target collection: equivalent quote spellings pass while unquoted names, including adversarial placeholder-like identifiers, report E302."
+        - kind: test_function
+          name: test_python_type_alias_value_metadata_preserves_source_semantics
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "Ellipsis and Annotated metadata retain value syntax in alias targets, while their lossy spellings report E302."
+        - kind: test_function
+          name: test_literal_value_rendering_change_is_scoped_to_alias_targets
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "Ordinary function annotations retain their prior representation while alias targets preserve Literal string values."
+        - kind: test_function
+          name: test_ordinary_annotated_assignment_does_not_satisfy_type_artifact
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "An ordinary annotated module attribute cannot masquerade as a type alias artifact."
+  read:
+    - maid_runner/validators/python.py
+    - maid_runner/validators/base.py
+    - manifests/029-04-move-python-implementation-collector-module.manifest.yaml
+    - manifests/093-02-add-validator-type-comparison-hook.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_python_type_alias.py
+outcome:
+  status: completed
+  completed_at: "2026-08-20T00:35:29Z"
+  summary: "Python 3.10-compatible TypeAlias declarations now produce exact type artifacts, including unions, forward references, Literal values, Annotated metadata, and ellipsis-bearing targets."
+  rationale: "Only unconditional top-level stdlib typing markers are recognized, shadowed markers fail closed, and exact targets flow through semantic type comparison. Alias-only value rendering preserves metadata without changing ordinary annotations, while quote normalization uses collision-disjoint tokens so equivalent quote styles match and unquoted identifiers remain distinct."
+  lessons:
+    - lesson_type: structural-contract
+      summary: "Exact type-alias comparison must distinguish type positions from value-bearing positions such as Literal arguments, Annotated metadata, and ellipsis."
+      tags: [python, type-alias, literal, annotated, exactness]
+      paths: [maid_runner/validators/_python_implementation.py, maid_runner/core/_type_compare.py]
+    - lesson_type: validation-trust
+      summary: "Normalization placeholders must occupy a representation disjoint from all valid user identifiers to avoid adversarial false equivalence."
+      tags: [normalization, collision-resistance, e302]
+      paths: [maid_runner/core/_type_compare.py]
+  review_notes:
+    - source: independent-implementation-review-rounds-1-to-3
+      severity: P1 fixed
+      summary: "Review exposed quote loss, ordinary-annotation scope drift, quote-style false mismatches, value-metadata corruption, and a placeholder collision; each received focused regression coverage."
+    - source: independent-implementation-review-final
+      severity: ready
+      summary: "Confirmed all prior blockers closed, manifest scope and lock revision 9 aligned, and no blocking or advisory findings remained."
+  validation:
+    - command: [uv, run, pytest, tests/validators/test_python_type_alias.py, tests/core/test_type_compare.py, -q]
+      status: passed
+      summary: "Thirty focused alias and type-comparison tests passed."
+    - command: [uv, run, python, -m, pytest, tests/, -q, -n, "8", --dist, loadscope]
+      status: passed
+      summary: "Full repository suite passed 4539 tests with 14 skipped after final review fixes."
+    - command: [uv, run, maid, verify, --profile, deep, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, release/v2.next]
+      status: passed
+      summary: "All 11 deep verification gates passed; only pre-existing non-blocking E307 warnings remained."

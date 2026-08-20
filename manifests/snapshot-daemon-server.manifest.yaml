@@ -1,0 +1,501 @@
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Snapshot of maid_runner/daemon/server.py
+type: snapshot
+files:
+  create:
+  - path: maid_runner/daemon/__init__.py
+    artifacts:
+    - kind: class
+      name: DaemonRequestError
+      description: Re-exported from maid_runner.daemon.protocol
+    - kind: class
+      name: ProtocolError
+      description: Re-exported from maid_runner.daemon.protocol
+    - kind: class
+      name: Request
+      description: Re-exported from maid_runner.daemon.protocol
+    - kind: class
+      name: Response
+      description: Re-exported from maid_runner.daemon.protocol
+    - kind: class
+      name: Server
+      description: Re-exported from maid_runner.daemon.server
+    - kind: function
+      name: serve
+      description: Re-exported from maid_runner.daemon.server
+  - path: maid_runner/daemon/protocol.py
+    artifacts:
+    - kind: attribute
+      name: code
+      of: DaemonRequestError
+      type: str
+    - kind: attribute
+      name: message
+      of: DaemonRequestError
+      type: str
+    - kind: attribute
+      name: id
+      of: Request
+      type: str
+    - kind: attribute
+      name: method
+      of: Request
+      type: str
+    - kind: attribute
+      name: params
+      of: Request
+      type: dict
+    - kind: attribute
+      name: protocol_version
+      of: Request
+      type: int
+    - kind: attribute
+      name: error
+      of: Response
+      type: Optional[dict]
+    - kind: attribute
+      name: id
+      of: Response
+      type: str
+    - kind: attribute
+      name: ok
+      of: Response
+      type: bool
+    - kind: attribute
+      name: result
+      of: Response
+      type: Optional[dict]
+    - kind: attribute
+      name: request_id
+      of: UnsupportedProtocolVersionError
+      type: str
+    - kind: attribute
+      name: version
+      of: UnsupportedProtocolVersionError
+      type: int
+    - kind: class
+      name: DaemonRequestError
+      description: Raised by handlers when the request itself is malformed; surfaced
+        as ok=false
+    - kind: class
+      name: ProtocolError
+      description: Raised when an inbound line cannot be parsed as a valid Request
+    - kind: class
+      name: Request
+      description: Parsed NDJSON client request with id, method, params
+    - kind: class
+      name: Response
+      description: Server response with id, ok flag, and either result or error
+    - kind: class
+      name: UnsupportedProtocolVersionError
+      description: Raised when a request carries a protocol_version the daemon does
+        not support.
+      bases:
+      - ProtocolError
+    - kind: function
+      name: error_response
+      description: Build a structured error Response for a given request id
+      args:
+      - name: request_id
+        type: str
+      - name: code
+        type: str
+      - name: message
+        type: str
+      returns: Response
+    - kind: function
+      name: parse_request
+      args:
+      - name: line
+        type: str
+      returns: Request
+    - kind: function
+      name: render_response
+      description: Render a Response as a single NDJSON line (trailing newline included)
+      args:
+      - name: response
+        type: Response
+      returns: str
+  - path: maid_runner/daemon/handlers.py
+    artifacts:
+    - kind: attribute
+      name: HANDLERS
+      description: Method name to handler function registry, used by the server dispatcher
+      type: dict
+    - kind: function
+      name: configure_context
+      description: Bind the daemon to a startup project_root. Client-supplied values
+        are ignored.
+      args:
+      - name: project_root
+        type: Union[str, Path]
+      returns: None
+    - kind: function
+      name: handle_ping
+      args:
+      - name: params
+        type: dict
+      returns: dict
+    - kind: function
+      name: handle_validate
+      args:
+      - name: params
+        type: dict
+      returns: dict
+    - kind: function
+      name: handle_verify
+      args:
+      - name: params
+        type: dict
+      returns: dict
+  - path: maid_runner/cli/commands/serve.py
+    artifacts:
+    - kind: function
+      name: cmd_serve
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+    - kind: function
+      name: register_serve_subparser
+      args:
+      - name: subparsers
+        type: argparse._SubParsersAction
+      returns: argparse.ArgumentParser
+  - path: tests/daemon/test_protocol.py
+    artifacts:
+    - kind: test_function
+      name: test_error_response_has_code_and_message_fields
+    - kind: test_function
+      name: test_parse_request_accepts_well_formed_validate_call
+    - kind: test_function
+      name: test_parse_request_rejects_missing_id_with_protocol_error
+    - kind: test_function
+      name: test_parse_request_rejects_non_json_line_with_protocol_error
+    - kind: test_function
+      name: test_parse_request_rejects_unknown_method_with_protocol_error
+    - kind: test_function
+      name: test_render_response_emits_single_ndjson_line
+    - kind: test_function
+      name: test_render_response_preserves_validate_json_shape_under_result_key
+  - path: tests/daemon/test_server.py
+    artifacts:
+    - kind: test_function
+      name: test_client_read_timeout_closes_slow_connection_but_keeps_daemon_running
+    - kind: test_function
+      name: test_double_launch_with_live_daemon_exits_non_zero
+    - kind: test_function
+      name: test_handlers_registry_dispatches_ping_to_handle_ping
+    - kind: test_function
+      name: test_handlers_registry_dispatches_validate_via_handle_validate
+    - kind: test_function
+      name: test_malformed_request_returns_error_response_and_connection_stays_open
+    - kind: test_function
+      name: test_pidfile_contenders_do_not_remove_claim_before_pid_is_written
+      source_scenario: One daemon claimant has created its claim file but has not
+        finished writing the PID while a second claimant starts.
+      actions:
+      - type: api_call
+        subject:
+          function: _acquire_pidfile
+      expected:
+        behavior: Only one claimant returns True, the losing claimant leaves the winning
+          pidfile intact, and the final pidfile contains the current process PID.
+    - kind: test_function
+      name: test_ping_returns_pid_version_and_uptime
+    - kind: test_function
+      name: test_server_handle_client_processes_ndjson_request_over_socketpair
+    - kind: test_function
+      name: test_server_shutdown_releases_socket_and_pidfile
+    - kind: test_function
+      name: test_server_starts_and_accepts_connection_on_unix_socket
+    - kind: test_function
+      name: test_sigterm_triggers_clean_shutdown_and_removes_pidfile_and_socket
+    - kind: test_function
+      name: test_stale_pidfile_from_dead_process_is_removed_and_daemon_starts
+    - kind: test_function
+      name: test_validate_request_returns_errors_for_invalid_manifest
+    - kind: test_function
+      name: test_validate_request_returns_same_json_shape_as_cli_for_single_manifest
+  - path: tests/daemon/test_cli_serve.py
+    artifacts:
+    - kind: test_function
+      name: test_maid_serve_help_lists_socket_and_pidfile_flags
+    - kind: test_function
+      name: test_maid_serve_resolves_default_socket_under_dot_maid_directory
+    - kind: test_function
+      name: test_register_serve_subparser_returns_argument_parser
+  - path: tests/daemon/test_daemon_protocol_version.py
+    artifacts:
+    - kind: test_function
+      name: test_maid_serve_docs_describe_verify_protocol_version_and_error_code
+    - kind: test_function
+      name: test_parse_request_accepts_supported_protocol_version
+    - kind: test_function
+      name: test_parse_request_allows_verify_method
+    - kind: test_function
+      name: test_parse_request_defaults_absent_protocol_version_to_one
+    - kind: test_function
+      name: test_parse_request_raises_specific_error_for_unsupported_protocol_version
+    - kind: test_function
+      name: test_parse_request_rejects_non_integer_protocol_version
+    - kind: test_function
+      name: test_server_dispatch_reports_unsupported_protocol_version_with_request_id
+  - path: tests/daemon/test_daemon_verify.py
+    artifacts:
+    - kind: test_function
+      name: test_handle_verify_ignores_client_supplied_project_root
+    - kind: test_function
+      name: test_handle_verify_matches_direct_verify_subset_json_excluding_durations
+    - kind: test_function
+      name: test_handle_verify_rejects_manifest_dir_path_escape
+    - kind: test_function
+      name: test_handle_verify_reports_validation_coherence_file_tracking_and_skipped_tests
+    - kind: test_function
+      name: test_verify_request_round_trips_over_daemon_socket
+  - path: maid_runner/daemon/transport.py
+    artifacts:
+    - kind: attribute
+      name: host
+      of: TcpTransportInfo
+      type: str
+    - kind: attribute
+      name: port
+      of: TcpTransportInfo
+      type: int
+    - kind: attribute
+      name: token
+      of: TcpTransportInfo
+      type: str
+    - kind: class
+      name: TcpTransportInfo
+      description: 'Resolved TCP transport identity for one daemon: loopback host,
+        bound port, and auth token.'
+    - kind: function
+      name: generate_token
+      returns: str
+    - kind: function
+      name: read_tcp_runtime_files
+      args:
+      - name: runtime_dir
+        type: Union[str, Path]
+      returns: TcpTransportInfo
+    - kind: function
+      name: token_is_valid
+      args:
+      - name: provided
+        type: Optional[str]
+      - name: expected
+        type: str
+      returns: bool
+    - kind: function
+      name: write_tcp_runtime_files
+      args:
+      - name: runtime_dir
+        type: Union[str, Path]
+      - name: port
+        type: int
+      - name: token
+        type: str
+      returns: None
+  - path: tests/daemon/test_tcp_transport.py
+    artifacts:
+    - kind: test_function
+      name: test_cmd_serve_forwards_transport_selection
+    - kind: test_function
+      name: test_generate_token_returns_distinct_nonempty_tokens
+    - kind: test_function
+      name: test_maid_serve_docs_describe_tcp_transport_and_token
+    - kind: test_function
+      name: test_read_tcp_runtime_files_fails_loudly_for_missing_or_malformed_files
+    - kind: test_function
+      name: test_serve_parser_accepts_transport_choice_defaulting_to_unix
+    - kind: test_function
+      name: test_tcp_request_with_valid_token_round_trips_ping_and_validate
+    - kind: test_function
+      name: test_tcp_server_binds_loopback_and_requires_token_before_dispatch
+    - kind: test_function
+      name: test_tcp_server_starts_when_geteuid_is_unavailable
+    - kind: test_function
+      name: test_tcp_shutdown_preserves_socket_path_placeholder
+    - kind: test_function
+      name: test_token_is_valid_requires_exact_constant_time_match
+    - kind: test_function
+      name: test_unix_transport_remains_default_and_writes_no_tcp_runtime_files
+    - kind: test_function
+      name: test_write_tcp_runtime_files_records_port_and_owner_only_token
+  edit:
+  - path: maid_runner/cli/commands/_main.py
+    artifacts:
+    - kind: function
+      name: build_parser
+      description: The manifest promote subparser continues to accept --no-run and
+        --project-root (default '.') alongside its existing options.
+      returns: argparse.ArgumentParser
+    - kind: function
+      name: main
+      description: Dispatches validate, test, and verify with .maidrc.yaml's manifest_dir
+        when the option is omitted, while explicit CLI values retain precedence.
+      args:
+      - name: argv
+        type: list[str] | None
+        default: None
+      returns: int
+  read:
+  - maid_runner/cli/commands/validate.py
+  - manifests/drafts/README.md
+  - manifests/drafts/034-00-maid-runner-performance-roadmap.epic.yaml
+  - manifests/036-01-maid-serve-validator-daemon.manifest.yaml
+  - maid_runner/cli/commands/verify.py
+  - maid_runner/core/result.py
+  - maid_runner/core/benchmark.py
+  scope:
+  - path: docs/maid-serve.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  snapshot:
+  - path: maid_runner/daemon/server.py
+    artifacts:
+    - kind: attribute
+      name: client_timeout_s
+      of: Server
+      type: float
+    - kind: attribute
+      name: pidfile_path
+      of: Server
+      type: Path
+    - kind: attribute
+      name: project_root
+      of: Server
+      type: Path
+    - kind: attribute
+      name: socket_path
+      of: Server
+      type: Path
+    - kind: attribute
+      name: transport
+      description: Records the selected daemon transport so startup, request authorization,
+        and cleanup follow the unix or tcp path.
+      of: Server
+      type: str
+    - kind: class
+      name: Server
+      description: Accepts a transport selector; under tcp binds 127.0.0.1 on an ephemeral
+        port, writes runtime files, and rejects requests without a valid token before
+        dispatch.
+    - kind: function
+      name: check_stale_pidfile
+      description: Return True (and remove the pidfile + socket) if the pidfile points
+        to a non-running process
+      args:
+      - name: pidfile_path
+        type: Path
+      returns: bool
+    - kind: function
+      name: serve
+      args:
+      - name: socket_path
+        type: Path
+      - name: pidfile_path
+        type: Path
+      - name: client_timeout_s
+        type: float
+      - name: project_root
+        type: Path | str
+        default: '''.'''
+      - name: transport
+        type: str
+        default: '''unix'''
+      returns: int
+    - kind: method
+      name: handle_client
+      description: Read NDJSON lines from one client, dispatch to handlers, write
+        back NDJSON responses
+      of: Server
+      args:
+      - name: conn
+        type: socket.socket
+      returns: None
+    - kind: method
+      name: shutdown
+      description: Close the listening socket, remove the pidfile and socket file,
+        and exit the accept loop
+      of: Server
+      returns: None
+    - kind: method
+      name: start
+      description: Bind the socket, write the pidfile, install signal handlers, and
+        enter the accept loop
+      of: Server
+      returns: None
+validate:
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/daemon/
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/daemon/test_server.py
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/daemon/test_daemon_protocol_version.py
+  - tests/daemon/test_daemon_verify.py
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/064-03-extend-daemon-protocol-for-verify.manifest.yaml
+  - --mode
+  - behavioral
+  - --quiet
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/064-03-extend-daemon-protocol-for-verify.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/daemon/test_tcp_transport.py
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/064-04-add-windows-daemon-transport.manifest.yaml
+  - --mode
+  - behavioral
+  - --quiet
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/064-04-add-windows-daemon-transport.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+supersedes:
+- 036-01-maid-serve-validator-daemon
+- 050-01-fix-daemon-pidfile-claim-race
+- 064-03-extend-daemon-protocol-for-verify
+- 064-04-add-windows-daemon-transport
+created: '2026-08-17T05:23:02Z'

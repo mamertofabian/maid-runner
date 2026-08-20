@@ -1,0 +1,4460 @@
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Snapshot of maid_runner/cli/commands/manifest.py
+type: snapshot
+files:
+  create:
+  - path: maid_runner/core/manifest_from_diff.py
+    artifacts:
+    - kind: class
+      name: FromDiffRenderError
+      description: 'Structured generation failure: rendered draft failed schema validation
+        or output refused.'
+      bases:
+      - Exception
+    - kind: function
+      name: build_from_diff_manifest
+      description: Rendering now emits validate commands from suggest_validate_commands
+        instead of hardcoding the schema-only fallback.
+      args:
+      - name: diff
+        type: DiffScopeResult
+      - name: project_root
+        type: Union[str, Path]
+      - name: slug
+        type: str
+      returns: dict
+    - kind: function
+      name: default_from_diff_slug
+      description: Returns from-diff-<UTC-date>-<short-commit-hash> for the resolved
+        baseline (HEAD short hash for worktree scope).
+      args:
+      - name: project_root
+        type: Union[str, Path]
+      - name: baseline
+        type: DiffScopeBaseline
+      returns: str
+    - kind: function
+      name: validate_from_diff_output_suffix
+      description: Raise FromDiffRenderError naming the unsupported suffix when the
+        output path's suffix is not one this writer can correctly emit. The accepted
+        set is derived from _SUFFIX_FORMATS by selecting the suffixes mapped to the
+        yaml format, so the guard cannot drift from load_manifest_raw. Shared by the
+        writer and the CLI so both enforcement sites use one rule. Returns None when
+        the suffix is supported.
+      args:
+      - name: output_path
+        type: Union[str, Path]
+      returns: None
+      raises:
+      - FromDiffRenderError
+    - kind: function
+      name: write_from_diff_manifest
+      description: Reject an output path whose suffix MAID cannot load, with a FromDiffRenderError
+        distinct from the drafts-directory containment failure, before any filesystem
+        effect including the parent mkdir. Placed on the public writer so library
+        callers are covered, not only the CLI.
+      args:
+      - name: data
+        type: dict
+      - name: output_path
+        type: Union[str, Path]
+      - name: force
+        type: bool
+        default: 'False'
+      returns: Path
+  - path: tests/core/test_manifest_from_diff.py
+    artifacts:
+    - kind: test_function
+      name: test_build_from_diff_manifest_is_deterministic
+    - kind: test_function
+      name: test_build_from_diff_manifest_quotes_slug_path_in_validate_command
+    - kind: test_function
+      name: test_build_from_diff_manifest_rejects_empty_diff
+    - kind: test_function
+      name: test_build_from_diff_manifest_renders_schema_valid_review_marked_draft
+    - kind: test_function
+      name: test_default_from_diff_slug_uses_resolved_since_commit_hash
+    - kind: test_function
+      name: test_write_from_diff_manifest_force_overwrites_with_stable_yaml
+    - kind: test_function
+      name: test_write_from_diff_manifest_refuses_existing_output_without_force
+    - kind: test_function
+      name: test_write_from_diff_manifest_rejects_draft_path_outside_project
+    - kind: test_function
+      name: test_write_from_diff_manifest_rejects_non_draft_output
+    - kind: test_function
+      name: test_write_from_diff_manifest_writes_nothing_when_schema_invalid
+  - path: tests/cli/test_manifest_from_diff_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_manifest_from_diff_build_parser_registers_subcommand
+    - kind: test_function
+      name: test_manifest_from_diff_cmd_manifest_rejects_missing_baseline
+    - kind: test_function
+      name: test_manifest_from_diff_counts_empty_string_baseline_flags
+    - kind: test_function
+      name: test_manifest_from_diff_custom_output_sets_validate_command
+    - kind: test_function
+      name: test_manifest_from_diff_dry_run_json_writes_nothing
+    - kind: test_function
+      name: test_manifest_from_diff_dry_run_rejects_empty_diff
+    - kind: test_function
+      name: test_manifest_from_diff_force_overwrites_existing_output
+    - kind: test_function
+      name: test_manifest_from_diff_invalid_commitish_exits_without_writing
+    - kind: test_function
+      name: test_manifest_from_diff_quotes_spaced_slug_validate_command
+    - kind: test_function
+      name: test_manifest_from_diff_refuses_existing_output_without_force
+    - kind: test_function
+      name: test_manifest_from_diff_rejects_active_manifest_output
+    - kind: test_function
+      name: test_manifest_from_diff_rejects_draft_output_outside_project
+    - kind: test_function
+      name: test_manifest_from_diff_requires_exactly_one_baseline
+    - kind: test_function
+      name: test_manifest_from_diff_writes_default_draft_and_json_result
+  - path: maid_runner/core/validate_suggestions.py
+    artifacts:
+    - kind: function
+      name: suggest_validate_commands
+      description: 'Returns the deterministic validate list: pytest commands for evidenced
+        test files plus the schema-only command, or schema-only when no evidence exists.'
+      args:
+      - name: diff
+        type: DiffScopeResult
+      - name: project_root
+        type: Union[str, Path]
+      - name: draft_path
+        type: Union[str, Path]
+      returns: tuple[str, ...]
+  - path: tests/cli/test_manifest_promote_yaml_style_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_promote_does_not_emit_trailing_whitespace
+      source_scenario: A promoted draft contains long plain scalar values that the
+        default round-trip emitter would wrap.
+      actions:
+      - type: api_call
+        subject:
+          export: cmd_manifest
+      expected:
+        behavior: Every physical line in the promoted YAML equals its right-stripped
+          form while the scalar values still round-trip.
+    - kind: test_function
+      name: test_promote_does_not_wrap_long_strings_with_backslashes
+      source_scenario: A draft with a long single-line temptation string that requires
+        quoting is promoted.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_manifest
+      expected:
+        behavior: No line in the promoted file ends with a backslash continuation
+          and the string parses back identical.
+    - kind: test_function
+      name: test_promote_renders_multiline_description_as_literal_block
+      source_scenario: A draft with a multiline description containing an em dash
+        is promoted.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_manifest
+      expected:
+        behavior: The promoted file renders the description as a literal block scalar
+          with no escaped newlines and the em dash appears literally.
+    - kind: test_function
+      name: test_promote_round_trips_multiline_description_content
+      source_scenario: A draft with a multiline description is promoted.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_manifest
+      expected:
+        behavior: The promoted manifest parses back with the description byte-identical
+          to the draft's.
+  - path: tests/cli/test_manifest_from_diff_output_suffix.py
+    artifacts:
+    - kind: test_function
+      name: test_from_diff_accepts_default_yaml_draft_path
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: capsys
+        type: pytest.CaptureFixture
+      returns: None
+      source_scenario: The slug-derived default output path is used as a regression
+        guard.
+      actions:
+      - type: api_call
+        subject:
+          export: cmd_manifest
+      expected:
+        behavior: The generated draft is written, round-trips through load_manifest_raw,
+          and its self-validate path points at the file that was actually written.
+    - kind: test_function
+      name: test_from_diff_accepts_yml_output_suffix
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: capsys
+        type: pytest.CaptureFixture
+      returns: None
+      source_scenario: A caller passes --output manifests/drafts/custom.manifest.yml.
+      actions:
+      - type: api_call
+        subject:
+          export: cmd_manifest
+      expected:
+        behavior: The draft is written and round-trips through load_manifest_raw,
+          proving the guard accepts every yaml-format suffix the reader dispatches
+          on rather than only '.yaml'.
+    - kind: test_function
+      name: test_from_diff_dry_run_rejects_unsupported_output_suffix
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: capsys
+        type: pytest.CaptureFixture
+      returns: None
+      source_scenario: A caller passes --dry-run with --output manifests/drafts/x.json,
+        the path that never reaches write_from_diff_manifest.
+      actions:
+      - type: api_call
+        subject:
+          export: cmd_manifest
+      expected:
+        behavior: The command exits 2 and prints no manifest body, so --dry-run cannot
+          hand back a manifest whose embedded self-validate command points at a file
+          MAID cannot load. This is the case a writer-only guard would miss.
+    - kind: test_function
+      name: test_from_diff_force_does_not_touch_existing_file_with_unsupported_suffix
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: capsys
+        type: pytest.CaptureFixture
+      returns: None
+      source_scenario: A caller passes --force with an existing manifests/drafts/x.json.
+      actions:
+      - type: api_call
+        subject:
+          export: cmd_manifest
+      expected:
+        behavior: The command exits 2 and the existing file's bytes are unchanged,
+          closing the write-then-restore rollback that satisfies a naive no-file assertion.
+    - kind: test_function
+      name: test_from_diff_rejects_suffixless_output_path
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: capsys
+        type: pytest.CaptureFixture
+      returns: None
+      source_scenario: A caller passes an output path with no suffix at all.
+      actions:
+      - type: api_call
+        subject:
+          export: cmd_manifest
+      expected:
+        behavior: The command exits 2 and writes nothing, closing the empty-suffix
+          YAML fallback that 089-01's review found unpinned.
+    - kind: test_function
+      name: test_from_diff_rejects_unsupported_output_suffix_without_writing
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: capsys
+        type: pytest.CaptureFixture
+      returns: None
+      source_scenario: A caller passes --output manifests/drafts/x.json.
+      actions:
+      - type: api_call
+        subject:
+          export: cmd_manifest
+      expected:
+        behavior: The command exits 2 with an error naming the '.json' suffix, and
+          no manifests directory is created at all, proving the rejection precedes
+          the writer's parent mkdir.
+    - kind: test_function
+      name: test_from_diff_rejects_uppercase_yaml_output_suffix
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: capsys
+        type: pytest.CaptureFixture
+      returns: None
+      source_scenario: A caller passes --output manifests/drafts/custom.YAML.
+      actions:
+      - type: api_call
+        subject:
+          export: cmd_manifest
+      expected:
+        behavior: The command exits 2 and writes nothing, because load_manifest_raw
+          and chain discovery match the lowercase suffix exactly, so an uppercase
+          suffix is not a loadable manifest.
+    - kind: test_function
+      name: test_from_diff_still_rejects_output_outside_drafts_directory
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: capsys
+        type: pytest.CaptureFixture
+      returns: None
+      source_scenario: A caller passes an --output path outside manifests/drafts/.
+      actions:
+      - type: api_call
+        subject:
+          export: cmd_manifest
+      expected:
+        behavior: The existing containment rejection is unchanged in message and exit
+          code, proving the new suffix condition was added alongside it rather than
+          replacing it.
+    - kind: test_function
+      name: test_from_diff_suffix_rejection_is_distinct_from_containment_rejection
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: capsys
+        type: pytest.CaptureFixture
+      returns: None
+      source_scenario: A caller passes a drafts-directory path with an unsupported
+        suffix.
+      actions:
+      - type: api_call
+        subject:
+          export: cmd_manifest
+      expected:
+        behavior: The error names the unsupported suffix and does not reuse the 'must
+          be under manifests/drafts/' containment wording, so the two failures stay
+          separately diagnosable.
+    - kind: test_function
+      name: test_validate_from_diff_output_suffix_accepts_every_reader_yaml_suffix
+      returns: None
+      source_scenario: Every suffix load_manifest_raw maps to the yaml format is offered
+        to the shared guard.
+      actions:
+      - type: api_call
+        subject:
+          export: validate_from_diff_output_suffix
+      expected:
+        behavior: The guard accepts all of them, so it cannot drift narrower than
+          the reader and start rejecting a suffix MAID can still load.
+    - kind: test_function
+      name: test_validate_from_diff_output_suffix_rejects_reader_suffixes_it_cannot_emit
+      returns: None
+      source_scenario: Every suffix load_manifest_raw maps to a non-yaml format is
+        offered to the shared guard.
+      actions:
+      - type: api_call
+        subject:
+          export: validate_from_diff_output_suffix
+      expected:
+        behavior: Each raises FromDiffRenderError naming that suffix, so the guard
+          cannot drift wider than what this YAML-only writer can correctly emit.
+    - kind: test_function
+      name: test_write_from_diff_manifest_rejects_unsupported_suffix_for_library_callers
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+      source_scenario: A non-CLI caller invokes write_from_diff_manifest directly
+        with an unsupported suffix and a body that would also fail schema validation.
+      actions:
+      - type: api_call
+        subject:
+          export: write_from_diff_manifest
+      expected:
+        behavior: FromDiffRenderError names the suffix rather than reporting a schema
+          failure, proving the guard runs before schema validation and covers library
+          callers, and nothing is written.
+  - path: tests/core/test_inactive_manifest_repair_guidance.py
+    artifacts:
+    - kind: test_function
+      name: test_archive_inventory_diagnostic_names_copyable_archive_marker
+      source_scenario: An unmarked v2 manifest is hidden under manifests/v1-archive.
+      actions:
+      - type: api_call
+        subject:
+          export: ManifestChain
+      expected:
+        behavior: E109 keeps failing closed while its suggestion shows the exact archive
+          marker form.
+    - kind: test_function
+      name: test_draft_inventory_diagnostic_names_copyable_marker_choices
+      source_scenario: An unmarked v2 manifest is hidden under manifests/drafts.
+      actions:
+      - type: api_call
+        subject:
+          export: ManifestChain
+      expected:
+        behavior: E109 keeps failing closed while its suggestion shows the exact implementation
+          and epic draft marker syntax.
+  - path: tests/cli/test_manifest_create_draft_marker_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_manifest_create_in_active_directory_keeps_generic_header
+      source_scenario: maid manifest create writes an active manifest to the normal
+        manifests output directory.
+      actions:
+      - type: api_call
+        subject:
+          export: cmd_manifest
+      expected:
+        behavior: The active manifest keeps the generic MAID header and does not receive
+          an inactive draft marker.
+    - kind: test_function
+      name: test_manifest_create_under_drafts_writes_required_lifecycle_marker
+      source_scenario: maid manifest create writes an implementation manifest below
+        a manifests/drafts path component.
+      actions:
+      - type: api_call
+        subject:
+          export: cmd_manifest
+      expected:
+        behavior: 'The created file begins with # draft-kind: implementation and produces
+          no inactive-manifest diagnostic from the parent chain.'
+  - path: maid_runner/core/plan_lock.py
+    artifacts:
+    - kind: attribute
+      name: artifacts_added
+      description: Declared-artifact identities present in the new contract but not
+        the prior, sorted.
+      of: ContractDelta
+      type: tuple[str, ...]
+    - kind: attribute
+      name: artifacts_removed
+      description: Declared-artifact identities present in the prior contract but
+        not the new, sorted.
+      of: ContractDelta
+      type: tuple[str, ...]
+    - kind: attribute
+      name: files_added
+      description: Section-qualified file entries added, e.g. 'edit:path', 'create:path',
+        'read:path', sorted.
+      of: ContractDelta
+      type: tuple[str, ...]
+    - kind: attribute
+      name: files_removed
+      description: Section-qualified file entries removed, sorted; the section prefix
+        lets consumers treat read drops as neutral.
+      of: ContractDelta
+      type: tuple[str, ...]
+    - kind: attribute
+      name: validate_commands_added
+      description: Normalized validate commands added, sorted.
+      of: ContractDelta
+      type: tuple[str, ...]
+    - kind: attribute
+      name: validate_commands_removed
+      description: Normalized validate commands removed, sorted.
+      of: ContractDelta
+      type: tuple[str, ...]
+    - kind: attribute
+      name: baseline_commit
+      description: Resolved Git HEAD commit containing the pre-existing manifest.
+      of: LegacyBaselineEvidence
+      type: str
+    - kind: attribute
+      name: baseline_manifest_hash
+      description: Hash of the committed pre-migration manifest bytes.
+      of: LegacyBaselineEvidence
+      type: str
+    - kind: attribute
+      name: baseline_manifest_source
+      description: Identifies whether baseline_manifest_hash was captured from the
+        HEAD manifest blob or the staged index blob.
+      of: LegacyBaselineEvidence
+      type: str
+    - kind: attribute
+      name: captured_at
+      description: UTC timestamp of the migration evidence capture.
+      of: LegacyBaselineEvidence
+      type: str
+    - kind: attribute
+      name: commands
+      description: Current validate-command results, all classified not_red with exit
+        code zero.
+      of: LegacyBaselineEvidence
+      type: tuple[RedPhaseCommandEvidence, ...]
+    - kind: attribute
+      name: contract_delta
+      description: Structured committed-to-current contract delta retained for audit.
+      of: LegacyBaselineEvidence
+      type: ContractDelta
+    - kind: attribute
+      name: reason
+      description: Required human explanation for using the legacy migration path.
+      of: LegacyBaselineEvidence
+      type: str
+    - kind: attribute
+      name: agent
+      description: Provenance of the agent that created revision 1; None when not
+        captured or for pre-provenance locks.
+      of: PlanLock
+      type: Optional[AgentProvenance]
+    - kind: attribute
+      name: created_at
+      of: PlanLock
+      type: str
+    - kind: attribute
+      name: legacy_baseline
+      description: Separate audited legacy-baseline payload; None for ordinary and
+        pre-feature locks.
+      of: PlanLock
+      type: Optional[dict]
+    - kind: attribute
+      name: manifest_hash
+      of: PlanLock
+      type: str
+    - kind: attribute
+      name: manifest_path
+      of: PlanLock
+      type: str
+    - kind: attribute
+      name: red_evidence
+      of: PlanLock
+      type: dict | None
+    - kind: attribute
+      name: revision
+      of: PlanLock
+      type: int
+    - kind: attribute
+      name: revisions
+      of: PlanLock
+      type: tuple[PlanLockRevision, ...]
+    - kind: attribute
+      name: test_hashes
+      of: PlanLock
+      type: dict[str, str]
+    - kind: attribute
+      name: lock_path
+      of: PlanLockDependent
+      type: str
+    - kind: attribute
+      name: manifest_path
+      of: PlanLockDependent
+      type: str
+    - kind: attribute
+      name: manifest_slug
+      of: PlanLockDependent
+      type: str
+    - kind: attribute
+      name: recovery_command
+      of: PlanLockDependent
+      type: str
+    - kind: attribute
+      name: test_hash_matches
+      of: PlanLockDependent
+      type: bool
+    - kind: attribute
+      name: test_path
+      of: PlanLockDependent
+      type: str
+    - kind: attribute
+      name: agent
+      description: Provenance of the agent that made this revision; None when not
+        captured.
+      of: PlanLockRevision
+      type: Optional[AgentProvenance]
+    - kind: attribute
+      name: contract_delta
+      description: The stored delta for this revision; None for pre-delta revisions
+        and when the prior contract was unavailable.
+      of: PlanLockRevision
+      type: Optional[ContractDelta]
+    - kind: attribute
+      name: prior_manifest_hash
+      of: PlanLockRevision
+      type: str
+    - kind: attribute
+      name: prior_test_hashes
+      of: PlanLockRevision
+      type: dict[str, str]
+    - kind: attribute
+      name: reason
+      of: PlanLockRevision
+      type: str
+    - kind: attribute
+      name: revised_at
+      of: PlanLockRevision
+      type: str
+    - kind: attribute
+      name: classification
+      of: RedPhaseCommandEvidence
+      type: str
+    - kind: attribute
+      name: command
+      of: RedPhaseCommandEvidence
+      type: str
+    - kind: attribute
+      name: exit_code
+      of: RedPhaseCommandEvidence
+      type: int
+    - kind: attribute
+      name: output_tail
+      of: RedPhaseCommandEvidence
+      type: str
+    - kind: attribute
+      name: captured_at
+      of: RedPhaseEvidence
+      type: str
+    - kind: attribute
+      name: commands
+      of: RedPhaseEvidence
+      type: tuple[RedPhaseCommandEvidence, ...]
+    - kind: attribute
+      name: red
+      of: RedPhaseEvidence
+      type: bool
+    - kind: class
+      name: ContractDelta
+      description: 'Frozen dataclass: deterministic set-difference between two locked
+        manifest contracts, stored per revision as advisory evidence.'
+    - kind: class
+      name: LegacyBaselineEvidence
+      description: Audited green-baseline evidence for a tracked manifest that predates
+        plan-lock adoption.
+    - kind: class
+      name: PlanLock
+      description: Tamper-evident per-manifest plan lock record stored at .maid/plan-locks/<manifest-slug>.lock.json.
+    - kind: class
+      name: PlanLockDependent
+      description: Immutable public record describing one active manifest lock that
+        pins the queried behavioral test.
+    - kind: class
+      name: PlanLockRevision
+      description: One immutable revision history entry holding the prior hashes,
+        revision timestamp, and non-empty reason.
+    - kind: class
+      name: RedPhaseCommandEvidence
+      description: 'Per-command red-phase record: command string, exit code, 20-line
+        output tail, derived classification.'
+    - kind: class
+      name: RedPhaseEvidence
+      description: Aggregate red-phase evidence captured by maid plan lock/revise.
+    - kind: function
+      name: capture_legacy_baseline_evidence
+      description: Capture legacy green evidence from a tracked HEAD manifest or,
+        for first-commit brownfield adoption, an identical staged manifest whose declared
+        implementation and behavioral tests already exist cleanly at HEAD.
+      args:
+      - name: manifest_path
+        type: Path
+      - name: project_root
+        type: Path
+      - name: reason
+        type: str
+      returns: LegacyBaselineEvidence
+    - kind: function
+      name: capture_red_phase_evidence
+      description: Run the manifest's validate commands via the shared command execution
+        helper and record per-command evidence.
+      args:
+      - name: manifest_path
+        type: Path
+      - name: project_root
+        type: Path
+      returns: RedPhaseEvidence
+    - kind: function
+      name: classify_red_exit_code
+      description: Exit 1 -> red; exit 0 -> not_red; exits 2/3/4/5 and any other nonzero
+        exit -> invalid. Exit codes are the only classification input.
+      args:
+      - name: exit_code
+        type: int
+      returns: str
+    - kind: function
+      name: compute_behavioral_test_hash
+      description: Writes sha256-pyast:v2 for parseable UTF-8 Python and sha256 byte
+        hashes for other suffixes; raises instead of silently degrading.
+      args:
+      - name: path
+        type: Path
+      returns: str
+    - kind: function
+      name: compute_contract_delta
+      description: Pure sorted set-difference over two persisted contract payloads;
+        no reason parsing, no policy.
+      args:
+      - name: prior_contract
+        type: dict
+      - name: new_contract
+        type: dict
+      returns: ContractDelta
+    - kind: function
+      name: compute_manifest_contract_hash
+      description: "Intentional evolution of the 085-03 contract \u2014 normalizes\
+        \ date/datetime values to isoformat strings and non-string mapping keys to\
+        \ their normalized string form before JSON canonicalization per pinned rule\
+        \ 7, raising ValueError naming the manifest for any other non-JSON-native\
+        \ value; prefix, exclusion boundary, and existing hashes are unchanged."
+      args:
+      - name: manifest_path
+        type: Path
+      returns: str
+    - kind: function
+      name: create_plan_lock
+      description: Stores the current versioned compute_behavioral_test_hash result;
+        public signature remains unchanged.
+      args:
+      - name: manifest_path
+        type: Path
+      - name: project_root
+        type: Path
+      - name: agent
+        type: Optional[AgentProvenance]
+      returns: PlanLock
+    - kind: function
+      name: default_plan_lock_path
+      description: Return .maid/plan-locks/<manifest-slug>.lock.json under the project
+        root.
+      args:
+      - name: project_root
+        type: Path
+      - name: manifest_slug
+        type: str
+      returns: Path
+    - kind: function
+      name: enforce_plan_locks
+      description: Accepts mode test_only_green payloads as satisfying require_red_evidence
+        only under the persisted-contract test-only bound re-derived on every call;
+        all other payload and error semantics unchanged. Signature unchanged.
+      args:
+      - name: chain
+        type: ManifestChain
+      - name: project_root
+        type: Path
+      - name: require_plan_lock
+        type: bool
+      - name: require_red_evidence
+        type: bool
+      - name: changed_paths
+        type: Collection[str] | None
+        default: None
+      - name: plan_lock_scope
+        type: str
+        default: repository
+      returns: tuple[ValidationError, ...]
+    - kind: function
+      name: find_plan_lock_dependents
+      description: Resolve one in-project test path and return every active readable
+        lock that pins it, failing loudly on an unreadable active lock that must be
+        inspected.
+      args:
+      - name: chain
+        type: ManifestChain
+      - name: project_root
+        type: Path
+      - name: test_path
+        type: str | Path
+      returns: tuple[PlanLockDependent, Ellipsis]
+    - kind: function
+      name: manifest_hash_matches
+      description: Prefix-dispatched comparison supporting legacy sha256 byte hashes
+        and sha256-contract hashes; unknown prefixes and missing files return False.
+      args:
+      - name: lock_hash
+        type: str
+      - name: manifest_path
+        type: Path
+      returns: bool
+    - kind: function
+      name: revise_plan_lock
+      description: Re-locks current hashes and revision history, retaining an existing
+        legacy_baseline only when requested and still valid for the new command contract;
+        fresh-evidence callers explicitly replace it.
+      args:
+      - name: existing
+        type: PlanLock
+      - name: manifest_path
+        type: Path
+      - name: project_root
+        type: Path
+      - name: reason
+        type: str
+      - name: agent
+        type: Optional[AgentProvenance]
+        default: None
+      - name: prior_contract
+        type: Optional[dict]
+        default: None
+      - name: preserve_legacy_baseline
+        type: bool
+        default: 'True'
+      returns: PlanLock
+    - kind: function
+      name: revision_preserves_red_evidence
+      description: Returns true only for internally consistent red/test-only evidence
+        whose contract and behavioral tests remain unchanged; ordinary red command
+        payloads must bind classification to exit code through the existing consistency
+        validator.
+      args:
+      - name: existing
+        type: PlanLock
+      - name: manifest_path
+        type: Path
+      - name: project_root
+        type: Path
+      - name: prior_contract
+        type: dict | None
+      returns: bool
+    - kind: function
+      name: test_hash_matches
+      description: Fail-closed prefix dispatch for sha256-pyast:v2, historical sha256-pyast
+        v1, and sha256 byte hashes.
+      args:
+      - name: lock_hash
+        type: str
+      - name: path
+        type: Path
+      returns: bool
+    - kind: method
+      name: to_payload
+      description: Serialize an explicitly typed legacy_baseline payload without claiming
+        red evidence.
+      of: LegacyBaselineEvidence
+      returns: dict
+    - kind: method
+      name: load
+      description: Load a lock file; fail closed when the file exists but is corrupt,
+        unreadable, or malformed.
+      of: PlanLock
+      args:
+      - name: path
+        type: Path
+      returns: PlanLock
+    - kind: method
+      name: save
+      description: Writes validate_commands into the _manifest_contract snapshot alongside
+        artifacts and test_files.
+      of: PlanLock
+      args:
+      - name: path
+        type: Path
+      returns: None
+    - kind: method
+      name: to_payload
+      description: Serialize the evidence into the JSON payload stored in PlanLock.red_evidence.
+      of: RedPhaseEvidence
+      returns: dict
+  - path: tests/cli/test_plan_cmd_stash_implementation.py
+    artifacts:
+    - kind: test_function
+      name: test_docs_describe_stash_implementation_revise_workflow
+      source_scenario: A reader checks the MAID docs for the supported review-driven
+        plan-revise recovery workflow.
+      actions:
+      - type: api_call
+        subject:
+          export: Path
+      expected:
+        behavior: Docs name --stash-implementation, distinguish it from --preserve-red-evidence,
+          and mention behavioral tests and implementation changes.
+    - kind: test_function
+      name: test_revise_parser_exposes_stash_implementation
+      source_scenario: A planner needs a concrete CLI option for review-driven contract
+        changes after implementation is present.
+      actions:
+      - type: api_call
+        subject:
+          function: build_parser
+      expected:
+        behavior: The plan revise parser accepts --stash-implementation and sets stash_implementation
+          true.
+    - kind: test_function
+      name: test_stash_implementation_allows_current_lock_dirty
+      source_scenario: The current task's existing plan lock is uncommitted while
+        a target implementation file is also dirty.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command allows the current lock path to be dirty, does not stash
+          it, restores implementation changes, and records valid red evidence.
+    - kind: test_function
+      name: test_stash_implementation_allows_matching_active_manifest_marker
+      source_scenario: A promoted implementation session has a dirty declared implementation
+        path and an untracked `.maid/active-manifest` marker pointing at the manifest
+        being revised.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The revise succeeds, captures valid red evidence, restores the implementation
+          path, leaves the active marker intact, and leaves no stash entry behind.
+    - kind: test_function
+      name: test_stash_implementation_allows_matching_promoted_draft_deletion
+      source_scenario: A normal promote-then-implement workflow leaves a tracked `manifests/drafts/<slug>.manifest.yaml`
+        deletion next to the promoted `manifests/<slug>.manifest.yaml` while implementation
+        changes are dirty.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The revise succeeds, captures valid red evidence, restores the implementation
+          path, preserves the draft deletion, and leaves no stash entry behind.
+    - kind: test_function
+      name: test_stash_implementation_ignores_clean_missing_create_targets
+      source_scenario: A manifest has a dirty declared edit path and an absent declared
+        create path that is not part of the implementation delta yet.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command stashes only dirty target paths, succeeds without passing
+          the absent create path to Git, restores the dirty edit path, and leaves
+          the create path absent.
+    - kind: test_function
+      name: test_stash_implementation_invalid_red_evidence_names_command_details
+      description: Invalid red-evidence capture reports the validate command, exit
+        code, classification, and bounded output tail without revising the lock.
+    - kind: test_function
+      name: test_stash_implementation_preserves_stash_when_validate_dirties_target
+      source_scenario: A validate command writes to a stashed target implementation
+        path before MAID restores the implementation stash.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command exits 2 before saving the lock, leaves the original
+          lock bytes unchanged, and preserves the MAID-created stash for manual recovery
+          instead of overwriting validation-written target changes.
+    - kind: test_function
+      name: test_stash_implementation_recaptures_red_evidence_and_restores_tracked_change
+      source_scenario: A tracked declared implementation file makes the revised behavioral
+        test green, but the pre-fix tracked version remains red.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: Revision succeeds, lock evidence is valid red, the implementation
+          file is restored, and no stash entry remains.
+    - kind: test_function
+      name: test_stash_implementation_rejects_conflicting_revise_modes
+      source_scenario: A user combines --stash-implementation with --no-run or --preserve-red-evidence.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: Each conflicting mode exits 2 and leaves the lock unchanged.
+    - kind: test_function
+      name: test_stash_implementation_rejects_different_active_manifest_marker
+      source_scenario: A dirty active-task marker points at a different manifest while
+        the current manifest also has dirty implementation changes.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command exits 2 before stashing, leaves the lock unchanged,
+          preserves the implementation and active marker contents, and leaves no stash
+          entry behind.
+    - kind: test_function
+      name: test_stash_implementation_rejects_green_stashed_state_without_revising_lock
+      description: Not-red capture reports the validate command, exit code, classification,
+        and bounded output tail without revising the lock.
+    - kind: test_function
+      name: test_stash_implementation_rejects_matching_draft_modification
+      source_scenario: The matching source draft path is modified rather than deleted
+        while the promoted manifest has dirty implementation changes.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command exits 2 before stashing, leaves the lock unchanged,
+          preserves the modified draft contents and implementation contents, and leaves
+          no stash entry behind.
+    - kind: test_function
+      name: test_stash_implementation_rejects_staged_different_active_marker
+      source_scenario: The active-task marker has a staged value for a different manifest
+        and a worktree value for the current manifest while implementation changes
+        are dirty.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command exits 2 before stashing, leaves the lock unchanged,
+          preserves the implementation and active marker contents, and leaves no stash
+          entry behind.
+    - kind: test_function
+      name: test_stash_implementation_rejects_staged_matching_draft_add_then_delete
+      source_scenario: The matching source draft path is staged as a new file and
+        deleted from the worktree while the promoted manifest has dirty implementation
+        changes.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command exits 2 before stashing, leaves the lock unchanged,
+          preserves the staged draft/worktree deletion state and implementation contents,
+          and leaves no stash entry behind.
+    - kind: test_function
+      name: test_stash_implementation_rejects_staged_matching_draft_modification_then_delete
+      source_scenario: The matching source draft path has a staged modification and
+        a worktree deletion while the promoted manifest has dirty implementation changes.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command exits 2 before stashing, leaves the lock unchanged,
+          preserves the staged draft/worktree deletion state and implementation contents,
+          and leaves no stash entry behind.
+    - kind: test_function
+      name: test_stash_implementation_rejects_unrelated_dirty_paths_before_stashing
+      source_scenario: The worktree contains unrelated dirty user work while a target
+        implementation file is also dirty.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command exits 2 before stashing, leaves implementation changes
+          restored, leaves no stash entry, and leaves the lock bytes unchanged.
+    - kind: test_function
+      name: test_stash_implementation_rejects_unrelated_draft_deletion
+      source_scenario: A different tracked draft manifest deletion is present while
+        the current manifest has dirty implementation changes.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command exits 2 before stashing, leaves the lock unchanged,
+          preserves the unrelated draft deletion and implementation contents, and
+          leaves no stash entry behind.
+    - kind: test_function
+      name: test_stash_implementation_rejects_validate_mutated_behavioral_test
+      source_scenario: A validate command rewrites a behavioral test after the stash-backed
+        revise has hidden implementation changes and captured red evidence.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command exits 2 before saving the lock, leaves the original
+          lock bytes unchanged, restores implementation changes, and leaves no MAID-created
+          stash entry behind.
+    - kind: test_function
+      name: test_stash_implementation_restores_original_when_validate_creates_new_stash
+      source_scenario: A validate command creates another stash after MAID creates
+        its targeted implementation stash.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command restores and drops the exact MAID-created stash by identity,
+          leaves the validate-created stash intact, restores implementation changes,
+          and records valid red evidence.
+    - kind: test_function
+      name: test_stash_implementation_restores_untracked_declared_create_file
+      source_scenario: An untracked declared create-path implementation file makes
+        validation green after review adds contract metadata.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: Revision succeeds with red evidence captured while the create-path
+          is stashed, then restores the untracked implementation file.
+  - path: tests/cli/test_plan_cmd_stash_scope_targets.py
+    artifacts:
+    - kind: test_function
+      name: test_stash_implementation_recaptures_red_evidence_and_restores_scope_only_change
+      source_scenario: A manifest declares a dirty implementation route only in files.scope
+        because it has no public artifact contract.
+      actions:
+      - type: api_call
+        subject:
+          export: cmd_plan_revise
+      expected:
+        behavior: The command accepts the dirty files.scope path, stashes it while
+          capturing red evidence, restores it, and leaves no MAID stash behind.
+    - kind: test_function
+      name: test_stash_implementation_rejects_dirty_read_only_path_with_scope_target
+      source_scenario: A manifest has a dirty files.scope implementation target and
+        a separate dirty files.read context file.
+      actions:
+      - type: api_call
+        subject:
+          export: cmd_plan_revise
+      expected:
+        behavior: The command rejects the dirty files.read-only path before stashing
+          while preserving all dirty work.
+  - path: tests/cli/test_stash_revise_files_read_targets.py
+    artifacts:
+    - kind: test_function
+      name: test_stash_revise_counts_files_read_targets_for_dirty_guard
+      source_scenario: A locked manifest whose only dirty declared path is a files.read
+        wiring entry.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command's dirty-target guard treats the declared files.read
+          path as stashable per the decision recorded in plan review, instead of failing
+          with the misleading no-dirty-implementation-paths error while the read path
+          stays dirty.
+    - kind: test_function
+      name: test_stash_revise_keeps_backslash_files_read_test_visible
+      source_scenario: A revised manifest declares its behavioral test under files.read
+        with Windows-style backslashes while the tightened test file is dirty.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The behavioral test path is normalized before test-file classification,
+          so the test remains visible during red capture instead of being rejected
+          as unrelated dirt or stashed as an implementation target.
+    - kind: test_function
+      name: test_stash_revise_never_stashes_test_files_declared_under_files_read
+      source_scenario: A revised manifest adversarially lists its behavioral test
+        file under files.read while that test file is dirty with the tightened assertions.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The behavioral test file is not stashed, remains visible during
+          red capture, and the captured evidence reflects the tightened tests rather
+          than a pre-review green state.
+    - kind: test_function
+      name: test_stash_revise_restores_files_read_changes_after_capture
+      source_scenario: The same wiring scenario, inspecting the worktree after the
+        command returns.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The files.read path's dirty content is restored byte-identical after
+          evidence capture, on success and on refused-capture failure paths alike.
+    - kind: test_function
+      name: test_stash_revise_stashes_dirty_declared_files_read_wiring_path
+      source_scenario: A locked manifest declares an implementation file under files.edit
+        and a wiring file under files.read; both are dirty with implementation-era
+        edits, and review tightened the behavioral tests (reproduction of the 2026-06-30
+        life-dashboard report).
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The revise succeeds, red evidence is captured with both the writable
+          and the files.read edits hidden, and the lock records valid red evidence
+          instead of refusing the dirty read path.
+    - kind: test_function
+      name: test_stash_revise_still_refuses_undeclared_dirty_paths
+      source_scenario: A dirty path that appears in no section of the revised manifest,
+        alongside the declared dirty targets.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command refuses with the unrelated-dirty-path error, leaves
+          the lock unchanged, and the error text names files.read declaration as the
+          sanctioned way to include a wiring path.
+  - path: maid_runner/core/agent_provenance.py
+    artifacts:
+    - kind: attribute
+      name: provenance
+      description: The resolved provenance, or None when nothing usable was provided.
+      of: ProvenanceResolution
+      type: Optional[AgentProvenance]
+    - kind: attribute
+      name: warning
+      description: Labeled advisory text when inputs existed but were unusable (e.g.
+        fields without model); None otherwise.
+      of: ProvenanceResolution
+      type: Optional[str]
+    - kind: class
+      name: ProvenanceResolution
+      description: "Frozen dataclass: the outcome of resolving provenance inputs \u2014\
+        \ resolved provenance or an explicit human-readable warning, never a silent\
+        \ drop."
+    - kind: function
+      name: resolve_agent_provenance
+      description: flag_values gains a "reasoning_effort" key with MAID_AGENT_REASONING_EFFORT
+        env fallback; per-field flags-win merge, flags/environment/mixed source semantics,
+        and the model-required visible-drop advisory are unchanged.
+      args:
+      - name: flag_values
+        type: Mapping[str, object]
+      - name: env
+        type: Mapping[str, str]
+      returns: ProvenanceResolution
+  - path: tests/core/test_agent_provenance_resolution.py
+    artifacts:
+    - kind: test_function
+      name: test_resolve_from_env_only_sets_source_environment
+      description: MAID_AGENT_* env vars alone resolve with source 'environment',
+        including comma-split trimmed skills.
+      returns: None
+    - kind: test_function
+      name: test_resolve_from_flags_only_sets_source_flags
+      description: All fields from flags resolve with source 'flags' and exact values.
+      returns: None
+    - kind: test_function
+      name: test_resolve_merges_flags_over_env_as_mixed
+      description: Flag model plus env provider yields per-field merge with source
+        'mixed'; flags win where both exist.
+      returns: None
+    - kind: test_function
+      name: test_resolve_without_input_returns_none_without_warning
+      description: Empty flags and env yield ProvenanceResolution(None, None).
+      returns: None
+    - kind: test_function
+      name: test_resolve_without_model_returns_warning_not_provenance
+      description: Provider/client without model yields provenance None plus an explanatory
+        warning naming the missing field.
+      returns: None
+  - path: tests/cli/test_plan_lock_provenance_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_malformed_agent_payload_fails_closed
+      description: A present but structurally malformed agent object in a lock file
+        fails closed as a malformed lock record.
+      returns: None
+    - kind: test_function
+      name: test_plan_lock_records_agent_from_env_fallback
+      description: With only MAID_AGENT_* env vars set, the stored agent has source
+        'environment'.
+      returns: None
+    - kind: test_function
+      name: test_plan_lock_records_agent_from_flags
+      description: maid plan lock with --agent-* flags stores the agent object on
+        the lock payload with source 'flags'.
+      returns: None
+    - kind: test_function
+      name: test_plan_lock_without_model_warns_and_records_no_agent
+      description: --agent-provider without model prints a labeled stderr advisory,
+        stores no agent, and exits 0.
+      returns: None
+    - kind: test_function
+      name: test_plan_revise_attaches_agent_to_revision_entry
+      description: Revise with agent flags appends a revision entry carrying agent
+        while the base lock creator provenance is unchanged.
+      returns: None
+    - kind: test_function
+      name: test_plan_status_reports_agent_in_json_and_text
+      description: plan status --json always includes agent keys (object or null);
+        text mode prints provenance only when present.
+      returns: None
+    - kind: test_function
+      name: test_pre_provenance_lock_loads_and_verifies_identically
+      description: A lock file without agent keys loads, status reports null without
+        error, and lock verification results match a provenance-bearing lock.
+      returns: None
+  - path: tests/core/test_contract_delta.py
+    artifacts:
+    - kind: test_function
+      name: test_compute_contract_delta_identical_contracts_yield_empty_delta
+      description: Two equal contract payloads produce all-empty tuples.
+      returns: None
+    - kind: test_function
+      name: test_compute_contract_delta_qualifies_file_changes_by_section
+      description: read/edit/create changes emit section-qualified strings so a read
+        drop is distinguishable from a create drop.
+      returns: None
+    - kind: test_function
+      name: test_compute_contract_delta_reports_artifact_changes_sorted
+      description: Added and removed artifact identities appear in the correct fields,
+        sorted deterministically.
+      returns: None
+    - kind: test_function
+      name: test_compute_contract_delta_reports_validate_command_changes
+      description: Added and removed validate commands are captured as normalized
+        strings.
+      returns: None
+    - kind: test_function
+      name: test_locks_with_and_without_deltas_verify_identically
+      description: Delta presence does not change enforce_plan_locks results, manifest
+        hash checks, or red-evidence validity.
+      returns: None
+    - kind: test_function
+      name: test_revise_plan_lock_stores_delta_for_contract_change
+      description: A real revise on a temp project that adds a test artifact stores
+        that identity in artifacts_added on the new revision entry.
+      returns: None
+    - kind: test_function
+      name: test_revise_plan_lock_stores_none_when_prior_contract_unavailable
+      description: Revising without a persisted prior contract stores contract_delta
+        None rather than an empty delta.
+      returns: None
+  - path: tests/cli/test_plan_status_contract_delta_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_manifest_promote_stores_contract_delta_for_migrated_revision
+      description: Draft promotion passes the prior locked contract into lock migration
+        so rewritten self-validate commands produce a stored contract delta.
+      returns: None
+    - kind: test_function
+      name: test_plan_status_json_exposes_contract_delta_per_revision
+      description: --json includes the stored delta object for delta-bearing revisions
+        and null for pre-delta revisions.
+      returns: None
+    - kind: test_function
+      name: test_plan_status_text_prints_delta_counts_only_when_present
+      description: Text mode appends the counts line for revisions with deltas and
+        stays unchanged for revisions without.
+      returns: None
+  - path: tests/cli/test_plan_legacy_baseline_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_legacy_baseline_accepts_overlapping_command_strengthening
+      description: Overlapping committed command prefixes are matched one-to-one to
+        compatible strengthened commands instead of failing because of greedy assignment.
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+    - kind: test_function
+      name: test_legacy_baseline_lock_creation_is_atomic_and_preserves_race_artifacts
+      description: A validation-created malformed destination and a structurally valid
+        competing lock are both preserved and never overwritten or deleted by MAID.
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+    - kind: test_function
+      name: test_legacy_baseline_records_green_provenance_and_satisfies_strict_gate
+      description: A committed legacy manifest whose validate argv is strengthened
+        can record a non-red baseline and pass task-scoped plan-lock/red-evidence
+        enforcement.
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+    - kind: test_function
+      name: test_legacy_baseline_rejects_contract_change_or_validate_weakening
+      description: Artifact changes, changes to every writable file section or nested
+        semantic field, and removal or rewriting of committed validate argv cannot
+        be grandfathered.
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+    - kind: test_function
+      name: test_legacy_baseline_rejects_dirty_implementation_or_test_paths
+      description: Any dirty path other than the legacy manifest blocks migration
+        and leaves no lock.
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+    - kind: test_function
+      name: test_legacy_baseline_rejects_filtering_suffix_arguments
+      description: Appended filters and a committed command ending in a value-taking
+        option cannot consume a discovered test path and masquerade as additive coverage.
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+    - kind: test_function
+      name: test_legacy_baseline_rejects_non_green_validation
+      description: A failing, invalid, or interrupted current command cannot become
+        a legacy baseline and no lock is written.
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+    - kind: test_function
+      name: test_legacy_baseline_rejects_untracked_manifest
+      description: A new manifest absent from HEAD cannot use the legacy migration
+        path and no lock is written.
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+    - kind: test_function
+      name: test_legacy_baseline_rejects_validation_that_mutates_contract
+      description: A command that exits zero after modifying the manifest or behavioral
+        test bytes is rejected and no lock is written.
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+    - kind: test_function
+      name: test_legacy_baseline_requires_reason_and_rejects_no_run
+      description: Legacy migration requires a non-empty audit reason and cannot skip
+        its green validation capture with --no-run.
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+    - kind: test_function
+      name: test_lock_parser_exposes_legacy_baseline_with_reason
+      description: The real CLI parser accepts --legacy-baseline plus its audit reason.
+      returns: None
+    - kind: test_function
+      name: test_ordinary_no_run_lock_still_fails_e704
+      description: The new exception does not make ordinary red_evidence-null locks
+        satisfy --require-red-evidence.
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+    - kind: test_function
+      name: test_plan_lock_docs_describe_legacy_baseline_boundaries
+      description: README and the MAID specification document eligibility, green evidence,
+        separate provenance, and strict-gate behavior.
+      returns: None
+    - kind: test_function
+      name: test_plan_lock_preserves_positional_agent_compatibility
+      description: The new optional legacy_baseline field is appended after the existing
+        agent field so positional PlanLock callers retain their prior binding.
+      returns: None
+    - kind: test_function
+      name: test_plan_status_distinguishes_legacy_baseline_from_red_evidence
+      description: Status JSON/text identifies the legacy baseline and continues to
+        report red evidence as absent.
+      args:
+      - name: tmp_path
+        type: Path
+      - name: capsys
+        type: CaptureFixture[str]
+      returns: None
+    - kind: test_function
+      name: test_tampered_legacy_baseline_fails_e705
+      description: Missing required fields, non-green or misclassified commands, nonempty
+        artifact/file deltas, command mismatch, and simultaneous red/legacy channels
+        fail closed rather than waiving the gate.
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+  - path: tests/cli/test_plan_revise_auto_preserve.py
+    artifacts:
+    - kind: test_function
+      name: test_preserved_evidence_passes_verify_red_evidence_gate
+      source_scenario: After an automatic-preservation revise, enforce_plan_locks
+        runs with require_red_evidence on the temp project.
+      actions:
+      - type: api_call
+        subject:
+          function: enforce_plan_locks
+      expected:
+        behavior: No E704/E705 errors are reported for the revised lock, closing the
+          unsatisfiable-bookkeeping loop from bug report 20260715-035754 for the contract-preserving
+          case.
+    - kind: test_function
+      name: test_revise_manifest_only_edit_preserves_red_evidence
+      source_scenario: A locked temp-project manifest with valid red evidence gets
+        an outcome-style manifest-only edit (contract sets unchanged, test files untouched),
+        then plain maid plan revise with a reason.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The revision succeeds, the saved lock still carries the original
+          valid red evidence payload, the revision entry records an empty contract
+          delta, and stdout states that red evidence was preserved.
+    - kind: test_function
+      name: test_revise_with_changed_test_file_recaptures_evidence
+      source_scenario: The same locked setup, but a locked behavioral test file's
+        AST changed (assertion edit) before the revise.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The automatic preservation does not apply; the command follows the
+          existing recapture path and the saved lock's evidence is the fresh capture
+          result, not the prior payload.
+    - kind: test_function
+      name: test_revise_with_contract_delta_recaptures_evidence
+      source_scenario: The revised manifest adds a validate command, producing a non-empty
+        contract delta, while test files stay byte-identical.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: Preservation does not apply and the fresh-capture path runs, keeping
+          E707's capture-time command snapshot honest.
+    - kind: test_function
+      name: test_revise_with_formatter_only_test_edit_preserves_red_evidence
+      source_scenario: The same locked setup, but a locked behavioral test file receives
+        only a comment/whitespace edit that leaves the AST unchanged.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: Automatic preservation applies; the saved lock keeps the original
+          red evidence and stdout states that red evidence was preserved.
+    - kind: test_function
+      name: test_revise_with_invalid_existing_evidence_recaptures
+      source_scenario: The existing lock's red_evidence payload is present but invalid
+        (red false or an invalid command classification).
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: Preservation does not apply; behavior matches today's plain revise
+          exactly.
+    - kind: test_function
+      name: test_revise_with_new_discovered_test_file_recaptures_evidence
+      source_scenario: A locked temp-project whose files.read points at the tests/
+        directory (discovery can grow), then a new tests/test_extra.py appears before
+        plain revise while contract sets and locked file bytes stay unchanged.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: Preservation does not apply because the revised manifest introduces
+          a new behavioral test file; the fresh-capture path runs.
+    - kind: test_function
+      name: test_revision_preserves_red_evidence_predicate
+      source_scenario: "Direct calls to the public core predicate across the five\
+        \ quadrants \u2014 all conditions met, contract delta non-empty, test bytes\
+        \ changed, new discovered behavioral test file, evidence invalid."
+      actions:
+      - type: api_call
+        subject:
+          function: revision_preserves_red_evidence
+      expected:
+        behavior: Returns True only when the contract delta is empty, every locked
+          test hash matches current bytes, and the existing evidence is valid; False
+          in each other quadrant.
+  - path: tests/cli/test_plan_revise_test_only_green.py
+    artifacts:
+    - kind: test_function
+      name: test_enforcement_accepts_test_only_green_within_bound
+      source_scenario: enforce_plan_locks with require_red_evidence over a lock carrying
+        valid test_only_green evidence for a test-only contract.
+      actions:
+      - type: api_call
+        subject:
+          function: enforce_plan_locks
+      expected:
+        behavior: No E704/E705 error is reported for that lock.
+    - kind: test_function
+      name: test_enforcement_rejects_test_only_green_after_contract_gains_implementation
+      source_scenario: A lock with test_only_green evidence whose persisted contract
+        snapshot is then superseded by a revision adding a non-test writable file.
+      actions:
+      - type: api_call
+        subject:
+          function: enforce_plan_locks
+      expected:
+        behavior: E705 is reported with a detail naming the test-only-green/contract
+          mismatch, proving the bound is enforced continuously rather than only at
+          capture.
+    - kind: test_function
+      name: test_enforcement_rejects_test_only_green_without_persisted_contract
+      source_scenario: A lock carrying mode test_only_green evidence whose _manifest_contract
+        snapshot is removed.
+      actions:
+      - type: api_call
+        subject:
+          function: enforce_plan_locks
+      expected:
+        behavior: E705 is reported; missing contract snapshots never qualify.
+    - kind: test_function
+      name: test_stash_refusal_names_test_only_green_path
+      source_scenario: --stash-implementation on a test-only contract (the bug report's
+        exact dead end).
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The refusal error text points to --test-only-green as the sanctioned
+          path for test-only contracts.
+    - kind: test_function
+      name: test_test_only_green_command_swap_still_fails_e707
+      source_scenario: A lock with valid test_only_green evidence whose command strings
+        are then spliced to differ from the locked validate_commands snapshot.
+      actions:
+      - type: api_call
+        subject:
+          function: enforce_plan_locks
+      expected:
+        behavior: E707 is reported, proving the mode does not bypass command cross-checks.
+    - kind: test_function
+      name: test_test_only_green_flag_combinations_are_refused
+      source_scenario: --test-only-green combined with --stash-implementation, with
+        --preserve-red-evidence, and with --no-run.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: Each combination is refused with a clear mutual-exclusion error
+          before any git or validation work runs.
+    - kind: test_function
+      name: test_test_only_green_records_evidence_for_test_only_contract
+      source_scenario: A locked temp-project manifest whose only writable paths are
+        behavioral test files, with all validate commands passing, revised with --test-only-green
+        and a reason.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The revise succeeds and the saved lock carries a red-false payload
+          with mode test_only_green and per-command evidence entries.
+    - kind: test_function
+      name: test_test_only_green_refuses_manifest_with_implementation_file
+      source_scenario: The same flow but the manifest also declares a non-test path
+        under files.edit.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command refuses with an error naming the normal red-evidence
+          paths, and the lock is unchanged.
+    - kind: test_function
+      name: test_test_only_green_refuses_non_test_create_path
+      source_scenario: A locked test-only contract revised so files.create also declares
+        a non-test implementation path, then --test-only-green is requested.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: Capture refuses because the create bucket includes a non-test writable
+          path; the lock is unchanged.
+    - kind: test_function
+      name: test_test_only_green_refuses_non_test_scope_path
+      source_scenario: A locked test-only contract revised so files.scope declares
+        a non-test wiring path, then --test-only-green is requested.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: Capture refuses because the scope bucket includes a non-test writable
+          path; the lock is unchanged.
+    - kind: test_function
+      name: test_test_only_green_refuses_when_a_validate_command_fails
+      source_scenario: A test-only contract whose validate command currently fails.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command refuses, reports the failure tail, and records no evidence.
+  - path: tests/cli/test_stash_revise_session_robustness.py
+    artifacts:
+    - kind: test_function
+      name: test_allow_sibling_dirty_still_refuses_own_surface_conflicts
+      source_scenario: --allow-sibling-dirty with a dirty path that belongs to the
+        revised manifest's own declared surface in a refusing state (e.g. staged).
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The existing own-surface refusal fires; the flag never loosens handling
+          of the manifest's own paths.
+    - kind: test_function
+      name: test_allow_sibling_dirty_tolerates_and_records_unrelated_paths
+      source_scenario: "Reproduction of the 20260715-035754 session \u2014 a locked\
+        \ manifest needing stash-backed revise while sibling manifests' contracted\
+        \ files are dirty elsewhere in the tree, run with --allow-sibling-dirty."
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The revise succeeds, sibling paths are never stashed or modified,
+          and the saved evidence payload lists every tolerated path under sibling_dirty_paths
+          with the same list echoed on stdout.
+    - kind: test_function
+      name: test_default_refusal_unchanged_and_names_flag
+      source_scenario: The same dirty session without the flag.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command refuses exactly as today and the error text names --allow-sibling-dirty
+          and the files.read declaration alternative.
+    - kind: test_function
+      name: test_intent_to_add_state_is_handled_or_cleanly_refused
+      source_scenario: The same scenario after git add -N on the created file.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: Either the flow succeeds as with plain untracked state, or it refuses
+          with an instruction naming git reset -- <path>; a raw git 'Cannot merge'
+          error is a failure of this contract.
+    - kind: test_function
+      name: test_lockfile_only_green_capture_reports_dependency_limitation
+      source_scenario: "Reproduction of 20260715-175500 \u2014 declared writable paths\
+        \ are package.json and a lockfile, the dependency is installed at the new\
+        \ version, and capture stays green after stashing."
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The failure message explains that materialized dependency state
+          is not stashed and names the documented alternatives, instead of the generic
+          no-valid-red-evidence error.
+    - kind: test_function
+      name: test_staged_refusal_names_recovery_command
+      source_scenario: A declared implementation path staged in the index.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The refusal error names git restore --staged and lists the exact
+          paths.
+    - kind: test_function
+      name: test_untracked_files_create_is_stashed_and_restored
+      source_scenario: "Reproduction of 20260714-083456 \u2014 a promoted locked manifest\
+        \ whose files.create implementation exists untracked, with a tightened behavioral\
+        \ test needing fresh red evidence."
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: Capture runs with the untracked create absent (yielding genuine
+          red), the file is restored byte-identical, and the lock records valid red
+          evidence.
+  - path: tests/cli/test_plan_session_robustness.py
+    artifacts:
+    - kind: test_function
+      name: test_plain_revise_preserves_test_only_green_evidence
+      source_scenario: "Reproduction of review finding 4 \u2014 a test-only lock carrying\
+        \ valid test_only_green evidence undergoes a plain contract-preserving bookkeeping\
+        \ revise."
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The saved lock still carries the full test_only_green payload including
+          the mode marker, stdout names the preserved evidence class, and enforce_plan_locks
+          with require_red_evidence reports no error for the lock.
+    - kind: test_function
+      name: test_plain_revise_recaptures_test_only_green_when_tests_change
+      source_scenario: The same lock after the locked behavioral test bytes change.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The test_only_green payload is not preserved; the revise records
+          fresh evidence per the plain flow, proving the preservation rule fails closed.
+    - kind: test_function
+      name: test_plan_status_reports_unreadable_manifest_as_mismatch
+      source_scenario: "Reproduction of review finding 6 \u2014 a locked manifest\
+        \ is corrupted into invalid YAML, then plan status runs in text and json modes."
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_status
+      expected:
+        behavior: Exit code 1 with manifest_match false; the json payload carries
+          a manifest_error string describing the parse failure and text mode prints
+          an equivalent line, with no generic top-level Error fallback.
+    - kind: test_function
+      name: test_preserve_red_evidence_flag_accepts_test_only_green
+      source_scenario: maid plan revise --preserve-red-evidence on a test-only lock
+        whose evidence is valid test_only_green.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The revise succeeds and carries the payload forward verbatim instead
+          of refusing with the valid-red-evidence error.
+    - kind: test_function
+      name: test_revision_preserves_test_only_green_predicate_bounds
+      source_scenario: revision_preserves_red_evidence called directly with a test_only_green
+        payload under an empty contract delta, and again with a payload whose commands
+        include a non-zero exit.
+      actions:
+      - type: api_call
+        subject:
+          function: revision_preserves_red_evidence
+      expected:
+        behavior: The predicate returns True only for the internally valid payload;
+          a payload with any failing command returns False.
+  - path: tests/core/test_contract_hash_normalization.py
+    artifacts:
+    - kind: test_function
+      name: test_contract_hash_accepts_yaml_date_metadata
+      source_scenario: "Reproduction of review finding 5 \u2014 a schema-valid manifest\
+        \ whose metadata carries an unquoted YAML date."
+      actions:
+      - type: api_call
+        subject:
+          function: compute_manifest_contract_hash
+      expected:
+        behavior: A sha256-contract-prefixed digest is returned instead of raising
+          a serialization error.
+    - kind: test_function
+      name: test_contract_hash_equates_yaml_date_and_quoted_string
+      source_scenario: Two manifests identical except one writes the date unquoted
+        and the other as the quoted ISO string.
+      actions:
+      - type: api_call
+        subject:
+          function: compute_manifest_contract_hash
+      expected:
+        behavior: Both produce the same digest, so quoting the value later does not
+          flip the lock to TAMPERED.
+    - kind: test_function
+      name: test_contract_hash_normalizes_non_string_mapping_keys
+      source_scenario: A manifest whose metadata mapping uses a non-string key alongside
+        a variant using the equivalent quoted string key.
+      actions:
+      - type: api_call
+        subject:
+          function: compute_manifest_contract_hash
+      expected:
+        behavior: Hashing succeeds deterministically and both variants produce the
+          same digest.
+    - kind: test_function
+      name: test_contract_hash_raises_named_error_for_unsupported_values
+      source_scenario: A manifest carrying a YAML value outside the normalized set
+        (for example a binary tag).
+      actions:
+      - type: api_call
+        subject:
+          function: compute_manifest_contract_hash
+      expected:
+        behavior: A ValueError naming the manifest path is raised; no digest and no
+          byte-hash fallback is produced.
+  - path: tests/cli/test_manifest_header_backfill.py
+    artifacts:
+    - kind: test_function
+      name: test_plan_lock_backfills_missing_manifest_header
+      description: Locking an unheaded manifest leaves it headed while the recorded
+        manifest_hash matches the pre-backfill contract hash.
+  - path: tests/cli/test_plan_revise_preserve_command_mismatch.py
+    artifacts:
+    - kind: test_function
+      name: test_preserve_red_evidence_accepts_reordered_validate_command_multiset
+      description: Explicit preserve mode still succeeds and carries the original
+        evidence when the current validate commands are only reordered, matching E707
+        multiset semantics rather than imposing list-order equality.
+    - kind: test_function
+      name: test_preserve_red_evidence_rejects_changed_validate_commands_without_revising_lock
+      description: A locked red-evidence plan whose validate command is replaced gets
+        exit 2 and an actionable fresh-evidence diagnostic from explicit preserve
+        mode while the existing lock bytes and revision remain unchanged.
+    - kind: test_function
+      name: test_preserve_red_evidence_rejects_existing_e707_mismatch_without_revising_lock
+      description: For both red and test-only-green evidence classes, explicit preserve
+        mode rejects an existing lock whose evidence commands mismatch its locked
+        contract even when the current manifest was changed to match the spliced evidence;
+        lock bytes and revision remain unchanged.
+    - kind: test_function
+      name: test_preserve_red_evidence_rejects_malformed_command_entries_without_revising_lock
+      description: Malformed non-string command entries in either the locked contract
+        snapshot or red evidence produce exit 2 without an exception, lock rewrite,
+        or revision advance.
+  - path: tests/cli/test_plan_revise_legacy_baseline.py
+    artifacts:
+    - kind: test_function
+      name: test_core_fresh_evidence_transition_drops_legacy_baseline
+      description: Core callers that will attach freshly captured evidence can explicitly
+        suppress legacy carry-forward.
+    - kind: test_function
+      name: test_explicit_preserve_refreshes_shared_test_hash_and_keeps_legacy_baseline
+      description: Explicit preservation accepts a valid legacy baseline, refreshes
+        a changed shared behavioral-test hash, preserves the audited payload, and
+        reports legacy-baseline evidence.
+    - kind: test_function
+      name: test_explicit_preserve_rejects_dual_evidence_channels
+      description: A malformed lock containing both red and legacy evidence is rejected
+        unchanged instead of being preserved into an E705-invalid revision.
+    - kind: test_function
+      name: test_explicit_preserve_rejects_invalid_legacy_baseline
+      description: Malformed legacy evidence is rejected without changing the saved
+        lock.
+    - kind: test_function
+      name: test_legacy_preservation_docs_are_synced
+      description: Canonical and packaged MAID specifications both document command-bound
+        legacy preservation and exclusive fresh-evidence replacement.
+    - kind: test_function
+      name: test_no_run_revise_rejects_legacy_command_mismatch
+      description: No-run revision refuses a changed validate-command contract and
+        leaves the valid legacy lock unchanged.
+    - kind: test_function
+      name: test_no_run_revise_retains_legacy_baseline
+      description: A no-run core revision keeps the original legacy baseline instead
+        of producing a both-evidence-null lock.
+    - kind: test_function
+      name: test_plain_changed_test_replaces_legacy_baseline_with_fresh_red_evidence
+      description: A non-preserving revision that captures genuine fresh red evidence
+        clears the legacy channel so strict enforcement sees exactly one valid evidence
+        class.
+    - kind: test_function
+      name: test_plain_contract_preserving_revise_keeps_legacy_baseline
+      description: Plain revise automatically recognizes a valid legacy baseline when
+        contract and tests are unchanged and leaves the revised lock strict-gate valid.
+    - kind: test_function
+      name: test_revise_help_documents_legacy_baseline_preservation
+      description: The real parser help advertises valid legacy baselines as an accepted
+        explicit preservation evidence class.
+  - path: tests/cli/test_plan_dependents_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_e701_suggests_querying_all_shared_test_dependents
+      returns: None
+      source_scenario: Plan-lock enforcement detects a changed test that is pinned
+        by multiple active manifests.
+      actions:
+      - type: api_call
+        subject:
+          function: enforce_plan_locks
+      expected:
+        behavior: Every E701 diagnostic for that test carries the same `maid plan
+          dependents <test-path>` suggestion so verify output leads to the complete
+          read-only dependency view before revision.
+    - kind: test_function
+      name: test_plan_dependents_empty_query_succeeds_without_recovery_commands
+      returns: None
+      source_scenario: No active plan lock pins the requested in-project path.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: The command exits successfully with a visible zero-dependent result
+          and emits no revise command.
+    - kind: test_function
+      name: test_plan_dependents_fails_loudly_on_unreadable_active_lock
+      returns: None
+      source_scenario: An active manifest's lock file is malformed while another active
+        lock also pins the requested test.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: The command exits 2, writes no partial JSON report, and identifies
+          the unreadable active lock.
+    - kind: test_function
+      name: test_plan_dependents_json_excludes_superseded_locks
+      returns: None
+      source_scenario: A superseded manifest and one active manifest both have historical
+        locks that pin the queried test.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: JSON contains only the active dependent with exact manifest, lock,
+          test-path, hash-state, and recovery-command fields; the superseded lock
+          is absent.
+    - kind: test_function
+      name: test_plan_dependents_recovery_command_preserves_non_default_project_root
+      returns: None
+      source_scenario: The dependency query runs outside the target repository and
+        selects it with an explicit non-default project root.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: Every recovery command preserves the resolved project root so the
+          printed command is executable from the caller's current working directory.
+    - kind: test_function
+      name: test_plan_dependents_rejects_out_of_project_paths
+      returns: None
+      source_scenario: The query names an absolute or parent-relative test path outside
+        the configured project root.
+      actions:
+      - type: api_call
+        subject:
+          function: find_plan_lock_dependents
+      expected:
+        behavior: Dependency discovery raises a clear ValueError rather than reading
+          or reporting locks for an escaped path.
+    - kind: test_function
+      name: test_plan_dependents_reports_each_active_shared_test_lock_and_recovery_command
+      returns: None
+      source_scenario: Two active manifests have readable plan locks that both pin
+        one shared behavioral test whose content has changed.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: The command exits successfully and reports both active manifests,
+          both lock paths, mismatch state, and one explicit preserve-red-evidence
+          revise command per manifest without changing either lock.
+  - path: tests/cli/test_manifest_promote_red_evidence_preservation.py
+    artifacts:
+    - kind: test_function
+      name: test_promote_does_not_preserve_command_spliced_red_evidence
+      source_scenario: A locked draft carries shape-valid red evidence whose command
+        text was substituted after capture.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_manifest
+      expected:
+        behavior: Promotion rejects the command-spliced payload and records null evidence
+          under --no-run rather than creating an E707-invalid migrated lock.
+    - kind: test_function
+      name: test_promote_does_not_preserve_inconsistent_red_command_payload
+      source_scenario: A locked draft carries command-matching but internally inconsistent
+        red evidence and is promoted with --no-run.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_manifest
+      expected:
+        behavior: Promotion rejects preservation and records null evidence rather
+          than carrying the forged payload through the handoff gate.
+    - kind: test_function
+      name: test_promote_no_run_clears_evidence_when_locked_tests_changed
+      source_scenario: A locked behavioral test changes after red evidence capture,
+        then promotion runs with --no-run.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_manifest
+      expected:
+        behavior: The stale evidence is not preserved and no command is run, so the
+          migrated lock records null evidence.
+    - kind: test_function
+      name: test_promote_no_run_preserves_valid_red_evidence
+      source_scenario: A locked draft has valid red evidence and is promoted with
+        --no-run.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_manifest
+      expected:
+        behavior: Promotion succeeds without executing commands and preserves the
+          exact valid red evidence payload.
+    - kind: test_function
+      name: test_promote_preserves_consistent_test_only_evidence
+      source_scenario: A test-only manifest carries internally consistent test_only_green
+        evidence and is promoted with --no-run.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_manifest
+      expected:
+        behavior: Promotion preserves the exact valid test-only evidence payload,
+          proving hardening did not disable the sanctioned channel.
+    - kind: test_function
+      name: test_promote_preserves_valid_red_evidence_when_activation_turns_green
+      source_scenario: A locked draft has valid red evidence because its activation-only
+        validate command fails until the promoted manifest exists.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_manifest
+      expected:
+        behavior: Promotion succeeds and preserves the exact original red evidence
+          rather than overwriting it with the now-green post-activation result.
+    - kind: test_function
+      name: test_promote_recaptures_when_locked_validate_commands_changed
+      source_scenario: A draft's validate command changes after valid red evidence
+        was locked, then ordinary promotion runs.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_manifest
+      expected:
+        behavior: The stale evidence is not preserved; promotion recaptures evidence
+          for the current command and stores its current red output.
+    - kind: test_function
+      name: test_promote_recaptures_when_self_referencing_validate_path_is_rewritten
+      source_scenario: Promotion rewrites a locked validate command from its self-referencing
+        draft path to the active manifest path.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_manifest
+      expected:
+        behavior: Promotion recaptures evidence for the rewritten active-path command
+          rather than preserving draft-path evidence that would violate E707 command
+          binding.
+    - kind: test_function
+      name: test_promotion_docs_describe_valid_evidence_preservation
+      source_scenario: A reader checks the promotion workflow after the evidence-preservation
+        fix.
+      actions:
+      - type: api_call
+        subject:
+          export: Path
+      expected:
+        behavior: The source and packaged workflows match and document valid evidence
+          preservation, recapture after contract or test changes, and --no-run behavior.
+    - kind: test_function
+      name: test_revision_preservation_rejects_contradictory_evidence_mode
+      source_scenario: A red:true payload also claims the mutually exclusive test_only_green
+        mode.
+      actions:
+      - type: api_call
+        subject:
+          function: revision_preserves_red_evidence
+      expected:
+        behavior: The shared predicate rejects the contradictory evidence channel
+          instead of treating it as ordinary red evidence.
+    - kind: test_function
+      name: test_revision_preservation_rejects_inconsistent_red_command_payload
+      source_scenario: A direct preservation check receives forged red evidence whose
+        exit code is zero but classification is red.
+      actions:
+      - type: api_call
+        subject:
+          function: revision_preserves_red_evidence
+      expected:
+        behavior: The shared public predicate returns false because the serialized
+          command payload is internally inconsistent.
+    - kind: test_function
+      name: test_revision_preservation_rejects_spliced_special_mode_commands
+      source_scenario: Shape-valid stash-restoration and test-only-green evidence
+        carries command text that differs from the persisted contract snapshot.
+      actions:
+      - type: api_call
+        subject:
+          function: revision_preserves_red_evidence
+      expected:
+        behavior: The shared predicate rejects command-spliced evidence in both sanctioned
+          special modes.
+    - kind: test_function
+      name: test_revision_preservation_requires_consistent_test_only_commands
+      source_scenario: Test-only-green evidence is checked with a valid command, a
+        Boolean false exit code, and a missing output tail.
+      actions:
+      - type: api_call
+        subject:
+          function: revision_preserves_red_evidence
+      expected:
+        behavior: Only the fully shaped command with an exact integer zero exit code
+          is preservable; Boolean and incomplete command payloads are rejected.
+  edit:
+  - path: maid_runner/core/types.py
+    artifacts:
+    - kind: attribute
+      name: immutable
+      of: AcceptanceConfig
+      type: bool
+    - kind: attribute
+      name: tests
+      of: AcceptanceConfig
+      type: tuple[tuple[str, Ellipsis], Ellipsis]
+    - kind: attribute
+      name: client
+      description: Agent client/harness, e.g. 'claude-code', 'codex-cli'.
+      of: AgentProvenance
+      type: Optional[str]
+    - kind: attribute
+      name: instructions_fingerprint
+      description: Opaque fingerprint of the instruction set/system prompt version.
+      of: AgentProvenance
+      type: Optional[str]
+    - kind: attribute
+      name: model
+      description: Required anchor field, e.g. 'claude-opus-4-8' or 'gpt-5.5-codex';
+        the primary comparison key.
+      of: AgentProvenance
+      type: str
+    - kind: attribute
+      name: provider
+      description: Model provider, e.g. 'anthropic', 'openai', 'local'.
+      of: AgentProvenance
+      type: Optional[str]
+    - kind: attribute
+      name: reasoning_effort
+      description: Client-configured reasoning effort for the recorded run (e.g. 'minimal',
+        'low', 'medium', 'high', 'xhigh'); free-form because client vocabularies differ;
+        None when unknown or for pre-existing records.
+      of: AgentProvenance
+      type: Optional[str]
+    - kind: attribute
+      name: skills
+      description: Skill identifiers in use, free-form 'name@version' strings; defaults
+        to empty.
+      of: AgentProvenance
+      type: tuple[str, ...]
+    - kind: attribute
+      name: source
+      description: 'Capture channel when CLI-captured: ''flags'', ''environment'',
+        or ''mixed''; None for agent-authored outcome YAML.'
+      of: AgentProvenance
+      type: Optional[str]
+    - kind: attribute
+      name: default
+      of: ArgSpec
+      type: Optional[str]
+    - kind: attribute
+      name: name
+      of: ArgSpec
+      type: str
+    - kind: attribute
+      name: type
+      of: ArgSpec
+      type: Optional[str]
+    - kind: attribute
+      name: ATTRIBUTE
+      of: ArtifactKind
+    - kind: attribute
+      name: CLASS
+      of: ArtifactKind
+    - kind: attribute
+      name: ENUM
+      of: ArtifactKind
+    - kind: attribute
+      name: FUNCTION
+      of: ArtifactKind
+    - kind: attribute
+      name: INTERFACE
+      of: ArtifactKind
+    - kind: attribute
+      name: METHOD
+      of: ArtifactKind
+    - kind: attribute
+      name: NAMESPACE
+      of: ArtifactKind
+    - kind: attribute
+      name: TEST_FUNCTION
+      of: ArtifactKind
+    - kind: attribute
+      name: TYPE
+      of: ArtifactKind
+    - kind: attribute
+      name: args
+      of: ArtifactSpec
+      type: tuple[ArgSpec, Ellipsis]
+    - kind: attribute
+      name: bases
+      of: ArtifactSpec
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: default_hook
+      description: True when the manifest acknowledges this artifact's trivial body
+        as an intentional documented default implementation; defaults to False.
+      of: ArtifactSpec
+      type: bool
+    - kind: attribute
+      name: description
+      of: ArtifactSpec
+      type: Optional[str]
+    - kind: attribute
+      name: is_async
+      of: ArtifactSpec
+      type: bool
+    - kind: attribute
+      name: is_private
+      of: ArtifactSpec
+      type: bool
+    - kind: attribute
+      name: kind
+      of: ArtifactSpec
+      type: ArtifactKind
+    - kind: attribute
+      name: name
+      of: ArtifactSpec
+      type: str
+    - kind: attribute
+      name: of
+      of: ArtifactSpec
+      type: Optional[str]
+    - kind: attribute
+      name: qualified_name
+      of: ArtifactSpec
+      type: str
+    - kind: attribute
+      name: raises
+      of: ArtifactSpec
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: returns
+      of: ArtifactSpec
+      type: Optional[str]
+    - kind: attribute
+      name: signature
+      description: Optional opaque exact overload discriminator; None retains representative
+        identity.
+      of: ArtifactSpec
+      type: Optional[str]
+    - kind: attribute
+      name: test_details
+      of: ArtifactSpec
+      type: Optional[TestFunctionDetails]
+    - kind: attribute
+      name: type_annotation
+      of: ArtifactSpec
+      type: Optional[str]
+    - kind: attribute
+      name: type_parameters
+      of: ArtifactSpec
+      type: tuple[str, ...]
+    - kind: attribute
+      name: path
+      of: DeleteSpec
+      type: str
+    - kind: attribute
+      name: reason
+      of: DeleteSpec
+      type: Optional[str]
+    - kind: attribute
+      name: CREATE
+      of: FileMode
+    - kind: attribute
+      name: DELETE
+      of: FileMode
+    - kind: attribute
+      name: EDIT
+      of: FileMode
+    - kind: attribute
+      name: READ
+      of: FileMode
+    - kind: attribute
+      name: SCOPE
+      of: FileMode
+      type: str
+    - kind: attribute
+      name: SNAPSHOT
+      of: FileMode
+    - kind: attribute
+      name: artifacts
+      of: FileSpec
+      type: tuple[ArtifactSpec, Ellipsis]
+    - kind: attribute
+      name: imports
+      of: FileSpec
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: is_absent
+      of: FileSpec
+      type: bool
+    - kind: attribute
+      name: is_strict
+      of: FileSpec
+      type: bool
+    - kind: attribute
+      name: mode
+      of: FileSpec
+      type: FileMode
+    - kind: attribute
+      name: path
+      of: FileSpec
+      type: str
+    - kind: attribute
+      name: status
+      of: FileSpec
+      type: str
+    - kind: attribute
+      name: acceptance
+      of: Manifest
+      type: Optional[AcceptanceConfig]
+    - kind: attribute
+      name: all_file_specs
+      of: Manifest
+      type: list[FileSpec]
+    - kind: attribute
+      name: all_referenced_paths
+      of: Manifest
+      type: set[str]
+    - kind: attribute
+      name: all_writable_paths
+      of: Manifest
+      type: set[str]
+    - kind: attribute
+      name: created
+      of: Manifest
+      type: Optional[str]
+    - kind: attribute
+      name: description
+      of: Manifest
+      type: Optional[str]
+    - kind: attribute
+      name: files_create
+      of: Manifest
+      type: tuple[FileSpec, Ellipsis]
+    - kind: attribute
+      name: files_delete
+      of: Manifest
+      type: tuple[DeleteSpec, Ellipsis]
+    - kind: attribute
+      name: files_edit
+      of: Manifest
+      type: tuple[FileSpec, Ellipsis]
+    - kind: attribute
+      name: files_read
+      of: Manifest
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: files_scope
+      of: Manifest
+      type: tuple[ScopeSpec, ...]
+    - kind: attribute
+      name: files_snapshot
+      of: Manifest
+      type: tuple[FileSpec, Ellipsis]
+    - kind: attribute
+      name: goal
+      of: Manifest
+      type: str
+    - kind: attribute
+      name: is_superseded_by
+      of: Manifest
+      type: bool
+    - kind: attribute
+      name: metadata
+      of: Manifest
+      type: Optional[dict]
+    - kind: attribute
+      name: outcome
+      of: Manifest
+      type: Optional[OutcomeRecord]
+    - kind: attribute
+      name: removed_artifacts
+      of: Manifest
+      type: tuple[RemovedArtifactSpec, ...]
+    - kind: attribute
+      name: schema_version
+      of: Manifest
+      type: str
+    - kind: attribute
+      name: sequence_number
+      of: Manifest
+      type: Optional[int]
+    - kind: attribute
+      name: slug
+      of: Manifest
+      type: str
+    - kind: attribute
+      name: source_path
+      of: Manifest
+      type: str
+    - kind: attribute
+      name: supersedes
+      of: Manifest
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: task_type
+      of: Manifest
+      type: Optional[TaskType]
+    - kind: attribute
+      name: temptations
+      of: Manifest
+      type: tuple[TemptationSpec, ...]
+    - kind: attribute
+      name: validate_commands
+      of: Manifest
+      type: tuple[tuple[str, Ellipsis], Ellipsis]
+    - kind: attribute
+      name: version_tag
+      of: Manifest
+      type: Optional[str]
+    - kind: attribute
+      name: lesson_type
+      of: OutcomeLesson
+      type: str
+    - kind: attribute
+      name: paths
+      of: OutcomeLesson
+      type: tuple[str, ...]
+    - kind: attribute
+      name: summary
+      of: OutcomeLesson
+      type: str
+    - kind: attribute
+      name: tags
+      of: OutcomeLesson
+      type: tuple[str, ...]
+    - kind: attribute
+      name: agent
+      description: Optional provenance of the run that produced this Outcome; None
+        when not recorded.
+      of: OutcomeRecord
+      type: Optional[AgentProvenance]
+    - kind: attribute
+      name: completed_at
+      of: OutcomeRecord
+      type: Optional[str]
+    - kind: attribute
+      name: lessons
+      of: OutcomeRecord
+      type: tuple[OutcomeLesson, ...]
+    - kind: attribute
+      name: rationale
+      of: OutcomeRecord
+      type: Optional[str]
+    - kind: attribute
+      name: review_notes
+      of: OutcomeRecord
+      type: tuple[OutcomeReviewNote, ...]
+    - kind: attribute
+      name: status
+      of: OutcomeRecord
+      type: OutcomeStatus
+    - kind: attribute
+      name: summary
+      of: OutcomeRecord
+      type: str
+    - kind: attribute
+      name: validation
+      of: OutcomeRecord
+      type: tuple[OutcomeValidationEvidence, ...]
+    - kind: attribute
+      name: severity
+      of: OutcomeReviewNote
+      type: str
+    - kind: attribute
+      name: source
+      of: OutcomeReviewNote
+      type: str
+    - kind: attribute
+      name: summary
+      of: OutcomeReviewNote
+      type: str
+    - kind: attribute
+      name: ABANDONED
+      of: OutcomeStatus
+      type: str
+    - kind: attribute
+      name: ARCHIVED
+      of: OutcomeStatus
+      type: str
+    - kind: attribute
+      name: COMPLETED
+      of: OutcomeStatus
+      type: str
+    - kind: attribute
+      name: FAILED
+      of: OutcomeStatus
+      type: str
+    - kind: attribute
+      name: PARTIAL
+      of: OutcomeStatus
+      type: str
+    - kind: attribute
+      name: SUPERSEDED
+      of: OutcomeStatus
+      type: str
+    - kind: attribute
+      name: command
+      of: OutcomeValidationEvidence
+      type: tuple[str, ...]
+    - kind: attribute
+      name: status
+      of: OutcomeValidationEvidence
+      type: str
+    - kind: attribute
+      name: summary
+      of: OutcomeValidationEvidence
+      type: str
+    - kind: attribute
+      name: file
+      of: RemovedArtifactSpec
+      type: str
+    - kind: attribute
+      name: kind
+      of: RemovedArtifactSpec
+      type: ArtifactKind
+    - kind: attribute
+      name: name
+      of: RemovedArtifactSpec
+      type: str
+    - kind: attribute
+      name: of
+      of: RemovedArtifactSpec
+      type: Optional[str]
+    - kind: attribute
+      name: reason
+      of: RemovedArtifactSpec
+      type: str
+    - kind: attribute
+      name: path
+      of: ScopeSpec
+      type: str
+    - kind: attribute
+      name: reason
+      of: ScopeSpec
+      type: str
+    - kind: attribute
+      name: FEATURE
+      of: TaskType
+    - kind: attribute
+      name: FIX
+      of: TaskType
+    - kind: attribute
+      name: REFACTOR
+      of: TaskType
+    - kind: attribute
+      name: SNAPSHOT
+      of: TaskType
+    - kind: attribute
+      name: SYSTEM_SNAPSHOT
+      of: TaskType
+    - kind: attribute
+      name: instead
+      of: TemptationSpec
+      type: str
+    - kind: attribute
+      name: risk
+      of: TemptationSpec
+      type: str
+    - kind: attribute
+      name: actions
+      of: TestFunctionDetails
+      type: tuple[dict, Ellipsis]
+    - kind: attribute
+      name: dependencies
+      of: TestFunctionDetails
+      type: dict
+    - kind: attribute
+      name: expected
+      of: TestFunctionDetails
+      type: dict
+    - kind: attribute
+      name: setup
+      of: TestFunctionDetails
+      type: TestFunctionSetup
+    - kind: attribute
+      name: source_scenario
+      of: TestFunctionDetails
+      type: str
+    - kind: attribute
+      name: tags
+      of: TestFunctionDetails
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: auth_required
+      of: TestFunctionSetup
+      type: bool
+    - kind: attribute
+      name: setup_actions
+      of: TestFunctionSetup
+      type: tuple[dict, Ellipsis]
+    - kind: attribute
+      name: test_data
+      of: TestFunctionSetup
+      type: dict
+    - kind: attribute
+      name: ACCEPTANCE
+      of: TestStream
+    - kind: attribute
+      name: IMPLEMENTATION
+      of: TestStream
+    - kind: attribute
+      name: BEHAVIORAL
+      of: ValidationMode
+    - kind: attribute
+      name: IMPLEMENTATION
+      of: ValidationMode
+    - kind: attribute
+      name: SCHEMA
+      of: ValidationMode
+      type: str
+    - kind: class
+      name: AcceptanceConfig
+    - kind: class
+      name: AgentProvenance
+      description: "Frozen dataclass: optional agent identity attached to Outcome\
+        \ records \u2014 who produced a run."
+    - kind: class
+      name: ArgSpec
+    - kind: class
+      name: ArtifactKind
+      bases:
+      - str
+      - Enum
+    - kind: class
+      name: ArtifactSpec
+    - kind: class
+      name: DeleteSpec
+    - kind: class
+      name: FileMode
+      bases:
+      - str
+      - Enum
+    - kind: class
+      name: FileSpec
+    - kind: class
+      name: Manifest
+    - kind: class
+      name: OutcomeLesson
+      description: Structured lesson captured from a completed or otherwise closed
+        manifest.
+    - kind: class
+      name: OutcomeRecord
+      description: Parsed top-level Outcome completion metadata for a manifest.
+    - kind: class
+      name: OutcomeReviewNote
+      description: Structured implementation-review note captured in an Outcome record.
+    - kind: class
+      name: OutcomeStatus
+      description: 'Deterministic manifest Outcome lifecycle statuses with exact values:
+        completed, failed, partial, superseded, archived, abandoned.'
+    - kind: class
+      name: OutcomeValidationEvidence
+      description: Validation command evidence preserved with a manifest Outcome record.
+    - kind: class
+      name: RemovedArtifactSpec
+    - kind: class
+      name: ScopeSpec
+      description: Scope-only writable file declaration with a path and rationale.
+    - kind: class
+      name: TaskType
+      bases:
+      - str
+      - Enum
+    - kind: class
+      name: TemptationSpec
+    - kind: class
+      name: TestFunctionDetails
+    - kind: class
+      name: TestFunctionSetup
+    - kind: class
+      name: TestStream
+      bases:
+      - str
+      - Enum
+    - kind: class
+      name: ValidationMode
+    - kind: method
+      name: contract_key
+      description: Returns merge_key unchanged when unsigned and an exact signature-qualified
+        key otherwise.
+      of: ArtifactSpec
+      returns: str
+    - kind: method
+      name: merge_key
+      of: ArtifactSpec
+      returns: str
+    - kind: method
+      name: artifacts_for
+      of: Manifest
+      args:
+      - name: path
+        type: str
+      returns: tuple[ArtifactSpec, Ellipsis]
+    - kind: method
+      name: file_spec_for
+      of: Manifest
+      args:
+      - name: path
+        type: str
+      returns: Optional[FileSpec]
+  - path: maid_runner/core/manifest.py
+    artifacts:
+    - kind: attribute
+      name: MANIFEST_HEADER_COMMENT
+      description: Canonical ASCII-only, flush-left four-line comment banner stating
+        what a manifest is, that it is not required to build or run the project, and
+        the https://github.com/mamertofabian/maid-runner pointer. Each line starts
+        with '#' and the text ends with a newline.
+      type: str
+    - kind: attribute
+      name: path
+      of: ManifestLoadError
+    - kind: attribute
+      name: reason
+      of: ManifestLoadError
+    - kind: attribute
+      name: errors
+      of: ManifestSchemaError
+    - kind: attribute
+      name: path
+      of: ManifestSchemaError
+    - kind: class
+      name: ManifestLoadError
+    - kind: class
+      name: ManifestSchemaError
+      bases:
+      - Exception
+    - kind: function
+      name: backfill_manifest_header
+      description: Read the manifest text, apply prepend_manifest_header, and write
+        it back only when the banner was missing. Returns True when the file was updated,
+        False when it already had the banner. Raises OSError to the caller so the
+        CLI layer can decide advisory handling; performs no YAML round-trip so author
+        formatting is untouched.
+      args:
+      - name: manifest_path
+        type: Union[str, Path]
+      returns: bool
+    - kind: function
+      name: load_manifest
+      args:
+      - name: path
+        type: Union[str, Path]
+      returns: Manifest
+    - kind: function
+      name: load_manifest_raw
+      description: Parse manifest YAML with the libyaml-backed loader when the installed
+        pyyaml provides it, falling back to the pure-Python loader, with duplicate-key
+        rejection registered on whichever loader is selected.
+      args:
+      - name: path
+        type: Union[str, Path]
+      returns: dict
+    - kind: function
+      name: prepend_manifest_header
+      description: 'Return rendered YAML with MANIFEST_HEADER_COMMENT inserted flush-left
+        above the first YAML key. Idempotent: returns rendered unchanged when the
+        banner already appears in the leading comment block, detected by scanning
+        only that block rather than the whole document so a manifest whose body quotes
+        the banner still gets one, and comparing each line with trailing whitespace
+        stripped so an editor-scuffed banner is still recognized rather than stacked.
+        Inserts the banner immediately after a leading ''# draft-kind:'' or ''# archive-kind:''
+        marker line when one is present, otherwise at the very top. Makes no other
+        modification to rendered.'
+      args:
+      - name: rendered
+        type: str
+      returns: str
+    - kind: function
+      name: save_manifest
+      args:
+      - name: manifest
+        type: Manifest
+      - name: path
+        type: Union[str, Path]
+      returns: None
+    - kind: function
+      name: slug_from_path
+      args:
+      - name: path
+        type: Union[str, Path]
+      returns: str
+    - kind: function
+      name: validate_manifest_paths
+      args:
+      - name: manifest
+        type: Manifest
+      - name: project_root
+        type: Union[str, Path]
+      returns: list[ValidationError]
+    - kind: function
+      name: validate_manifest_schema
+      args:
+      - name: data
+        type: dict
+      - name: schema_version
+        type: str
+        default: '''2'''
+      returns: list[str]
+  - path: maid_runner/cli/commands/_main.py
+    artifacts:
+    - kind: function
+      name: build_parser
+      description: The manifest promote subparser continues to accept --no-run and
+        --project-root (default '.') alongside its existing options.
+      returns: argparse.ArgumentParser
+    - kind: function
+      name: main
+      description: Dispatches validate, test, and verify with .maidrc.yaml's manifest_dir
+        when the option is omitted, while explicit CLI values retain precedence.
+      args:
+      - name: argv
+        type: list[str] | None
+        default: None
+      returns: int
+  - path: maid_runner/schemas/manifest.v2.schema.json
+    artifacts:
+    - kind: attribute
+      name: type_parameters
+      of: ArtifactSpec schema
+      type: array[string]
+    - kind: attribute
+      name: ScopeSpec
+      description: Schema definition requiring path and reason for scope-only writable
+        files.
+      of: MAID Manifest v2 schema
+      type: object
+    - kind: attribute
+      name: default_hook
+      description: Strict optional boolean artifact property acknowledging an intentional
+        documented default implementation; additionalProperties stays false.
+      of: MAID Manifest v2 schema
+      type: optional boolean on ArtifactSpec
+    - kind: attribute
+      name: outcome
+      description: Strict optional top-level completion metadata schema for explicit
+        manifest Outcome records.
+      of: MAID Manifest v2 schema
+      type: optional OutcomeRecord object
+    - kind: attribute
+      name: removed_artifacts
+      of: MAID Manifest v2
+      type: array
+    - kind: attribute
+      name: temptations
+      of: MAID Manifest v2
+      type: array
+    - kind: attribute
+      name: agent
+      description: Optional provenance property on the Outcome record definition.
+      of: OutcomeRecord schema definition
+      type: optional AgentProvenance object
+    - kind: attribute
+      name: scope
+      description: Optional writable scope-only declarations remain part of manifest
+        schema v2.
+      of: files
+      type: array of ScopeSpec
+  - path: .claude/skills/maid-planner/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: maid_planner_skill
+      of: MAID skill distribution
+      type: skill
+    - kind: attribute
+      name: temptations
+      of: Manifest Structure
+      type: section
+  - path: .claude/skills/maid-implementer/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: temptations
+      of: Implementation Workflow
+      type: section
+    - kind: attribute
+      name: maid_implementer_skill
+      of: MAID skill distribution
+      type: skill
+  - path: maid_runner/core/chain.py
+    artifacts:
+    - kind: attribute
+      name: all_manifests
+      of: ManifestChain
+      type: list[Manifest]
+    - kind: attribute
+      name: load_errors
+      of: ManifestChain
+      type: list[ValidationError]
+    - kind: class
+      name: ManifestChain
+    - kind: function
+      name: clear_manifest_chain_cache
+      description: Drop all cached ManifestChain instances; called at the end of each
+        CLI invocation.
+      returns: None
+    - kind: function
+      name: get_cached_manifest_chain
+      description: Return a per-invocation cached ManifestChain for the given manifest
+        directory, rebuilding when the on-disk signature changes.
+      args:
+      - name: manifest_dir
+        type: Union[str, Path]
+      - name: project_root
+        type: Optional[Path]
+        default: None
+      returns: ManifestChain
+    - kind: method
+      name: active_manifests
+      of: ManifestChain
+      returns: list[Manifest]
+    - kind: method
+      name: all_read_only_paths
+      of: ManifestChain
+      returns: set[str]
+    - kind: method
+      name: all_tracked_paths
+      of: ManifestChain
+      returns: set[str]
+    - kind: method
+      name: audit_supersession_artifacts
+      of: ManifestChain
+      args:
+      - name: lock
+        type: Optional[GrandfatherLock]
+        default: None
+      returns: list[ValidationError]
+    - kind: method
+      name: diagnostics
+      description: Return normal chain diagnostics while omitting E118/E119 entries
+        that come only from parseable pre-2026-06-03 legacy created values.
+      of: ManifestChain
+      returns: list[ValidationError]
+    - kind: method
+      name: event_log
+      of: ManifestChain
+      returns: list[Manifest]
+    - kind: method
+      name: event_log_until
+      of: ManifestChain
+      args:
+      - name: sequence_number
+        type: Optional[int]
+      - name: version_tag
+        type: Optional[str]
+      returns: list[Manifest]
+    - kind: method
+      name: file_mode_for
+      of: ManifestChain
+      args:
+      - name: path
+        type: str
+      returns: Optional[FileMode]
+    - kind: method
+      name: inactive_manifest_diagnostics
+      description: Reports E109 with copyable lifecycle marker choices tailored to
+        draft or archive inventory.
+      of: ManifestChain
+      returns: list[ValidationError]
+    - kind: method
+      name: is_superseded
+      of: ManifestChain
+      args:
+      - name: slug
+        type: str
+      returns: bool
+    - kind: method
+      name: lifecycle_metadata_diagnostics
+      description: Return diagnostics for active manifests that declare inactive lifecycle
+        metadata statuses.
+      of: ManifestChain
+      returns: list[ValidationError]
+    - kind: method
+      name: manifests_for_file
+      of: ManifestChain
+      args:
+      - name: path
+        type: str
+      returns: list[Manifest]
+    - kind: method
+      name: merged_artifacts_for
+      description: Return latest effective ArtifactSpecs in canonical contract-key
+        order independent of active owner topology.
+      of: ManifestChain
+      args:
+      - name: path
+        type: str
+      returns: list[ArtifactSpec]
+    - kind: method
+      name: reload
+      description: Invalidate the writable-path index alongside the existing active
+        manifest cache so a reloaded chain cannot answer from a stale index.
+      of: ManifestChain
+      returns: None
+    - kind: method
+      name: replay_until
+      of: ManifestChain
+      args:
+      - name: sequence_number
+        type: Optional[int]
+      - name: version_tag
+        type: Optional[str]
+      returns: dict[str, list[ArtifactSpec]]
+    - kind: method
+      name: superseded_by
+      of: ManifestChain
+      args:
+      - name: slug
+        type: str
+      returns: Optional[str]
+    - kind: method
+      name: superseded_manifests
+      of: ManifestChain
+      returns: list[Manifest]
+    - kind: method
+      name: validate_supersession_integrity
+      of: ManifestChain
+      returns: list[ValidationError]
+  - path: maid_runner/core/result.py
+    artifacts:
+    - kind: attribute
+      name: acceptance_results
+      of: BatchTestResult
+      type: list[TestRunResult]
+    - kind: attribute
+      name: chain_errors
+      of: BatchTestResult
+      type: list[ValidationError]
+    - kind: attribute
+      name: duration_ms
+      of: BatchTestResult
+      type: Optional[float]
+    - kind: attribute
+      name: failed
+      of: BatchTestResult
+      type: int
+    - kind: attribute
+      name: implementation_results
+      of: BatchTestResult
+      type: list[TestRunResult]
+    - kind: attribute
+      name: passed
+      of: BatchTestResult
+      type: int
+    - kind: attribute
+      name: results
+      of: BatchTestResult
+      type: list[TestRunResult]
+    - kind: attribute
+      name: scheduling_notices
+      description: Notices accumulated identically by repository, task-scoped, and
+        single-manifest execution paths.
+      of: BatchTestResult
+      type: tuple[TestSchedulingNotice, Ellipsis]
+    - kind: attribute
+      name: success
+      of: BatchTestResult
+      type: bool
+    - kind: attribute
+      name: total
+      of: BatchTestResult
+      type: int
+    - kind: attribute
+      name: chain_errors
+      of: BatchValidationResult
+      type: list[ValidationError]
+    - kind: attribute
+      name: duration_ms
+      of: BatchValidationResult
+      type: Optional[float]
+    - kind: attribute
+      name: failed
+      of: BatchValidationResult
+      type: int
+    - kind: attribute
+      name: passed
+      of: BatchValidationResult
+      type: int
+    - kind: attribute
+      name: results
+      of: BatchValidationResult
+      type: list[ValidationResult]
+    - kind: attribute
+      name: skipped
+      of: BatchValidationResult
+      type: int
+    - kind: attribute
+      name: success
+      of: BatchValidationResult
+      type: bool
+    - kind: attribute
+      name: total_manifests
+      of: BatchValidationResult
+      type: int
+    - kind: attribute
+      name: ACCEPTANCE_TEST_FILE_NOT_FOUND
+      of: ErrorCode
+    - kind: attribute
+      name: ACTIVE_MANIFEST_INACTIVE_STATUS
+      description: Error code for active manifests that declare draft/planning/archive
+        lifecycle metadata outside inactive inventory.
+      of: ErrorCode
+    - kind: attribute
+      name: ARTIFACT_DROPPED_BY_SUPERSESSION
+      of: ErrorCode
+      type: str
+    - kind: attribute
+      name: ARTIFACT_KNOCKOUT_NOT_DETECTED
+      description: 'E711: no validate command supplied mutation-caused differential
+        detection for the named artifact.'
+      of: ErrorCode
+      type: str
+    - kind: attribute
+      name: ARTIFACT_NOT_DEFINED
+      of: ErrorCode
+    - kind: attribute
+      name: ARTIFACT_NOT_EXECUTED_BY_TESTS
+      description: 'E710: no body line of a declared public function/method artifact
+        was executed by the behavioral tests.'
+      of: ErrorCode
+      type: str
+    - kind: attribute
+      name: ARTIFACT_NOT_USED_IN_TESTS
+      of: ErrorCode
+    - kind: attribute
+      name: BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK
+      description: 'E701: behavioral test file hash differs from the locked hash without
+        a recorded revision.'
+      of: ErrorCode
+      type: str
+    - kind: attribute
+      name: CHAIN_MERGE_EQUIVALENCE_REGRESSION
+      description: 'E715: chain-merge candidate evidence is incomplete or weaker than
+        its recorded pre-consolidation acceptance bar.'
+      of: ErrorCode
+      type: str
+    - kind: attribute
+      name: CHANGED_FILE_OUTSIDE_MANIFEST_SCOPE
+      description: Structured error code for a changed file outside writable manifest
+        scope.
+      of: ErrorCode
+      type: str
+    - kind: attribute
+      name: CHANGED_SCOPE_BASELINE_INVALID
+      description: Structured error code for invalid, conflicting, or unusable changed-scope
+        baseline inputs.
+      of: ErrorCode
+      type: str
+    - kind: attribute
+      name: CHANGED_SCOPE_BASELINE_REQUIRED
+      description: Structured error code for --changed-scope runs that cannot resolve
+        an explicit or metadata task baseline.
+      of: ErrorCode
+      type: str
+    - kind: attribute
+      name: CIRCULAR_SUPERSESSION
+      of: ErrorCode
+    - kind: attribute
+      name: COHERENCE_BOUNDARY_VIOLATION
+      of: ErrorCode
+    - kind: attribute
+      name: COHERENCE_DEPENDENCY_MISSING
+      of: ErrorCode
+    - kind: attribute
+      name: COHERENCE_DUPLICATE
+      of: ErrorCode
+    - kind: attribute
+      name: COHERENCE_NAMING_VIOLATION
+      of: ErrorCode
+    - kind: attribute
+      name: COHERENCE_SIGNATURE_CONFLICT
+      of: ErrorCode
+    - kind: attribute
+      name: DELIVERED_CONTENT_MISMATCH
+      description: 'E714: invalid delivery branch ref or covered committed bytes that
+        differ from the validated attestation.'
+      of: ErrorCode
+      type: str
+    - kind: attribute
+      name: DELIVERY_ATTESTATION_INVALID
+      description: 'E713: missing, unreadable, malformed, or contract-mismatched delivery
+        attestation.'
+      of: ErrorCode
+      type: str
+    - kind: attribute
+      name: DUPLICATE_FILE
+      of: ErrorCode
+    - kind: attribute
+      name: DUPLICATE_SEQUENCE_NUMBER
+      of: ErrorCode
+    - kind: attribute
+      name: DUPLICATE_UNSEQUENCED_CREATED
+      of: ErrorCode
+      type: str
+    - kind: attribute
+      name: E2E_VALIDATE_COMMAND_NOT_ALLOWED
+      of: ErrorCode
+      type: str
+    - kind: attribute
+      name: EMPTY_ARTIFACTS
+      of: ErrorCode
+    - kind: attribute
+      name: EMPTY_MANIFEST_SET
+      description: Structured error code for missing or empty active manifest discovery.
+      of: ErrorCode
+      type: str
+    - kind: attribute
+      name: FILE_IN_MULTIPLE_SECTIONS
+      of: ErrorCode
+    - kind: attribute
+      name: FILE_NOT_FOUND
+      of: ErrorCode
+    - kind: attribute
+      name: FILE_READ_ERROR
+      of: ErrorCode
+    - kind: attribute
+      name: FILE_SHOULD_BE_ABSENT
+      of: ErrorCode
+    - kind: attribute
+      name: FILE_SHOULD_BE_PRESENT
+      of: ErrorCode
+    - kind: attribute
+      name: GRANDFATHERED_SUPERSESSION
+      of: ErrorCode
+      type: str
+    - kind: attribute
+      name: IMPRECISE_CREATED_TIMESTAMP
+      of: ErrorCode
+      type: str
+    - kind: attribute
+      name: INACTIVE_MANIFEST_NOT_MARKED
+      of: ErrorCode
+    - kind: attribute
+      name: INTERNAL_ERROR
+      of: ErrorCode
+    - kind: attribute
+      name: INVALID_TASK_TYPE
+      of: ErrorCode
+    - kind: attribute
+      name: KNOCKOUT_HARNESS_FAILURE
+      description: 'E712: snapshot, baseline, restoration, command execution, or harness
+        integrity failed closed.'
+      of: ErrorCode
+      type: str
+    - kind: attribute
+      name: MANIFEST_CONTRACT_WEAKENED_AFTER_LOCK
+      description: 'E702: declared artifacts or behavioral test set shrank relative
+        to the locked manifest content.'
+      of: ErrorCode
+      type: str
+    - kind: attribute
+      name: MANIFEST_PARSE_ERROR
+      of: ErrorCode
+    - kind: attribute
+      name: MANIFEST_PATH_OUTSIDE_PROJECT
+      description: Structured error code for any manifest-declared path that resolves
+        outside the project root.
+      of: ErrorCode
+      type: str
+    - kind: attribute
+      name: MISSING_ASSERTIONS
+      of: ErrorCode
+    - kind: attribute
+      name: MISSING_REQUIRED_IMPORT
+      of: ErrorCode
+    - kind: attribute
+      name: MISSING_RETURN_TYPE
+      of: ErrorCode
+    - kind: attribute
+      name: MIXED_SEQUENCE_NUMBERING
+      of: ErrorCode
+    - kind: attribute
+      name: NON_MONOTONIC_SEQUENCE_ORDER
+      of: ErrorCode
+    - kind: attribute
+      name: NO_TEST_FILES
+      of: ErrorCode
+    - kind: attribute
+      name: PLAN_LOCK_MISSING
+      description: 'E700: manifest in --require-plan-lock scope has no plan lock.'
+      of: ErrorCode
+      type: str
+    - kind: attribute
+      name: PLAN_LOCK_SCOPE_WIDENED
+      description: E708, a WARNING-severity code reporting that plan-lock enforcement
+        widened from the task window to every active manifest because the changed-scope
+        baseline could not be resolved.
+      of: ErrorCode
+      type: str
+    - kind: attribute
+      name: PLAN_LOCK_STALE
+      description: 'E703: lock''s recorded manifest path no longer exists.'
+      of: ErrorCode
+      type: str
+    - kind: attribute
+      name: PLAN_LOCK_UNREADABLE
+      description: 'E706: a plan lock file exists but is corrupt, unreadable, or malformed;
+        fails closed.'
+      of: ErrorCode
+      type: str
+    - kind: attribute
+      name: RED_EVIDENCE_COMMAND_MISMATCH
+      description: 'E707: red-phase evidence command strings do not match the locked
+        validate commands; indicates spliced or hand-edited evidence.'
+      of: ErrorCode
+      type: str
+    - kind: attribute
+      name: RED_PHASE_EVIDENCE_INVALID
+      description: 'E705: red evidence exists but classification is not valid red.'
+      of: ErrorCode
+      type: str
+    - kind: attribute
+      name: RED_PHASE_EVIDENCE_MISSING
+      description: 'E704: red_evidence is null under --require-red-evidence.'
+      of: ErrorCode
+      type: str
+    - kind: attribute
+      name: REMOVED_ARTIFACT_STILL_PRESENT
+      of: ErrorCode
+      type: str
+    - kind: attribute
+      name: SCHEMA_VALIDATION_ERROR
+      of: ErrorCode
+    - kind: attribute
+      name: SIGNATURE_MISMATCH
+      of: ErrorCode
+    - kind: attribute
+      name: SOURCE_PARSE_ERROR
+      of: ErrorCode
+    - kind: attribute
+      name: STUB_FUNCTION_DETECTED
+      of: ErrorCode
+    - kind: attribute
+      name: SUPERSEDED_MANIFEST_NOT_FOUND
+      of: ErrorCode
+    - kind: attribute
+      name: TEST_FILE_NOT_FOUND
+      of: ErrorCode
+    - kind: attribute
+      name: TEST_FILE_NOT_IN_READONLY
+      of: ErrorCode
+    - kind: attribute
+      name: TEST_FUNCTION_BEHAVIOR_MISMATCH
+      of: ErrorCode
+    - kind: attribute
+      name: TEST_FUNCTION_MISSING_IN_CODE
+      of: ErrorCode
+    - kind: attribute
+      name: TYPE_MISMATCH
+      of: ErrorCode
+    - kind: attribute
+      name: UNEXPECTED_ARTIFACT
+      of: ErrorCode
+    - kind: attribute
+      name: UNSUPPORTED_LANGUAGE
+      of: ErrorCode
+    - kind: attribute
+      name: VALIDATE_COMMAND_DOES_NOT_RUN_TESTS
+      description: Structured error code for a validate command set that does not
+        execute discovered behavioral tests.
+      of: ErrorCode
+      type: str
+    - kind: attribute
+      name: VALIDATOR_NOT_AVAILABLE
+      of: ErrorCode
+    - kind: attribute
+      name: VALIDATOR_PLUGIN_CONFLICT
+      description: 'Reserved code E903 (warning severity): a plugin claimed an extension
+        already claimed by a built-in or an earlier plugin.'
+      of: ErrorCode
+      type: str
+    - kind: attribute
+      name: VALIDATOR_PLUGIN_LOAD_FAILURE
+      description: 'Reserved code E902: a validator plugin failed to import or register;
+        the distribution is named and built-ins stay functional.'
+      of: ErrorCode
+      type: str
+    - kind: attribute
+      name: issues
+      of: FileTrackingEntry
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: manifests
+      of: FileTrackingEntry
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: path
+      of: FileTrackingEntry
+      type: str
+    - kind: attribute
+      name: status
+      of: FileTrackingEntry
+      type: FileTrackingStatus
+    - kind: attribute
+      name: entries
+      of: FileTrackingReport
+      type: tuple[FileTrackingEntry, Ellipsis]
+    - kind: attribute
+      name: registered
+      of: FileTrackingReport
+      type: list[FileTrackingEntry]
+    - kind: attribute
+      name: scope_only
+      description: Entries authorized through files.scope and intentionally separate
+        from tracked artifacts.
+      of: FileTrackingReport
+      type: list[FileTrackingEntry]
+    - kind: attribute
+      name: tracked
+      of: FileTrackingReport
+      type: list[FileTrackingEntry]
+    - kind: attribute
+      name: undeclared
+      of: FileTrackingReport
+      type: list[FileTrackingEntry]
+    - kind: attribute
+      name: REGISTERED
+      of: FileTrackingStatus
+    - kind: attribute
+      name: SCOPE_ONLY
+      description: File is writable through files.scope but has no artifact contract.
+      of: FileTrackingStatus
+      type: str
+    - kind: attribute
+      name: TRACKED
+      of: FileTrackingStatus
+    - kind: attribute
+      name: UNDECLARED
+      of: FileTrackingStatus
+    - kind: attribute
+      name: column
+      of: Location
+      type: Optional[int]
+    - kind: attribute
+      name: end_column
+      of: Location
+      type: Optional[int]
+    - kind: attribute
+      name: end_line
+      of: Location
+      type: Optional[int]
+    - kind: attribute
+      name: file
+      of: Location
+      type: str
+    - kind: attribute
+      name: line
+      of: Location
+      type: Optional[int]
+    - kind: attribute
+      name: ERROR
+      of: Severity
+    - kind: attribute
+      name: INFO
+      of: Severity
+    - kind: attribute
+      name: WARNING
+      of: Severity
+    - kind: attribute
+      name: command
+      of: TestRunResult
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: duration_ms
+      of: TestRunResult
+      type: float
+    - kind: attribute
+      name: exit_code
+      of: TestRunResult
+      type: int
+    - kind: attribute
+      name: manifest_slug
+      of: TestRunResult
+      type: str
+    - kind: attribute
+      name: stderr
+      of: TestRunResult
+      type: str
+    - kind: attribute
+      name: stdout
+      of: TestRunResult
+      type: str
+    - kind: attribute
+      name: stream
+      of: TestRunResult
+      type: TestStream
+    - kind: attribute
+      name: success
+      of: TestRunResult
+      type: bool
+    - kind: attribute
+      name: code
+      of: ValidationError
+      type: ErrorCode
+    - kind: attribute
+      name: location
+      of: ValidationError
+      type: Optional[Location]
+    - kind: attribute
+      name: message
+      of: ValidationError
+      type: str
+    - kind: attribute
+      name: severity
+      of: ValidationError
+      type: Severity
+    - kind: attribute
+      name: suggestion
+      of: ValidationError
+      type: Optional[str]
+    - kind: attribute
+      name: duration_ms
+      of: ValidationResult
+      type: Optional[float]
+    - kind: attribute
+      name: errors
+      of: ValidationResult
+      type: list[ValidationError]
+    - kind: attribute
+      name: file_tracking
+      of: ValidationResult
+      type: Optional[FileTrackingReport]
+    - kind: attribute
+      name: manifest_path
+      of: ValidationResult
+      type: str
+    - kind: attribute
+      name: manifest_slug
+      of: ValidationResult
+      type: str
+    - kind: attribute
+      name: mode
+      of: ValidationResult
+      type: ValidationMode
+    - kind: attribute
+      name: success
+      of: ValidationResult
+      type: bool
+    - kind: attribute
+      name: warnings
+      of: ValidationResult
+      type: list[ValidationError]
+    - kind: attribute
+      name: duration_ms
+      of: VerificationResult
+      type: Optional[float]
+    - kind: attribute
+      name: stages
+      of: VerificationResult
+      type: tuple[VerificationStageResult, ...]
+    - kind: attribute
+      name: name
+      of: VerificationStageResult
+      type: str
+    - kind: attribute
+      name: skip_reason
+      description: Reason a stage was skipped rather than executed; None for executed
+        stages. Lets formatters, JSON, and SARIF distinguish SKIPPED from PASS without
+        parsing messages.
+      of: VerificationStageResult
+      type: Optional[str]
+    - kind: attribute
+      name: success
+      of: VerificationStageResult
+      type: bool
+    - kind: class
+      name: BatchTestResult
+    - kind: class
+      name: BatchValidationResult
+    - kind: class
+      name: ErrorCode
+      bases:
+      - str
+      - Enum
+    - kind: class
+      name: FileTrackingEntry
+    - kind: class
+      name: FileTrackingReport
+    - kind: class
+      name: FileTrackingStatus
+      bases:
+      - str
+      - Enum
+    - kind: class
+      name: Location
+    - kind: class
+      name: Severity
+      bases:
+      - str
+      - Enum
+    - kind: class
+      name: TestRunResult
+    - kind: class
+      name: ValidationError
+    - kind: class
+      name: ValidationResult
+    - kind: class
+      name: VerificationResult
+      description: Structured aggregate result for the verify command.
+    - kind: class
+      name: VerificationStageResult
+      description: One verify-stage status with optional validation, coherence, tracking,
+        or test details.
+    - kind: method
+      name: to_dict
+      of: BatchValidationResult
+      returns: dict
+    - kind: method
+      name: to_dict
+      of: ValidationError
+      returns: dict
+    - kind: method
+      name: to_dict
+      description: Serializes scope_only separately inside file_tracking results.
+      of: ValidationResult
+      args:
+      - name: self
+        type: ValidationResult
+      returns: dict
+    - kind: method
+      name: to_json
+      of: ValidationResult
+      returns: str
+  - path: README.md
+    artifacts:
+    - kind: attribute
+      name: changed_scope_handoff_gate_docs
+      description: Human-facing CLI and workflow guidance for default changed-scope
+        branch handoff and explicit opt-out.
+      of: CLI Reference
+      type: section
+    - kind: attribute
+      name: repo_level_claude_install
+      of: Installation
+      type: section
+  - path: tests/cli/test_plan_cmd_red_evidence.py
+    artifacts:
+    - kind: test_function
+      name: test_revise_parser_exposes_preserve_red_evidence
+      source_scenario: A planner needs to update a plan lock after a metadata-only
+        manifest correction without rerunning green tests.
+      actions:
+      - type: api_call
+        subject:
+          function: build_parser
+      expected:
+        behavior: The plan revise parser accepts --preserve-red-evidence and sets
+          preserve_red_evidence true.
+    - kind: test_function
+      name: test_revise_preserve_red_evidence_keeps_prior_valid_red_after_metadata_change
+      source_scenario: A manifest was locked while tests were red, the implementation
+        is now green, and the manifest text receives a metadata-only correction.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: Revision succeeds, increments the revision, updates hashes, and
+          preserves the original valid red_evidence payload.
+    - kind: test_function
+      name: test_revise_preserve_red_evidence_rejects_existing_non_red_evidence
+      source_scenario: The existing lock has green/not-red evidence rather than valid
+        red evidence.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command exits 2 and leaves the lock file unchanged instead of
+          preserving non-red evidence.
+    - kind: test_function
+      name: test_revise_preserve_red_evidence_rejects_no_run_combination
+      source_scenario: A user supplies both --preserve-red-evidence and --no-run.
+      actions:
+      - type: api_call
+        subject:
+          function: cmd_plan_revise
+      expected:
+        behavior: The command exits 2 and leaves the lock file unchanged.
+    - kind: test_function
+      name: test_specs_describe_preserve_red_evidence_revise_option
+      source_scenario: A reader checks the MAID spec for the supported metadata-only
+        plan-revise workflow.
+      actions:
+      - type: api_call
+        subject:
+          export: Path
+      expected:
+        behavior: docs/maid_specs.md names --preserve-red-evidence, metadata-only
+          revisions, and valid red evidence.
+  - path: docs/draft-manifest-workflow.md
+    artifacts:
+    - kind: attribute
+      name: changed_scope_draft_handoff_gate
+      description: Draft promotion workflow guidance for default changed-scope handoff
+        validation before review or commit.
+      of: Automation
+      type: section
+  - path: CLAUDE.md
+    artifacts:
+    - kind: attribute
+      name: maid_skills_workflow
+      of: MAID Workflow
+      type: section
+  - path: tests/cli/test_manifest_promote_lock_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_promote_migrates_lock_to_promoted_path
+    - kind: test_function
+      name: test_promote_no_run_records_null_red_evidence
+    - kind: test_function
+      name: test_promote_parser_accepts_no_run_and_project_root
+    - kind: test_function
+      name: test_promote_recaptures_red_evidence_by_default
+    - kind: test_function
+      name: test_promote_refuses_mismatched_lock
+    - kind: test_function
+      name: test_promote_refuses_unreadable_lock
+    - kind: test_function
+      name: test_promote_rewrites_self_referencing_validate_paths
+    - kind: test_function
+      name: test_promote_rolls_back_when_lock_migration_fails
+    - kind: test_function
+      name: test_promote_warns_about_other_manifests_referencing_draft_path
+    - kind: test_function
+      name: test_promote_without_lock_keeps_existing_behavior
+    - kind: test_function
+      name: test_promotion_lock_migration_docs_are_discoverable
+  read:
+  - tests/cli/test_manifest_cmd.py
+  - tests/core/test_manifest.py
+  - tests/core/test_types.py
+  - tests/core/test_manifest_event_log.py
+  - maid_runner/core/diff_scope.py
+  - maid_runner/core/_file_discovery.py
+  - maid_runner/validators/base.py
+  - maid_runner/validators/registry.py
+  - maid_runner/validators/python.py
+  - tests/core/test_validate_suggestions.py
+  - manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml
+  - manifests/089-01-honor-output-suffix-in-save-manifest.manifest.yaml
+  - manifests/fix-manifest-dir-active-subdirectory-discovery.manifest.yaml
+  - manifests/043-02-enforce-active-manifest-lifecycle-status.manifest.yaml
+  - maid_runner/core/supersession_audit.py
+  - maid_runner/cli/commands/audit.py
+  - tests/core/test_plan_lock.py
+  - tests/cli/test_plan_cmd.py
+  - maid_runner/core/_test_command_execution.py
+  - tests/core/test_plan_lock_red_evidence.py
+  - manifests/067-02-capture-red-phase-evidence-on-lock.manifest.yaml
+  - manifests/067-06-cross-check-red-evidence-commands.manifest.yaml
+  - manifests/067-08-preserve-red-evidence-on-plan-revise.manifest.yaml
+  - maid_runner/core/active_task.py
+  - manifests/069-01-add-task-active-manifest-commands.manifest.yaml
+  - manifests/076-01-add-stash-backed-plan-revise.manifest.yaml
+  - manifests/fix-stash-revise-scope-targets.manifest.yaml
+  - manifests/067-01-add-plan-lock-storage-and-cli.manifest.yaml
+  - manifests/drafts/084-01-add-agent-provenance-to-outcome-records.manifest.yaml
+  - manifests/drafts/084-02-capture-agent-provenance-in-plan-locks.manifest.yaml
+  - tests/core/test_plan_lock_enforcement.py
+  - manifests/067-03-enforce-plan-lock-in-verify.manifest.yaml
+  - manifests/084-03-record-contract-deltas-in-lock-revisions.manifest.yaml
+  - manifests/drafts/085-01-recognize-django-tests-py-test-modules.manifest.yaml
+  - manifests/082-03-stash-revise-files-read-wiring-paths.manifest.yaml
+  - manifests/085-02-preserve-red-evidence-on-contract-preserving-revisions.manifest.yaml
+  - manifests/085-03-contract-scoped-plan-lock-manifest-hash.manifest.yaml
+  - manifests/085-04-test-only-green-red-evidence-mode.manifest.yaml
+  - manifests/086-01-self-describing-manifest-header.manifest.yaml
+  - manifests/fix-legacy-plan-lock-baseline-migration.manifest.yaml
+  - maid_runner/cli/commands/_format.py
+  - manifests/add-verify-summary-output.manifest.yaml
+  - docs/plans/maid-runner-self-improvement-backlog.md
+  - tests/test_learning_loop_init_payload.py
+  - tests/cli/test_095_epic_completion.py
+  - tests/test_init_draft_workflow_payload.py
+  - manifests/085-05-stash-implementation-session-robustness.manifest.yaml
+  scope:
+  - path: maid_runner/docs/draft-manifest-workflow.md
+    reason: Keep the packaged workflow guide synchronized with the canonical documentation.
+  - path: manifests/drafts/README.md
+    reason: Show the implementation-draft marker before the existing epic and archive
+      examples.
+  - path: maid_runner/manifests/drafts/README.md
+    reason: Keep the packaged draft inventory README synchronized with the canonical
+      repository copy.
+  - path: docs/maid_specs.md
+    reason: Extend the plan-lock stash workflow specification to state that declared
+      files.read wiring paths are stash targets and how the anti-gaming bound works.
+  - path: maid_runner/docs/maid_specs.md
+    reason: Keep the packaged spec copy in sync.
+  - path: AGENTS.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  snapshot:
+  - path: maid_runner/cli/commands/manifest.py
+    artifacts:
+    - kind: function
+      name: cmd_manifest
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+  - path: maid_runner/cli/commands/plan.py
+    artifacts:
+    - kind: function
+      name: cmd_plan
+      description: Dispatches the additive dependents subcommand alongside lock, revise,
+        and status.
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+    - kind: function
+      name: cmd_plan_dependents
+      description: Render the shared-test plan-lock dependency report as deterministic
+        text or JSON without changing locks.
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+    - kind: function
+      name: cmd_plan_lock
+      description: Create a plan lock and advisory-backfill the manifest header; a
+        backfill write failure prints a one-line stderr notice and does not change
+        the exit code.
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+    - kind: function
+      name: cmd_plan_revise
+      description: Explicit --preserve-red-evidence rejection continues to identify
+        the existing plan lock when stronger payload consistency checks reject malformed
+        stored evidence.
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+    - kind: function
+      name: cmd_plan_status
+      description: "Treats a manifest that cannot be parsed or hashed as a structured\
+        \ mismatch per pinned rule 8 \u2014 manifest_match false plus a manifest_error\
+        \ detail field with mismatch exit code 1 \u2014 instead of surfacing a raw\
+        \ exception through the generic CLI handler; all other status behavior is\
+        \ unchanged."
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+validate:
+- - pytest
+  - tests/
+  - -v
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/cli/test_manifest_cmd.py
+  - -v
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/core/test_types.py
+  - tests/core/test_manifest.py
+  - tests/cli/test_manifest_cmd.py
+  - -q
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/cli/test_manifest_cmd.py
+  - tests/core/test_manifest_event_log.py
+  - -q
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/core/test_manifest_from_diff.py
+  - tests/cli/test_manifest_from_diff_cmd.py
+  - -v
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/061-02-add-maid-manifest-from-diff-command.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/core/test_validate_suggestions.py
+  - tests/core/test_manifest_from_diff.py
+  - tests/cli/test_manifest_from_diff_cmd.py
+  - -v
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/061-03-suggest-validate-commands-from-test-layout.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/cli/test_manifest_promote_yaml_style_cmd.py
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/fix-promote-multiline-yaml-style.manifest.yaml
+  - --mode
+  - behavioral
+  - --quiet
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/fix-promote-multiline-yaml-style.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/086-01-self-describing-manifest-header.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/core/test_manifest_header.py
+  - -v
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/cli/test_manifest_from_diff_cmd.py
+  - -v
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/core/test_manifest_from_diff.py
+  - -v
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/core/test_manifest.py
+  - -v
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/core/test_snapshot.py
+  - -v
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/cli/test_manifest_from_diff_output_suffix.py
+  - tests/cli/test_manifest_from_diff_cmd.py
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/089-03-validate-from-diff-output-suffix.manifest.yaml
+  - --mode
+  - behavioral
+  - --quiet
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/core/test_inactive_manifest_repair_guidance.py
+  - tests/cli/test_manifest_create_draft_marker_cmd.py
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/core/test_plan_lock.py
+  - tests/cli/test_plan_cmd.py
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/067-01-add-plan-lock-storage-and-cli.manifest.yaml
+  - --mode
+  - behavioral
+  - --quiet
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/067-01-add-plan-lock-storage-and-cli.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/core/test_plan_lock_red_evidence.py
+  - tests/cli/test_plan_cmd_red_evidence.py
+  - tests/cli/test_plan_cmd.py
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/067-02-capture-red-phase-evidence-on-lock.manifest.yaml
+  - --mode
+  - behavioral
+  - --quiet
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/067-02-capture-red-phase-evidence-on-lock.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/cli/test_plan_cmd_red_evidence.py
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/067-08-preserve-red-evidence-on-plan-revise.manifest.yaml
+  - --mode
+  - behavioral
+  - --quiet
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/067-08-preserve-red-evidence-on-plan-revise.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/cli/test_plan_cmd_stash_implementation.py
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/076-01-add-stash-backed-plan-revise.manifest.yaml
+  - --mode
+  - behavioral
+  - --quiet
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/076-01-add-stash-backed-plan-revise.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/076-03-allow-lifecycle-dirt-in-stash-revise.manifest.yaml
+  - --mode
+  - behavioral
+  - --quiet
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/076-03-allow-lifecycle-dirt-in-stash-revise.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/cli/test_plan_cmd_stash_scope_targets.py
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/cli/test_stash_revise_files_read_targets.py
+  - -v
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/082-03-stash-revise-files-read-wiring-paths.manifest.yaml
+  - --mode
+  - behavioral
+  - --quiet
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/082-03-stash-revise-files-read-wiring-paths.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/core/test_agent_provenance_resolution.py
+  - tests/cli/test_plan_lock_provenance_cmd.py
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/core/test_contract_delta.py
+  - tests/cli/test_plan_status_contract_delta_cmd.py
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/cli/test_plan_legacy_baseline_cmd.py
+  - tests/cli/test_plan_cmd_red_evidence.py
+  - tests/core/test_plan_lock_enforcement.py
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/fix-legacy-plan-lock-baseline-migration.manifest.yaml
+  - --mode
+  - behavioral
+  - --quiet
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/fix-legacy-plan-lock-baseline-migration.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/cli/test_plan_revise_auto_preserve.py
+  - -v
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/085-02-preserve-red-evidence-on-contract-preserving-revisions.manifest.yaml
+  - --mode
+  - behavioral
+  - --quiet
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/085-02-preserve-red-evidence-on-contract-preserving-revisions.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/cli/test_plan_revise_test_only_green.py
+  - -v
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/085-04-test-only-green-red-evidence-mode.manifest.yaml
+  - --mode
+  - behavioral
+  - --quiet
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/085-04-test-only-green-red-evidence-mode.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/cli/test_stash_revise_session_robustness.py
+  - -v
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/cli/test_plan_session_robustness.py
+  - -v
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/core/test_contract_hash_normalization.py
+  - -v
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/085-05-stash-implementation-session-robustness.manifest.yaml
+  - --mode
+  - behavioral
+  - --quiet
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/085-05-stash-implementation-session-robustness.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/088-01-backfill-manifest-header-at-agent-gates.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/cli/test_manifest_header_backfill.py
+  - -v
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/cli/test_plan_cmd_stash_implementation.py
+  - -q
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/cli/test_plan_revise_preserve_command_mismatch.py
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/cli/test_plan_revise_legacy_baseline.py
+  - tests/cli/test_plan_revise_auto_preserve.py
+  - tests/cli/test_plan_legacy_baseline_cmd.py
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/fix-legacy-baseline-revise-preservation.manifest.yaml
+  - --mode
+  - behavioral
+  - --quiet
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/fix-legacy-baseline-revise-preservation.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/cli/test_plan_dependents_cmd.py
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/098-01-surface-shared-test-plan-lock-dependents.manifest.yaml
+  - --mode
+  - behavioral
+  - --quiet
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/cli/test_manifest_promote_red_evidence_preservation.py
+  - tests/cli/test_manifest_promote_lock_cmd.py
+  - tests/cli/test_manifest_cmd.py
+  - tests/cli/test_plan_cmd.py
+  - tests/cli/test_plan_revise_preserve_command_mismatch.py
+  - tests/test_learning_loop_init_payload.py
+  - tests/cli/test_095_epic_completion.py
+  - tests/test_init_draft_workflow_payload.py
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/fix-promotion-red-evidence-preservation.manifest.yaml
+  - --mode
+  - behavioral
+  - --quiet
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/fix-promotion-red-evidence-preservation.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+supersedes:
+- 058-01-enforce-manifest-created-timestamps
+- 061-02-add-maid-manifest-from-diff-command
+- 061-03-suggest-validate-commands-from-test-layout
+- 086-01-self-describing-manifest-header
+- 089-03-validate-from-diff-output-suffix
+- add-manifest-temptations-section
+- fix-inactive-manifest-repair-guidance
+- fix-manifest-create-command
+- fix-promote-multiline-yaml-style
+- snapshot-cli-commands-manifest
+- snapshot-cli-commands-plan
+created: '2026-08-17T05:23:10Z'

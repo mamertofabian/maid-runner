@@ -2,10 +2,10 @@
   "manifest_path": "manifests/fix-stash-revise-red-evidence-diagnostics.manifest.yaml",
   "manifest_hash": "sha256-contract:0b321bc624e8b274e734eeec95db115804c208096ba8e940cb74f1b79466b342",
   "test_hashes": {
-    "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:6e9a026e1b4302412e3e93366c9480a181dda89d1d3f0e6571eafe8fd2ed7809"
+    "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:v2:fbd34d55589b10dad67730fadb341f3932bbf3bfcf08bd429de88028e5b7b403"
   },
   "created_at": "2026-07-27T13:52:37.177693+00:00",
-  "revision": 5,
+  "revision": 7,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:2d0683e714267be3a663c45884abb16bec0a77789e1938e120b100767cf2b30b",
@@ -75,6 +75,40 @@
           "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_rejects_green_stashed_state_without_revising_lock",
           "tests/cli/test_plan_cmd_stash_implementation.py:test_stash_implementation_rejects_green_stashed_state_without_revising_lock:kind=test_function"
         ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:0b321bc624e8b274e734eeec95db115804c208096ba8e940cb74f1b79466b342",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:6e9a026e1b4302412e3e93366c9480a181dda89d1d3f0e6571eafe8fd2ed7809"
+      },
+      "revised_at": "2026-08-11T00:27:10.305545+00:00",
+      "reason": "accept approved 121-05 shared-test performance refactor",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:0b321bc624e8b274e734eeec95db115804c208096ba8e940cb74f1b79466b342",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:v2:48c0b895751fcc8b629d3c2d720c19bc0a45a78d902ae8018cfd7d2737a47bfb"
+      },
+      "revised_at": "2026-08-11T01:13:19.156121+00:00",
+      "reason": "accept review-hardened 121-05 shared-test refactor",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
         "artifacts_removed": [],
         "files_added": [],
         "files_removed": [],

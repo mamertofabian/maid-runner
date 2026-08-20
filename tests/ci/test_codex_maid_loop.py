@@ -24,6 +24,41 @@ class TestCodexMaidLoopDiscovery(unittest.TestCase):
 
 
 class TestCodexMaidLoopCommand(unittest.TestCase):
+    def test_public_automation_wrappers_execute_core_delegates(self) -> None:
+        packet = codex_maid_loop.CommitPacket(
+            message="test: wrapper",
+            files=["tests/example.py"],
+        )
+        with (
+            mock.patch.object(
+                codex_maid_loop,
+                "_core_git_status_short",
+                return_value=" M tests/example.py\n",
+            ) as status,
+            mock.patch.object(
+                codex_maid_loop,
+                "_core_ask_commit_approval",
+                return_value=True,
+            ) as approval,
+            mock.patch.object(
+                codex_maid_loop,
+                "_core_commit_ready_changes",
+                return_value=0,
+            ) as commit,
+        ):
+            self.assertEqual(
+                " M tests/example.py\n", codex_maid_loop.git_status_short()
+            )
+            self.assertTrue(codex_maid_loop.ask_commit_approval(3, "READY"))
+            self.assertEqual(0, codex_maid_loop.commit_ready_changes(packet))
+
+        status.assert_called_once_with(codex_maid_loop._ROOT)
+        approval.assert_called_once_with(3, "READY")
+        committed_packet, committed_root = commit.call_args.args
+        self.assertEqual(packet.message, committed_packet.message)
+        self.assertEqual(packet.files, committed_packet.files)
+        self.assertEqual(codex_maid_loop._ROOT, committed_root)
+
     def test_direct_script_dry_run_entrypoint_imports_shared_core(self) -> None:
         process = subprocess.run(
             [

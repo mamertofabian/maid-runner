@@ -143,6 +143,14 @@ Both templates accept:
   `uv sync --group dev`.
 - `manifest-dir`: Manifest directory passed to MAID.
 - `test-jobs`: Parallel MAID test jobs.
+- `pytest-workers`: Pytest-xdist workers used inside manifest test commands.
+
+<!-- _github_actions_pytest_worker_guidance -->
+Direct CI runs in this repository default to four pytest workers to match
+GitHub-hosted runner capacity. Reusable-workflow callers that omit
+`pytest-workers` retain their own repository worker policy; callers can provide
+an explicit supported override. This does not change maid-runner's
+eight-worker local default.
 
 `maid-validation.yml` also accepts:
 

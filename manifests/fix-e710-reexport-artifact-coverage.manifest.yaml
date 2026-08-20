@@ -1,0 +1,250 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Credit executed Python package re-exports without weakening E710"
+type: fix
+created: "2026-08-16T13:38:55Z"
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags: [artifact-coverage, validation-trust, reexport, E710]
+description: |
+  Repository-wide deep verification has 44 unique E710 failures for public
+  functions declared from Python package __init__.py files. These declarations
+  are import re-exports, so the declaration file has no local FunctionDef body
+  for artifact coverage to execute. Calling the public export executes the
+  resolved implementation body, but both the exact and derived evaluators
+  currently discard that evidence and emit an unconditional E710.
+
+  Resolve one-level Python package re-exports through the existing
+  module_paths.resolve_reexport boundary. Coverage collection must include the
+  resolved implementation file and evaluation must match the resolved source
+  name/body while preserving the public declaration path/name in findings and
+  diagnostics. Plain and aliased exports are supported. A re-export that is
+  merely imported, or cannot be resolved to an executed implementation body,
+  remains E710. Local function behavior and report ordering remain unchanged.
+
+  This isolated bug fix addresses only executable re-exported functions. The
+  separately reported abstract Protocol/value-class representation limits and
+  the repository's concrete stale-test debt stay out of scope.
+temptations:
+  - risk: "Do not treat importing an __init__.py re-export as execution of the exported function."
+    instead: "Resolve the implementation identity and require its function body or call qualname to execute before marking the public declaration covered."
+  - risk: "Do not add dummy wrappers to package __init__.py files solely to manufacture executable lines."
+    instead: "Reuse the existing one-level Python re-export resolver and preserve the current public API implementation shape."
+  - risk: "Do not turn unresolved imports, star imports, or multi-hop barrels into coverage successes."
+    instead: "Fail closed to the existing declaration-local evaluation unless the existing resolver returns a concrete source module and symbol."
+  - risk: "Do not rewrite E710 findings to the implementation file and lose the manifest-facing contract identity."
+    instead: "Collect from the resolved target but render findings and diagnostics against the declared package path and public symbol."
+files:
+  create:
+    - path: tests/core/test_artifact_coverage_reexports.py
+      artifacts:
+        - kind: test_function
+          name: test_exact_and_derived_coverage_credit_called_package_reexport
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_aliased_reexport_uses_source_symbol_but_reports_public_identity
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_imported_but_uncalled_reexport_remains_e710
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_star_reexport_remains_e710
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_multihop_reexport_remains_e710
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+  edit:
+    - path: maid_runner/core/artifact_coverage.py
+      artifacts:
+        - kind: function
+          name: run_artifact_coverage
+          args:
+            - name: manifest
+              type: Manifest
+            - name: project_root
+              type: Path
+            - name: executor
+              type: RuntimeCommandExecutor | None
+              default: "None"
+          returns: ArtifactCoverageReport
+          description: "Exact artifact coverage resolves one-level package re-exports to executed implementation bodies while retaining public declaration identities."
+        - kind: function
+          name: run_artifact_coverage_batch
+          args:
+            - name: manifests
+              type: Sequence[Manifest]
+            - name: project_root
+              type: Path
+            - name: executor
+              type: RuntimeCommandExecutor | None
+              default: "None"
+            - name: jobs
+              type: int | None
+              default: "None"
+            - name: max_processes
+              type: int | None
+              default: "None"
+            - name: snapshot_backend
+              type: ProjectSnapshotBackend | None
+              default: "None"
+            - name: isolated_runner
+              type: "Callable[[Sequence[RuntimeCommandIdentity], Path, Mapping[RuntimeCommandIdentity, set[str]], ProjectSnapshotBackend, RuntimeCommandExecutor, int, int], ArtifactCoverageFallbackRun] | None"
+              default: "None"
+          returns: dict[str, ArtifactCoverageReport]
+          description: "The shared-command exact batch applies the same re-export execution rule as the single-manifest path."
+        - kind: function
+          name: evaluate_artifact_coverage_from_evidence
+          args:
+            - name: manifests
+              type: Sequence[Manifest]
+            - name: project_root
+              type: Path
+            - name: evidence
+              type: RuntimeEvidenceBundle
+            - name: fallback_executor
+              type: RuntimeCommandExecutor | None
+              default: "None"
+            - name: fallback_jobs
+              type: int
+              default: "1"
+            - name: max_processes
+              type: int
+              default: "1"
+            - name: snapshot_backend
+              type: ProjectSnapshotBackend | None
+              default: "None"
+            - name: isolated_runner
+              type: "Callable[[Sequence[RuntimeCommandIdentity], Path, Mapping[RuntimeCommandIdentity, set[str]], ProjectSnapshotBackend, RuntimeCommandExecutor, int, int], ArtifactCoverageFallbackRun] | None"
+              default: "None"
+            - name: evidence_mode
+              type: str
+              default: exact
+          returns: EvidenceArtifactCoverageResult
+          description: "Derived and exact-fallback evidence apply the same fail-closed re-export identity rule as the single-manifest path."
+  scope:
+    - path: maid_runner/core/runtime_evidence.py
+      reason: "Grouped collection must include each safely resolved implementation file so derived evidence can observe the implementation body invoked through a declared package export."
+  read:
+    - maid_runner/core/module_paths.py
+    - maid_runner/core/_runtime_command_executor.py
+    - tests/core/test_artifact_coverage.py
+    - tests/core/test_artifact_coverage_from_runtime_evidence.py
+    - manifests/121-23-default-derived-coverage-evidence.manifest.yaml
+    - manifests/121-40-restore-optimized-artifact-coverage-equivalence.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_artifact_coverage_reexports.py tests/core/test_artifact_coverage.py tests/core/test_artifact_coverage_from_runtime_evidence.py
+  - uv run maid validate manifests/fix-e710-reexport-artifact-coverage.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-16T22:05:35+08:00"
+  summary: "Direct and aliased Python package function re-exports now receive E710 credit only when their resolved implementation bodies execute, while public declaration identities and fail-closed behavior are preserved."
+  rationale: |
+    Exact single, exact batch, and derived artifact-coverage paths now collect and
+    evaluate one-level resolved implementation files through the existing resolver.
+    The isolated fix removed 42 repository-wide false-positive E710 findings (140
+    down to 98); the remaining findings are concrete test debt or separately scoped
+    abstract/protocol representation limits.
+  agent:
+    model: GPT-5
+    provider: OpenAI
+    client: Codex
+    skills:
+      - maid-planner
+      - maid-plan-review
+      - maid-implementer
+      - maid-implementation-review
+  lessons:
+    - lesson_type: artifact-coverage
+      summary: "A public re-export has no local executable body, so trustworthy coverage must collect the resolved source body while continuing to report the manifest-facing public identity."
+      tags:
+        - validation-trust
+        - reexport
+        - E710
+        - maid-runner-feedback
+      paths:
+        - maid_runner/core/artifact_coverage.py
+        - maid_runner/core/runtime_evidence.py
+        - tests/core/test_artifact_coverage_reexports.py
+    - lesson_type: validation-integrity
+      summary: "Behavioral validators need direct observable assertions in each negative test even when a shared helper performs the detailed checks; sanctioned plan revision must lock the final test AST after such edits."
+      tags:
+        - behavioral-tests
+        - plan-lock
+        - E210
+        - E701
+        - maid-runner-feedback
+      paths:
+        - tests/core/test_artifact_coverage_reexports.py
+        - .maid/plan-locks/fix-e710-reexport-artifact-coverage.lock.json
+  review_notes:
+    - source: implementation-review-subagent
+      severity: warning
+      summary: "Initial review found the assertion-only contract edit was not reflected in revision 4; sanctioned revision 5 restored exact behavioral-test hash integrity with honest red evidence preserved."
+    - source: implementation-review-subagent
+      severity: info
+      summary: "Final re-review found no blocking code or scope issues and returned ready; re-export-specific coverage of exact-evidence fallback and isolated jobs>1 batching remains an advisory hardening opportunity because surrounding tests cover those mechanisms."
+  validation:
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/fix-e710-reexport-artifact-coverage.manifest.yaml
+        - --mode
+        - implementation
+        - --artifact-coverage
+        - --packet
+      status: passed
+      summary: "Implementation validation passed and executed all three declared artifact-coverage APIs."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/fix-e710-reexport-artifact-coverage.manifest.yaml
+      status: passed
+      summary: "Both declared command groups passed, including 31 focused and shared artifact-coverage tests."
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - tests/
+        - -q
+      status: passed
+      summary: "The full suite passed with 4,379 tests and 14 skips."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --profile
+        - deep
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - be022eb
+      status: failed-unrelated
+      summary: "Schema, behavioral, and implementation stages passed; repository-wide artifact coverage remained blocked by 98 pre-existing E710 findings after this fix removed 42 direct re-export false positives."

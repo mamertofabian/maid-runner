@@ -1,67 +1,219 @@
-# archive-kind: consumed-draft-epic
+# draft-kind: epic
+# promotion: split-before-promote
 schema: "2"
-goal: "Archive the consumed fast-verification roadmap"
+goal: "Slash full maid test and deep verification time without weakening runtime evidence"
 type: refactor
 created: "2026-08-10T14:05:00+08:00"
 metadata:
-  status: archived
-  priority: low
+  status: planning
+  priority: high
   tags:
     - performance
     - verify
     - test-runner
-    - task-scope
+    - artifact-coverage
+    - knockout
     - parallelism
-    - archive
 description: |
-  This roadmap has been consumed. Child 121-01 was promoted and delivered a
-  safe task-scoped handoff tests stage. Child 121-02 was implemented
-  experimentally and archived after isolated shards changed test outcomes.
+  Reopened after 121-01 delivered a safe task-scoped handoff path and 121-02
+  showed that blind pytest subprocess sharding can change outcomes when the
+  execution environment is not held constant. Later reconstruction found its
+  TypeScript failures were confounded by a missing npm dependency, so the first
+  child now obtains controlled full-suite evidence instead of assuming a cache
+  leak. The remaining
+  repository-wide paths are still operationally unacceptable: the last green
+  `maid test` took 233.22-235.27 seconds, while assessed deep verification ran
+  1,827.5 seconds and stopped at artifact coverage before reaching knockout or
+  the ordinary tests stage.
 
-  Fresh profiling on 519 active manifests and 3,919 collected pytest cases
-  measured repository-wide verify at 237.62s. The tests stage consumed
-  228.48s, while every static MAID gate together consumed about nine seconds.
-  One repository-wide batched pytest command consumed 182.16s.
+  The integrated timing probe at 0e4e2c5 recorded 3,927 pytest cases; a final
+  collection recheck after reopening planning inventory found 3,936. The broad
+  batch used 184.23 seconds, with 136.19 seconds concentrated in the slowest
+  150 subprocess/Git-heavy tests. Deep coverage has 353 command
+  declarations but 352 share one batch-compatibility key; the implementation
+  nevertheless launches 297 exact coverage command tuples serially. Knockout
+  would then process 1,093 declarations (554 unique artifacts) and up to 1,867
+  validate commands through an in-place serial rewrite loop.
 
-  Existing caches are effective: the manifest chain, parsed source/test
-  artifacts, discovery results, assertion checks, and quiet `maid validate`
-  commands are reused within the invocation. The remaining problem is test
-  selection and subprocess scheduling, not missing static-validation caches.
+  The new strategy is ordered around correctness prerequisites, not raw
+  concurrency:
 
-  Child results:
+  1. prove pytest process/file isolation in one dependency-complete environment;
+  2. separate slow policy matrices from real subprocess and Git adapters while
+     retaining focused adapter integration tests;
+  3. separate advisory timing policy from runner-native worker execution;
+  4. collect fixture-aware per-test runtime evidence once per compatible
+     behavior group;
+  5. prove evidence-to-report equivalence before deep reuses the run;
+  6. replace knockout amplification through exact deduplication, differential
+     detector evidence, isolated snapshots, and bounded workers;
+  7. use the same proven snapshot/process-budget boundary to bound conservative
+     exact artifact-coverage fallbacks that cannot use grouped fixture evidence.
 
-  1. `121-01-add-explicit-task-scoped-handoff-tests` - keep repository-wide
-     static validation but run only changed active manifests' declared test
-     commands for assessed handoff verification. The measured current-task
-     probe completed in 9.54s instead of 237.62s.
-  2. `121-02-shard-broad-pytest-batches-across-test-jobs` was rejected because
-     repository-integrated shards exposed process-order dependencies and did
-     not preserve the passing gate result.
+  Planned child order:
 
-  Do not promote or implement this archived epic. Future full-suite
-  parallelism requires a new contract after test-file independence is proven.
+  1. `121-03-prove-pytest-process-isolation-before-parallelism` - reproduce
+     genuine order-sensitive fixture projects, correct the environment-confounded
+     121-02 diagnosis, and provide a non-recursive external full-suite
+     serial/xdist outcome-equivalence probe. Matching failures are not green,
+     and there is no marker-only serial escape hatch.
+  2. `121-04-separate-runtime-policy-from-subprocess-tests` - inject an owned
+     runtime-evidence executor so artifact-coverage and nested strict-preview
+     policy cases use deterministic fakes, while a bounded adapter suite still
+     runs real coverage/pytest processes.
+  3. `121-05-reuse-fast-real-git-test-projects` - replace repeated Git
+     init/config/commit setup in plan-lock and stash policy matrices with
+     clones of immutable tiny templates, preserving real index, stash, and
+     worktree behavior.
+  4. `121-06-record-duration-informed-pytest-policy` - keep advisory per-node
+     timing history and scheduler decisions separate from test execution.
+  5. `121-07-integrate-duration-informed-pytest-workers` - use the resolved
+     consumer pytest environment and a bounded process budget to activate
+     xdist only for expensive compatible groups, pinned to the loadscope
+     scheduler and eight-worker count accepted by 121-03, with structured
+     notices across repository, task, and single-manifest paths.
+  6. `121-08-collect-fixture-aware-runtime-evidence` - capture node, fixture,
+     collection, and command contexts with explicit completeness metadata;
+     ambiguous contexts or unproven wider/autouse/yield fixture lifecycles fall
+     back to exact commands.
+  7. `121-09-prove-runtime-evidence-artifact-coverage-equivalence` - compare
+     evidence-derived E710/E900 reports with the legacy runner before any CLI
+     stage consumes them.
+  8. `121-10-reuse-runtime-evidence-in-deep-verify` - reuse only overlapping
+     pytest execution at the artifact-coverage stage and defer residual
+     commands to their original tests-stage boundary.
+  9. `121-11-deduplicate-knockout-mutation-specs` - build immutable unique
+     mutation plans while retaining exact per-manifest declaration/command
+     attribution and legacy per-declaration execution isolation.
+  10. `121-12-require-differential-knockout-detection` - accept a focused
+      detector only after green-mutant-red-restored-green proof; every
+      inconclusive case runs the original command, including source,
+      collection, fixture/order, and subprocess observers.
+  11. `121-13-isolate-knockouts-in-project-snapshots` - execute every command
+      against a materialized current-byte snapshot so source readers, path
+      loaders, editable imports, and child processes see the mutation without
+      touching shared source or ordinary/linked-worktree Git metadata.
+  12. `121-14-run-isolated-knockouts-with-bounded-workers` - schedule snapshot
+      workers under one process budget, give every declaration fresh/reset
+      child state, and restore deterministic order regardless of completion.
+  13. `121-15-parallelize-isolated-artifact-coverage-fallbacks` - preserve
+      exact pytest lifecycles for unproven root/session fixtures while bounding
+      the fallback wall time with independently verified snapshots, material
+      write detection, deterministic reports, and serial fail-closed reruns.
+      Outcome: the machinery was hardened and retained, but its acceptance
+      failed the 270-second bar and the production deep path was rolled back
+      to the legacy serial batch through the 121-10 preflight.
+  14. `121-16-align-snapshot-troubleshooting-contract` - align E712
+      troubleshooting guidance with snapshot isolation.
+  15. `121-17-isolate-nested-test-process-identities` - give nested test
+      processes their own controller/worker topology and end-anchored timing.
+  16. `121-18-preserve-safe-snapshot-test-prerequisites` - preserve resolved
+      Git author and deterministic worker-overlap prerequisites in snapshots.
+
+  Continuation registered 2026-08-13 after the review of this branch found
+  the deep gate still spending 24-46 minutes in the legacy serial coverage
+  batch. Root causes: the grouped-evidence path is preflight-disabled for any
+  conftest-bearing repository, the isolated fallback worker escalates the
+  whole batch to serial replay when any single command is red or writes
+  material state, and no result survives between runs. Two policy decisions
+  were made explicitly by the user on 2026-08-13: derived, disclosed coverage
+  evidence becomes the default E710 standard (exact per-command mode stays
+  available and knockout keeps exact differential commands), and deep results
+  gain a persistent cache keyed by content digests plus typed
+  resolved-environment identity.
+
+  17. `121-19-route-exact-coverage-batch-through-isolated-lanes` - route the
+      legacy shared-command batch through the hardened isolated lanes with
+      config-resolved jobs and a disclosed execution summary; jobs of one
+      stays byte-for-byte serial.
+  18. `121-20-escalate-only-affected-coverage-identities` - replace the
+      whole-batch unsafe flag with per-identity escalation, lane snapshot
+      recycling on material writes, red-command in-place confirmation, and
+      shared-queue handover from failed lanes; remeasure the cold coverage
+      stage as the budget decision gate.
+  19. `121-26-bind-coverage-runner-monitoring-disable` - bind sys.monitoring
+      DISABLE once so instrumented tests cannot fabricate E710 gaps.
+  20. `121-27-share-coverage-lane-dependency-environments` - coverage lanes
+      copy source and Git only and reuse the shared .venv and node_modules.
+  21. `121-23-default-derived-coverage-evidence` - the user-approved derived
+      evidence mode as default with per-stage provenance labels; exact mode
+      retained by flag/config; knockout differential commands stay exact.
+      Includes approval-aware conftest preflight and grouped-path subset replay.
+  22. `121-24-task-scoped-deep-verification` - optional task scoping of the
+      coverage and knockout stages through the changed-manifest closure.
+  23. `121-28-reuse-ordinary-tests-after-isolated-knockout` - reuse matching
+      pytest groups at the tests stage when knockout did not mutate the checkout.
+  24. `121-21-persist-artifact-coverage-evidence-cache` - persistent
+      deep-evidence store for coverage command records keyed by the hermetic
+      content plus resolved-environment identity, with mandatory disclosure,
+      cached red results, and a no-cache escape hatch.
+  25. `121-22-persist-knockout-evidence-cache` - extend the store to
+      per-spec differential knockout results with mutated-body digests.
+  26. `121-25-tune-maid-test-command-jobs` - measured command_jobs tuning
+      toward the 60-second maid test budget.
+  27. `121-45-scope-assessed-deep-to-task` - make the exact deep command
+      emitted by `maid assess --since/--base-ref` opt into the shipped
+      changed-manifest scope for coverage, knockout, and ordinary tests.
+  28. `121-46-checkpoint-knockout-cache-per-worker` - persist each completed
+      knockout worker immediately so interruption and timeout preserve proven
+      progress instead of discarding the entire multi-hour batch.
+  29. `121-47-template-fresh-knockout-roots` - capture one immutable
+      invocation template and clone each declaration's distinct source/Git
+      root from it, eliminating concurrent rescans and copies of the live
+      repository while retaining fresh-root and fail-closed cache semantics.
+  30. `121-48-share-knockout-command-controls` - group exact one-command
+      knockout declarations by command, slug, environment, and captured input
+      identity; run one green baseline in a stable-path root, reset that root
+      from an immutable post-baseline checkpoint before each mutant, and retain
+      a separate restored-green command for every artifact.
+
+  Promotion prerequisites are strict. 121-07 cannot enable workers until the
+  121-03 full-suite probe is green. 121-09 cannot consume evidence until
+  121-08 proves fixture/collection attribution or exact-command fallback.
+  121-10 cannot reuse a run until 121-09 matches legacy reports. Knockout
+  narrowing is never used as proof of non-detection: 121-12 must fall back to
+  original commands whenever its three-point differential proof is absent.
+  Buffered ordinary-test reuse is disabled when in-place knockout intervenes.
+  The coverage/deep time budgets become enforceable at 121-20's remeasure of
+  the complete production decision path, not at any phase-level speedup, and
+  no acceptance step may require a reference run longer than ten minutes;
+  bounded sampled equivalence replaces full serial-versus-parallel parity.
+
+  Target budgets on the 16-thread reference machine are under 60 seconds for
+  green `maid test`, under 180 seconds for cold repository artifact coverage,
+  and under five minutes for a known-green deep profile including knockout.
+  The repository target becomes enforceable only after the independent 1,680
+  E710 debt items are closed; until then, use `--keep-going` and known-green
+  fixtures for end-to-end timing. No performance child may suppress that debt.
 temptations:
-  - risk: "Do not cache successful pytest results across CLI invocations with an incomplete dependency key."
-    instead: "Use task-scoped command selection and explicit in-run parallelism; keep every selected test command executing against current inputs."
-  - risk: "Do not skip repository-wide static validation to obtain the task-handoff timing."
-    instead: "Narrow only the tests-stage manifest command inventory while retaining schema, behavioral, implementation, coherence, and configured scope gates."
-  - risk: "Do not silently treat an unresolved task baseline as an empty test selection."
-    instead: "Return a visible blocking diagnostic or explicitly disclose fail-closed widening to repository tests."
-  - risk: "Do not shard stateful or non-combinable pytest commands."
-    instead: "Shard only commands that already pass the existing batch-compatibility policy and retain the serial path for unsupported option sets."
+  - risk: "Do not revive raw round-robin, contiguous, or file-count-based pytest sharding."
+    instead: "First prove file/process isolation, then use pytest's runner-native scheduler behind a duration-informed threshold and deterministic result buffering."
+  - risk: "Do not make one global coverage run count unrelated ambient execution for every manifest."
+    instead: "Capture coverage.py line and call contexts per pytest node and evaluate each manifest only against contexts selected by its original commands."
+  - risk: "Do not infer that baseline non-execution makes a test irrelevant to a knockout."
+    instead: "Use green-red-green differential detector evidence only as positive proof; source-inspection, fixture/order, collection, subprocess, or otherwise inconclusive cases run their original commands."
+  - risk: "Do not run concurrent knockouts by rewriting the shared worktree or using an import-only overlay."
+    instead: "Execute commands in materialized current-byte project snapshots so every source reader and child process sees the mutation while original bytes remain unchanged."
+  - risk: "Do not cache a green deep result using an incomplete key."
+    instead: "Persist results only under the hermetic key approved 2026-08-13: full-tree content digest plus typed resolved-environment identity plus runner version, never commit hashes, mtimes, or test-file lists; cache red results too and disclose every hit."
 files:
   create:
     - path: manifests/drafts/121-00-fast-verification-roadmap.epic.yaml
       artifacts:
         - kind: attribute
-          name: _archived_fast_verification_roadmap
+          name: _full_and_deep_verification_performance_roadmap
           of: manifest
-          type: archived draft epic
-          description: "Historical pointer for the delivered 121-01 optimization and rejected 121-02 experiment."
+          type: draft epic
+          description: "Split-before-promote roadmap for test isolation, test-runtime reduction, attributed coverage evidence reuse, and isolated parallel knockout."
   read:
+    - docs/plans/full-and-deep-verification-performance-redesign.md
     - docs/plans/maid-runner-performance-backlog.md
-    - maid_runner/cli/commands/verify.py
+    - manifests/121-01-add-explicit-task-scoped-handoff-tests.manifest.yaml
+    - manifests/drafts/121-02-shard-broad-pytest-batches-across-test-jobs.manifest.yaml
     - maid_runner/core/test_runner.py
     - maid_runner/core/_test_command_batching.py
+    - maid_runner/core/artifact_coverage.py
+    - maid_runner/core/knockout.py
+    - maid_runner/cli/commands/verify.py
 validate:
   - uv run maid validate manifests/drafts/121-00-fast-verification-roadmap.epic.yaml --mode schema --quiet

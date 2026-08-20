@@ -1,0 +1,232 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Clone fresh knockout declaration roots from one immutable batch template"
+type: refactor
+created: "2026-08-17T14:54:34Z"
+supersedes:
+  - 121-42-retain-dependencies-across-fresh-knockout-roots
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - knockout
+    - snapshots
+    - cache
+description: |
+  The release-baseline deep gate selected 487 unique knockout mutations and
+  remained in the worker stage after roughly 40 minutes. Focused commands and
+  small real knockout batches finish in seconds; sustained eight-lane batches
+  collapse because every declaration independently rescans the live source,
+  Git object/config/ref state, and dependency identities, then recopies source
+  and Git metadata. One fresh retained-dependency root takes about 1.23 seconds
+  alone but 13.4-14.2 seconds when eight workers create roots concurrently.
+
+  Evolve 121-42 without restoring its generated-state leak. During one retained
+  worker lifetime, capture a private immutable source/Git template from the
+  exact current bytes and repository/dependency identities. Every declaration
+  still receives a distinct disposable source/Git root cloned from that
+  template; copied dependency environments remain isolated per worker and are
+  rebound so editable loaders observe the current declaration root. Keep the
+  Python bytecode prefix inside each disposable declaration root: editable
+  loader metadata is rewritten in the retained dependency environment, so a
+  worker-owned prefix could reuse stale bytecode that targets a deleted prior
+  root. Generated source, bytecode, and Git state from one declaration must
+  remain absent from the next.
+
+  Capture the live source, repository, and dependency identities before any
+  command and verify them again before the retained lifetime succeeds. A drift
+  failure is E712/fail-closed. Bind persistent knockout spec keys to the
+  captured repository identity in addition to the existing content, runner,
+  environment, mutation, and declaration inputs. This makes checkpoints from
+  an interrupted batch unusable after Git-only ref/config/index/object drift,
+  even when project file bytes are unchanged.
+
+  Provide the complete batch-required path union to the retained backend before
+  its first declaration so a later explicitly required Git-ignored artifact is
+  present in the immutable template without recapturing live state.
+
+  Prove the optimization with a bounded public-behavior test: increasing the
+  declaration count must not increase live-repository capture calls, while
+  distinct roots, editable mutation visibility, generated-state isolation,
+  deterministic reports, and source/Git/dependency drift rejection remain
+  intact. Do not use another full multi-hour reference run as acceptance.
+temptations:
+  - risk: "Do not return to one mutable source/Git root per worker."
+    instead: "Keep one immutable, never-executed template and clone a distinct disposable declaration root from it."
+  - risk: "Do not drop the final live source, repository, or dependency identity proof to gain speed."
+    instead: "Capture all three before execution and verify all three before the retained batch can return success."
+  - risk: "Do not checkpoint under a key that ignores Git-only drift."
+    instead: "Include the captured source-repository identity in each persistent knockout spec key so interrupted evidence fails closed after ref/config/index/object changes."
+  - risk: "Do not weaken green-red-green differential proof, focused-node completeness, or exact fallback."
+    instead: "Change only snapshot input materialization and cache identity; preserve the existing command and verdict lifecycle byte-for-byte."
+  - risk: "Do not use a flaky wall-clock threshold, disable bytecode caching, retain project roots, or share rewritten editable-loader bytecode to hide startup cost."
+    instead: "Assert bounded live captures and equivalent reports; keep bytecode enabled but declaration-local so equal-length fresh roots cannot reuse stale editable bindings."
+files:
+  edit:
+    - path: maid_runner/core/_knockout_snapshot.py
+      artifacts:
+        - kind: class
+          name: WorkerRetainedProjectSnapshotBackend
+          description: "Snapshot backend that captures one immutable batch template, retains isolated copied dependencies per worker, and yields a distinct fresh source/Git root for every declaration."
+        - kind: method
+          name: retain
+          of: WorkerRetainedProjectSnapshotBackend
+          args: []
+          returns: AbstractContextManager[None]
+          description: "Own the immutable template and per-worker dependency holders for one batch, then verify live source, repository, and dependency identities before successful exit."
+        - kind: method
+          name: create
+          of: WorkerRetainedProjectSnapshotBackend
+          args:
+            - name: project_root
+              type: Path
+            - name: required_paths
+              type: Sequence[str]
+            - name: worker_id
+              type: str
+          returns: AbstractContextManager[KnockoutProjectSnapshot]
+          description: "Yield a distinct disposable declaration root cloned from the retained immutable template, with editable dependency bindings targeting only that root."
+    - path: maid_runner/core/knockout.py
+      artifacts:
+        - kind: function
+          name: run_knockout_batch
+          args:
+            - name: manifests
+              type: Sequence[Manifest]
+            - name: project_root
+              type: Path
+            - name: evidence
+              type: RuntimeEvidenceBundle | None
+              default: "None"
+            - name: limit
+              type: int | None
+              default: "None"
+            - name: allow_dirty
+              type: bool
+              default: "False"
+            - name: executor
+              type: KnockoutCommandExecutor | None
+              default: "None"
+            - name: snapshot_backend
+              type: ProjectSnapshotBackend | None
+              default: "None"
+            - name: jobs
+              type: int
+              default: "1"
+            - name: max_processes
+              type: int
+              default: "1"
+            - name: no_cache
+              type: bool
+              default: "False"
+          returns: dict[str, KnockoutReport]
+          description: "Run the unchanged differential knockout contract through template-backed fresh roots and repository-identity-bound checkpoints."
+  create:
+    - path: tests/core/test_knockout_snapshot_template.py
+      artifacts:
+        - kind: test_function
+          name: test_template_backed_batch_keeps_distinct_roots_and_editable_mutation_visibility
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_live_repository_capture_count_is_constant_across_declarations
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_template_batch_fails_closed_on_live_source_repository_or_dependency_drift
+          args:
+            - name: tmp_path
+              type: Path
+            - name: drift
+              type: str
+          returns: None
+        - kind: test_function
+          name: test_repository_identity_change_invalidates_interrupted_spec_checkpoint
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_batch_template_captures_later_git_ignored_required_path
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_bounded_template_batch_matches_reports_without_snapshot_convoy
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+  read:
+    - manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml
+    - manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml
+    - manifests/121-39-retain-knockout-worker-dependency-environments.manifest.yaml
+    - manifests/121-42-retain-dependencies-across-fresh-knockout-roots.manifest.yaml
+    - manifests/121-46-checkpoint-knockout-cache-per-worker.manifest.yaml
+    - manifests/fix-knockout-cache-key-context.manifest.yaml
+    - tests/core/test_retained_worker_snapshots.py
+    - tests/core/test_knockout_batch.py
+    - tests/core/test_knockout_snapshot.py
+    - tests/core/test_knockout_workers.py
+    - tests/core/test_knockout_evidence_cache.py
+    - tests/core/test_shared_environment_snapshots.py
+validate:
+  - uv run python -m pytest -q tests/core/test_knockout_snapshot_template.py tests/core/test_retained_worker_snapshots.py tests/core/test_knockout_batch.py tests/core/test_knockout_snapshot.py tests/core/test_knockout_workers.py tests/core/test_knockout_evidence_cache.py tests/core/test_knockout_cache_key_context.py tests/core/test_shared_environment_snapshots.py
+  - uv run maid validate manifests/121-47-template-fresh-knockout-roots.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-17T16:31:24Z"
+  summary: Template-backed knockout workers now clone every mutation into a distinct disposable source and Git root without repeatedly scanning live repository and dependency state.
+  rationale: |
+    Each retained worker captures one immutable, never-executed source/Git
+    template and one isolated dependency environment, then clones a fresh root
+    for every declaration. The batch supplies its complete required-path union
+    before capture, repository-only drift participates in persistent cache
+    identity, and source/repository/dependency drift remains fail-closed.
+    Editable metadata is rebound for each fresh root, while Python bytecode
+    remains declaration-local after independent review reproduced stale
+    editable-finder bytecode from a worker-wide prefix.
+
+    Evidence: the focused contract passed 8 tests; the inherited snapshot,
+    worker, batch, and cache suite passed 72 tests; implementation validation
+    passed; all 268 active manifests validated; maid test passed 297 of 297
+    commands; Black, Ruff, and git diff checks passed; and the final independent
+    implementation review returned ready with no findings.
+
+    A 40-minute release-baseline deep sample advanced 109 durable knockout
+    checkpoints with bounded roots and no live-snapshot convoy, but throughput
+    remained close to the prior run. Focused profiling showed the remaining
+    dominant multiplier is the unchanged green-red-green lifecycle: each of
+    487 mutations still launches the same command three times. That is the next
+    optimization boundary; this contract intentionally did not weaken it.
+  lessons:
+    - lesson_type: performance
+      summary: Immutable worker templates remove repeated repository capture, but end-to-end knockout throughput remains dominated by three command executions per mutation; share exact command controls rather than further weakening snapshot isolation.
+      tags: [performance, knockout, deep-verify, command-grouping]
+      paths:
+        - maid_runner/core/_knockout_snapshot.py
+        - maid_runner/core/knockout.py
+        - docs/plans/full-and-deep-verification-performance-redesign.md
+    - lesson_type: validation-trust
+      summary: A retained Python bytecode prefix is unsafe when editable-loader source is rewritten between equal-length disposable roots because timestamp-and-size-valid pyc files can target a deleted prior root.
+      tags: [bytecode, editable-install, snapshot-isolation, fail-closed]
+      paths:
+        - maid_runner/core/_knockout_snapshot.py
+        - tests/core/test_knockout_snapshot_template.py
+  review_notes:
+    - source: template_snapshot_rev4_review
+      severity: warning
+      summary: Independent review reproduced stale editable-loader bytecode across equal-length declaration roots; revision 5 restored declaration-local pycache isolation and added the regression contract.
+    - source: template_snapshot_rev4_review
+      severity: ready
+      summary: Final revision 6 review found no remaining findings; lock, contract prose, behavioral test, and implementation agree.

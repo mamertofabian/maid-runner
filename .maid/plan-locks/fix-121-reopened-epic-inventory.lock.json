@@ -1,0 +1,102 @@
+{
+  "manifest_path": "manifests/fix-121-reopened-epic-inventory.manifest.yaml",
+  "manifest_hash": "sha256-contract:4b204275cd25ced5dceb8411902e9758a7d65f7581c3345b5487a8e8f1c3dc87",
+  "test_hashes": {
+    "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:aec491773aff74ab4bf6a912fd2aa2eef6648b4efa0b9bd0a9388ea0430cde0a"
+  },
+  "created_at": "2026-08-11T03:04:16.722005+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:26578173f87915e5e15b50b3147fcdfeac94dfb3715c76d7e8e49093e50da09a",
+      "prior_test_hashes": {
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:3691d93602c64b384ccb32177fc955f1ebf454b2294ff5a7796024350be13bf0"
+      },
+      "revised_at": "2026-08-11T03:04:26.479979+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-121-reopened-epic-inventory.manifest.yaml -> manifests/fix-121-reopened-epic-inventory.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4b204275cd25ced5dceb8411902e9758a7d65f7581c3345b5487a8e8f1c3dc87",
+      "prior_test_hashes": {
+        "tests/core/test_draft_epic_archive_inventory.py": "sha256-pyast:v2:aec491773aff74ab4bf6a912fd2aa2eef6648b4efa0b9bd0a9388ea0430cde0a"
+      },
+      "revised_at": "2026-08-11T03:07:53.945011+00:00",
+      "reason": "record approved test-only inventory contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": false,
+    "captured_at": "2026-08-11T03:07:54.178184+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_draft_epic_archive_inventory.py",
+        "exit_code": 0,
+        "output_tail": "...                                                                      [100%]\n3 passed in 0.06s",
+        "classification": "not_red"
+      }
+    ],
+    "mode": "test_only_green"
+  },
+  "legacy_baseline": null,
+  "agent": {
+    "model": "GPT-5",
+    "provider": "OpenAI",
+    "client": "Codex",
+    "skills": [
+      "maid-evolver"
+    ],
+    "source": "flags"
+  },
+  "_manifest_contract": {
+    "artifacts": [],
+    "files": {
+      "create": [],
+      "edit": [],
+      "read": [
+        "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml",
+        "manifests/fix-121-archived-epic-inventory.manifest.yaml"
+      ],
+      "scope": [
+        "tests/core/test_draft_epic_archive_inventory.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "read": [
+        "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml",
+        "manifests/fix-121-archived-epic-inventory.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "tests/core/test_draft_epic_archive_inventory.py",
+          "reason": "Add the reopened 121 roadmap filename to the exact live planning inventory constant."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_draft_epic_archive_inventory.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_draft_epic_archive_inventory.py"
+    ]
+  }
+}

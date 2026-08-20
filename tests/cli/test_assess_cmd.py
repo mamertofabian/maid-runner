@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 try:
     from maid_runner.core.change_assessment import AssessmentTier
 except ModuleNotFoundError:
@@ -393,15 +395,16 @@ def test_nested_active_manifest_lifecycle_pair_is_calibrated(tmp_path: Path) -> 
     assert signals.sensitive_paths == ()
 
 
+@pytest.mark.parametrize("baseline_flag", ["--since", "--base-ref"])
 def test_deep_recommendation_command_retains_handoff_gates(
-    tmp_path: Path, monkeypatch, capsys
+    tmp_path: Path, monkeypatch, capsys, baseline_flag: str
 ) -> None:
     from maid_runner.cli.commands._main import main
 
     baseline = _init_changed_repo(tmp_path, "src/auth/session.py")
     monkeypatch.chdir(tmp_path)
 
-    exit_code = main(["assess", "--since", baseline, "--json"])
+    exit_code = main(["assess", baseline_flag, baseline, "--json"])
     document = json.loads(capsys.readouterr().out)
 
     assert exit_code == 0
@@ -411,9 +414,11 @@ def test_deep_recommendation_command_retains_handoff_gates(
         "verify",
         "--profile",
         "deep",
+        "--test-scope",
+        "task",
         "--require-plan-lock",
         "--require-red-evidence",
-        "--since",
+        baseline_flag,
         baseline,
     ]
 

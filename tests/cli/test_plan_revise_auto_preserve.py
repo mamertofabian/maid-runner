@@ -241,7 +241,24 @@ def test_revise_with_contract_delta_recaptures_evidence(tmp_path: Path) -> None:
 
 def test_revise_with_invalid_existing_evidence_recaptures(tmp_path: Path) -> None:
     manifest_path = _write_project(tmp_path, exit_code=0)
-    assert cmd_plan_lock(_lock_args(manifest_path, tmp_path)) == 0
+    lock_args = _lock_args(manifest_path, tmp_path)
+    lock_args.no_run = True
+    assert cmd_plan_lock(lock_args) == 0
+    lock_path = default_plan_lock_path(tmp_path, "demo-task")
+    seeded_record = _lock_record(tmp_path)
+    seeded_record["red_evidence"] = {
+        "red": False,
+        "captured_at": "2026-08-20T00:00:00Z",
+        "commands": [
+            {
+                "command": "python scripts/validate.py",
+                "exit_code": 0,
+                "classification": "not_red",
+                "output_tail": "validate exit 0",
+            }
+        ],
+    }
+    lock_path.write_text(json.dumps(seeded_record))
     original = _lock_record(tmp_path)
     assert original["red_evidence"]["red"] is False
     _outcome_style_manifest_edit(manifest_path)

@@ -224,6 +224,18 @@ class TestCoherenceResult:
         assert '"success": true' in j
 
 
+def test_coherence_facade_get_checks_has_local_executable_entry_point():
+    from maid_runner.coherence import get_checks
+
+    enabled_checks = get_checks(enabled=["duplicate"])
+    disabled_checks = get_checks(disabled=["duplicate"])
+
+    assert get_checks.__module__ == "maid_runner.coherence"
+    assert [check.name for check in enabled_checks] == ["duplicate"]
+    assert disabled_checks
+    assert "duplicate" not in [check.name for check in disabled_checks]
+
+
 # ---------------------------------------------------------------------------
 # CoherenceIssue
 # ---------------------------------------------------------------------------

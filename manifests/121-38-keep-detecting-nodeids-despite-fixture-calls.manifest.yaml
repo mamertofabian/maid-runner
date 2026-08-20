@@ -1,0 +1,75 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Keep detecting nodeids when a fixture context also called the artifact"
+type: refactor
+created: "2026-08-13T11:16:29Z"
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - knockout
+    - runtime-evidence
+description: |
+  _artifact_nodeids discards every detecting nodeid if any non-node context
+  recorded the artifact. KnowledgeGraph.add_node is called from 256 node
+  contexts and also from fixture and collection contexts, so knockout exact-
+  fallbacks to pytest tests/ -v. 116 of 152 remaining exact specs have no
+  detecting nodeids for this reason or similar.
+
+  Skip fixture and collection contexts when collecting knockout detecting
+  nodeids. Keep lifecycle-equivalent node callers. If no node context called
+  the artifact, exact-fallback remains.
+
+  Do not claim the five-minute deep budget in this contract.
+temptations:
+  - risk: "Do not discard node detecting nodeids because a fixture also called the artifact."
+    instead: "Ignore non-node contexts while collecting knockout detecting nodeids."
+  - risk: "Do not invent detecting nodeids from fixture or collection contexts."
+    instead: "Only node contexts with lifecycle_equivalent true contribute detecting nodeids."
+files:
+  create:
+    - path: tests/core/test_focused_knockout_ignores_fixture_context_calls.py
+      artifacts:
+        - kind: test_function
+          name: test_fixture_context_call_still_uses_focused_knockout
+          args: []
+        - kind: test_function
+          name: test_fixture_only_call_still_forces_exact_fallback
+          args: []
+  scope:
+    - path: maid_runner/core/knockout.py
+      reason: "Knockout detecting nodeids must skip fixture and collection contexts instead of discarding node callers."
+  read:
+    - manifests/121-36-focus-knockout-on-proven-detecting-nodeids.manifest.yaml
+    - tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py
+    - maid_runner/core/runtime_evidence.py
+validate:
+  - uv run python -m pytest -q tests/core/test_focused_knockout_ignores_fixture_context_calls.py tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py
+  - uv run maid validate manifests/121-38-keep-detecting-nodeids-despite-fixture-calls.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-13T11:32:00Z"
+  summary: "Knockout detecting nodeids ignore fixture and collection contexts. A fixture that also called the artifact no longer discards node callers. Fixture-only calls still exact-fallback."
+  rationale: "KnowledgeGraph.add_node was recorded on 256 node contexts and also on fixture/collection contexts. Returning empty on the first non-node match forced pytest tests/ -v exact fallback. Skipping non-node contexts keeps the node callers."
+  lessons:
+    - lesson_type: performance
+      summary: "Fixture-context calls must not wipe knockout detecting nodeids when node callers exist."
+      tags: [performance, knockout, runtime-evidence]
+      paths:
+        - maid_runner/core/knockout.py
+  review_notes:
+    - source: self-review
+      severity: ready
+      summary: "Only lifecycle-equivalent node contexts contribute detecting nodeids. User rule disabled reviewer subagents; this is a local-only review."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_focused_knockout_ignores_fixture_context_calls.py, tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py, tests/core/test_knockout_differential_detection.py]
+      status: passed
+      summary: "23 tests passed."
+    - command: [uv, run, maid, validate, manifests/121-38-keep-detecting-nodeids-despite-fixture-calls.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "Implementation validation passed."

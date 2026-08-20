@@ -1,0 +1,474 @@
+{
+  "manifest_path": "manifests/121-47-template-fresh-knockout-roots.manifest.yaml",
+  "manifest_hash": "sha256-contract:4664312c913163782cd1d8596abadc1d9f07a5ce2f841ebdb6ccab794a2de1cb",
+  "test_hashes": {
+    "tests/core/test_retained_worker_snapshots.py": "sha256-pyast:v2:1f5d5b222d1b09d0ea1f6abbbbc48978e9f19cea5fef49d6a5452fde1f1c3a74",
+    "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
+    "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:86202d3ef3bbe4a5f7d6a0dde45186ae8ba5653204c4e4bd55105ab98e197897",
+    "tests/core/test_knockout_workers.py": "sha256-pyast:v2:3e33565220146de9e3fdc52eadfaeef81336bcba9ca489802fd7f369baf00748",
+    "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:fa9ea85f8c106a2e7768dea2f3f3e8090e0a93379957d98947adc7b3fab82237",
+    "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c",
+    "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:33a674988551c814deecde9f9dbfd0f697445bd2a45135db3a92a6a60dc98711",
+    "tests/core/test_knockout_cache_key_context.py": "sha256-pyast:v2:3b0e9b66ffe11beb117d84f58c3008da1109ca17b6cbc2a727e9019082c14ef3"
+  },
+  "created_at": "2026-08-17T14:52:59.208470+00:00",
+  "revision": 6,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:29304f6b95b3d1e4adccbbea3475d22924aca78deb6b7e13343ef5e3042f3ca8",
+      "prior_test_hashes": {
+        "tests/core/test_retained_worker_snapshots.py": "sha256-pyast:v2:1f5d5b222d1b09d0ea1f6abbbbc48978e9f19cea5fef49d6a5452fde1f1c3a74",
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:86202d3ef3bbe4a5f7d6a0dde45186ae8ba5653204c4e4bd55105ab98e197897",
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:3e33565220146de9e3fdc52eadfaeef81336bcba9ca489802fd7f369baf00748",
+        "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:fa9ea85f8c106a2e7768dea2f3f3e8090e0a93379957d98947adc7b3fab82237",
+        "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c",
+        "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:003b8d44f67577fc986eeb1e99175f34f3960c88d96cffa496258791325618f9",
+        "tests/core/test_knockout_cache_key_context.py": "sha256-pyast:v2:3b0e9b66ffe11beb117d84f58c3008da1109ca17b6cbc2a727e9019082c14ef3"
+      },
+      "revised_at": "2026-08-17T14:54:34.603805+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-47-template-fresh-knockout-roots.manifest.yaml -> manifests/121-47-template-fresh-knockout-roots.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-47-template-fresh-knockout-roots.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-47-template-fresh-knockout-roots.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:f7ee27f41bf61a99c5f88a09fc6e5b4642a132826fc758143b7a9eb7a5b5837d",
+      "prior_test_hashes": {
+        "tests/core/test_retained_worker_snapshots.py": "sha256-pyast:v2:1f5d5b222d1b09d0ea1f6abbbbc48978e9f19cea5fef49d6a5452fde1f1c3a74",
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:86202d3ef3bbe4a5f7d6a0dde45186ae8ba5653204c4e4bd55105ab98e197897",
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:3e33565220146de9e3fdc52eadfaeef81336bcba9ca489802fd7f369baf00748",
+        "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:fa9ea85f8c106a2e7768dea2f3f3e8090e0a93379957d98947adc7b3fab82237",
+        "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c",
+        "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:003b8d44f67577fc986eeb1e99175f34f3960c88d96cffa496258791325618f9",
+        "tests/core/test_knockout_cache_key_context.py": "sha256-pyast:v2:3b0e9b66ffe11beb117d84f58c3008da1109ca17b6cbc2a727e9019082c14ef3"
+      },
+      "revised_at": "2026-08-17T15:11:13.841045+00:00",
+      "reason": "Implementation review required full batch path union for later Git-ignored artifacts and exact normalized report equivalence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_knockout_snapshot_template.py:test_batch_template_captures_later_git_ignored_required_path",
+          "tests/core/test_knockout_snapshot_template.py:test_batch_template_captures_later_git_ignored_required_path:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_knockout_snapshot_template.py:test_batch_template_captures_later_git_ignored_required_path:kind=test_function",
+          "tests/core/test_knockout_snapshot_template.py:test_batch_template_captures_later_git_ignored_required_path:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:3425b920049d3698d72a0ca75c18186ec8200c4a6b9d411655f8b6e5002054d6",
+      "prior_test_hashes": {
+        "tests/core/test_retained_worker_snapshots.py": "sha256-pyast:v2:1f5d5b222d1b09d0ea1f6abbbbc48978e9f19cea5fef49d6a5452fde1f1c3a74",
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:86202d3ef3bbe4a5f7d6a0dde45186ae8ba5653204c4e4bd55105ab98e197897",
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:3e33565220146de9e3fdc52eadfaeef81336bcba9ca489802fd7f369baf00748",
+        "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:fa9ea85f8c106a2e7768dea2f3f3e8090e0a93379957d98947adc7b3fab82237",
+        "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c",
+        "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:5dd9633f6474c075c16ae01ef6a331ac690991b92f4eaf3b616779994399be34",
+        "tests/core/test_knockout_cache_key_context.py": "sha256-pyast:v2:3b0e9b66ffe11beb117d84f58c3008da1109ca17b6cbc2a727e9019082c14ef3"
+      },
+      "revised_at": "2026-08-17T16:02:53.394750+00:00",
+      "reason": "Cold deep profiling showed discarded per-declaration Python bytecode caches dominate focused mutation startup; retain the prefix per worker without reusing project roots",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ca7564f258a28000787c84877a6f01ce61402f3f5607ff011343f55dc96c0972",
+      "prior_test_hashes": {
+        "tests/core/test_retained_worker_snapshots.py": "sha256-pyast:v2:1f5d5b222d1b09d0ea1f6abbbbc48978e9f19cea5fef49d6a5452fde1f1c3a74",
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:86202d3ef3bbe4a5f7d6a0dde45186ae8ba5653204c4e4bd55105ab98e197897",
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:3e33565220146de9e3fdc52eadfaeef81336bcba9ca489802fd7f369baf00748",
+        "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:fa9ea85f8c106a2e7768dea2f3f3e8090e0a93379957d98947adc7b3fab82237",
+        "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c",
+        "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:970feed90824fd6a753c846411cbc76324036a4a94e77fa4d2ea3da09df7f265",
+        "tests/core/test_knockout_cache_key_context.py": "sha256-pyast:v2:3b0e9b66ffe11beb117d84f58c3008da1109ca17b6cbc2a727e9019082c14ef3"
+      },
+      "revised_at": "2026-08-17T16:21:44.952693+00:00",
+      "reason": "Independent review reproduced stale editable-finder bytecode across equal-length fresh roots; require declaration-local pycache isolation while retaining dependencies",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ca7564f258a28000787c84877a6f01ce61402f3f5607ff011343f55dc96c0972",
+      "prior_test_hashes": {
+        "tests/core/test_retained_worker_snapshots.py": "sha256-pyast:v2:1f5d5b222d1b09d0ea1f6abbbbc48978e9f19cea5fef49d6a5452fde1f1c3a74",
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:86202d3ef3bbe4a5f7d6a0dde45186ae8ba5653204c4e4bd55105ab98e197897",
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:3e33565220146de9e3fdc52eadfaeef81336bcba9ca489802fd7f369baf00748",
+        "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:fa9ea85f8c106a2e7768dea2f3f3e8090e0a93379957d98947adc7b3fab82237",
+        "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c",
+        "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:33a674988551c814deecde9f9dbfd0f697445bd2a45135db3a92a6a60dc98711",
+        "tests/core/test_knockout_cache_key_context.py": "sha256-pyast:v2:3b0e9b66ffe11beb117d84f58c3008da1109ca17b6cbc2a727e9019082c14ef3"
+      },
+      "revised_at": "2026-08-17T16:29:14.901827+00:00",
+      "reason": "Align the contract with the reviewed safety requirement: retained editable metadata requires declaration-local bytecode prefixes",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-17T16:30:40.785925+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_knockout_snapshot_template.py tests/core/test_retained_worker_snapshots.py tests/core/test_knockout_batch.py tests/core/test_knockout_snapshot.py tests/core/test_knockout_workers.py tests/core/test_knockout_evidence_cache.py tests/core/test_knockout_cache_key_context.py tests/core/test_shared_environment_snapshots.py",
+        "exit_code": 1,
+        "output_tail": "        restored = knockout.run_knockout_batch(\n            (manifest,),\n            tmp_path,\n            executor=executor,\n        )[manifest.source_path]\n    \n        assert test_path.read_text(encoding=\"utf-8\") == original_test\n>       assert restored.success is True\nE       assert False is True\nE        +  where False = KnockoutReport(results=(KnockoutResult(artifact_name='alpha', artifact_kind='function', parent_class=None, file_path='...n before mutation, fail when the artifact raises NotImplementedError(\"maid-knockout\"), and pass after restoration.'),)).success\n\ntests/core/test_knockout_cache_key_context.py:123: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_knockout_snapshot_template.py::test_live_repository_capture_count_is_constant_across_declarations\nFAILED tests/core/test_knockout_snapshot_template.py::test_repository_identity_change_invalidates_interrupted_spec_checkpoint\nFAILED tests/core/test_knockout_snapshot_template.py::test_bounded_template_batch_matches_reports_without_snapshot_convoy\nFAILED tests/core/test_knockout_cache_key_context.py::test_cached_batch_computes_repository_identity_once\nFAILED tests/core/test_knockout_cache_key_context.py::test_cache_context_is_fresh_per_invocation_and_invalidates_content_changes\nFAILED tests/core/test_knockout_cache_key_context.py::test_checkpoint_rejects_inputs_that_drift_after_context_capture\n6 failed, 66 passed in 85.47s (0:01:25)",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-47-template-fresh-knockout-roots.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/canonicalize-merged-artifact-order.lock.json",
+      ".maid/plan-locks/chain-merge-coverage-evidence.lock.json",
+      ".maid/plan-locks/fix-approved-fixture-derived-coverage.lock.json",
+      ".maid/plan-locks/fix-e710-chain-merged-coverage.lock.json",
+      ".maid/plan-locks/fix-knockout-cache-key-context.lock.json",
+      "docs/plans/full-and-deep-verification-performance-redesign.md",
+      "docs/plans/maid-runner-performance-backlog.md",
+      "maid_runner/cli/commands/validate.py",
+      "maid_runner/core/artifact_coverage.py",
+      "manifests/drafts/121-00-fast-verification-roadmap.epic.yaml",
+      "manifests/fix-approved-fixture-derived-coverage.manifest.yaml",
+      "manifests/fix-e710-chain-merged-coverage.manifest.yaml",
+      "tests/core/test_approved_fixture_artifact_coverage.py",
+      "tests/core/test_chain_merge_coverage_wiring.py",
+      "tests/core/test_chain_merged_artifact_coverage.py",
+      "tests/core/test_knockout_cache_key_context.py"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_knockout_snapshot.py:class:WorkerRetainedProjectSnapshotBackend",
+      "maid_runner/core/_knockout_snapshot.py:class:WorkerRetainedProjectSnapshotBackend:kind=class",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.create",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.create:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.create:arg=required_paths:type=Sequence[str]:default=None",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.create:arg=worker_id:type=str:default=None",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.create:kind=method",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.create:of=WorkerRetainedProjectSnapshotBackend",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.create:returns=AbstractContextManager[KnockoutProjectSnapshot]",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.retain",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.retain:kind=method",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.retain:of=WorkerRetainedProjectSnapshotBackend",
+      "maid_runner/core/_knockout_snapshot.py:method:WorkerRetainedProjectSnapshotBackend.retain:returns=AbstractContextManager[None]",
+      "maid_runner/core/knockout.py:function:run_knockout_batch",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=allow_dirty:type=bool:default=False",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=evidence:type=RuntimeEvidenceBundle | None:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=executor:type=KnockoutCommandExecutor | None:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=jobs:type=int:default=1",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=limit:type=int | None:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=manifests:type=Sequence[Manifest]:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=max_processes:type=int:default=1",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=no_cache:type=bool:default=False",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=project_root:type=Path:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=snapshot_backend:type=ProjectSnapshotBackend | None:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:kind=function",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:returns=dict[str, KnockoutReport]",
+      "tests/core/test_knockout_snapshot_template.py:test_batch_template_captures_later_git_ignored_required_path",
+      "tests/core/test_knockout_snapshot_template.py:test_batch_template_captures_later_git_ignored_required_path:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_snapshot_template.py:test_batch_template_captures_later_git_ignored_required_path:kind=test_function",
+      "tests/core/test_knockout_snapshot_template.py:test_batch_template_captures_later_git_ignored_required_path:returns=None",
+      "tests/core/test_knockout_snapshot_template.py:test_bounded_template_batch_matches_reports_without_snapshot_convoy",
+      "tests/core/test_knockout_snapshot_template.py:test_bounded_template_batch_matches_reports_without_snapshot_convoy:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_snapshot_template.py:test_bounded_template_batch_matches_reports_without_snapshot_convoy:kind=test_function",
+      "tests/core/test_knockout_snapshot_template.py:test_bounded_template_batch_matches_reports_without_snapshot_convoy:returns=None",
+      "tests/core/test_knockout_snapshot_template.py:test_live_repository_capture_count_is_constant_across_declarations",
+      "tests/core/test_knockout_snapshot_template.py:test_live_repository_capture_count_is_constant_across_declarations:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_snapshot_template.py:test_live_repository_capture_count_is_constant_across_declarations:kind=test_function",
+      "tests/core/test_knockout_snapshot_template.py:test_live_repository_capture_count_is_constant_across_declarations:returns=None",
+      "tests/core/test_knockout_snapshot_template.py:test_repository_identity_change_invalidates_interrupted_spec_checkpoint",
+      "tests/core/test_knockout_snapshot_template.py:test_repository_identity_change_invalidates_interrupted_spec_checkpoint:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_snapshot_template.py:test_repository_identity_change_invalidates_interrupted_spec_checkpoint:kind=test_function",
+      "tests/core/test_knockout_snapshot_template.py:test_repository_identity_change_invalidates_interrupted_spec_checkpoint:returns=None",
+      "tests/core/test_knockout_snapshot_template.py:test_template_backed_batch_keeps_distinct_roots_and_editable_mutation_visibility",
+      "tests/core/test_knockout_snapshot_template.py:test_template_backed_batch_keeps_distinct_roots_and_editable_mutation_visibility:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_snapshot_template.py:test_template_backed_batch_keeps_distinct_roots_and_editable_mutation_visibility:kind=test_function",
+      "tests/core/test_knockout_snapshot_template.py:test_template_backed_batch_keeps_distinct_roots_and_editable_mutation_visibility:returns=None",
+      "tests/core/test_knockout_snapshot_template.py:test_template_batch_fails_closed_on_live_source_repository_or_dependency_drift",
+      "tests/core/test_knockout_snapshot_template.py:test_template_batch_fails_closed_on_live_source_repository_or_dependency_drift:arg=drift:type=str:default=None",
+      "tests/core/test_knockout_snapshot_template.py:test_template_batch_fails_closed_on_live_source_repository_or_dependency_drift:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_snapshot_template.py:test_template_batch_fails_closed_on_live_source_repository_or_dependency_drift:kind=test_function",
+      "tests/core/test_knockout_snapshot_template.py:test_template_batch_fails_closed_on_live_source_repository_or_dependency_drift:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_knockout_snapshot_template.py"
+      ],
+      "edit": [
+        "maid_runner/core/_knockout_snapshot.py",
+        "maid_runner/core/knockout.py"
+      ],
+      "read": [
+        "manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml",
+        "manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml",
+        "manifests/121-39-retain-knockout-worker-dependency-environments.manifest.yaml",
+        "manifests/121-42-retain-dependencies-across-fresh-knockout-roots.manifest.yaml",
+        "manifests/121-46-checkpoint-knockout-cache-per-worker.manifest.yaml",
+        "manifests/fix-knockout-cache-key-context.manifest.yaml",
+        "tests/core/test_knockout_batch.py",
+        "tests/core/test_knockout_evidence_cache.py",
+        "tests/core/test_knockout_snapshot.py",
+        "tests/core/test_knockout_workers.py",
+        "tests/core/test_retained_worker_snapshots.py",
+        "tests/core/test_shared_environment_snapshots.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_knockout_snapshot_template.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_template_backed_batch_keeps_distinct_roots_and_editable_mutation_visibility",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_live_repository_capture_count_is_constant_across_declarations",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_template_batch_fails_closed_on_live_source_repository_or_dependency_drift",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "drift",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_repository_identity_change_invalidates_interrupted_spec_checkpoint",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_batch_template_captures_later_git_ignored_required_path",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_bounded_template_batch_matches_reports_without_snapshot_convoy",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/_knockout_snapshot.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "WorkerRetainedProjectSnapshotBackend",
+              "description": "Snapshot backend that captures one immutable batch template, retains isolated copied dependencies per worker, and yields a distinct fresh source/Git root for every declaration."
+            },
+            {
+              "kind": "method",
+              "name": "retain",
+              "description": "Own the immutable template and per-worker dependency holders for one batch, then verify live source, repository, and dependency identities before successful exit.",
+              "of": "WorkerRetainedProjectSnapshotBackend",
+              "returns": "AbstractContextManager[None]"
+            },
+            {
+              "kind": "method",
+              "name": "create",
+              "description": "Yield a distinct disposable declaration root cloned from the retained immutable template, with editable dependency bindings targeting only that root.",
+              "of": "WorkerRetainedProjectSnapshotBackend",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "required_paths",
+                  "type": "Sequence[str]"
+                },
+                {
+                  "name": "worker_id",
+                  "type": "str"
+                }
+              ],
+              "returns": "AbstractContextManager[KnockoutProjectSnapshot]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/knockout.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "run_knockout_batch",
+              "description": "Run the unchanged differential knockout contract through template-backed fresh roots and repository-identity-bound checkpoints.",
+              "args": [
+                {
+                  "name": "manifests",
+                  "type": "Sequence[Manifest]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "evidence",
+                  "type": "RuntimeEvidenceBundle | None",
+                  "default": "None"
+                },
+                {
+                  "name": "limit",
+                  "type": "int | None",
+                  "default": "None"
+                },
+                {
+                  "name": "allow_dirty",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "executor",
+                  "type": "KnockoutCommandExecutor | None",
+                  "default": "None"
+                },
+                {
+                  "name": "snapshot_backend",
+                  "type": "ProjectSnapshotBackend | None",
+                  "default": "None"
+                },
+                {
+                  "name": "jobs",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "max_processes",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "no_cache",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "dict[str, KnockoutReport]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml",
+        "manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml",
+        "manifests/121-39-retain-knockout-worker-dependency-environments.manifest.yaml",
+        "manifests/121-42-retain-dependencies-across-fresh-knockout-roots.manifest.yaml",
+        "manifests/121-46-checkpoint-knockout-cache-per-worker.manifest.yaml",
+        "manifests/fix-knockout-cache-key-context.manifest.yaml",
+        "tests/core/test_retained_worker_snapshots.py",
+        "tests/core/test_knockout_batch.py",
+        "tests/core/test_knockout_snapshot.py",
+        "tests/core/test_knockout_workers.py",
+        "tests/core/test_knockout_evidence_cache.py",
+        "tests/core/test_shared_environment_snapshots.py"
+      ]
+    },
+    "test_files": [
+      "tests/core/test_knockout_batch.py",
+      "tests/core/test_knockout_cache_key_context.py",
+      "tests/core/test_knockout_evidence_cache.py",
+      "tests/core/test_knockout_snapshot.py",
+      "tests/core/test_knockout_snapshot_template.py",
+      "tests/core/test_knockout_workers.py",
+      "tests/core/test_retained_worker_snapshots.py",
+      "tests/core/test_shared_environment_snapshots.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_knockout_snapshot_template.py tests/core/test_retained_worker_snapshots.py tests/core/test_knockout_batch.py tests/core/test_knockout_snapshot.py tests/core/test_knockout_workers.py tests/core/test_knockout_evidence_cache.py tests/core/test_knockout_cache_key_context.py tests/core/test_shared_environment_snapshots.py",
+      "uv run maid validate manifests/121-47-template-fresh-knockout-roots.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

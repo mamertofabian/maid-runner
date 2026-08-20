@@ -1,0 +1,185 @@
+{
+  "manifest_path": "manifests/fix-chain-merge-protocol-e310.manifest.yaml",
+  "manifest_hash": "sha256-contract:15c4614980de2c848300ca8a187c75026e4f5ce9e0725a43900b159c78bedcbb",
+  "test_hashes": {
+    "tests/core/test_default_hook_stub_exemption.py": "sha256-pyast:v2:5e8ddab693cecacc061549ca8c62c27633885d3dfe9d852af677a24856d9a08b",
+    "tests/core/test_chain_merge_protocol_contract.py": "sha256-pyast:v2:c40fc3eba74ce20526e4532e519a698457e68368910dc7ab91977c66e381b125"
+  },
+  "created_at": "2026-08-16T08:14:22.091372+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:fef8bd9fb8bb4624272f92b05cdab2e3197af420842c385bb34bafb8615266b6",
+      "prior_test_hashes": {
+        "tests/core/test_default_hook_stub_exemption.py": "sha256-pyast:v2:5e8ddab693cecacc061549ca8c62c27633885d3dfe9d852af677a24856d9a08b",
+        "tests/core/test_chain_merge_protocol_contract.py": "sha256-pyast:v2:196d10d8c3387eaa95ec3761eec5e8e99cf6809ef14ed2411eccf3a540d50e42"
+      },
+      "revised_at": "2026-08-16T08:14:22.857663+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-chain-merge-protocol-e310.manifest.yaml -> manifests/fix-chain-merge-protocol-e310.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-chain-merge-protocol-e310.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-chain-merge-protocol-e310.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:1f2e0de1070910ffe5f26d8ee5a051b46562cce8d741349249b545a7ed842a5e",
+      "prior_test_hashes": {
+        "tests/core/test_default_hook_stub_exemption.py": "sha256-pyast:v2:5e8ddab693cecacc061549ca8c62c27633885d3dfe9d852af677a24856d9a08b",
+        "tests/core/test_chain_merge_protocol_contract.py": "sha256-pyast:v2:196d10d8c3387eaa95ec3761eec5e8e99cf6809ef14ed2411eccf3a540d50e42"
+      },
+      "revised_at": "2026-08-16T08:15:32.871089+00:00",
+      "reason": "Include the declared real-stub regression dependency in the pytest command so maid test has complete behavioral coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest tests/core/test_chain_merge_protocol_contract.py tests/core/test_default_hook_stub_exemption.py -v"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest tests/core/test_chain_merge_protocol_contract.py -v"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:15c4614980de2c848300ca8a187c75026e4f5ce9e0725a43900b159c78bedcbb",
+      "prior_test_hashes": {
+        "tests/core/test_default_hook_stub_exemption.py": "sha256-pyast:v2:5e8ddab693cecacc061549ca8c62c27633885d3dfe9d852af677a24856d9a08b",
+        "tests/core/test_chain_merge_protocol_contract.py": "sha256-pyast:v2:196d10d8c3387eaa95ec3761eec5e8e99cf6809ef14ed2411eccf3a540d50e42"
+      },
+      "revised_at": "2026-08-16T08:20:30.125285+00:00",
+      "reason": "Make the approved abstract-contract exception distinguishable from the maid-knockout sentinel",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-16T08:20:30.722043+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_chain_merge_protocol_contract.py tests/core/test_default_hook_stub_exemption.py -v",
+        "exit_code": 1,
+        "output_tail": "=================================== FAILURES ===================================\n_________ test_detection_evidence_protocol_contract_does_not_emit_e310 _________\n\n    def test_detection_evidence_protocol_contract_does_not_emit_e310() -> None:\n        from maid_runner.core.chain_merge import DetectionEvidenceSource\n    \n        class RecordedSource:\n            def detecting_nodeids_for(self, artifact_key: str) -> tuple[str, ...] | None:\n                return (\"tests/test_service.py::test_behavior\",) if artifact_key else None\n    \n        source: DetectionEvidenceSource = RecordedSource()\n        assert isinstance(source, DetectionEvidenceSource)\n>       assert isabstract(DetectionEvidenceSource)\nE       AssertionError: assert False\nE        +  where False = isabstract(<class 'maid_runner.core.chain_merge.DetectionEvidenceSource'>)\n\ntests/core/test_chain_merge_protocol_contract.py:24: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_chain_merge_protocol_contract.py::test_detection_evidence_protocol_contract_does_not_emit_e310\n========================= 1 failed, 6 passed in 0.17s ==========================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-chain-merge-protocol-e310.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/last-failure-packet.json",
+      "plan-revision.md"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/chain_merge.py:class:DetectionEvidenceSource",
+      "maid_runner/core/chain_merge.py:class:DetectionEvidenceSource:kind=class",
+      "maid_runner/core/chain_merge.py:method:DetectionEvidenceSource.detecting_nodeids_for",
+      "maid_runner/core/chain_merge.py:method:DetectionEvidenceSource.detecting_nodeids_for:arg=artifact_key:type=str:default=None",
+      "maid_runner/core/chain_merge.py:method:DetectionEvidenceSource.detecting_nodeids_for:kind=method",
+      "maid_runner/core/chain_merge.py:method:DetectionEvidenceSource.detecting_nodeids_for:of=DetectionEvidenceSource",
+      "maid_runner/core/chain_merge.py:method:DetectionEvidenceSource.detecting_nodeids_for:returns=Union[tuple[str, Ellipsis], None]",
+      "tests/core/test_chain_merge_protocol_contract.py:test_detection_evidence_protocol_contract_does_not_emit_e310",
+      "tests/core/test_chain_merge_protocol_contract.py:test_detection_evidence_protocol_contract_does_not_emit_e310:kind=test_function",
+      "tests/core/test_chain_merge_protocol_contract.py:test_detection_evidence_protocol_contract_does_not_emit_e310:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_chain_merge_protocol_contract.py"
+      ],
+      "edit": [
+        "maid_runner/core/chain_merge.py"
+      ],
+      "read": [
+        "maid_runner/core/validate.py",
+        "maid_runner/validators/_python_implementation.py",
+        "manifests/037-02-make-verify-repo-warning-policy-adoptable.manifest.yaml",
+        "manifests/chain-merge-fragmentation-report.manifest.yaml",
+        "tests/core/test_default_hook_stub_exemption.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_chain_merge_protocol_contract.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_detection_evidence_protocol_contract_does_not_emit_e310",
+              "description": "The public protocol remains structurally implementable and implementation validation no longer reports its abstract method as an E310 stub.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/chain_merge.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "DetectionEvidenceSource",
+              "description": "Runtime-checkable structural protocol for recorded knockout detection evidence."
+            },
+            {
+              "kind": "method",
+              "name": "detecting_nodeids_for",
+              "description": "Abstract protocol contract returning recorded detecting nodeids or None for unknown evidence; never an executable stub.",
+              "of": "DetectionEvidenceSource",
+              "args": [
+                {
+                  "name": "artifact_key",
+                  "type": "str"
+                }
+              ],
+              "returns": "Union[tuple[str, Ellipsis], None]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/chain-merge-fragmentation-report.manifest.yaml",
+        "manifests/037-02-make-verify-repo-warning-policy-adoptable.manifest.yaml",
+        "tests/core/test_default_hook_stub_exemption.py",
+        "maid_runner/core/validate.py",
+        "maid_runner/validators/_python_implementation.py"
+      ]
+    },
+    "test_files": [
+      "tests/core/test_chain_merge_protocol_contract.py",
+      "tests/core/test_default_hook_stub_exemption.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_chain_merge_protocol_contract.py tests/core/test_default_hook_stub_exemption.py -v",
+      "uv run maid validate manifests/fix-chain-merge-protocol-e310.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

@@ -1,0 +1,78 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Focus knockout nodeids when a broad pytest selector only has sibling unproven fixtures"
+type: refactor
+created: "2026-08-13T10:53:19Z"
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - knockout
+    - runtime-evidence
+description: |
+  After 121-34, knockout trusts grouped coverage evidence. Narrow pytest commands
+  already focus. Broad selectors such as pytest tests/ -v select thousands of
+  nodeids, so command completeness inherits every sibling unproven fixture and
+  exact-fallbacks to the full suite. On this repo that is 74 broad specs; 60
+  already have detecting nodeids.
+
+  When selected_nodeids are a proper superset of the artifact's detecting
+  nodeids, ignore unproven fixtures and unresolved contexts that do not consume
+  those detecting nodeids. If selected_nodeids equals the detecting set, keep
+  121-32 command-level unproven exact fallback. Missing workers, unsupported
+  selectors, and unproven fixtures that consume the detecting nodeids still
+  exact-fallback.
+
+  Do not claim the five-minute deep budget in this contract.
+temptations:
+  - risk: "Do not exact-fallback a broad pytest tests/ command because a sibling node has an unproven fixture."
+    instead: "If selected_nodeids properly contain the detecting nodeids, only unproven fixtures that consume those detecting nodeids force exact fallback."
+  - risk: "Do not relax 121-32 command-level unproven fallback when the command selects only the detecting nodeids."
+    instead: "Keep command completeness unproven_fixture_lifecycles as a blocker when selected_nodeids is not a proper superset of the detecting nodeids."
+files:
+  create:
+    - path: tests/core/test_focused_knockout_broad_selector_sibling_unproven.py
+      artifacts:
+        - kind: test_function
+          name: test_broad_selector_sibling_unproven_still_uses_focused_knockout
+          args: []
+        - kind: test_function
+          name: test_detecting_nodeid_unproven_lifecycle_still_forces_exact_fallback
+          args: []
+  scope:
+    - path: maid_runner/core/knockout.py
+      reason: "Focused knockout must ignore sibling unproven fixtures on broad pytest selectors when detecting nodeids are a proper subset."
+  read:
+    - manifests/121-32-focused-knockout-despite-sibling-unproven-lifecycles.manifest.yaml
+    - tests/core/test_focused_knockout_despite_sibling_unproven_lifecycles.py
+    - maid_runner/core/runtime_evidence.py
+validate:
+  - uv run python -m pytest -q tests/core/test_focused_knockout_broad_selector_sibling_unproven.py tests/core/test_focused_knockout_despite_sibling_unproven_lifecycles.py
+  - uv run maid validate manifests/121-35-focus-knockout-despite-broad-selector-unproven.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-13T11:10:00Z"
+  summary: "Broad pytest selectors still use detecting nodeids when selected_nodeids are a proper superset and only sibling fixtures are unproven. Unproven fixtures that consume the detecting nodeids, and 121-32 command-level unproven when selected equals detecting, still exact-fallback."
+  rationale: "Early manifests in this repo validate with pytest tests/ -v, so command completeness inherits every sibling unproven fixture and exact-fallbacks to the full suite. Sixty of those broad specs already had detecting nodeids. Filtering unproven fixtures to the detecting set unblocks focused knockout without relaxing the narrow-selector pin."
+  lessons:
+    - lesson_type: performance
+      summary: "Broad pytest selectors must not inherit sibling unproven fixtures onto an artifact's detecting nodeids."
+      tags: [performance, knockout, runtime-evidence]
+      paths:
+        - maid_runner/core/knockout.py
+  review_notes:
+    - source: self-review
+      severity: ready
+      summary: "Detecting-nodeid unproven still exact-fallbacks. 121-32 command-level unproven still exact-fallbacks when selected_nodeids is not a proper superset. User rule disabled reviewer subagents; this is a local-only review."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_focused_knockout_broad_selector_sibling_unproven.py, tests/core/test_focused_knockout_despite_sibling_unproven_lifecycles.py, tests/core/test_focused_knockout_with_collection_incompleteness.py, tests/core/test_knockout_trusts_grouped_command_order.py]
+      status: passed
+      summary: "8 tests passed."
+    - command: [uv, run, maid, validate, manifests/121-35-focus-knockout-despite-broad-selector-unproven.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "Implementation validation passed."

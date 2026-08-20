@@ -27,7 +27,11 @@ general MAID skills:
 - Spawn the read-only review subagent without a full-history fork:
   `fork_context=false`, `agent_type=explorer`, and leave reviewer model and
   reasoning effort unset so they inherit from the main agent. Pass an explicit
-  review packet instead of inheriting the implementation transcript. If the
+  verdict-neutral packet with the task baseline, complete baseline-to-current diff,
+  complete changed-file list, complete manifest-declared artifact definitions and
+  file inventory, factual validation outcomes, environment limits, and plan-revision signal.
+  Exclude prior review lineage and coordinator-owned follow-up state instead of
+  inheriting the implementation transcript. If the
   local Codex agent registry does not expose an `explorer` role, omit
   `agent_type` and use the default role with the same read-only packet.
 - Close each review subagent after consuming its verdict by calling
@@ -189,8 +193,9 @@ evidence automatically. Use `--test-only-green` for a test-only contract. Use
 
 ## Review Loop
 
-Before reporting done, spawn a read-only implementation review subagent scoped
-to the promoted manifest, current diff, changed files, and validation output.
+Before reporting done, spawn a read-only implementation review subagent with
+the verdict-neutral complete packet defined above; never narrow it to a current
+diff, recent changed files, or a validation summary.
 Do not substitute a local-only review because the current turn did not mention
 subagents; repo `AGENTS.md` provides standing authorization. The review must
 check:

@@ -1,0 +1,188 @@
+{
+  "manifest_path": "manifests/121-21-persist-artifact-coverage-evidence-cache.manifest.yaml",
+  "manifest_hash": "sha256-contract:6b80582851730f5fa664aa426a8fe91324180ee4a8d4ba61bb9bb8a6da57b213",
+  "test_hashes": {
+    "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:0bfcbeae6328eb1bda7ba15e14e5961d06a0be5e328c153788852292842c8a4a",
+    "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3"
+  },
+  "created_at": "2026-08-13T09:34:31.178822+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:96c36cdcbe0c2469d4072d113947461575028854b245eb76e0612b3a3b37fc94",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:9a206f84a16fbf1d135c41eed3a6789ef9813477ec1341935eb41a5705d3e44a",
+        "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3"
+      },
+      "revised_at": "2026-08-13T09:34:51.003603+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-21-persist-artifact-coverage-evidence-cache.manifest.yaml -> manifests/121-21-persist-artifact-coverage-evidence-cache.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6b80582851730f5fa664aa426a8fe91324180ee4a8d4ba61bb9bb8a6da57b213",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:9a206f84a16fbf1d135c41eed3a6789ef9813477ec1341935eb41a5705d3e44a",
+        "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3"
+      },
+      "revised_at": "2026-08-13T13:57:59.708423+00:00",
+      "reason": "Accept reviewed shared-test changes from the 121 performance checkpoint.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6b80582851730f5fa664aa426a8fe91324180ee4a8d4ba61bb9bb8a6da57b213",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:d650a289578edb9a4e3bc6b426a2502735a5e00f93f807a3c6dcc91975ae90de",
+        "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3"
+      },
+      "revised_at": "2026-08-19T23:14:08.549063+00:00",
+      "reason": "Accept approved shared-test environment-forwarding repair.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-13T09:35:10.489535+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_artifact_coverage_evidence_cache.py tests/cli/test_verify_deep_evidence_reuse.py",
+        "exit_code": 1,
+        "output_tail": "        _git(tmp_path, \"init\")\n        _git(tmp_path, \"add\", \".\")\n        _git(tmp_path, \"commit\", \"-m\", \"baseline\")\n        _verify(tmp_path)\n        _git(tmp_path, \"commit\", \"--allow-empty\", \"-m\", \"empty\")\n        log.write_text(\"\")\n    \n        result = _verify(tmp_path)\n>       assert _coverage_report(result).cache_hit is True\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       AttributeError: 'ArtifactCoverageReport' object has no attribute 'cache_hit'\n\ntests/cli/test_artifact_coverage_evidence_cache.py:92: AttributeError\n=========================== short test summary info ============================\nFAILED tests/cli/test_artifact_coverage_evidence_cache.py::test_repeat_coverage_stage_reuses_cached_report\nFAILED tests/cli/test_artifact_coverage_evidence_cache.py::test_content_digest_change_misses_cache\nFAILED tests/cli/test_artifact_coverage_evidence_cache.py::test_no_cache_bypasses_stored_result\nFAILED tests/cli/test_artifact_coverage_evidence_cache.py::test_red_coverage_results_are_cached\nFAILED tests/cli/test_artifact_coverage_evidence_cache.py::test_cache_key_ignores_git_commit\n5 failed, 14 passed in 18.81s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-21-persist-artifact-coverage-evidence-cache.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.cache_hit",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.cache_hit:kind=attribute",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.cache_hit:of=ArtifactCoverageReport",
+      "maid_runner/core/artifact_coverage.py:attribute:ArtifactCoverageReport.cache_hit:type=bool",
+      "tests/cli/test_artifact_coverage_evidence_cache.py:test_cache_key_ignores_git_commit",
+      "tests/cli/test_artifact_coverage_evidence_cache.py:test_cache_key_ignores_git_commit:kind=test_function",
+      "tests/cli/test_artifact_coverage_evidence_cache.py:test_content_digest_change_misses_cache",
+      "tests/cli/test_artifact_coverage_evidence_cache.py:test_content_digest_change_misses_cache:kind=test_function",
+      "tests/cli/test_artifact_coverage_evidence_cache.py:test_no_cache_bypasses_stored_result",
+      "tests/cli/test_artifact_coverage_evidence_cache.py:test_no_cache_bypasses_stored_result:kind=test_function",
+      "tests/cli/test_artifact_coverage_evidence_cache.py:test_red_coverage_results_are_cached",
+      "tests/cli/test_artifact_coverage_evidence_cache.py:test_red_coverage_results_are_cached:kind=test_function",
+      "tests/cli/test_artifact_coverage_evidence_cache.py:test_repeat_coverage_stage_reuses_cached_report",
+      "tests/cli/test_artifact_coverage_evidence_cache.py:test_repeat_coverage_stage_reuses_cached_report:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_artifact_coverage_evidence_cache.py"
+      ],
+      "edit": [
+        "maid_runner/core/artifact_coverage.py"
+      ],
+      "read": [
+        "maid_runner/__version__.py",
+        "maid_runner/core/runtime_evidence.py",
+        "tests/cli/test_verify_deep_evidence_reuse.py"
+      ],
+      "scope": [
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/verify.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_artifact_coverage_evidence_cache.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_repeat_coverage_stage_reuses_cached_report"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_content_digest_change_misses_cache"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_no_cache_bypasses_stored_result"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_red_coverage_results_are_cached"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_cache_key_ignores_git_commit"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/artifact_coverage.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "cache_hit",
+              "of": "ArtifactCoverageReport",
+              "type": "bool"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/runtime_evidence.py",
+        "maid_runner/__version__.py",
+        "tests/cli/test_verify_deep_evidence_reuse.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/verify.py",
+          "reason": "Load and store coverage reports under the hermetic key; honor no_cache."
+        },
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "reason": "Add --no-cache on maid verify."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_artifact_coverage_evidence_cache.py",
+      "tests/cli/test_verify_deep_evidence_reuse.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_artifact_coverage_evidence_cache.py tests/cli/test_verify_deep_evidence_reuse.py",
+      "uv run maid validate manifests/121-21-persist-artifact-coverage-evidence-cache.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

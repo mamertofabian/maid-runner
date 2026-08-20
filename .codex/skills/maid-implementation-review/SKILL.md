@@ -12,11 +12,17 @@ Review MAID-backed implementation work in read-only mode. Confirm the code match
 - NEVER edit files.
 - NEVER modify tests or manifests during review.
 - When you are the coordinating reviewer, run an independent read-only reviewer
-  subagent before the final verdict whenever reviewer subagents are available
-  and have not been explicitly disabled for the turn.
+  subagent before deciding the handoff verdict whenever reviewer subagents are
+  available and have not been explicitly disabled for the turn.
 - Reviewer subagents must be fresh, context-minimal review agents. Never use a
   full-history fork or pass prior implementation reasoning, conclusions, or chat
   transcript unless the review explicitly depends on a user quote.
+- Keep reviewer prompts verdict-neutral in every review round. Never label a
+  reviewer request as final, approval, merge-readiness, blocker-closure, or
+  convergence. Never state that fixes work or summarize intended behavior as
+  established fact. Do not disclose prior findings, fixes, verdicts, or review-round state.
+  Those convergence decisions belong only to the
+  coordinator after the independent reviewer responds.
 - If your prompt identifies you as the reviewer subagent, do not spawn another
   subagent. Perform the review locally and return the verdict.
 - Confirm changed implementation stays within the manifest `files.create`,
@@ -30,16 +36,23 @@ Review MAID-backed implementation work in read-only mode. Confirm the code match
 ## Review Convergence Protocol
 
 - Report every finding you can identify in a single pass. Never drip-feed one
-  finding per round. A finding first raised after round 1 must explain why it was not visible in round 1, such as being unmasked by an earlier fix.
+  finding per round.
+- After each independent review, the coordinator compares its findings with
+  earlier verdicts. For a later finding, the coordinator records why it was not visible in round 1,
+  such as being unmasked by an earlier fix, but never passes
+  that comparison or review lineage into a later reviewer prompt.
 - Classify every finding as **blocking** or **advisory**. Blocking findings are
   contract violations, behavioral bugs, scope drift, or validation failures.
   Advisory findings are style preferences, optional hardening, or future-work
   notes. Advisory findings MUST NOT trigger manifest or locked-test revision
-  in the current session; record them in the review packet for possible future
-  draft manifests.
-- After two full review rounds, issue a final verdict that lists residual
-  advisories instead of requesting another round, unless a blocking finding
-  remains.
+  in the current session. Do not record them in the review packet for possible future draft manifests;
+  keep them in a coordinator-owned follow-up log that is explicitly excluded
+  from every reviewer subagent packet.
+- Continue fresh review rounds after each issue-driven fix until the latest
+  verdict contains no blocking or current-scope actionable findings. Do not use
+  round count, including two full review rounds, as a reason to stop reviewing
+  or pressure approval. Residual advisories may remain only when the reviewer
+  explicitly classifies them as non-actionable for the current contract.
 
 ## Phase 1 — Identify the Active Manifest
 
@@ -50,18 +63,25 @@ Use the manifest path provided by the user. If none is provided, inspect recent 
 Collect the context needed for an independent review:
 
 - active manifest path and whether it was provided or inferred
-- changed files from the working tree or compared branch
-- relevant diff summary, especially public symbols, tests, and manifest edits
-- validation commands already run and their results
+- complete baseline-to-current implementation delta, including the baseline,
+  changed-file list, and full diff reference
+- all manifest-declared artifacts, including exact names, kinds, parent
+  relationships, signatures or fields, behavioral expectations, and their
+  implementation and behavioral-test files, even when unchanged in the latest
+  fix iteration
+- validation commands already run and their factual results
 - known environment limits that prevented validation
 - any `plan-revision.md` stop signal
 
 Do not pass the full implementation transcript to the subagent. Keep the review
-independent by passing only the explicit packet above.
+independent by passing only the explicit packet above. Never narrow a later
+review to recent fix hunks or tell the reviewer which changes answer earlier
+findings. Frame every round as a first independent review of the complete
+change. Never pass the coordinator-owned follow-up log to a reviewer subagent.
 
 ## Phase 3 — Run the Reviewer Subagent
 
-Before reporting the final verdict, spawn one read-only reviewer subagent when
+Before deciding the coordinator's handoff verdict, spawn one read-only reviewer subagent when
 the environment supports subagents and they have not been explicitly disabled
 for the turn:
 
@@ -92,7 +112,11 @@ with extra attention to the approved MAID manifest:
 <manifest path>
 
 Review packet:
-- changed files: <files>
+- baseline: <task baseline>
+- complete baseline-to-current diff: <diff reference>
+- changed files: <complete changed-file list>
+- manifest-declared artifact definitions: <complete declarations and parent relationships>
+- manifest-declared files: <complete implementation and behavioral-test file list>
 - validation results: <commands and outcomes>
 - known environment limits: <limits or none>
 - plan revision signal: <path or none>
@@ -107,15 +131,17 @@ the changed files, relevant call sites, nearby helpers, schema constraints, and
 the manifest's declared behavior. Consider how each new public helper or API
 will be called from realistic routes, handlers, CLIs, services, or tests.
 
-Return only actionable review output:
-- findings first, ordered by severity
-- severity labels such as P0/P1/P2
+Return exhaustive review output:
+- Report every finding you can identify in this pass.
+- Classify every finding as blocking or advisory. Blocking findings are contract violations, behavioral bugs, scope drift, or validation failures. Advisory findings are non-actionable style preferences, optional hardening, or future-work notes.
+- findings first, ordered by severity within each classification
+- severity labels such as P0/P1/P2 in addition to the blocking/advisory label
 - file and line references
 - brief impact explanation
 - missing tests when they allow a bug to pass
 
-If there are no findings, say that clearly and mention any residual test gaps or
-risk. End with one verdict: ready, needs changes, or needs discussion.
+If there are no blocking findings, say that clearly and list any residual advisories,
+test gaps, or risk. End with one verdict: ready, needs changes, or needs discussion.
 ```
 
 ## Phase 4 — Review Scope

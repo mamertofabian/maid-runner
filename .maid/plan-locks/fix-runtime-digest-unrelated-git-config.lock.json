@@ -1,0 +1,187 @@
+{
+  "manifest_path": "manifests/fix-runtime-digest-unrelated-git-config.manifest.yaml",
+  "manifest_hash": "sha256-contract:8d0aec66494acbca22580a7c4b53ae76a76c72a00e637303339096111232129b",
+  "test_hashes": {
+    "tests/cli/test_verify_git_ignored_runtime_content.py": "sha256-pyast:v2:6c8010c82d16a0cc28a3df7cbb119d19b5b6bd02cd6140d1d6aee88a124731cd",
+    "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:0bfcbeae6328eb1bda7ba15e14e5961d06a0be5e328c153788852292842c8a4a",
+    "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3",
+    "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7"
+  },
+  "created_at": "2026-08-19T08:16:06.401558+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:54a4581448d017e967b9f7be8b21c1d89d9f14ddc1701d68bba0d3fa5c11b5aa",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_git_ignored_runtime_content.py": "sha256-pyast:v2:f33743f6f74ffb719221a0db82d73c7d4ce72b53a21e7dbae0d11f0f86eab845",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:d650a289578edb9a4e3bc6b426a2502735a5e00f93f807a3c6dcc91975ae90de",
+        "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7"
+      },
+      "revised_at": "2026-08-19T08:16:35.912462+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-runtime-digest-unrelated-git-config.manifest.yaml -> manifests/fix-runtime-digest-unrelated-git-config.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:e803b866315f3895874e2a55e4eb164194806b6c7a8adf47e22703e598a00226",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_git_ignored_runtime_content.py": "sha256-pyast:v2:f33743f6f74ffb719221a0db82d73c7d4ce72b53a21e7dbae0d11f0f86eab845",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:d650a289578edb9a4e3bc6b426a2502735a5e00f93f807a3c6dcc91975ae90de",
+        "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7"
+      },
+      "revised_at": "2026-08-19T08:35:41.574581+00:00",
+      "reason": "Serialize only effective winning Git path-selection values after implementation review found shadowed-layer false invalidation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_verify_git_ignored_runtime_content.py:test_verify_accepts_shadowed_runtime_git_configuration_mutation",
+          "tests/cli/test_verify_git_ignored_runtime_content.py:test_verify_accepts_shadowed_runtime_git_configuration_mutation:kind=test_function",
+          "tests/cli/test_verify_git_ignored_runtime_content.py:test_verify_accepts_shadowed_runtime_git_configuration_mutation:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8d0aec66494acbca22580a7c4b53ae76a76c72a00e637303339096111232129b",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_git_ignored_runtime_content.py": "sha256-pyast:v2:6c8010c82d16a0cc28a3df7cbb119d19b5b6bd02cd6140d1d6aee88a124731cd",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:d650a289578edb9a4e3bc6b426a2502735a5e00f93f807a3c6dcc91975ae90de",
+        "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7"
+      },
+      "revised_at": "2026-08-19T23:14:09.824020+00:00",
+      "reason": "Accept approved shared-test environment-forwarding repair.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-19T08:36:19.896564+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_verify_git_ignored_runtime_content.py",
+        "exit_code": 1,
+        "output_tail": "    \n        exit_code = _run_artifact_coverage_verify()\n        output = capsys.readouterr()\n    \n>       assert exit_code == 0, output.out + output.err\nE       AssertionError: VERIFY: FAIL (1 blocking, 0 warnings unique / 0 raw, 3 passed, 0 skipped)\nE           Duration: 419ms\nE         \nE         BLOCKING (1):\nE           FAIL artifact_coverage\nE             Artifact coverage evidence command changed project content; the pre-execution coverage baseline cannot be replayed safely\nE         \nE         PASSED (3): schema, behavioral, implementation\nE         \nE       assert 1 == 0\n\n/home/atomrem/projects/codefrost-dev/maid-runner-runtime-digest-config/tests/cli/test_verify_git_ignored_runtime_content.py:367: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_verify_git_ignored_runtime_content.py::test_verify_accepts_shadowed_runtime_git_configuration_mutation\n1 failed, 17 passed in 9.18s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_verify_deep_evidence_reuse.py tests/cli/test_artifact_coverage_evidence_cache.py tests/core/test_runtime_evidence.py",
+        "exit_code": 0,
+        "output_tail": ".....................................................                    [100%]\n53 passed in 28.55s",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/cli/test_verify_git_ignored_runtime_content.py:test_verify_accepts_runtime_mutation_of_unrelated_git_configuration",
+      "tests/cli/test_verify_git_ignored_runtime_content.py:test_verify_accepts_runtime_mutation_of_unrelated_git_configuration:arg=config_key:type=str:default=None",
+      "tests/cli/test_verify_git_ignored_runtime_content.py:test_verify_accepts_runtime_mutation_of_unrelated_git_configuration:arg=config_value:type=str:default=None",
+      "tests/cli/test_verify_git_ignored_runtime_content.py:test_verify_accepts_runtime_mutation_of_unrelated_git_configuration:kind=test_function",
+      "tests/cli/test_verify_git_ignored_runtime_content.py:test_verify_accepts_runtime_mutation_of_unrelated_git_configuration:returns=None",
+      "tests/cli/test_verify_git_ignored_runtime_content.py:test_verify_accepts_shadowed_runtime_git_configuration_mutation",
+      "tests/cli/test_verify_git_ignored_runtime_content.py:test_verify_accepts_shadowed_runtime_git_configuration_mutation:kind=test_function",
+      "tests/cli/test_verify_git_ignored_runtime_content.py:test_verify_accepts_shadowed_runtime_git_configuration_mutation:returns=None",
+      "tests/cli/test_verify_git_ignored_runtime_content.py:test_verify_rejects_runtime_precompose_unicode_configuration_mutation",
+      "tests/cli/test_verify_git_ignored_runtime_content.py:test_verify_rejects_runtime_precompose_unicode_configuration_mutation:kind=test_function",
+      "tests/cli/test_verify_git_ignored_runtime_content.py:test_verify_rejects_runtime_precompose_unicode_configuration_mutation:returns=None"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "tests/cli/test_verify_git_ignored_runtime_content.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/verify.py",
+        "manifests/121-50-ignore-git-excluded-runtime-evidence-content.manifest.yaml"
+      ],
+      "scope": [
+        "maid_runner/core/runtime_evidence.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "tests/cli/test_verify_git_ignored_runtime_content.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_verify_accepts_runtime_mutation_of_unrelated_git_configuration",
+              "description": "Artifact coverage remains green when instrumented tests add unrelated branch/editor, identity, fsmonitor, or untracked-cache Git settings while generating only Git-ignored content.",
+              "args": [
+                {
+                  "name": "config_key",
+                  "type": "str"
+                },
+                {
+                  "name": "config_value",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_verify_rejects_runtime_precompose_unicode_configuration_mutation",
+              "description": "Artifact coverage remains fail-closed when an instrumented test changes core.precomposeUnicode, which can alter Git path interpretation on supported platforms.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_verify_accepts_shadowed_runtime_git_configuration_mutation",
+              "description": "Artifact coverage remains green when a lower-precedence relevant Git setting changes but a stable local value continues to determine effective path-selection semantics.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/121-50-ignore-git-excluded-runtime-evidence-content.manifest.yaml",
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/cli/commands/_main.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/runtime_evidence.py",
+          "reason": "Narrow the private effective-config contribution to runtime content identity without changing the public RuntimeEvidence API."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_artifact_coverage_evidence_cache.py",
+      "tests/cli/test_verify_deep_evidence_reuse.py",
+      "tests/cli/test_verify_git_ignored_runtime_content.py",
+      "tests/core/test_runtime_evidence.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_verify_git_ignored_runtime_content.py",
+      "uv run python -m pytest -q tests/cli/test_verify_deep_evidence_reuse.py tests/cli/test_artifact_coverage_evidence_cache.py tests/core/test_runtime_evidence.py"
+    ]
+  }
+}

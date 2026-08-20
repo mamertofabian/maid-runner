@@ -1,0 +1,80 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Overlap isolated external test commands with serial cached validation"
+type: refactor
+created: "2026-08-13T13:28:35Z"
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags: [performance, test-execution, validation-cache, scheduling]
+description: |
+  Repository maid test uses command_jobs 2, but its implementation runner
+  flushes and waits for every pending external subprocess group whenever the
+  next command is a cacheable in-process maid validate. The 2026-08-13 clean
+  gate passed 282 commands in 125.93 seconds; command durations summed to
+  105.74 seconds and the broad xdist command alone took 54.83 seconds. Repeated
+  external/cached boundaries therefore leave the existing two-job budget idle.
+
+  Submit prepared external commands to one bounded ThreadPoolExecutor as they
+  are encountered while keeping every cached validation call serial on the
+  main thread. Store one result or future per deterministic command slot, then
+  resolve and finalize external commands in slot order after scheduling.
+  Preserve exact result ordering, scheduling notices, timing-history updates,
+  pass/fail counts, exception propagation, and the jobs=1/fail-fast serial
+  paths. Cached ValidationEngine and manifest-chain state never enter worker
+  threads. The process budget remains command_jobs 2 * pytest_workers 8 <= 16;
+  this child changes no configured concurrency.
+temptations:
+  - risk: "Do not run shared cached ValidationEngine state concurrently."
+    instead: "Keep cached validation serial on the main thread while only isolated external commands use the existing bounded executor."
+  - risk: "Do not emit results or timing notices in future completion order."
+    instead: "Allocate deterministic slots and resolve/finalize prepared commands in original command order."
+  - risk: "Do not weaken fail-fast semantics to obtain overlap."
+    instead: "Use the overlapped scheduler only for jobs > 1 when fail_fast is false; preserve the existing serial fail-fast path."
+files:
+  edit:
+    - path: maid_runner/core/test_runner.py
+      artifacts:
+        - kind: function
+          name: _run_implementation_commands
+          description: "Schedules external subprocess commands while cached validation remains serial, then reconstructs deterministic results."
+    - path: tests/core/test_test_runner.py
+      artifacts:
+        - kind: test_function
+          name: test_run_tests_jobs_overlaps_external_commands_with_serial_cached_validation
+  read:
+    - maid_runner/core/_maid_validate_command_cache.py
+    - manifests/046-01-parallelize-independent-maid-test-command-groups.manifest.yaml
+    - manifests/078-01-cache-quiet-maid-validate-test-commands.manifest.yaml
+    - manifests/121-25-tune-maid-test-command-jobs.manifest.yaml
+    - docs/plans/maid-runner-performance-backlog.md
+validate:
+  - uv run python -m pytest -q tests/core/test_test_runner.py tests/core/validation/test_maid_validate_command_cache.py tests/core/test_repository_command_jobs.py
+  - uv run maid validate manifests/121-44-overlap-external-tests-with-cached-validation.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-13T13:52:03Z"
+  summary: "External test subprocesses now overlap serial main-thread cached validation under the existing two-job budget. Deterministic result slots and timing finalization preserve command order, while fail-fast and single-job paths remain serial."
+  rationale: "The previous scheduler flushed every pending external group at each cacheable validate command, creating repeated barriers. The first green post-supervisor gate took 125.93s; bounded overlap reduced consecutive full green gates to about 100 seconds."
+  lessons:
+    - lesson_type: performance
+      summary: "Reserve one command job for serial in-process cache work and let the other run isolated external commands; reconstruct results by declaration slot rather than completion order."
+      tags: [test-runner, scheduling, validation-cache]
+      paths:
+        - maid_runner/core/test_runner.py
+        - tests/core/test_test_runner.py
+  review_notes:
+    - source: checkpoint_review
+      severity: ready
+      summary: "Independent final review found no remaining concurrency, ordering, or process-budget issues."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_test_runner.py, tests/core/validation/test_maid_validate_command_cache.py, tests/core/test_repository_command_jobs.py]
+      status: passed
+      summary: "All 102 runner, cache, and repository job-policy tests passed."
+    - command: [uv, run, maid, test, --json]
+      status: passed
+      summary: "Final repository command gate passed all 283 commands in 100.03s."

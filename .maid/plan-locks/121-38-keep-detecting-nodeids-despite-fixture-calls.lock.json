@@ -1,0 +1,114 @@
+{
+  "manifest_path": "manifests/121-38-keep-detecting-nodeids-despite-fixture-calls.manifest.yaml",
+  "manifest_hash": "sha256-contract:75bd28f71f81d3fca8e398ad033023c0772daabac1ee0b8e0371ace2155ca1d8",
+  "test_hashes": {
+    "tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py": "sha256-pyast:v2:b165f25968d30a5b7206c829b90ab678fe061618b47aa74d75dc0d956ad8a783",
+    "tests/core/test_focused_knockout_ignores_fixture_context_calls.py": "sha256-pyast:v2:c67c57d7aa7c71f363aab86d3784ad46ab0841774a4061cbd3f6f120f22bc264"
+  },
+  "created_at": "2026-08-13T11:16:22.421694+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:da599abe03b234bac502cf28d26dd8ac4963c2a3c03b6bceca2fd2957efea4d7",
+      "prior_test_hashes": {
+        "tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py": "sha256-pyast:v2:b165f25968d30a5b7206c829b90ab678fe061618b47aa74d75dc0d956ad8a783",
+        "tests/core/test_focused_knockout_ignores_fixture_context_calls.py": "sha256-pyast:v2:c67c57d7aa7c71f363aab86d3784ad46ab0841774a4061cbd3f6f120f22bc264"
+      },
+      "revised_at": "2026-08-13T11:16:29.064413+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-38-keep-detecting-nodeids-despite-fixture-calls.manifest.yaml -> manifests/121-38-keep-detecting-nodeids-despite-fixture-calls.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-38-keep-detecting-nodeids-despite-fixture-calls.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-38-keep-detecting-nodeids-despite-fixture-calls.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-13T11:16:35.526942+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_focused_knockout_ignores_fixture_context_calls.py tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py",
+        "exit_code": 1,
+        "output_tail": "        executor = _RecordingExecutor((0, 1, 0))\n    \n        report = run_knockout_batch(\n            (manifest,),\n            tmp_path,\n            evidence=evidence,\n            allow_dirty=True,\n            executor=executor,\n        )[manifest.source_path]\n    \n        assert report.results[0].proof is not None\n>       assert report.results[0].proof.used_exact_fallback is False\nE       AssertionError: assert True is False\nE        +  where True = KnockoutDifferentialProof(identity=KnockoutArtifactIdentity(file_path='src/target.py', artifact_name='target', artifac..._exit_code=0, mutant_exit_code=1, restored_exit_code=0, detecting_nodeids=(), used_exact_fallback=True, diagnostics=()).used_exact_fallback\nE        +    where KnockoutDifferentialProof(identity=KnockoutArtifactIdentity(file_path='src/target.py', artifact_name='target', artifac..._exit_code=0, mutant_exit_code=1, restored_exit_code=0, detecting_nodeids=(), used_exact_fallback=True, diagnostics=()) = KnockoutResult(artifact_name='target', artifact_kind='function', parent_class=None, file_path='src/target.py', detecte...nt_exit_code=1, restored_exit_code=0, detecting_nodeids=(), used_exact_fallback=True, diagnostics=()), cache_hit=False).proof\n\ntests/core/test_focused_knockout_ignores_fixture_context_calls.py:35: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_focused_knockout_ignores_fixture_context_calls.py::test_fixture_context_call_still_uses_focused_knockout\n1 failed, 3 passed in 5.87s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-38-keep-detecting-nodeids-despite-fixture-calls.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/test_focused_knockout_ignores_fixture_context_calls.py:test_fixture_context_call_still_uses_focused_knockout",
+      "tests/core/test_focused_knockout_ignores_fixture_context_calls.py:test_fixture_context_call_still_uses_focused_knockout:kind=test_function",
+      "tests/core/test_focused_knockout_ignores_fixture_context_calls.py:test_fixture_only_call_still_forces_exact_fallback",
+      "tests/core/test_focused_knockout_ignores_fixture_context_calls.py:test_fixture_only_call_still_forces_exact_fallback:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_focused_knockout_ignores_fixture_context_calls.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/core/runtime_evidence.py",
+        "manifests/121-36-focus-knockout-on-proven-detecting-nodeids.manifest.yaml",
+        "tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py"
+      ],
+      "scope": [
+        "maid_runner/core/knockout.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_focused_knockout_ignores_fixture_context_calls.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_fixture_context_call_still_uses_focused_knockout"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_fixture_only_call_still_forces_exact_fallback"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/121-36-focus-knockout-on-proven-detecting-nodeids.manifest.yaml",
+        "tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py",
+        "maid_runner/core/runtime_evidence.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/knockout.py",
+          "reason": "Knockout detecting nodeids must skip fixture and collection contexts instead of discarding node callers."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py",
+      "tests/core/test_focused_knockout_ignores_fixture_context_calls.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_focused_knockout_ignores_fixture_context_calls.py tests/core/test_focused_knockout_drops_unproven_detecting_nodeids.py",
+      "uv run maid validate manifests/121-38-keep-detecting-nodeids-despite-fixture-calls.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

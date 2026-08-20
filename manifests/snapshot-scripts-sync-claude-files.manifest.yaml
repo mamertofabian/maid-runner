@@ -1,0 +1,1268 @@
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Snapshot of scripts/sync_claude_files.py
+type: snapshot
+files:
+  create:
+  - path: .claude/skills/maid-plan-review/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: maid_plan_review_skill
+      of: MAID skill distribution
+      type: skill
+  - path: .claude/skills/maid-implementation-review/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: maid_implementation_review_skill
+      of: MAID skill distribution
+      type: skill
+  - path: .claude/skills/maid-incident-logger/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: maid_incident_logger_skill
+      of: MAID skill distribution
+      type: skill
+  - path: tests/test_agent_payload_distribution.py
+    artifacts:
+    - kind: test_function
+      name: test_agent_payload_package_data_includes_claude_and_codex_assets
+      source_scenario: The distribution package is built from pyproject package-data
+        globs.
+      actions:
+      - type: api_call
+        subject:
+          function: tomllib.loads
+      expected:
+        behavior: Package data includes the docs/resources installed by `maid init`,
+          in addition to existing Claude and Codex assets.
+    - kind: test_function
+      name: test_codex_payload_manifest_matches_source_skills
+      description: Existing payload distribution coverage updated so the expected
+        Codex distributable skills include maid-outcome-enrich.
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+    - kind: test_function
+      name: test_codex_skill_probe_commands_use_registered_cli_options
+      source_scenario: A Codex agent follows repo-owned skill health probe guidance.
+      actions:
+      - type: api_call
+        subject:
+          function: build_parser
+      - type: api_call
+        subject:
+          function: Path.read_text
+      expected:
+        behavior: Codex skill probe examples do not use unsupported `--quiet` flags
+          for `maid test` or `maid verify`, and instead reference supported JSON output
+          flags.
+    - kind: test_function
+      name: test_command_docs_match_registered_parser_commands
+      source_scenario: README and roadmap list the current CLI command surface.
+      actions:
+      - type: api_call
+        subject:
+          function: build_parser
+      - type: api_call
+        subject:
+          function: Path.read_text
+      expected:
+        behavior: The documented command lists include all public commands registered
+          by `build_parser`, including learn, recall, insights, and current test/verify
+          job options.
+    - kind: test_function
+      name: test_run_review_skill_distributed_to_both_payloads
+      description: The maid-run-review skill reaches both generated payload trees
+        and both manifest registries.
+      returns: None
+  - path: tests/test_recall_payload_sync.py
+    artifacts:
+    - kind: test_function
+      name: test_codex_payload_manifest_lists_recall_workflow_skills_and_agents
+      description: Behavioral coverage that the generated Codex payload manifest lists
+        the added workflow skills and their skill-local OpenAI agent metadata.
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+    - kind: test_function
+      name: test_codex_recall_payload_package_data_covers_generated_files
+      description: Behavioral coverage that pyproject package-data globs include the
+        generated Codex workflow skill files and agent metadata.
+      returns: None
+    - kind: test_function
+      name: test_recall_guidance_payload_sync_matches_sources
+      description: Behavioral coverage that isolated payload sync copies recall-integrated
+        Claude and Codex workflow skill sources byte-for-byte.
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+  - path: tests/cli/test_init_hook_payloads.py
+    artifacts:
+    - kind: test_function
+      name: test_init_claude_installs_scope_check_hook_settings
+      description: Fresh Claude init installs .claude/settings.json with a PreToolUse
+        Write/Edit hook that invokes maid hook scope-check --stdin.
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+    - kind: test_function
+      name: test_init_claude_merges_existing_settings_without_clobbering
+      description: Force Claude init preserves unrelated existing .claude/settings.json
+        keys while ensuring the MAID PreToolUse scope-check hook is present.
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+    - kind: test_function
+      name: test_init_cursor_installs_scope_check_hook_payload
+      description: Cursor init installs .cursor/manifest.json and .cursor/hooks.json
+        through the package payload flow without creating Claude or Codex assets.
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+    - kind: test_function
+      name: test_init_hook_payload_dry_run_and_distribution_parity
+      description: Dry-run output names hook payload files and isolated sync/package-data
+        parity checks cover Claude settings and Cursor hook resources.
+      args:
+      - name: tmp_path
+        type: Path
+      - name: capsys
+        type: pytest.CaptureFixture[str]
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+  - path: tests/cli/test_init_codex_distributable_scope.py
+    artifacts:
+    - kind: attribute
+      name: GENERIC_CODEX_SKILLS
+      description: Existing Codex init distributable-skill expectation includes maid-run-review
+        as a generic installed skill.
+      type: list[str]
+    - kind: test_function
+      name: test_codex_init_agents_md_describes_generic_workflow
+      description: Codex init writes AGENTS.md guidance referencing the generic workflow
+        skills and no maid-runner-* skills.
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+    - kind: test_function
+      name: test_codex_init_installs_only_distributable_skills
+      description: Existing Codex init coverage updated so maid-outcome-enrich is
+        an expected generic installed skill, while repo-internal skills remain excluded.
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+    - kind: test_function
+      name: test_codex_payload_manifest_distributable_excludes_repo_internal_skills
+      description: Existing Codex payload manifest coverage updated so the distributable
+        list includes maid-outcome-enrich and still excludes repo-internal skills.
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+  - path: maid_runner/core/skill_install.py
+    artifacts:
+    - kind: function
+      name: install_onboard_skill
+      description: Install the maid-onboard skill from payload_root into target_root/.claude
+        and target_root/.codex; copy by default, symlink when link is true (copy fallback
+        if unsupported). Returns the POSIX-relative paths written under target_root.
+      args:
+      - name: target_root
+        type: Path
+      - name: payload_root
+        type: Path
+      - name: link
+        type: bool
+      returns: list[str]
+    - kind: function
+      name: uninstall_onboard_skill
+      description: Remove only unchanged user-level Claude and Codex maid-onboard
+        directories on POSIX and Windows while preserving modified, redirected, and
+        unrelated skills.
+      args:
+      - name: target_root
+        type: Path
+      - name: payload_root
+        type: Path
+      - name: dry_run
+        type: bool
+      returns: UninstallReport
+  - path: maid_runner/cli/commands/skills.py
+    artifacts:
+    - kind: function
+      name: cmd_skills
+      description: Dispatch `maid skills` subcommands; for `install`, resolve the
+        user home (or --target-root) and the packaged user_skills payload and call
+        install_onboard_skill.
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+  - path: tests/cli/test_skills_install.py
+    artifacts:
+    - kind: test_function
+      name: test_install_onboard_skill_copies_claude_and_codex_payload
+      description: install_onboard_skill copies the claude SKILL.md and the codex
+        SKILL.md + agents/openai.yaml into target_root.
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+    - kind: test_function
+      name: test_install_onboard_skill_is_idempotent
+      description: Running install_onboard_skill twice succeeds and leaves the payload
+        present.
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+    - kind: test_function
+      name: test_install_onboard_skill_link_creates_symlink
+      description: install_onboard_skill with link=True creates a symlink for the
+        installed skill (or a regular file when symlinks are unsupported).
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+    - kind: test_function
+      name: test_install_onboard_skill_link_falls_back_to_copy_when_unsupported
+      description: When symlink creation fails, install_onboard_skill copies the file
+        instead (copy fallback).
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+    - kind: test_function
+      name: test_install_onboard_skill_prunes_stale_files
+      description: Reinstalling removes stale files left under the destination skill
+        directory by an older payload.
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+    - kind: test_function
+      name: test_install_onboard_skill_requires_both_tool_payloads
+      description: install_onboard_skill raises FileNotFoundError when the payload
+        is missing a tool's skill source (fail loud, no partial install).
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+    - kind: test_function
+      name: test_onboard_skill_absent_from_per_repo_init_distributable
+      description: maid-onboard is not listed in the generated claude or codex init
+        distributable manifests, so maid init never installs it per-repo.
+      returns: None
+    - kind: test_function
+      name: test_skills_install_command_installs_to_target_root
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      source_scenario: '`maid skills install` installs the user-level onboard skill.'
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: Installed Claude and Codex maid-onboard skills tell users to run
+          draft Outcome recall before promoting the selected draft.
+    - kind: test_function
+      name: test_skills_install_command_reports_copy_fallback
+      description: '`maid skills install --link` reports a copy fallback (not ''Linked'')
+        when symlinks are unavailable.'
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: capsys
+        type: pytest.CaptureFixture
+      returns: None
+    - kind: test_function
+      name: test_sync_user_skills_packages_onboard_skill
+      description: sync_user_skills copies the repo .claude/.codex maid-onboard source
+        into maid_runner/user_skills for packaging.
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+  - path: tests/test_init_draft_workflow_payload.py
+    artifacts:
+    - kind: test_function
+      name: test_init_generated_agent_guidance_matches_draft_epic_workflow
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+      source_scenario: New repositories run `maid init --tool claude` and `maid init
+        --tool codex`.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: Generated CLAUDE.md and AGENTS.md sections require the exact draft
+          recall command before promotion and keep recall advisory.
+    - kind: test_function
+      name: test_init_installs_local_draft_workflow_docs_and_readme
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+      source_scenario: A new repository runs `maid init --tool codex`.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: Installed draft workflow docs and drafts README require recall for
+          the selected draft before promotion, then retain sanctioned promotion and
+          no-manual-move guidance.
+    - kind: test_function
+      name: test_packaged_workflow_docs_match_source_docs
+      returns: None
+      source_scenario: The distribution package is built from package-data resources
+        used by `maid init`.
+      actions:
+      - type: api_call
+        subject:
+          function: Path.read_text
+      - type: api_call
+        subject:
+          function: tomllib.loads
+      expected:
+        behavior: Package-data includes the workflow docs/resources that init installs,
+          and packaged copies match the repo source docs so init cannot ship stale
+          draft workflow text.
+  - path: tests/test_insights_skill_guidance.py
+    artifacts:
+    - kind: attribute
+      name: CODEX_DISTRIBUTABLE_SKILLS
+      description: Existing Codex payload distribution expectation includes maid-run-review
+        as a generic installed skill.
+      type: list[str]
+    - kind: test_function
+      name: test_auditor_insights_cadence_is_present_and_specific
+      description: Behavioral coverage that Claude and Codex maid-auditor skills contain
+        an advisory `maid insights` cadence anchor tied to release / periodic health
+        cadences.
+      returns: None
+    - kind: test_function
+      name: test_auditor_insights_guidance_handles_stale_index_explicitly
+      description: Behavioral coverage that Claude and Codex auditor insights guidance
+        states stale indexes fail by default and names `maid learn` plus `--allow-stale-index`
+        as the only remedies.
+      returns: None
+    - kind: test_function
+      name: test_auditor_insights_guidance_is_distributed_to_codex
+      description: Existing auditor skill distribution coverage updated so the Codex
+        distributable list includes maid-outcome-enrich.
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+    - kind: test_function
+      name: test_auditor_insights_guidance_synced_to_agent_payloads
+      description: Behavioral coverage that generated Claude and Codex package copies
+        equal the source maid-auditor skills after an isolated sync and carry the
+        insights cadence anchor.
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+    - kind: test_function
+      name: test_auditor_insights_guidance_uses_only_registered_options
+      description: Behavioral coverage that Claude and Codex auditor insights guidance
+        uses only registered insights options and contains no unregistered flags such
+        as --tag or --include-status.
+      returns: None
+    - kind: test_function
+      name: test_codex_init_installs_auditor_insights_skill
+      description: Existing Codex init coverage for auditor guidance updated to expect
+        maid-outcome-enrich in the generic skill install set.
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+  - path: tests/test_outcome_enrich_skill_guidance.py
+    artifacts:
+    - kind: test_function
+      name: test_claude_init_installs_outcome_enrich_skill
+      description: '`maid init --tool claude` installs maid-outcome-enrich from the
+        Claude manifest-driven payload.'
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+    - kind: test_function
+      name: test_codex_init_installs_outcome_enrich_skill
+      description: '`maid init --tool codex` installs maid-outcome-enrich while still
+        excluding repo-internal maid-runner skills.'
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+    - kind: test_function
+      name: test_outcome_enrich_skill_describes_validate_render_workflow
+      description: "Claude and Codex maid-outcome-enrich skills describe the prompt\u2192\
+        generate\u2192validate\u2192render workflow anchored on the maid enrich subcommands."
+      returns: None
+    - kind: test_function
+      name: test_outcome_enrich_skill_marks_validate_as_hard_stop
+      description: Both skills state that a non-zero maid enrich validate is a hard
+        stop requiring regeneration, never hand-editing the digest.
+      returns: None
+    - kind: test_function
+      name: test_outcome_enrich_skill_states_cloud_privacy_and_local_default
+      description: Both skills default to local llama-server, mark cloud as explicit
+        opt-in, and disclose that cloud generation publishes lessons externally.
+      returns: None
+    - kind: test_function
+      name: test_outcome_enrich_skill_synced_to_agent_payloads
+      description: Generated Claude and Codex package copies equal the source skills
+        after an isolated payload sync.
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+    - kind: test_function
+      name: test_outcome_enrich_skill_uses_only_registered_options
+      description: Both skills reference only registered maid enrich / maid insights
+        options and contain no invented flags.
+      returns: None
+  - path: tests/test_run_review_skill_guidance.py
+    artifacts:
+    - kind: test_function
+      name: test_agent_skills_doc_lists_run_review_for_both_payloads
+      description: docs/agent-skills.md includes the maid-run-review distribution
+        row.
+      returns: None
+    - kind: test_function
+      name: test_both_source_skills_pin_cloud_privacy_disclosure
+      description: Claude and Codex source SKILL.md files exist and require the cloud
+        disclosure naming what run evidence leaves the machine.
+      returns: None
+    - kind: test_function
+      name: test_instruction_payload_version_bumped_for_run_review_skill
+      description: INSTRUCTION_PAYLOAD_VERSION advanced past 2026.07.05.1 because
+        maid init distributes the new skill payload.
+      returns: None
+    - kind: test_function
+      name: test_run_evaluation_docs_cover_provenance_and_commands
+      description: docs/run-evaluation.md documents --agent-model, MAID_AGENT_MODEL,
+        evaluate run, evaluate compare, and the unknown/unclassified honest-gap statuses;
+        README points to the doc.
+      returns: None
+    - kind: test_function
+      name: test_skill_and_docs_pin_advisory_never_gate_rule
+      description: Both sources and docs/run-evaluation.md state that reviews are
+        advisory and never a workflow gate.
+      returns: None
+    - kind: test_function
+      name: test_skill_pins_validate_before_render_and_no_citation_editing
+      description: Both sources mandate the prompt->model->validate->render order,
+        fail-closed render, and forbid hand-editing citations to pass validation.
+      returns: None
+  edit:
+  - path: maid_runner/cli/commands/init.py
+    artifacts:
+    - kind: function
+      name: cmd_init
+      description: Init completion output extended with a Next steps footer naming
+        maid howto quickstart after the existing Git hook guidance.
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+    - kind: function
+      name: uninstall_init_payload
+      description: Preflight and safely remove selected MAID-owned repository payloads
+        on POSIX and Windows without crossing link or reparse boundaries.
+      args:
+      - name: project_root
+        type: Path
+      - name: tools
+        type: tuple[str, Ellipsis]
+      - name: dry_run
+        type: bool
+      returns: UninstallReport
+  - path: pyproject.toml
+    artifacts:
+    - kind: attribute
+      name: pytest_xdist_dev_dependency
+      description: Installs the pinned runner-native worker implementation for equivalence
+        testing without enabling it by default.
+      of: dependency-groups.dev
+      type: dependency
+    - kind: attribute
+      name: tomli_dev_dependency
+      of: dependency-groups.dev
+      type: dependency
+    - kind: attribute
+      name: claude_agent_payload
+      of: package-data
+      type: glob
+    - kind: attribute
+      name: claude_skills
+      of: package-data
+      type: glob
+    - kind: attribute
+      name: package_data_core_cjs
+      of: tool.setuptools.package-data.maid_runner
+      type: string
+  - path: uv.lock
+    artifacts:
+    - kind: attribute
+      name: pytest_xdist_lock
+      of: dependency-lock
+      type: lock entry
+    - kind: attribute
+      name: tomli_lock_entry
+      of: package.dev
+      type: dependency
+  - path: .claude/manifest.json
+    artifacts:
+    - kind: attribute
+      name: agents_distributable
+      of: claude manifest
+      type: array
+    - kind: attribute
+      name: commands_distributable
+      of: claude manifest
+      type: array
+    - kind: attribute
+      name: skills_distributable
+      of: claude manifest
+      type: array
+  - path: .claude/agents/maid-implementation-reviewer.md
+    artifacts:
+    - kind: attribute
+      name: maid_implementation_reviewer_agent
+      of: Claude agents
+      type: agent
+  - path: .claude/skills/maid-planner/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: maid_planner_skill
+      of: MAID skill distribution
+      type: skill
+    - kind: attribute
+      name: temptations
+      of: Manifest Structure
+      type: section
+  - path: .claude/skills/maid-implementer/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: temptations
+      of: Implementation Workflow
+      type: section
+    - kind: attribute
+      name: maid_implementer_skill
+      of: MAID skill distribution
+      type: skill
+  - path: .claude/skills/maid-evolver/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: maid_evolver_skill
+      of: MAID skill distribution
+      type: skill
+  - path: .claude/skills/maid-auditor/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: maid_auditor_skill
+      of: MAID skill distribution
+      type: skill
+  - path: tests/cli/test_init_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_init_claude_creates_repo_level_maid_assets
+      source_scenario: A repository runs `maid init --tool claude`.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: The generated `CLAUDE.md` section asserts the sanctioned draft/epic
+          workflow and no stale manual-move promotion guidance.
+    - kind: test_function
+      name: test_init_claude_dry_run_reports_assets_without_creating_them
+    - kind: test_function
+      name: test_init_claude_force_replaces_only_marked_claude_md_section
+    - kind: test_function
+      name: test_init_codex_creates_repo_level_maid_assets
+      source_scenario: A repository runs `maid init --tool codex`.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: The generated `AGENTS.md` section asserts the sanctioned draft/epic
+          workflow and no stale manual-move promotion guidance.
+    - kind: test_function
+      name: test_init_codex_dry_run_reports_assets_without_creating_them
+      source_scenario: A repository runs `maid init --tool codex --dry-run`.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: Dry-run output names representative Codex payload files and `AGENTS.md`,
+          while leaving `.codex`, `AGENTS.md`, manifests, and `.maidrc.yaml` absent.
+    - kind: test_function
+      name: test_init_codex_force_replaces_only_marked_agents_section_and_prunes_stale_payload
+      source_scenario: A repository with previous MAID Codex payload files and custom
+        user files runs `maid init --tool codex --force`.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: The MAID section is replaced, stale manifest-declared Codex files
+          are removed, current payload files are installed, and custom Codex skills
+          or agent files remain.
+    - kind: test_function
+      name: test_init_non_claude_tool_does_not_create_claude_assets
+    - kind: test_function
+      name: test_init_non_codex_tool_does_not_create_codex_assets
+      source_scenario: A repository runs `maid init --tool generic`.
+      actions:
+      - type: api_call
+        subject:
+          function: main
+      expected:
+        behavior: Generic initialization does not create `.codex` or `AGENTS.md`.
+  - path: tests/ci/test_publish_workflow.py
+    artifacts:
+    - kind: test_function
+      name: test_claude_manifest_and_docs_describe_maid_skill_distribution
+    - kind: test_function
+      name: test_package_data_includes_claude_skills
+    - kind: test_function
+      name: test_project_license_metadata_uses_modern_spdx_form
+      source_scenario: Maintainers build the package for release with current setuptools.
+      actions:
+      - type: api_call
+        subject:
+          function: Path.read_text
+      expected:
+        behavior: The project license is declared as the SPDX string `MIT`, the deprecated
+          MIT license classifier is absent, and the build backend requires setuptools
+          77.0.3 or newer.
+    - kind: test_function
+      name: test_publish_workflow_installs_npm_dependencies_before_maid_tests
+    - kind: test_function
+      name: test_python_310_tomli_fallback_dependency_is_locked
+  - path: tests/ci/test_claude_sync.py
+    artifacts:
+    - kind: test_function
+      name: test_sync_claude_files_copies_manifest_declared_skills
+    - kind: test_function
+      name: test_sync_claude_files_prunes_stale_generated_payloads
+  - path: CLAUDE.md
+    artifacts:
+    - kind: attribute
+      name: maid_skills_workflow
+      of: MAID Workflow
+      type: section
+  - path: README.md
+    artifacts:
+    - kind: attribute
+      name: changed_scope_handoff_gate_docs
+      description: Human-facing CLI and workflow guidance for default changed-scope
+        branch handoff and explicit opt-out.
+      of: CLI Reference
+      type: section
+    - kind: attribute
+      name: repo_level_claude_install
+      of: Installation
+      type: section
+  - path: docs/agent-skills.md
+    artifacts:
+    - kind: attribute
+      name: current_maid_skill_distribution
+      of: Tool Packaging
+      type: section
+    - kind: attribute
+      name: changed_scope_agent_handoff_guidance
+      description: AI-agent guidance requiring a baseline for default changed-scope
+        validation before implementation handoff.
+      of: maid-implementer
+      type: section
+  - path: maid_runner/claude/manifest.json
+    artifacts:
+    - kind: attribute
+      name: generated_agents_distributable
+      of: generated claude manifest
+      type: array
+    - kind: attribute
+      name: generated_commands_distributable
+      of: generated claude manifest
+      type: array
+  - path: maid_runner/cli/commands/_main.py
+    artifacts:
+    - kind: function
+      name: build_parser
+      description: The manifest promote subparser continues to accept --no-run and
+        --project-root (default '.') alongside its existing options.
+      returns: argparse.ArgumentParser
+    - kind: function
+      name: main
+      description: Dispatches validate, test, and verify with .maidrc.yaml's manifest_dir
+        when the option is omitted, while explicit CLI values retain precedence.
+      args:
+      - name: argv
+        type: list[str] | None
+        default: None
+      returns: int
+  - path: docs/draft-manifest-workflow.md
+    artifacts:
+    - kind: attribute
+      name: changed_scope_draft_handoff_gate
+      description: Draft promotion workflow guidance for default changed-scope handoff
+        validation before review or commit.
+      of: Automation
+      type: section
+  - path: tests/test_learning_loop_init_payload.py
+    artifacts:
+    - kind: attribute
+      name: GENERIC_CODEX_SKILLS
+      description: Existing learning-loop init payload expectation includes maid-run-review
+        as a generic installed skill.
+      type: list[str]
+    - kind: test_function
+      name: test_agent_skill_docs_describe_current_init_distribution
+      description: Behavioral coverage that docs/agent-skills.md describes the current
+        Claude and Codex init distributions and the learning-evidence digestion lifecycle
+        instead of stale runner-specific Codex payloads.
+      returns: None
+    - kind: test_function
+      name: test_init_generated_guidance_requires_learning_digest
+      description: Behavioral coverage that generated CLAUDE.md and AGENTS.md sections
+        require agents to name applicable lessons, reject stale or irrelevant lessons
+        with a reason, and state what changed because of the evidence.
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+    - kind: test_function
+      name: test_init_installed_docs_close_the_outcome_learning_loop
+      description: Behavioral coverage that initialized repositories receive draft
+        workflow docs, Outcome docs, and drafts README text that close the loop from
+        completed Outcomes to current agent decisions while preserving advisory boundaries.
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+    - kind: test_function
+      name: test_init_installs_learning_digest_workflow_skills
+      description: Behavioral coverage that `maid init --tool claude` and `maid init
+        --tool codex` install workflow skill payloads carrying active insights, recall,
+        failure-lesson learning, and phase-specific evidence-digestion anchors.
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+    - kind: test_function
+      name: test_init_learning_digest_guidance_stays_advisory
+      description: Existing Codex init advisory-boundary coverage updated so the installed
+        generic skill set includes maid-outcome-enrich.
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+    - kind: test_function
+      name: test_learning_digest_payload_sources_and_packages_match
+      description: Existing user-skill payload parity coverage updated so onboard
+        guidance names the six-skill Codex generic set including maid-outcome-enrich.
+      returns: None
+  - path: maid_runner/instruction_payload.py
+    artifacts:
+    - kind: attribute
+      name: INSTRUCTION_PAYLOAD_VERSION
+      type: str
+    - kind: function
+      name: instruction_payload_metadata
+      description: Return metadata fields that `maid init` stamps into installed agent
+        payload manifests.
+      returns: dict[str, str]
+  read:
+  - tests/conftest.py
+  - manifests/snapshot-cli-commands-init.manifest.yaml
+  - manifests/047-06-add-outcome-aware-agent-skill-guidance.manifest.yaml
+  - .codex/skills/maid-runner-cleanup-and-refactor/SKILL.md
+  - .codex/skills/maid-runner-draft-implement/SKILL.md
+  - .codex/skills/maid-runner-performance-optimization/SKILL.md
+  - .codex/skills/maid-runner-self-improvement/SKILL.md
+  - .codex/skills/maid-validate-hardening/SKILL.md
+  - manifests/drafts/066-00-outcome-recall-planning-integration.epic.yaml
+  - manifests/066-03-update-agent-skill-guidance-for-recall.manifest.yaml
+  - manifests/048-01-refresh-init-codex-payload-and-command-docs.manifest.yaml
+  - tests/test_claude_skill_distribution.py
+  - .codex/skills/maid-plan-review/SKILL.md
+  - manifests/066-04-sync-init-payloads-with-recall-workflow.manifest.yaml
+  - manifests/fix-claude-skill-only-distribution.manifest.yaml
+  - maid_runner/cli/commands/task.py
+  - manifests/050-02-add-init-outcome-draft-guidance.manifest.yaml
+  - manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml
+  - manifests/073-02-align-agent-plan-lock-promotion-guidance.manifest.yaml
+  - manifests/074-01-refresh-outcome-index-after-capture.manifest.yaml
+  - docs/manifest-outcome-records.md
+  - manifests/drafts/077-00-skills-exploit-outcome-learning-loop.epic.yaml
+  - maid_runner/cli/commands/insights.py
+  - manifests/077-01-add-insights-cadence-to-maid-auditor.manifest.yaml
+  - manifests/081-02-add-maid-enrich-command.manifest.yaml
+  - manifests/081-04-add-outcome-enrich-skill.manifest.yaml
+  - manifests/drafts/084-06-add-run-review-enrichment-pipeline.manifest.yaml
+  scope:
+  - path: maid_runner/codex/manifest.json
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/codex/skills/maid-runner-cleanup-and-refactor/SKILL.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/codex/skills/maid-runner-cleanup-and-refactor/agents/openai.yaml
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/codex/skills/maid-runner-performance-optimization/SKILL.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/codex/skills/maid-runner-performance-optimization/agents/openai.yaml
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/codex/skills/maid-runner-self-improvement/SKILL.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/codex/skills/maid-runner-self-improvement/agents/openai.yaml
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/codex/skills/maid-validate-hardening/SKILL.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/codex/skills/maid-validate-hardening/agents/openai.yaml
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: Makefile
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: docs/ROADMAP.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: docs/plans/maid-runner-cleanup-refactor-backlog.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/codex/skills/maid-planner/SKILL.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/codex/skills/maid-planner/agents/openai.yaml
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/codex/skills/maid-implementer/SKILL.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/codex/skills/maid-implementer/agents/openai.yaml
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/codex/skills/maid-implementation-review/SKILL.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/codex/skills/maid-implementation-review/agents/openai.yaml
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: .claude/settings.json
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: .cursor/hooks.json
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/claude/settings.json
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/cursor/manifest.json
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/cursor/hooks.json
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/codex/skills/maid-plan-review/SKILL.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/codex/skills/maid-plan-review/agents/openai.yaml
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/user_skills/claude/maid-onboard/SKILL.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/user_skills/codex/maid-onboard/SKILL.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/user_skills/codex/maid-onboard/agents/openai.yaml
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: .claude/skills/maid-onboard/SKILL.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: .codex/skills/maid-onboard/SKILL.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: .codex/skills/maid-onboard/agents/openai.yaml
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/docs/draft-manifest-workflow.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/docs/manifest-outcome-records.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/manifests/drafts/README.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: manifests/drafts/README.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: .codex/skills/maid-auditor/SKILL.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: .codex/skills/maid-auditor/agents/openai.yaml
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/codex/skills/maid-auditor/SKILL.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/codex/skills/maid-auditor/agents/openai.yaml
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/claude/skills/maid-auditor/SKILL.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: .claude/skills/maid-outcome-enrich/SKILL.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: .codex/skills/maid-outcome-enrich/SKILL.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: .codex/skills/maid-outcome-enrich/agents/openai.yaml
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/claude/skills/maid-outcome-enrich/SKILL.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/codex/skills/maid-outcome-enrich/SKILL.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/codex/skills/maid-outcome-enrich/agents/openai.yaml
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: .claude/skills/maid-run-review/SKILL.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: .codex/skills/maid-run-review/SKILL.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: .codex/skills/maid-run-review/agents/openai.yaml
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/claude/skills/maid-run-review/SKILL.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/codex/skills/maid-run-review/SKILL.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: maid_runner/codex/skills/maid-run-review/agents/openai.yaml
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  - path: docs/run-evaluation.md
+    reason: Preserve ownership of a private-only writable path during chain merge.
+  delete:
+  - path: .claude/agents/maid-auditor.md
+    reason: Legacy multi-agent MAID workflow is no longer part of the repo-level Claude
+      init payload.
+  - path: .claude/agents/maid-developer.md
+    reason: Legacy multi-agent MAID workflow is no longer part of the repo-level Claude
+      init payload.
+  - path: .claude/agents/maid-fixer.md
+    reason: Legacy multi-agent MAID workflow is no longer part of the repo-level Claude
+      init payload.
+  - path: .claude/agents/maid-manifest-architect.md
+    reason: Legacy multi-agent MAID workflow is no longer part of the repo-level Claude
+      init payload.
+  - path: .claude/agents/maid-plan-reviewer.md
+    reason: Legacy multi-agent MAID workflow is no longer part of the repo-level Claude
+      init payload.
+  - path: .claude/agents/maid-refactorer.md
+    reason: Legacy multi-agent MAID workflow is no longer part of the repo-level Claude
+      init payload.
+  - path: .claude/agents/maid-test-designer.md
+    reason: Legacy multi-agent MAID workflow is no longer part of the repo-level Claude
+      init payload.
+  - path: .claude/commands/audit.md
+    reason: Claude slash commands are no longer distributed by maid init.
+  - path: .claude/commands/enhance-manifest.md
+    reason: Claude slash commands are no longer distributed by maid init.
+  - path: .claude/commands/fix.md
+    reason: Claude slash commands are no longer distributed by maid init.
+  - path: .claude/commands/generate-manifest.md
+    reason: Claude slash commands are no longer distributed by maid init.
+  - path: .claude/commands/generate-tests.md
+    reason: Claude slash commands are no longer distributed by maid init.
+  - path: .claude/commands/implement.md
+    reason: Claude slash commands are no longer distributed by maid init.
+  - path: .claude/commands/improve-tests.md
+    reason: Claude slash commands are no longer distributed by maid init.
+  - path: .claude/commands/maid-run.md
+    reason: Claude slash commands are no longer distributed by maid init.
+  - path: .claude/commands/pypi-release.md
+    reason: Claude slash commands are no longer distributed by maid init.
+  - path: .claude/commands/plan.md
+    reason: Claude slash commands are no longer distributed by maid init.
+  - path: .claude/commands/quality-check-and-commit.md
+    reason: Claude slash commands are no longer distributed by maid init.
+  - path: .claude/commands/refactor.md
+    reason: Claude slash commands are no longer distributed by maid init.
+  - path: .claude/commands/run-validation.md
+    reason: Claude slash commands are no longer distributed by maid init.
+  - path: .claude/commands/spike.md
+    reason: Claude slash commands are no longer distributed by maid init.
+  - path: .claude/commands/validate-manifest.md
+    reason: Claude slash commands are no longer distributed by maid init.
+  - path: maid_runner/claude/agents/maid-auditor.md
+    reason: Generated package payload must mirror the reduced Claude agent distribution.
+  - path: maid_runner/claude/agents/maid-developer.md
+    reason: Generated package payload must mirror the reduced Claude agent distribution.
+  - path: maid_runner/claude/agents/maid-fixer.md
+    reason: Generated package payload must mirror the reduced Claude agent distribution.
+  - path: maid_runner/claude/agents/maid-manifest-architect.md
+    reason: Generated package payload must mirror the reduced Claude agent distribution.
+  - path: maid_runner/claude/agents/maid-plan-reviewer.md
+    reason: Generated package payload must mirror the reduced Claude agent distribution.
+  - path: maid_runner/claude/agents/maid-refactorer.md
+    reason: Generated package payload must mirror the reduced Claude agent distribution.
+  - path: maid_runner/claude/agents/maid-test-designer.md
+    reason: Generated package payload must mirror the reduced Claude agent distribution.
+  - path: maid_runner/claude/commands/audit.md
+    reason: Generated package payload must not include Claude slash commands.
+  - path: maid_runner/claude/commands/enhance-manifest.md
+    reason: Generated package payload must not include Claude slash commands.
+  - path: maid_runner/claude/commands/fix.md
+    reason: Generated package payload must not include Claude slash commands.
+  - path: maid_runner/claude/commands/generate-manifest.md
+    reason: Generated package payload must not include Claude slash commands.
+  - path: maid_runner/claude/commands/generate-tests.md
+    reason: Generated package payload must not include Claude slash commands.
+  - path: maid_runner/claude/commands/implement.md
+    reason: Generated package payload must not include Claude slash commands.
+  - path: maid_runner/claude/commands/improve-tests.md
+    reason: Generated package payload must not include Claude slash commands.
+  - path: maid_runner/claude/commands/maid-run.md
+    reason: Generated package payload must not include Claude slash commands.
+  - path: maid_runner/claude/commands/plan.md
+    reason: Generated package payload must not include Claude slash commands.
+  - path: maid_runner/claude/commands/refactor.md
+    reason: Generated package payload must not include Claude slash commands.
+  - path: maid_runner/claude/commands/run-validation.md
+    reason: Generated package payload must not include Claude slash commands.
+  - path: maid_runner/claude/commands/spike.md
+    reason: Generated package payload must not include Claude slash commands.
+  - path: maid_runner/claude/commands/validate-manifest.md
+    reason: Generated package payload must not include Claude slash commands.
+  snapshot:
+  - path: scripts/sync_claude_files.py
+    artifacts:
+    - kind: attribute
+      name: CODEX_DISTRIBUTABLE_SKILLS
+      description: Adds maid-run-review to the synced skill set so generated payload
+        trees include it.
+      type: list[str]
+    - kind: function
+      name: main
+      description: Synchronizes generated agent and init workflow payload resources
+        deterministically so package resources do not drift from repo source docs.
+      returns: None
+    - kind: function
+      name: sync_agents
+      returns: None
+    - kind: function
+      name: sync_codex_payload
+      description: Add maid-outcome-enrich to the Claude and Codex distributable skill
+        lists so the payload sync copies source skills and skill-local OpenAI metadata
+        into the generated package payload.
+      returns: None
+    - kind: function
+      name: sync_commands
+      returns: None
+    - kind: function
+      name: sync_skills
+      returns: None
+    - kind: function
+      name: sync_user_skills
+      description: Copy repo .claude/skills/maid-onboard and .codex/skills/maid-onboard
+        sources into maid_runner/user_skills/{claude,codex}/maid-onboard for packaging.
+      returns: None
+    - kind: attribute
+      name: CODEX_PACKAGED_SKILLS
+    - kind: function
+      name: sync_cursor_payload
+      returns: None
+    - kind: function
+      name: sync_init_workflow_payloads
+      returns: None
+validate:
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/cli/test_init_cmd.py
+  - tests/ci/test_publish_workflow.py
+  - tests/ci/test_claude_sync.py
+  - -q
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/cli/test_init_cmd.py
+  - tests/ci/test_claude_sync.py
+  - tests/ci/test_publish_workflow.py
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/cli/test_init_cmd.py
+  - tests/test_agent_payload_distribution.py
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/048-01-refresh-init-codex-payload-and-command-docs.manifest.yaml
+  - --mode
+  - behavioral
+  - --quiet
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/048-01-refresh-init-codex-payload-and-command-docs.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/test_recall_payload_sync.py
+  - tests/test_agent_payload_distribution.py
+  - tests/test_claude_skill_distribution.py
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/cli/test_init_hook_payloads.py
+  - tests/cli/test_init_cmd.py
+  - tests/test_agent_payload_distribution.py
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/069-03-wire-hooks-into-init-payloads.manifest.yaml
+  - --mode
+  - behavioral
+  - --quiet
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/069-03-wire-hooks-into-init-payloads.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/cli/test_init_codex_distributable_scope.py
+  - tests/cli/test_init_cmd.py
+  - tests/test_recall_payload_sync.py
+  - tests/test_agent_payload_distribution.py
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/cli/test_skills_install.py
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/cli/test_init_cmd.py
+  - tests/test_init_draft_workflow_payload.py
+  - tests/test_agent_payload_distribution.py
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/075-01-align-init-draft-epic-workflow-payload.manifest.yaml
+  - --mode
+  - behavioral
+  - --quiet
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/075-01-align-init-draft-epic-workflow-payload.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/test_insights_skill_guidance.py
+  - tests/test_agent_payload_distribution.py
+  - tests/cli/test_init_codex_distributable_scope.py
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/test_outcome_enrich_skill_guidance.py
+  - tests/test_agent_payload_distribution.py
+  - tests/cli/test_init_codex_distributable_scope.py
+  - tests/test_insights_skill_guidance.py
+  - tests/test_learning_loop_init_payload.py
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - -q
+  - tests/test_run_review_skill_guidance.py
+  - tests/test_agent_payload_distribution.py
+  - tests/test_outcome_enrich_skill_guidance.py
+  - tests/cli/test_init_codex_distributable_scope.py
+  - tests/test_insights_skill_guidance.py
+  - tests/test_learning_loop_init_payload.py
+supersedes:
+- 048-01-refresh-init-codex-payload-and-command-docs
+- 066-04-sync-init-payloads-with-recall-workflow
+- 069-03-wire-hooks-into-init-payloads
+- 075-01-align-init-draft-epic-workflow-payload
+- 077-01-add-insights-cadence-to-maid-auditor
+- 081-04-add-outcome-enrich-skill
+- 084-07-add-maid-run-review-skill-and-docs
+- add-claude-maid-skill-repo-install
+- add-skills-install-command
+- fix-claude-skill-only-distribution
+- fix-codex-init-honor-distributable
+created: '2026-08-17T05:23:00Z'

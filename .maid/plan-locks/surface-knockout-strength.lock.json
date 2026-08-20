@@ -1,0 +1,180 @@
+{
+  "manifest_path": "manifests/surface-knockout-strength.manifest.yaml",
+  "manifest_hash": "sha256-contract:61682764f87a90cb373c978766fffa7ac2ea3c2a38cf51759b4b5dc616b4d07e",
+  "test_hashes": {
+    "tests/test_website_static_contract.py": "sha256-pyast:v2:4a1fd790c0a781920cd7dfe7aee56f695a65f4adda9c8d48175e1dae36e8de85"
+  },
+  "created_at": "2026-08-17T14:42:55.122798+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:3db196ba3c8b10533cf2f7eddb3a4c118ecab22e7c9f9e4d140f46c319617a0d",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:36ca2906f3154b501e9c8cd3c096078838e4f435eaf73b835841b3428db1fb15"
+      },
+      "revised_at": "2026-08-17T14:43:08.737161+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/surface-knockout-strength.manifest.yaml -> manifests/surface-knockout-strength.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/surface-knockout-strength.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/surface-knockout-strength.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/surface-knockout-strength.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/surface-knockout-strength.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:61682764f87a90cb373c978766fffa7ac2ea3c2a38cf51759b4b5dc616b4d07e",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:36ca2906f3154b501e9c8cd3c096078838e4f435eaf73b835841b3428db1fb15"
+      },
+      "revised_at": "2026-08-17T14:46:20.036488+00:00",
+      "reason": "Re-capture valid red evidence: promote re-ran validate commands after the implementation was restored, recording green",
+      "agent": {
+        "model": "claude-opus-4-8",
+        "client": "claude-code",
+        "skills": [
+          "maid-evolver"
+        ],
+        "source": "flags"
+      },
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:61682764f87a90cb373c978766fffa7ac2ea3c2a38cf51759b4b5dc616b4d07e",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:36ca2906f3154b501e9c8cd3c096078838e4f435eaf73b835841b3428db1fb15"
+      },
+      "revised_at": "2026-08-20T10:35:10.725358+00:00",
+      "reason": "accept merged-main website contract before v2.27.0 tag",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-17T14:46:23.975251+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_website_static_contract.py",
+        "exit_code": 1,
+        "output_tail": "..F.......                                                               [100%]\n=================================== FAILURES ===================================\n___________________ test_homepage_surfaces_knockout_strength ___________________\n\n    def test_homepage_surfaces_knockout_strength() -> None:\n        homepage = _read(HOMEPAGE)\n    \n        # Differential knockout is surfaced as a strength: deep verification can\n        # delete a declared function's body and require the tests to fail, proving\n        # the tests exercise the code rather than just executing a line. This is the\n        # README-documented --knockout gate, presented without over-promising.\n>       assert \"Proven, not just covered\" in homepage\nE       assert 'Proven, not just covered' in '<!doctype html>\\n<html lang=\"en\">\\n  <head>\\n    <meta charset=\"utf-8\" />\\n    <meta name=\"viewport\" content=\"width=d...</a>\\n        </nav>\\n      </div>\\n    </footer>\\n\\n    <script src=\"script.js\" defer></script>\\n  </body>\\n</html>\\n'\n\ntests/test_website_static_contract.py:113: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_website_static_contract.py::test_homepage_surfaces_knockout_strength\n1 failed, 9 passed in 0.03s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/surface-knockout-strength.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/surface-knockout-strength.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/website-maid-in-practice-section.lock.json"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": {
+    "model": "claude-opus-4-8",
+    "client": "claude-code",
+    "skills": [
+      "maid-evolver"
+    ],
+    "source": "flags"
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/test_website_static_contract.py:test_homepage_surfaces_knockout_strength",
+      "tests/test_website_static_contract.py:test_homepage_surfaces_knockout_strength:kind=test_function",
+      "tests/test_website_static_contract.py:test_homepage_surfaces_knockout_strength:returns=None"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "tests/test_website_static_contract.py"
+      ],
+      "read": [
+        "README.md"
+      ],
+      "scope": [
+        "website/index.html",
+        "website/styles.css"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "tests/test_website_static_contract.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_homepage_surfaces_knockout_strength",
+              "returns": "None",
+              "source_scenario": "A visitor scans the homepage for evidence that MAID's tests actually catch bugs, not just execute lines.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The homepage surfaces differential knockout as a strength -- a 'Proven, not just covered' card describing that deep verification can delete a function's body and require the tests to fail -- and the test-rewriting answer names the knockout defense so a gutted test cannot quietly pass."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "README.md"
+      ],
+      "scope": [
+        {
+          "path": "website/index.html",
+          "reason": "Homepage gains a fifth 'Proven, not just covered' strength card and a knockout clause in the test-rewriting answer, within the existing mockup-aligned page contract."
+        },
+        {
+          "path": "website/styles.css",
+          "reason": "The strengths grid switches to a responsive auto-fit template so the added fifth card flows cleanly; the layout is CSS-only and covered by source-contract assertions."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/test_website_static_contract.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_website_static_contract.py",
+      "uv run maid validate manifests/surface-knockout-strength.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/surface-knockout-strength.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

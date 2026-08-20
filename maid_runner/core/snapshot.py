@@ -24,6 +24,10 @@ from maid_runner.validators.base import FoundArtifact
 from maid_runner.validators.registry import ValidatorRegistry
 
 
+def _utc_created_timestamp() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 class SnapshotError(Exception):
     """Raised when snapshot generation fails due to source file errors."""
 
@@ -84,7 +88,7 @@ def generate_snapshot(
         files_read=files_read,
         files_snapshot=(file_spec,),
         task_type=TaskType.SNAPSHOT,
-        created=datetime.now(timezone.utc).isoformat(),
+        created=_utc_created_timestamp(),
     )
 
 
@@ -142,7 +146,7 @@ def generate_system_snapshot(
         validate_commands=(("pytest", "tests/", "-v"),),
         files_snapshot=tuple(file_specs),
         task_type=TaskType.SYSTEM_SNAPSHOT,
-        created=datetime.now(timezone.utc).isoformat(),
+        created=_utc_created_timestamp(),
     )
 
 
@@ -439,5 +443,5 @@ def _empty_system_snapshot() -> Manifest:
         validate_commands=(("pytest", "tests/", "-v"),),
         files_snapshot=(),
         task_type=TaskType.SYSTEM_SNAPSHOT,
-        created=datetime.now(timezone.utc).isoformat(),
+        created=_utc_created_timestamp(),
     )

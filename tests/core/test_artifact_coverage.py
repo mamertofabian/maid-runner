@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from maid_runner.core.manifest import load_manifest
 from maid_runner.core.result import ErrorCode
 
@@ -25,7 +27,11 @@ def test_mentions_target_without_executing_body():
         artifacts=[{"kind": "function", "name": "target"}],
     )
 
-    report = run_artifact_coverage(load_manifest(manifest_path), tmp_path)
+    report = run_artifact_coverage(
+        load_manifest(manifest_path),
+        tmp_path,
+        executor=_runtime_executor(tmp_path),
+    )
 
     assert report.success is False
     assert report.findings[0].artifact_name == "target"
@@ -49,7 +55,11 @@ def test_mentions_one_line_target_without_executing_body():
         artifacts=[{"kind": "function", "name": "target"}],
     )
 
-    report = run_artifact_coverage(load_manifest(manifest_path), tmp_path)
+    report = run_artifact_coverage(
+        load_manifest(manifest_path),
+        tmp_path,
+        executor=_runtime_executor(tmp_path, executed_lines={1}),
+    )
 
     assert report.success is False
     assert report.findings[0].executed is False
@@ -73,7 +83,11 @@ def test_imports_one_line_target_inside_test_without_executing_body():
         artifacts=[{"kind": "function", "name": "target"}],
     )
 
-    report = run_artifact_coverage(load_manifest(manifest_path), tmp_path)
+    report = run_artifact_coverage(
+        load_manifest(manifest_path),
+        tmp_path,
+        executor=_runtime_executor(tmp_path, executed_lines={1}),
+    )
 
     assert report.success is False
     assert report.findings[0].executed is False
@@ -99,7 +113,15 @@ def test_executes_target_body():
         artifacts=[{"kind": "function", "name": "target"}],
     )
 
-    report = run_artifact_coverage(load_manifest(manifest_path), tmp_path)
+    report = run_artifact_coverage(
+        load_manifest(manifest_path),
+        tmp_path,
+        executor=_runtime_executor(
+            tmp_path,
+            executed_lines={2},
+            called_qualnames={"target"},
+        ),
+    )
 
     assert report.success is True
     assert report.findings[0].executed is True
@@ -122,7 +144,15 @@ def test_executes_one_line_target_body():
         artifacts=[{"kind": "function", "name": "target"}],
     )
 
-    report = run_artifact_coverage(load_manifest(manifest_path), tmp_path)
+    report = run_artifact_coverage(
+        load_manifest(manifest_path),
+        tmp_path,
+        executor=_runtime_executor(
+            tmp_path,
+            executed_lines={1},
+            called_qualnames={"target"},
+        ),
+    )
 
     assert report.success is True
     assert report.findings[0].executed is True
@@ -152,7 +182,15 @@ def test_executes_declared_method():
         ],
     )
 
-    report = run_artifact_coverage(load_manifest(manifest_path), tmp_path)
+    report = run_artifact_coverage(
+        load_manifest(manifest_path),
+        tmp_path,
+        executor=_runtime_executor(
+            tmp_path,
+            executed_lines={3},
+            called_qualnames={"Service.run"},
+        ),
+    )
 
     findings = {finding.artifact_name: finding for finding in report.findings}
     assert report.success is True
@@ -185,7 +223,15 @@ def test_executes_one_line_declared_method():
         ],
     )
 
-    report = run_artifact_coverage(load_manifest(manifest_path), tmp_path)
+    report = run_artifact_coverage(
+        load_manifest(manifest_path),
+        tmp_path,
+        executor=_runtime_executor(
+            tmp_path,
+            executed_lines={2},
+            called_qualnames={"Service.run"},
+        ),
+    )
 
     findings = {finding.artifact_name: finding for finding in report.findings}
     assert report.success is True
@@ -218,7 +264,11 @@ def test_mentions_service_without_executing_method():
         ],
     )
 
-    report = run_artifact_coverage(load_manifest(manifest_path), tmp_path)
+    report = run_artifact_coverage(
+        load_manifest(manifest_path),
+        tmp_path,
+        executor=_runtime_executor(tmp_path),
+    )
 
     findings = {finding.artifact_name: finding for finding in report.findings}
     assert report.success is False
@@ -254,7 +304,11 @@ def test_mentions_one_line_method_without_executing_body():
         ],
     )
 
-    report = run_artifact_coverage(load_manifest(manifest_path), tmp_path)
+    report = run_artifact_coverage(
+        load_manifest(manifest_path),
+        tmp_path,
+        executor=_runtime_executor(tmp_path),
+    )
 
     findings = {finding.artifact_name: finding for finding in report.findings}
     assert report.success is False
@@ -289,7 +343,11 @@ def test_imports_one_line_method_inside_test_without_executing_body():
         ],
     )
 
-    report = run_artifact_coverage(load_manifest(manifest_path), tmp_path)
+    report = run_artifact_coverage(
+        load_manifest(manifest_path),
+        tmp_path,
+        executor=_runtime_executor(tmp_path),
+    )
 
     findings = {finding.artifact_name: finding for finding in report.findings}
     assert report.success is False
@@ -378,7 +436,15 @@ def test_executes_target_body():
         artifacts=[{"kind": "function", "name": "target"}],
     )
 
-    payload = run_artifact_coverage(load_manifest(manifest_path), tmp_path).to_dict()
+    payload = run_artifact_coverage(
+        load_manifest(manifest_path),
+        tmp_path,
+        executor=_runtime_executor(
+            tmp_path,
+            executed_lines={2},
+            called_qualnames={"target"},
+        ),
+    ).to_dict()
     explicit_finding = ArtifactCoverageFinding(
         artifact_name="target",
         artifact_kind="function",
@@ -404,6 +470,198 @@ def test_executes_target_body():
         }
     ]
     assert payload["errors"] == []
+
+
+def test_fake_runtime_executor_preserves_single_manifest_report(
+    tmp_path: Path,
+) -> None:
+    from maid_runner.core._runtime_command_executor import (
+        RuntimeCommandRecord,
+        RuntimeCommandExecutor,
+        RuntimeFileExecution,
+    )
+    from maid_runner.core.artifact_coverage import run_artifact_coverage
+
+    mutable_lines = {1}
+    mutable_calls = {"target"}
+    immutable_execution = RuntimeFileExecution(
+        executed_lines=mutable_lines,  # type: ignore[arg-type]
+        called_qualnames=mutable_calls,  # type: ignore[arg-type]
+    )
+    mutable_lines.add(99)
+    mutable_calls.add("replacement")
+
+    assert immutable_execution.executed_lines == frozenset({1})
+    assert immutable_execution.called_qualnames == frozenset({"target"})
+
+    manifest_path = _write_project(
+        tmp_path,
+        source='def target() -> str:\n    return "executed"\n',
+        test="def test_placeholder(): pass\n",
+        artifacts=[{"kind": "function", "name": "target"}],
+    )
+    source_path = str((tmp_path / "src/target.py").resolve())
+    record = RuntimeCommandRecord(
+        command=("-q", "tests/test_target.py"),
+        returncode=0,
+        stdout="",
+        stderr="",
+        execution_data={
+            source_path: RuntimeFileExecution(
+                executed_lines=frozenset({2}),
+                called_qualnames=frozenset({"target"}),
+            )
+        },
+        report_errors=(),
+    )
+    assert callable(RuntimeCommandExecutor.execute)
+    executor: RuntimeCommandExecutor = _RecordingExecutor(record)  # type: ignore[assignment]
+
+    report = run_artifact_coverage(
+        load_manifest(manifest_path),
+        tmp_path,
+        executor=executor,
+    )
+
+    assert report.to_dict() == {
+        "success": True,
+        "findings": [
+            {
+                "artifact_name": "target",
+                "artifact_kind": "function",
+                "parent_class": None,
+                "file_path": "src/target.py",
+                "executed": True,
+            }
+        ],
+        "errors": [],
+        "provenance": "exact",
+    }
+    assert len(executor.calls) == 1
+    assert executor.calls[0][0] == ("-q", "tests/test_target.py")
+
+
+def test_runtime_record_change_invalidates_evaluated_execution(
+    tmp_path: Path,
+) -> None:
+    from maid_runner.core._runtime_command_executor import (
+        RuntimeCommandRecord,
+        RuntimeFileExecution,
+    )
+    from maid_runner.core.artifact_coverage import run_artifact_coverage
+
+    manifest_path = _write_project(
+        tmp_path,
+        source='def target() -> str: return "executed"\n',
+        test="def test_placeholder(): pass\n",
+        artifacts=[{"kind": "function", "name": "target"}],
+    )
+    source_path = str((tmp_path / "src/target.py").resolve())
+
+    def record(called_qualnames: frozenset[str]) -> RuntimeCommandRecord:
+        return RuntimeCommandRecord(
+            command=("-q", "tests/test_target.py"),
+            returncode=0,
+            stdout="",
+            stderr="",
+            execution_data={
+                source_path: RuntimeFileExecution(
+                    executed_lines=frozenset({1}),
+                    called_qualnames=called_qualnames,
+                )
+            },
+            report_errors=(),
+        )
+
+    manifest = load_manifest(manifest_path)
+    executed = run_artifact_coverage(
+        manifest,
+        tmp_path,
+        executor=_RecordingExecutor(record(frozenset({"target"}))),
+    )
+    import_only = run_artifact_coverage(
+        manifest,
+        tmp_path,
+        executor=_RecordingExecutor(record(frozenset())),
+    )
+
+    assert executed.success is True
+    assert import_only.success is False
+    assert import_only.errors[0].code == ErrorCode.ARTIFACT_NOT_EXECUTED_BY_TESTS
+
+
+def test_real_runtime_executor_preserves_timeout_exception(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from maid_runner.core._runtime_command_executor import (
+        SubprocessRuntimeCommandExecutor,
+    )
+
+    (tmp_path / "src").mkdir()
+    (tmp_path / "tests").mkdir()
+    source = tmp_path / "src" / "target.py"
+    source.write_text("def target():\n    return True\n")
+    (tmp_path / "tests" / "test_target.py").write_text(
+        "import time\n\n" "def test_target():\n" "    time.sleep(60)\n"
+    )
+
+    record = SubprocessRuntimeCommandExecutor().execute(
+        ("-q", "tests/test_target.py"),
+        {str(source)},
+        tmp_path,
+        0.1,
+    )
+
+    assert record.returncode < 0
+    assert record.execution_data == {}
+    assert any(
+        message in record.stderr.lower()
+        for message in ("timed out", "descendant ownership")
+    )
+
+
+def _runtime_executor(
+    root: Path,
+    *,
+    executed_lines: set[int] | None = None,
+    called_qualnames: set[str] | None = None,
+) -> _RecordingExecutor:
+    from maid_runner.core._runtime_command_executor import (
+        RuntimeCommandRecord,
+        RuntimeFileExecution,
+    )
+
+    execution = RuntimeFileExecution(
+        executed_lines=frozenset(executed_lines or set()),
+        called_qualnames=frozenset(called_qualnames or set()),
+    )
+    return _RecordingExecutor(
+        RuntimeCommandRecord(
+            command=("-q", "tests/test_target.py"),
+            returncode=0,
+            stdout="",
+            stderr="",
+            execution_data={str((root / "src/target.py").resolve()): execution},
+            report_errors=(),
+        )
+    )
+
+
+class _RecordingExecutor:
+    def __init__(self, record: object) -> None:
+        self.record = record
+        self.calls: list[tuple[tuple[str, ...], set[str], Path, float]] = []
+
+    def execute(
+        self,
+        command: tuple[str, ...],
+        target_files: set[str],
+        project_root: Path,
+        timeout_seconds: float,
+    ) -> object:
+        self.calls.append((command, set(target_files), project_root, timeout_seconds))
+        return self.record
 
 
 def _write_project(

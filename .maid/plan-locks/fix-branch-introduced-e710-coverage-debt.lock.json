@@ -1,0 +1,302 @@
+{
+  "manifest_path": "manifests/fix-branch-introduced-e710-coverage-debt.manifest.yaml",
+  "manifest_hash": "sha256-contract:730f69abac90ee35953aa0b811f3a9cb4d6e5cff5fd7d35141110b1aa63a9c8f",
+  "test_hashes": {
+    "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c6adf63404255225ba4db9f92341fffc0cf9b1c8f6ac9e2fbc6b9edc7c257114",
+    "tests/core/test_branch_e710_coverage_repair.py": "sha256-pyast:v2:8925bfb95ec1633ba415ef15394d7d3ec5f4e1ff04e6befaa3676fce9204afeb",
+    "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7",
+    "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:86202d3ef3bbe4a5f7d6a0dde45186ae8ba5653204c4e4bd55105ab98e197897"
+  },
+  "created_at": "2026-08-14T11:51:02.129117+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:f44190d98446b2ed7f359f6040241c802073a9e7e541bc54da608693d11a0763",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c6adf63404255225ba4db9f92341fffc0cf9b1c8f6ac9e2fbc6b9edc7c257114",
+        "tests/core/test_branch_e710_coverage_repair.py": "sha256-pyast:v2:8925bfb95ec1633ba415ef15394d7d3ec5f4e1ff04e6befaa3676fce9204afeb",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:2852f4d404086743dd491702894412d56f8914f6775931b53ab2e88a0559db84"
+      },
+      "revised_at": "2026-08-14T11:51:03.046625+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-branch-introduced-e710-coverage-debt.manifest.yaml -> manifests/fix-branch-introduced-e710-coverage-debt.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-branch-introduced-e710-coverage-debt.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-branch-introduced-e710-coverage-debt.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:84fef5ece8eb3fefb76f09411c35950f2deb354d2c62d832abf40f92e72904b0",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c6adf63404255225ba4db9f92341fffc0cf9b1c8f6ac9e2fbc6b9edc7c257114",
+        "tests/core/test_branch_e710_coverage_repair.py": "sha256-pyast:v2:8925bfb95ec1633ba415ef15394d7d3ec5f4e1ff04e6befaa3676fce9204afeb",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:2852f4d404086743dd491702894412d56f8914f6775931b53ab2e88a0559db84"
+      },
+      "revised_at": "2026-08-14T11:53:16.640327+00:00",
+      "reason": "Run every discovered behavioral test file through the approved validation command.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/core/test_artifact_coverage.py tests/core/test_branch_e710_coverage_repair.py tests/core/test_runtime_evidence.py tests/core/test_knockout_snapshot.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/core/test_branch_e710_coverage_repair.py tests/core/test_runtime_evidence.py::test_runtime_evidence_plugin_executes_declared_hook_lifecycles tests/core/test_knockout_snapshot.py::test_snapshot_backend_default_create_rejects_unimplemented_boundary"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:730f69abac90ee35953aa0b811f3a9cb4d6e5cff5fd7d35141110b1aa63a9c8f",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c6adf63404255225ba4db9f92341fffc0cf9b1c8f6ac9e2fbc6b9edc7c257114",
+        "tests/core/test_branch_e710_coverage_repair.py": "sha256-pyast:v2:8925bfb95ec1633ba415ef15394d7d3ec5f4e1ff04e6befaa3676fce9204afeb",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:2852f4d404086743dd491702894412d56f8914f6775931b53ab2e88a0559db84"
+      },
+      "revised_at": "2026-08-17T11:31:49.478461+00:00",
+      "reason": "Reconcile shared behavioral test hashes after approved 121-45 and 121-46 contract extensions",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-14T11:53:50.770138+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_artifact_coverage.py tests/core/test_branch_e710_coverage_repair.py tests/core/test_runtime_evidence.py tests/core/test_knockout_snapshot.py",
+        "exit_code": 1,
+        "output_tail": "        )\n\ntests/core/test_branch_e710_coverage_repair.py:30: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \nmaid_runner/core/artifact_coverage.py:189: in run_artifact_coverage\n    command_run = executor.execute(\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = <core.test_branch_e710_coverage_repair._FailIfCalledExecutor object at 0x77f0723cec90>\nargs = (('-q', 'tests/test_target.py'), {'/tmp/pytest-of-atomrem/pytest-814/test_methodless_class_has_no_r0/src/target.py'}, PosixPath('/tmp/pytest-of-atomrem/pytest-814/test_methodless_class_has_no_r0'), 900.0)\nkwargs = {}\n\n    def execute(self, *args: object, **kwargs: object) -> object:\n>       raise AssertionError(\"methodless classes must not launch runtime coverage\")\nE       AssertionError: methodless classes must not launch runtime coverage\n\ntests/core/test_branch_e710_coverage_repair.py:79: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_branch_e710_coverage_repair.py::test_methodless_class_has_no_runtime_body_obligation\n1 failed, 69 passed in 33.71s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-branch-introduced-e710-coverage-debt.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/121-08-collect-fixture-aware-runtime-evidence.lock.json",
+      ".maid/plan-locks/121-10-reuse-runtime-evidence-in-deep-verify.lock.json",
+      ".maid/plan-locks/121-13-isolate-knockouts-in-project-snapshots.lock.json",
+      ".maid/plan-locks/121-14-run-isolated-knockouts-with-bounded-workers.lock.json",
+      ".maid/plan-locks/121-15-parallelize-isolated-artifact-coverage-fallbacks.lock.json",
+      ".maid/plan-locks/121-17-isolate-nested-test-process-identities.lock.json",
+      ".maid/plan-locks/121-18-preserve-safe-snapshot-test-prerequisites.lock.json",
+      ".maid/plan-locks/121-27-share-coverage-lane-dependency-environments.lock.json",
+      ".maid/plan-locks/121-30-project-grouped-command-failures.lock.json",
+      ".maid/plan-locks/121-42-retain-dependencies-across-fresh-knockout-roots.lock.json"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/test_branch_e710_coverage_repair.py:test_class_with_declared_method_still_requires_runtime_execution",
+      "tests/core/test_branch_e710_coverage_repair.py:test_class_with_declared_method_still_requires_runtime_execution:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_branch_e710_coverage_repair.py:test_class_with_declared_method_still_requires_runtime_execution:kind=test_function",
+      "tests/core/test_branch_e710_coverage_repair.py:test_class_with_declared_method_still_requires_runtime_execution:returns=None",
+      "tests/core/test_branch_e710_coverage_repair.py:test_methodless_class_has_no_runtime_body_obligation",
+      "tests/core/test_branch_e710_coverage_repair.py:test_methodless_class_has_no_runtime_body_obligation:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_branch_e710_coverage_repair.py:test_methodless_class_has_no_runtime_body_obligation:kind=test_function",
+      "tests/core/test_branch_e710_coverage_repair.py:test_methodless_class_has_no_runtime_body_obligation:returns=None",
+      "tests/core/test_knockout_snapshot.py:test_snapshot_backend_default_create_rejects_unimplemented_boundary",
+      "tests/core/test_knockout_snapshot.py:test_snapshot_backend_default_create_rejects_unimplemented_boundary:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_snapshot.py:test_snapshot_backend_default_create_rejects_unimplemented_boundary:kind=test_function",
+      "tests/core/test_knockout_snapshot.py:test_snapshot_backend_default_create_rejects_unimplemented_boundary:returns=None",
+      "tests/core/test_runtime_evidence.py:test_runtime_evidence_plugin_executes_declared_hook_lifecycles",
+      "tests/core/test_runtime_evidence.py:test_runtime_evidence_plugin_executes_declared_hook_lifecycles:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/core/test_runtime_evidence.py:test_runtime_evidence_plugin_executes_declared_hook_lifecycles:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_runtime_evidence.py:test_runtime_evidence_plugin_executes_declared_hook_lifecycles:kind=test_function",
+      "tests/core/test_runtime_evidence.py:test_runtime_evidence_plugin_executes_declared_hook_lifecycles:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_branch_e710_coverage_repair.py"
+      ],
+      "edit": [
+        "tests/core/test_knockout_snapshot.py",
+        "tests/core/test_runtime_evidence.py"
+      ],
+      "read": [
+        "maid_runner/core/_knockout_snapshot.py",
+        "maid_runner/core/_runtime_command_executor.py",
+        "maid_runner/core/_runtime_evidence_pytest_plugin.py",
+        "maid_runner/core/runtime_evidence.py",
+        "manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml",
+        "manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml",
+        "manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml",
+        "tests/core/test_artifact_coverage.py"
+      ],
+      "scope": [
+        "maid_runner/core/artifact_coverage.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_branch_e710_coverage_repair.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_methodless_class_has_no_runtime_body_obligation",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A valid manifest declares a public value class and typed field but no executable source method.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "run_artifact_coverage"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The runtime body gate succeeds without launching a coverage command because the class has no satisfiable body obligation."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_class_with_declared_method_still_requires_runtime_execution",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A class and its public source method are declared but the method has no runtime evidence.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "run_artifact_coverage"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Both class and method remain red with E710, preventing a broad class exemption."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "tests/core/test_runtime_evidence.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_runtime_evidence_plugin_executes_declared_hook_lifecycles",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A runtime evidence plugin receives fixture setup/finalization, teardown, report, and worker-configuration lifecycle events.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "RuntimeEvidencePlugin"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Hookwrappers complete, fixture/report state remains complete, private worker instrumentation is cleared, and session cleanup always runs."
+              }
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_knockout_snapshot.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_snapshot_backend_default_create_rejects_unimplemented_boundary",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A concrete incomplete snapshot adapter delegates to the abstract ProjectSnapshotBackend.create default.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "ProjectSnapshotBackend"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The default create boundary executes and raises NotImplementedError instead of silently providing a snapshot."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml",
+        "manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml",
+        "manifests/121-13-isolate-knockouts-in-project-snapshots.manifest.yaml",
+        "maid_runner/core/_runtime_command_executor.py",
+        "maid_runner/core/_runtime_evidence_pytest_plugin.py",
+        "maid_runner/core/_knockout_snapshot.py",
+        "maid_runner/core/runtime_evidence.py",
+        "tests/core/test_artifact_coverage.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/artifact_coverage.py",
+          "reason": "Narrow the runtime target set to executable class contracts without changing public APIs or method coverage semantics."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_artifact_coverage.py",
+      "tests/core/test_branch_e710_coverage_repair.py",
+      "tests/core/test_knockout_snapshot.py",
+      "tests/core/test_runtime_evidence.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_artifact_coverage.py tests/core/test_branch_e710_coverage_repair.py tests/core/test_runtime_evidence.py tests/core/test_knockout_snapshot.py",
+      "uv run maid validate manifests/fix-branch-introduced-e710-coverage-debt.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

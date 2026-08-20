@@ -255,7 +255,8 @@ def _start_session_process() -> Optional[subprocess.Popen[str]]:
         return None
 
     try:
-        return subprocess.Popen(
+        popen = getattr(subprocess.Popen, "_maid_original_popen", subprocess.Popen)
+        return popen(
             [node, str(bridge), "--session"],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,

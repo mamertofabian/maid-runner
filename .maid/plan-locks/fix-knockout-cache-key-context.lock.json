@@ -1,0 +1,445 @@
+{
+  "manifest_path": "manifests/fix-knockout-cache-key-context.manifest.yaml",
+  "manifest_hash": "sha256-contract:b619ab77bf91f69b9b24f08043659bfd7da920d79b37db1e46bb64d48afcb5f3",
+  "test_hashes": {
+    "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:fbeff6d719aa4da4893538aaf82d4aab2a79601800b9b8c251f652fd2dda3c6b",
+    "tests/core/test_knockout_cache_declaration_identity.py": "sha256-pyast:v2:9397b36bb94ead78c8f11ef8ef9be684feadcca289b001ad4b9bb65825a139ca",
+    "tests/core/test_knockout_cache_key_context.py": "sha256-pyast:v2:281d0e0679338317e4ddd9663b8b83676fb839ef5bb9382657b9707f19668eff"
+  },
+  "created_at": "2026-08-17T13:09:42.710630+00:00",
+  "revision": 8,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:2952bf61032be59fc51f033e0d6f31dbfbe2fbfa94ae0234a156d8f4736c7582",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:fa9ea85f8c106a2e7768dea2f3f3e8090e0a93379957d98947adc7b3fab82237",
+        "tests/core/test_knockout_cache_declaration_identity.py": "sha256-pyast:v2:9397b36bb94ead78c8f11ef8ef9be684feadcca289b001ad4b9bb65825a139ca",
+        "tests/core/test_knockout_cache_key_context.py": "sha256-pyast:v2:9b551aaeeafc629201b48afb633046555e1da0e2ef9480f2f0859145765e636f"
+      },
+      "revised_at": "2026-08-17T13:10:10.048933+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-knockout-cache-key-context.manifest.yaml -> manifests/fix-knockout-cache-key-context.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-knockout-cache-key-context.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-knockout-cache-key-context.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:3db3be7d1e7cdcffa932d8accb8cc16802543b31826b2806caa4f122b3b89ccd",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:fa9ea85f8c106a2e7768dea2f3f3e8090e0a93379957d98947adc7b3fab82237",
+        "tests/core/test_knockout_cache_declaration_identity.py": "sha256-pyast:v2:9397b36bb94ead78c8f11ef8ef9be684feadcca289b001ad4b9bb65825a139ca",
+        "tests/core/test_knockout_cache_key_context.py": "sha256-pyast:v2:9b551aaeeafc629201b48afb633046555e1da0e2ef9480f2f0859145765e636f"
+      },
+      "revised_at": "2026-08-17T13:19:19.899611+00:00",
+      "reason": "Reject drifted worker checkpoints and preserve empty-plan behavior after independent implementation review",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_knockout_cache_key_context.py:test_checkpoint_rejects_inputs_that_drift_after_context_capture",
+          "tests/core/test_knockout_cache_key_context.py:test_checkpoint_rejects_inputs_that_drift_after_context_capture:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_knockout_cache_key_context.py:test_checkpoint_rejects_inputs_that_drift_after_context_capture:kind=test_function",
+          "tests/core/test_knockout_cache_key_context.py:test_checkpoint_rejects_inputs_that_drift_after_context_capture:returns=None",
+          "tests/core/test_knockout_cache_key_context.py:test_empty_batch_skips_repository_cache_identity",
+          "tests/core/test_knockout_cache_key_context.py:test_empty_batch_skips_repository_cache_identity:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/core/test_knockout_cache_key_context.py:test_empty_batch_skips_repository_cache_identity:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_knockout_cache_key_context.py:test_empty_batch_skips_repository_cache_identity:kind=test_function",
+          "tests/core/test_knockout_cache_key_context.py:test_empty_batch_skips_repository_cache_identity:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:fbdee57a61e255e96cffc22b1a002bff8060db37ad4095d7de6a527042682788",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:fa9ea85f8c106a2e7768dea2f3f3e8090e0a93379957d98947adc7b3fab82237",
+        "tests/core/test_knockout_cache_declaration_identity.py": "sha256-pyast:v2:9397b36bb94ead78c8f11ef8ef9be684feadcca289b001ad4b9bb65825a139ca",
+        "tests/core/test_knockout_cache_key_context.py": "sha256-pyast:v2:eeef0942ded1a2b9bd0949589cd00f13d9b526426783b82a05e86f1aa924298e"
+      },
+      "revised_at": "2026-08-17T13:21:42.341403+00:00",
+      "reason": "Align non-Git snapshot input identity with the exact controlled knockout checkpoint cache exception",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:maid_runner/core/_knockout_snapshot.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:e13edcde3406836c7890dca9a747681d81203bfc49550bd3b95315c6d6ccc96e",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:fa9ea85f8c106a2e7768dea2f3f3e8090e0a93379957d98947adc7b3fab82237",
+        "tests/core/test_knockout_cache_declaration_identity.py": "sha256-pyast:v2:9397b36bb94ead78c8f11ef8ef9be684feadcca289b001ad4b9bb65825a139ca",
+        "tests/core/test_knockout_cache_key_context.py": "sha256-pyast:v2:eeef0942ded1a2b9bd0949589cd00f13d9b526426783b82a05e86f1aa924298e"
+      },
+      "revised_at": "2026-08-17T13:30:24.301926+00:00",
+      "reason": "Exclude only untracked exact checkpoint files from Git snapshot input identity when repositories do not ignore the cache",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_knockout_cache_key_context.py:test_git_project_without_cache_ignore_reuses_untracked_checkpoint",
+          "tests/core/test_knockout_cache_key_context.py:test_git_project_without_cache_ignore_reuses_untracked_checkpoint:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_knockout_cache_key_context.py:test_git_project_without_cache_ignore_reuses_untracked_checkpoint:kind=test_function",
+          "tests/core/test_knockout_cache_key_context.py:test_git_project_without_cache_ignore_reuses_untracked_checkpoint:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b619ab77bf91f69b9b24f08043659bfd7da920d79b37db1e46bb64d48afcb5f3",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:fa9ea85f8c106a2e7768dea2f3f3e8090e0a93379957d98947adc7b3fab82237",
+        "tests/core/test_knockout_cache_declaration_identity.py": "sha256-pyast:v2:9397b36bb94ead78c8f11ef8ef9be684feadcca289b001ad4b9bb65825a139ca",
+        "tests/core/test_knockout_cache_key_context.py": "sha256-pyast:v2:8a10d0336a574c1b4d0ecf3ad5a5267eb939134dd02abc23641a66319d997760"
+      },
+      "revised_at": "2026-08-17T13:31:58.983495+00:00",
+      "reason": "Make the Git regression disclose exact untracked checkpoint paths instead of Git's collapsed directory summary",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b619ab77bf91f69b9b24f08043659bfd7da920d79b37db1e46bb64d48afcb5f3",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:fa9ea85f8c106a2e7768dea2f3f3e8090e0a93379957d98947adc7b3fab82237",
+        "tests/core/test_knockout_cache_declaration_identity.py": "sha256-pyast:v2:9397b36bb94ead78c8f11ef8ef9be684feadcca289b001ad4b9bb65825a139ca",
+        "tests/core/test_knockout_cache_key_context.py": "sha256-pyast:v2:3b0e9b66ffe11beb117d84f58c3008da1109ca17b6cbc2a727e9019082c14ef3"
+      },
+      "revised_at": "2026-08-17T13:37:40.921324+00:00",
+      "reason": "Capture reviewed implementation Outcome",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b619ab77bf91f69b9b24f08043659bfd7da920d79b37db1e46bb64d48afcb5f3",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_evidence_cache.py": "sha256-pyast:v2:fa9ea85f8c106a2e7768dea2f3f3e8090e0a93379957d98947adc7b3fab82237",
+        "tests/core/test_knockout_cache_declaration_identity.py": "sha256-pyast:v2:9397b36bb94ead78c8f11ef8ef9be684feadcca289b001ad4b9bb65825a139ca",
+        "tests/core/test_knockout_cache_key_context.py": "sha256-pyast:v2:3b0e9b66ffe11beb117d84f58c3008da1109ca17b6cbc2a727e9019082c14ef3"
+      },
+      "revised_at": "2026-08-17T23:15:35.865343+00:00",
+      "reason": "Accept approved grouped cache identity and checkpoint test evolution from 121-48.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-17T13:32:22.288924+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_knockout_cache_key_context.py tests/core/test_knockout_evidence_cache.py tests/core/test_knockout_cache_declaration_identity.py",
+        "exit_code": 1,
+        "output_tail": "                executor=executor,\n                snapshot_backend=backend,\n            )\n        restored = knockout.run_knockout_batch(\n            (manifest,),\n            tmp_path,\n            executor=executor,\n        )[manifest.source_path]\n    \n        assert test_path.read_text(encoding=\"utf-8\") == original_test\n>       assert restored.success is True\nE       assert False is True\nE        +  where False = KnockoutReport(results=(KnockoutResult(artifact_name='alpha', artifact_kind='function', parent_class=None, file_path='...n before mutation, fail when the artifact raises NotImplementedError(\"maid-knockout\"), and pass after restoration.'),)).success\n\ntests/core/test_knockout_cache_key_context.py:123: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_knockout_cache_key_context.py::test_cached_batch_computes_repository_identity_once\nFAILED tests/core/test_knockout_cache_key_context.py::test_cache_context_is_fresh_per_invocation_and_invalidates_content_changes\nFAILED tests/core/test_knockout_cache_key_context.py::test_checkpoint_rejects_inputs_that_drift_after_context_capture\n3 failed, 12 passed in 22.88s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-knockout-cache-key-context.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/canonicalize-merged-artifact-order.lock.json",
+      ".maid/plan-locks/chain-merge-coverage-evidence.lock.json",
+      ".maid/plan-locks/fix-approved-fixture-derived-coverage.lock.json",
+      ".maid/plan-locks/fix-e710-chain-merged-coverage.lock.json",
+      "maid_runner/cli/commands/validate.py",
+      "maid_runner/core/artifact_coverage.py",
+      "manifests/fix-approved-fixture-derived-coverage.manifest.yaml",
+      "manifests/fix-e710-chain-merged-coverage.manifest.yaml",
+      "tests/core/test_approved_fixture_artifact_coverage.py",
+      "tests/core/test_chain_merge_coverage_wiring.py",
+      "tests/core/test_chain_merged_artifact_coverage.py"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/knockout.py:function:run_knockout_batch",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=allow_dirty:type=bool:default=False",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=evidence:type=RuntimeEvidenceBundle | None:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=executor:type=KnockoutCommandExecutor | None:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=jobs:type=int:default=1",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=limit:type=int | None:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=manifests:type=Sequence[Manifest]:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=max_processes:type=int:default=1",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=no_cache:type=bool:default=False",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=project_root:type=Path:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:arg=snapshot_backend:type=ProjectSnapshotBackend | None:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:kind=function",
+      "maid_runner/core/knockout.py:function:run_knockout_batch:returns=dict[str, KnockoutReport]",
+      "tests/core/test_knockout_cache_key_context.py:test_cache_context_is_fresh_per_invocation_and_invalidates_content_changes",
+      "tests/core/test_knockout_cache_key_context.py:test_cache_context_is_fresh_per_invocation_and_invalidates_content_changes:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/core/test_knockout_cache_key_context.py:test_cache_context_is_fresh_per_invocation_and_invalidates_content_changes:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_cache_key_context.py:test_cache_context_is_fresh_per_invocation_and_invalidates_content_changes:kind=test_function",
+      "tests/core/test_knockout_cache_key_context.py:test_cache_context_is_fresh_per_invocation_and_invalidates_content_changes:returns=None",
+      "tests/core/test_knockout_cache_key_context.py:test_cached_batch_computes_repository_identity_once",
+      "tests/core/test_knockout_cache_key_context.py:test_cached_batch_computes_repository_identity_once:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/core/test_knockout_cache_key_context.py:test_cached_batch_computes_repository_identity_once:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_cache_key_context.py:test_cached_batch_computes_repository_identity_once:kind=test_function",
+      "tests/core/test_knockout_cache_key_context.py:test_cached_batch_computes_repository_identity_once:returns=None",
+      "tests/core/test_knockout_cache_key_context.py:test_checkpoint_rejects_inputs_that_drift_after_context_capture",
+      "tests/core/test_knockout_cache_key_context.py:test_checkpoint_rejects_inputs_that_drift_after_context_capture:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_cache_key_context.py:test_checkpoint_rejects_inputs_that_drift_after_context_capture:kind=test_function",
+      "tests/core/test_knockout_cache_key_context.py:test_checkpoint_rejects_inputs_that_drift_after_context_capture:returns=None",
+      "tests/core/test_knockout_cache_key_context.py:test_empty_batch_skips_repository_cache_identity",
+      "tests/core/test_knockout_cache_key_context.py:test_empty_batch_skips_repository_cache_identity:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/core/test_knockout_cache_key_context.py:test_empty_batch_skips_repository_cache_identity:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_cache_key_context.py:test_empty_batch_skips_repository_cache_identity:kind=test_function",
+      "tests/core/test_knockout_cache_key_context.py:test_empty_batch_skips_repository_cache_identity:returns=None",
+      "tests/core/test_knockout_cache_key_context.py:test_git_project_without_cache_ignore_reuses_untracked_checkpoint",
+      "tests/core/test_knockout_cache_key_context.py:test_git_project_without_cache_ignore_reuses_untracked_checkpoint:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_cache_key_context.py:test_git_project_without_cache_ignore_reuses_untracked_checkpoint:kind=test_function",
+      "tests/core/test_knockout_cache_key_context.py:test_git_project_without_cache_ignore_reuses_untracked_checkpoint:returns=None",
+      "tests/core/test_knockout_cache_key_context.py:test_no_cache_skips_repository_cache_identity",
+      "tests/core/test_knockout_cache_key_context.py:test_no_cache_skips_repository_cache_identity:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/core/test_knockout_cache_key_context.py:test_no_cache_skips_repository_cache_identity:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_cache_key_context.py:test_no_cache_skips_repository_cache_identity:kind=test_function",
+      "tests/core/test_knockout_cache_key_context.py:test_no_cache_skips_repository_cache_identity:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_knockout_cache_key_context.py"
+      ],
+      "edit": [
+        "maid_runner/core/knockout.py"
+      ],
+      "read": [
+        "maid_runner/core/_knockout_worker.py",
+        "maid_runner/core/runtime_evidence.py",
+        "manifests/121-22-persist-knockout-evidence-cache.manifest.yaml",
+        "manifests/121-41-bind-knockout-cache-to-declarations.manifest.yaml",
+        "manifests/121-46-checkpoint-knockout-cache-per-worker.manifest.yaml",
+        "tests/core/test_knockout_cache_declaration_identity.py",
+        "tests/core/test_knockout_evidence_cache.py"
+      ],
+      "scope": [
+        "maid_runner/core/_knockout_snapshot.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_knockout_cache_key_context.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_cached_batch_computes_repository_identity_once",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_cache_context_is_fresh_per_invocation_and_invalidates_content_changes",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_no_cache_skips_repository_cache_identity",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_empty_batch_skips_repository_cache_identity",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_checkpoint_rejects_inputs_that_drift_after_context_capture",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_git_project_without_cache_ignore_reuses_untracked_checkpoint",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/knockout.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "run_knockout_batch",
+              "description": "Reuses one hermetic cache-key context across all mutation reads and checkpoint writes in one batch while rebuilding it for every invocation.",
+              "args": [
+                {
+                  "name": "manifests",
+                  "type": "Sequence[Manifest]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "evidence",
+                  "type": "RuntimeEvidenceBundle | None",
+                  "default": "None"
+                },
+                {
+                  "name": "limit",
+                  "type": "int | None",
+                  "default": "None"
+                },
+                {
+                  "name": "allow_dirty",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "executor",
+                  "type": "KnockoutCommandExecutor | None",
+                  "default": "None"
+                },
+                {
+                  "name": "snapshot_backend",
+                  "type": "ProjectSnapshotBackend | None",
+                  "default": "None"
+                },
+                {
+                  "name": "jobs",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "max_processes",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "no_cache",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "dict[str, KnockoutReport]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/runtime_evidence.py",
+        "maid_runner/core/_knockout_worker.py",
+        "tests/core/test_knockout_evidence_cache.py",
+        "tests/core/test_knockout_cache_declaration_identity.py",
+        "manifests/121-22-persist-knockout-evidence-cache.manifest.yaml",
+        "manifests/121-41-bind-knockout-cache-to-declarations.manifest.yaml",
+        "manifests/121-46-checkpoint-knockout-cache-per-worker.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_knockout_snapshot.py",
+          "reason": "Keep non-Git snapshot input identity stable across the same exact knockout checkpoint-cache path already excluded from Git repository identity, without excluding broader .maid state or tracked Git paths."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_knockout_cache_declaration_identity.py",
+      "tests/core/test_knockout_cache_key_context.py",
+      "tests/core/test_knockout_evidence_cache.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_knockout_cache_key_context.py tests/core/test_knockout_evidence_cache.py tests/core/test_knockout_cache_declaration_identity.py",
+      "uv run maid validate manifests/fix-knockout-cache-key-context.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

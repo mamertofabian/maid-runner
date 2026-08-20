@@ -1,0 +1,200 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Prove evidence-derived artifact coverage reports equal the legacy exact-command gate"
+type: refactor
+created: "2026-08-11T08:22:51Z"
+metadata:
+  status: implementation-ready
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - artifact-coverage
+    - runtime-evidence
+    - equivalence
+description: |
+  Consume 121-08 evidence in the artifact-coverage core without changing CLI
+  stage execution yet. For each manifest command, include only node contexts
+  selected by its immutable command identity plus fixture/collection contexts
+  with proven attribution and equivalent lifecycle. Consumer closure alone is
+  insufficient when grouping changes fixture multiplicity, state, order, or
+  yield teardown. Missing selectors, any wider/autouse/dynamic or otherwise
+  unproven fixture lifecycle, ambiguous collection execution, lost workers,
+  unsupported commands, content changes, or resolved-environment identity
+  changes execute that affected exact legacy command; they never produce an
+  empty clean report.
+
+  Runtime collection must also detect consumer session-finish hooks before
+  tracing stops. Any project-owned hook that may execute after the final test
+  has no proven exact-command ownership, so the plugin marks that session-tail
+  context unresolved and the evaluator executes each affected exact command.
+
+  Compare evidence and legacy findings, E710/E900 errors, suggestions, and
+  deterministic JSON on honest, missing, failing, fixture-heavy, and
+  collection-heavy fixtures. The optimized call count must collapse compatible
+  groups while fallback call counts remain exact. No verify orchestration may
+  consume this evaluator until these equivalence tests are green.
+temptations:
+  - risk: "Do not union every context into every manifest report."
+    instead: "Filter through exact command identities and proven node/fixture/collection consumer maps."
+  - risk: "Do not infer fixture-lifecycle equivalence from a complete consumer map."
+    instead: "Require proven-identical lifecycle multiplicity/state/order/teardown or execute the affected exact command."
+  - risk: "Do not call an incomplete bundle a missing artifact without checking the legacy command."
+    instead: "Execute only the affected exact command through the production executor and expose the fallback identity."
+  - risk: "Do not compare only success booleans."
+    instead: "Compare findings, error codes/messages/suggestions, command attribution, and normalized JSON."
+  - risk: "Do not hide fallback work when claiming the 297-to-one reduction."
+    instead: "Return fallback command identities and assert optimized and fail-closed call counts separately."
+files:
+  create:
+    - path: tests/core/test_artifact_coverage_from_runtime_evidence.py
+      artifacts:
+        - kind: test_function
+          name: test_evidence_report_matches_legacy_honest_and_missing_artifacts
+          args: []
+        - kind: test_function
+          name: test_unrelated_ambient_context_cannot_satisfy_e710
+          args: []
+        - kind: test_function
+          name: test_command_failure_attribution_and_e900_match_legacy
+          args: []
+        - kind: test_function
+          name: test_stateful_wide_scope_yield_fixture_uses_exact_command_fallback
+          args: []
+        - kind: test_function
+          name: test_ambiguous_dynamic_fixture_or_collection_context_runs_exact_fallback
+          args: []
+        - kind: test_function
+          name: test_worker_loss_or_selector_gap_runs_exact_fallback
+          args: []
+        - kind: test_function
+          name: test_content_digest_change_rejects_buffered_evidence
+          args: []
+        - kind: test_function
+          name: test_resolved_environment_identity_change_runs_exact_fallback
+          args: []
+        - kind: test_function
+          name: test_compatible_group_executes_once_and_reports_each_manifest
+          args: []
+        - kind: test_function
+          name: test_evidence_and_legacy_json_match_except_duration_fields
+          args: []
+  edit:
+    - path: maid_runner/core/artifact_coverage.py
+      artifacts:
+        - kind: class
+          name: EvidenceArtifactCoverageResult
+          description: "Per-manifest reports plus exact fallback identities used during fail-closed evaluation."
+        - kind: attribute
+          name: reports
+          of: EvidenceArtifactCoverageResult
+          type: Mapping[str, ArtifactCoverageReport]
+        - kind: attribute
+          name: fallback_identities
+          of: EvidenceArtifactCoverageResult
+          type: tuple[RuntimeCommandIdentity, Ellipsis]
+        - kind: attribute
+          name: complete
+          of: EvidenceArtifactCoverageResult
+          type: bool
+          description: "True only when every relevant command was evaluated from current complete runtime evidence without exact-command fallback."
+        - kind: function
+          name: evaluate_artifact_coverage_from_evidence
+          args:
+            - name: manifests
+              type: Sequence[Manifest]
+            - name: project_root
+              type: Path
+            - name: evidence
+              type: RuntimeEvidenceBundle
+            - name: fallback_executor
+              type: RuntimeCommandExecutor | None
+              default: "None"
+          returns: EvidenceArtifactCoverageResult
+          description: "Evaluates proven contexts and executes affected exact commands whenever evidence is incomplete."
+  scope:
+    - path: maid_runner/core/_runtime_evidence_pytest_plugin.py
+      reason: "Detect project-owned pytest_sessionfinish hooks before tracing stops and mark their session-tail execution unresolved so artifact coverage falls back exactly; no public plugin artifact or signature changes."
+  read:
+    - manifests/drafts/121-00-fast-verification-roadmap.epic.yaml
+    - manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml
+    - manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml
+    - manifests/096-01-deduplicate-identical-artifact-coverage-commands.manifest.yaml
+    - maid_runner/core/_runtime_command_executor.py
+    - tests/core/test_artifact_coverage.py
+    - tests/core/test_artifact_coverage_batch.py
+    - tests/core/test_artifact_coverage_failure_determinism.py
+    - tests/core/test_artifact_coverage_timeout_config.py
+    - docs/plans/full-and-deep-verification-performance-redesign.md
+validate:
+  - uv run python -m pytest -q tests/core/test_artifact_coverage_from_runtime_evidence.py tests/core/test_artifact_coverage.py tests/core/test_artifact_coverage_batch.py tests/core/test_artifact_coverage_failure_determinism.py tests/core/test_artifact_coverage_timeout_config.py
+  - uv run maid validate manifests/121-09-prove-runtime-evidence-artifact-coverage-equivalence.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-11T16:53:58+08:00"
+  summary: "Proved that current, complete runtime evidence produces the same artifact-coverage reports as exact legacy commands while every stale, incomplete, lifecycle-ambiguous, collection-ambiguous, worker-loss, and session-tail case falls back to the affected exact command."
+  rationale: "The evaluator now projects evidence through immutable command identities and proven consumer contexts, preserving legacy E710 and E900 behavior, command attribution, suggestions, and deterministic output. It does not yet alter verify orchestration; this deliberately isolates the equivalence proof needed before 121-10 can replace hundreds of deep-gate subprocesses with one compatible runtime-evidence pass without sacrificing gate quality."
+  agent:
+    model: gpt-5
+    provider: openai
+    client: codex
+    source: self-known model family; exact runtime slug unavailable
+    skills:
+      - maid-runner-performance-optimization
+      - maid-runner-draft-implement
+      - maid-plan-review
+      - maid-evolver
+      - maid-implementer
+      - maid-implementation-review
+  lessons:
+    - lesson_type: validation-trust
+      summary: "Evidence reuse must treat project session-finish hooks as unattributed session-tail work; indirect hooks implemented by partials, wrapped callables, or callable objects require source unwrapping, and unresolved ownership must fail closed."
+      tags: [pytest-hooks, session-lifecycle, fail-closed]
+      paths:
+        - maid_runner/core/_runtime_evidence_pytest_plugin.py
+        - tests/core/test_artifact_coverage_from_runtime_evidence.py
+    - lesson_type: validation-trust
+      summary: "Consumer closure alone cannot prove fixture lifecycle equivalence, and import or collection execution has no exact selector ownership; both require exact-command fallback whenever lifecycle or attribution is ambiguous."
+      tags: [pytest-fixtures, collection, artifact-coverage, equivalence]
+      paths:
+        - maid_runner/core/artifact_coverage.py
+        - tests/core/test_artifact_coverage_from_runtime_evidence.py
+    - lesson_type: architecture
+      summary: "Separating evidence collection, evidence-to-report evaluation, and verify orchestration makes the deep-gate speedup reviewable in stages while retaining the legacy executor as a precise fallback boundary."
+      tags: [runtime-evidence, artifact-coverage, deep-verify]
+      paths:
+        - maid_runner/core/artifact_coverage.py
+        - manifests/drafts/121-00-fast-verification-roadmap.epic.yaml
+  review_notes:
+    - source: independent-reviewer-review_121_09_implementation
+      severity: needs_changes
+      summary: "Initial review found session-tail hooks could execute outside attributable evidence and that fixture and collection fallback tests fabricated incompleteness instead of exercising production collection."
+    - source: independent-reviewer-review_121_09_implementation
+      severity: needs_changes
+      summary: "Second review found project-owned partial or callable hooks could evade ownership detection and requested a real import-time collection equivalence scenario."
+    - source: independent-reviewer-review_121_09_implementation
+      severity: ready
+      summary: "Final review confirmed conservative hook ownership handling, real session and collection fallback equivalence, unchanged serial and xdist safety, clean focused tests and Ruff, and no gate weakening."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_artifact_coverage.py, tests/core/test_artifact_coverage_batch.py, tests/core/test_artifact_coverage_failure_determinism.py, tests/core/test_artifact_coverage_timeout_config.py, tests/core/test_runtime_evidence.py, tests/core/test_artifact_coverage_from_runtime_evidence.py]
+      status: passed
+      summary: "All 67 artifact-coverage and runtime-evidence tests passed in 46.87 seconds after the final review fixes."
+    - command: [uv, run, maid, validate, manifests/121-09-prove-runtime-evidence-artifact-coverage-equivalence.manifest.yaml, --mode, implementation, --packet]
+      status: passed
+      summary: "Implementation validation passed against plan-lock revision 8."
+    - command: [uv, run, maid, validate, --packet, --quiet]
+      status: passed
+      summary: "Repository-wide active-manifest validation passed in 6.52 seconds with zero failures."
+    - command: [uv, run, maid, test, --json]
+      status: passed
+      summary: "All 253 repository manifest command groups passed with zero failures."
+    - command: [uv, run, maid, verify, --profile, deep, --require-plan-lock, --require-red-evidence, --since, 045db56]
+      status: failed
+      summary: "Schema, behavioral, and implementation passed; serialized legacy artifact coverage remained the sole blocker with 1,771 findings after 1,792.693 seconds (29 minutes 52.7 seconds), confirming the bottleneck 121-10 is designed to remove."
+    - command: [uv, run, maid, validate, manifests/121-09-prove-runtime-evidence-artifact-coverage-equivalence.manifest.yaml, --mode, implementation, --artifact-coverage, --quiet]
+      status: failed
+      summary: "Focused diagnosis found the new evaluator executed successfully; the sole E710 is the known artifact-coverage limitation for a data-only dataclass whose behavior is exercised through generated initialization and __post_init__. No test or declaration was weakened to conceal it."

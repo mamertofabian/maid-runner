@@ -1,0 +1,89 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Traverse only owned procfs children in the Linux command supervisor"
+type: refactor
+created: "2026-08-13T13:05:22Z"
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags: [performance, process-ownership, test-execution, procfs]
+description: |
+  Evolve the 121-14 descendant-ownership mechanism without changing its public
+  signature or fail-closed guarantees. The Linux subreaper currently discovers
+  descendants by enumerating every process under /proc before launch and during
+  cleanup. That unrelated global work costs 11.19 seconds for 100 trivial
+  supervised commands and adds a race surface under xdist process churn.
+
+  Read each owned process's direct children from
+  /proc/<pid>/task/<pid>/children and recursively traverse only that tree.
+  A child that exits during traversal is harmless; a malformed child identity
+  or unreadable procfs for a still-owned process remains an explicit ownership
+  failure. Repeated cleanup scans still catch children reparented to the
+  subreaper. Preserve detached-session signaling, TERM/KILL escalation,
+  acknowledgement, timeout semantics, and missing-status failures from 121-14.
+  Chain merging is sufficient because this narrows the internal discovery
+  mechanism without changing _run_test_command's signature or superseding the
+  broader knockout worker contract.
+temptations:
+  - risk: "Do not bypass the descendant-owning supervisor to win the microbenchmark."
+    instead: "Keep the subreaper and fail-closed cleanup contract; replace only global procfs enumeration with recursive owned-child traversal."
+  - risk: "Do not treat every procfs read race as success."
+    instead: "Tolerate only a vanished process; malformed child IDs and other read failures remain explicit ownership errors."
+  - risk: "Do not replace runtime ownership with a static source assertion alone."
+    instead: "Execute the real supervisor while global /proc listing is denied, then retain the detached-child and cleanup adversaries."
+files:
+  edit:
+    - path: maid_runner/core/_test_command_execution.py
+      artifacts:
+        - kind: attribute
+          name: _COMMAND_SUPERVISOR_SOURCE
+          type: str
+          description: "Self-contained Linux subreaper supervisor using owned procfs child traversal."
+    - path: tests/core/validation/test_test_command_execution.py
+      artifacts:
+        - kind: test_function
+          name: test_supervisor_owns_descendants_without_global_proc_enumeration
+        - kind: test_function
+          name: test_timeout_reaps_detached_child_created_by_non_main_thread
+  scope:
+    - path: docs/plans/maid-runner-performance-backlog.md
+      reason: "Record the measured procfs, scheduling-barrier, and timing-invalidation findings so follow-up optimization starts from evidence."
+  read:
+    - manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_test_command_execution.py tests/core/test_test_runner.py
+  - uv run maid validate manifests/121-43-bound-command-supervisor-procfs-traversal.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-13T13:52:03Z"
+  summary: "The Linux command subreaper traverses only the owned process tree through every /proc/<pid>/task/<tid>/children entry, repeats KILL scans for late reparenting, and fails if cleanup is not acknowledged. Global /proc enumeration is eliminated."
+  rationale: "Global procfs scans cost 11.19 seconds per 100 trivial commands and raced with unrelated process churn. Kernel-provided child lists preserve ownership with bounded work, but independent review correctly found that every creating thread must be traversed."
+  lessons:
+    - lesson_type: performance
+      summary: "Owned procfs traversal reduced 100 sequential supervised commands from 11.19s to 2.82s and completed 200 commands at concurrency 16 in 0.79s without relaxing descendant cleanup."
+      tags: [process-ownership, procfs, supervision]
+      paths:
+        - maid_runner/core/_test_command_execution.py
+    - lesson_type: validation-trust
+      summary: "Linux children files are per task, not merely per process leader; a real detached child created by a non-main thread is required regression coverage."
+      tags: [linux, threads, fail-closed]
+      paths:
+        - tests/core/validation/test_test_command_execution.py
+  review_notes:
+    - source: checkpoint_review
+      severity: warning
+      summary: "Initial independent review reproduced a detached non-main-thread child escaping leader-only traversal; revision 4 traverses every task and adds the real timeout cleanup regression."
+    - source: checkpoint_review
+      severity: ready
+      summary: "Independent re-review found no concrete remaining findings after the task-wide traversal fix."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/validation/test_test_command_execution.py]
+      status: passed
+      summary: "All 13 command ownership, timeout, environment, and fail-closed tests passed."
+    - command: [uv, run, maid, validate, manifests/121-43-bound-command-supervisor-procfs-traversal.manifest.yaml, --mode, implementation, --quiet]
+      status: passed
+      summary: "Implementation validation passed against plan-lock revision 4."

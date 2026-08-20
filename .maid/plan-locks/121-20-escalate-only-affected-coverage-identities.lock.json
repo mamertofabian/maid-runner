@@ -1,0 +1,136 @@
+{
+  "manifest_path": "manifests/121-20-escalate-only-affected-coverage-identities.manifest.yaml",
+  "manifest_hash": "sha256-contract:6b1f5bdaaeeae392f21e7bd57002eb5210af0638de368e5eef7229a27fc37ea3",
+  "test_hashes": {
+    "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:94227dba7ee9ad6772a5f18dfec913d3d4d858368923f8f81f44a1bfa4e98a08",
+    "tests/core/test_artifact_coverage_partial_escalation.py": "sha256-pyast:v2:67f7c6e1c47bfdae1c8416bd237e42a1d21598c28d360f48bfd73b66cc1f8ae9"
+  },
+  "created_at": "2026-08-13T07:11:22.445403+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:c30577e157a7c378919a125812ae5ceaa233d316211732a6a83864175045a563",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:94227dba7ee9ad6772a5f18dfec913d3d4d858368923f8f81f44a1bfa4e98a08",
+        "tests/core/test_artifact_coverage_partial_escalation.py": "sha256-pyast:v2:67f7c6e1c47bfdae1c8416bd237e42a1d21598c28d360f48bfd73b66cc1f8ae9"
+      },
+      "revised_at": "2026-08-13T07:11:47.250284+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-20-escalate-only-affected-coverage-identities.manifest.yaml -> manifests/121-20-escalate-only-affected-coverage-identities.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-20-escalate-only-affected-coverage-identities.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-20-escalate-only-affected-coverage-identities.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6b1f5bdaaeeae392f21e7bd57002eb5210af0638de368e5eef7229a27fc37ea3",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:94227dba7ee9ad6772a5f18dfec913d3d4d858368923f8f81f44a1bfa4e98a08",
+        "tests/core/test_artifact_coverage_partial_escalation.py": "sha256-pyast:v2:67f7c6e1c47bfdae1c8416bd237e42a1d21598c28d360f48bfd73b66cc1f8ae9"
+      },
+      "revised_at": "2026-08-13T07:49:16.878850+00:00",
+      "reason": "Recapture genuine red-phase evidence; initial lock was captured after the fix was applied",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-13T07:49:37.281915+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_artifact_coverage_partial_escalation.py tests/core/test_artifact_coverage_fallback_workers.py",
+        "exit_code": 1,
+        "output_tail": "            root,\n            _targets(root, identities),\n            _CopySnapshotBackend(tmp_path / \"snapshots\"),\n            _RedForExecutor(root, red_command_stem=\"beta\"),\n            jobs=3,\n            max_processes=6,\n        )\n    \n>       assert run.serial_fallback_identities == (red_identity,)\nE       AssertionError: assert (RuntimeComma...t_gamma.py'))) == (RuntimeComma...t_beta.py')),)\nE         \nE         At index 0 diff: RuntimeCommandIdentity(manifest_path='/tmp/pytest-of-atomrem/pytest-4491/test_single_red_command_escala0/project/manifests/alpha.manifest.yaml', command_index=0, command=('python', '-m', 'pytest', '-q', 'tests/test_alpha.py')) != RuntimeCommandIdentity(manifest_path='/tmp/pytest-of-atomrem/pytest-4491/test_single_red_command_escala0/project/manifests/beta.manifest.yaml', command_index=0, command=('python', '-m', 'pytest', '-q', 'tests/test_beta.py'))\nE         Left contains 2 more items, first extra item: RuntimeCommandIdentity(manifest_path='/tmp/pytest-of-atomre...\nE         \nE         ...Full output truncated (2 lines hidden), use '-vv' to show\n\ntests/core/test_artifact_coverage_partial_escalation.py:54: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_artifact_coverage_partial_escalation.py::test_single_red_command_escalates_only_itself_and_keeps_clean_isolated\n1 failed, 18 passed in 19.81s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-20-escalate-only-affected-coverage-identities.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/test_artifact_coverage_partial_escalation.py:test_all_red_commands_still_escalate_every_identity",
+      "tests/core/test_artifact_coverage_partial_escalation.py:test_all_red_commands_still_escalate_every_identity:kind=test_function",
+      "tests/core/test_artifact_coverage_partial_escalation.py:test_single_red_command_escalates_only_itself_and_keeps_clean_isolated",
+      "tests/core/test_artifact_coverage_partial_escalation.py:test_single_red_command_escalates_only_itself_and_keeps_clean_isolated:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_artifact_coverage_partial_escalation.py"
+      ],
+      "edit": [],
+      "read": [
+        "docs/plans/full-and-deep-verification-performance-redesign.md",
+        "maid_runner/core/artifact_coverage.py",
+        "manifests/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml",
+        "manifests/121-19-route-exact-coverage-batch-through-isolated-lanes.manifest.yaml",
+        "tests/core/test_artifact_coverage_fallback_workers.py"
+      ],
+      "scope": [
+        "maid_runner/core/_artifact_coverage_fallback_worker.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_artifact_coverage_partial_escalation.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_single_red_command_escalates_only_itself_and_keeps_clean_isolated"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_all_red_commands_still_escalate_every_identity"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml",
+        "manifests/121-19-route-exact-coverage-batch-through-isolated-lanes.manifest.yaml",
+        "tests/core/test_artifact_coverage_fallback_workers.py",
+        "maid_runner/core/artifact_coverage.py",
+        "docs/plans/full-and-deep-verification-performance-redesign.md"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_artifact_coverage_fallback_worker.py",
+          "reason": "Split the whole-batch unsafe flag so a non-zero-exit-only command escalates a single identity; signature and return type of run_isolated_artifact_coverage_fallbacks are unchanged."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_artifact_coverage_fallback_workers.py",
+      "tests/core/test_artifact_coverage_partial_escalation.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_artifact_coverage_partial_escalation.py tests/core/test_artifact_coverage_fallback_workers.py",
+      "uv run maid validate manifests/121-20-escalate-only-affected-coverage-identities.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

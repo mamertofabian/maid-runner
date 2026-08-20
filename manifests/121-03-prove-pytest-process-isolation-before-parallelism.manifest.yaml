@@ -1,0 +1,457 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Prove full-suite pytest outcome equivalence before enabling runner-native workers"
+type: refactor
+created: "2026-08-10T12:21:31Z"
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - pytest
+    - isolation
+    - xdist
+description: |
+  The rejected 121-02 subprocess shards changed outcomes, but reconstruction
+  of that session found an uncontrolled environment difference: its isolated
+  worktree had no `node_modules/typescript`. The same session installed the
+  declared npm dependency, after which the suspected TypeScript files and the
+  full serial `maid test` passed. The experiment therefore did not prove a
+  process-order leak, and speculative cache-reset fixtures would encode the
+  wrong diagnosis.
+
+  Add pytest-xdist as a development dependency but do not enable it in MAID.
+  Provide a non-recursive external probe that runs a supplied target set in
+  fresh serial and pinned `--dist loadscope` processes, captures collection and
+  setup/call/teardown outcomes through a tiny plugin, and compares canonical
+  node/phase result sets and exit status. The report binds evidence to the
+  observed scheduler, worker identities, and complete per-worker collections;
+  the repository acceptance command proves `loadscope` with eight workers,
+  not an extrapolated range. The probe materializes two byte-and-mode-equivalent
+  disposable project snapshots and runs serial and parallel pytest in separate
+  snapshots, so neither run can change its successor's starting state. It also
+  fingerprints the source worktree before and after both runs and fails closed
+  if an absolute-path or editable-environment escape mutates the source. Inside-root
+  absolute path/node selectors are remapped into each snapshot; parent and
+  outside-root selectors are rejected. Snapshots preserve bytes, modes, empty
+  directories, and internal relative symlinks, while absolute or escaping
+  symlinks fail closed before execution except interpreter links inside the
+  copied `.venv` dependency boundary that resolve to the probe's actual Python
+  executable. For a linked worktree whose `.git` is a pointer file, each
+  snapshot receives independently cloned Git metadata before identical dirty
+  and untracked worktree bytes are overlaid. Every Git remote is removed from
+  both linked and standalone snapshot seeds, then the second snapshot is
+  byte-copied from that sanitized seed so
+  clone-time reflogs cannot create false inequality; the pointer is never copied
+  or shared. Source Git contents, topology, and lstat metadata use the worktree's
+  fail-closed policy (mode, ownership, link count, and ctime, excluding access
+  time); config, index, object, `FETCH_HEAD`, ref, empty-directory, or permission
+  escapes all fail. Concurrent external Git changes therefore
+  invalidate the proof instead of becoming a hidden state channel. This makes Git
+  control metadata an explicit isolation boundary rather than part of the
+  byte-equivalent worktree payload. Generated roots (`.claude-automation`,
+  `.codex-automation`, `.pytest_cache`, `.ruff_cache`, `.mypy_cache`,
+  `__pycache__`, and `maid_runner.egg-info`) are excluded from snapshot inputs
+  and cannot be selected as targets. `.venv` and `node_modules` are copied into
+  both snapshots rather than shared or omitted. The report also requires equal
+  environment identities for both runs: resolved `sys.executable` plus Python
+  implementation/version, `pytest.__version__`, and the installed
+  `pytest-xdist` distribution version. Missing, forged, or unequal worker
+  identities block success. Its focused
+  fixture-project tests run in the normal suite; the expensive whole-repository
+  probe is immutable acceptance evidence that must be green before 121-07 may
+  promote. Equivalence is green only when both runs exit successfully: matching
+  failures never count, so a dependency-broken environment cannot certify
+  parallel execution.
+
+  There is no marker-only serial lane: xdist would ignore it. Any remaining
+  lifecycle case must be made process/file independent or block worker
+  enablement.
+temptations:
+  - risk: "Do not preserve the disproven claim that 121-02 established a TypeScript process-order leak."
+    instead: "Record the missing npm dependency and rely on a fresh full-suite serial/worker comparison for actual evidence."
+  - risk: "Do not treat two matching nonzero pytest runs as successful equivalence."
+    instead: "Require both fresh runs to exit zero in addition to matching collection and phase outcomes."
+  - risk: "Do not generalize one scheduler/worker-count result to untested counts or a marker with no enforcement."
+    instead: "Bind evidence to loadscope and eight workers; block any other injected count until separately proven."
+  - risk: "Do not recursively launch the full suite from a normally collected test."
+    instead: "Refuse equivalent repository-wide selectors while under pytest, unit-test the probe on adversarial fixture projects, and run the repository-wide comparison as explicit acceptance evidence."
+  - risk: "Do not let the serial probe contaminate the parallel probe through persistent project files."
+    instead: "Materialize equivalent disposable snapshots, fingerprint the source worktree, remap only canonical inside-root selectors, preserve internal relative links and the copied .venv interpreter boundary, and reject every other parent, outside-root, absolute-link, or escaping-link path before subprocess launch."
+files:
+  create:
+    - path: tools/check_pytest_parallel_equivalence.py
+      artifacts:
+        - kind: class
+          name: CanonicalPytestOutcome
+          description: "Immutable node/phase/outcome record used to compare fresh pytest processes."
+        - kind: attribute
+          name: nodeid
+          of: CanonicalPytestOutcome
+          type: str
+        - kind: attribute
+          name: phase
+          of: CanonicalPytestOutcome
+          type: str
+        - kind: attribute
+          name: outcome
+          of: CanonicalPytestOutcome
+          type: str
+        - kind: class
+          name: PytestEquivalenceReport
+          description: "Canonical serial/parallel collection, outcome, exit-code, and difference report."
+        - kind: attribute
+          name: serial_outcomes
+          of: PytestEquivalenceReport
+          type: tuple[CanonicalPytestOutcome, Ellipsis]
+        - kind: attribute
+          name: parallel_outcomes
+          of: PytestEquivalenceReport
+          type: tuple[CanonicalPytestOutcome, Ellipsis]
+        - kind: attribute
+          name: serial_exit_code
+          of: PytestEquivalenceReport
+          type: int
+        - kind: attribute
+          name: parallel_exit_code
+          of: PytestEquivalenceReport
+          type: int
+        - kind: attribute
+          name: parallel_worker_collections
+          of: PytestEquivalenceReport
+          type: tuple[tuple[str, tuple[str, Ellipsis]], Ellipsis]
+          description: "Complete observed worker-id to collected-node mapping used to prove worker count and collection agreement."
+        - kind: attribute
+          name: serial_environment
+          of: PytestEquivalenceReport
+          type: tuple[tuple[str, str], Ellipsis]
+          description: "Observed Python, pytest, and xdist identity for the serial subprocess."
+        - kind: attribute
+          name: parallel_environment
+          of: PytestEquivalenceReport
+          type: tuple[tuple[str, str], Ellipsis]
+          description: "Observed Python, pytest, and xdist identity for the parallel subprocess."
+        - kind: attribute
+          name: differences
+          of: PytestEquivalenceReport
+          type: tuple[str, Ellipsis]
+        - kind: attribute
+          name: workers
+          of: PytestEquivalenceReport
+          type: int
+        - kind: attribute
+          name: dist_mode
+          of: PytestEquivalenceReport
+          type: str
+        - kind: attribute
+          name: success
+          of: PytestEquivalenceReport
+          type: bool
+        - kind: function
+          name: run_pytest_equivalence_probe
+          args:
+            - name: project_root
+              type: Path
+            - name: targets
+              type: Sequence[str]
+            - name: workers
+              type: int
+            - name: dist_mode
+              type: str
+              default: "'loadscope'"
+          returns: PytestEquivalenceReport
+          description: "Runs fresh serial and xdist processes and compares canonical collected node-phase outcomes."
+        - kind: function
+          name: main
+          args:
+            - name: argv
+              type: Sequence[str] | None
+              default: "None"
+          returns: int
+          description: "Prints deterministic differences and exits nonzero when collection, outcomes, or exit status differ."
+    - path: tests/performance/test_pytest_parallel_equivalence_probe.py
+      artifacts:
+        - kind: test_function
+          name: test_probe_accepts_equivalent_serial_and_loadscope_outcomes
+          args: []
+        - kind: test_function
+          name: test_canonical_pytest_outcome_is_immutable
+          args: []
+        - kind: test_function
+          name: test_probe_rejects_process_order_state_leak
+          args: []
+        - kind: test_function
+          name: test_probe_rejects_worker_collection_difference
+          args: []
+        - kind: test_function
+          name: test_probe_uses_requested_worker_count_and_dist_mode
+          args: []
+        - kind: test_function
+          name: test_probe_rejects_phase_outcome_difference
+          args: []
+        - kind: test_function
+          name: test_probe_rejects_matching_nonzero_serial_and_parallel_runs
+          args: []
+        - kind: test_function
+          name: test_probe_never_recursively_selects_its_own_repository_run
+          args: []
+        - kind: test_function
+          name: test_public_probe_never_recursively_selects_its_own_repository_run
+          args: []
+        - kind: test_function
+          name: test_public_probe_rejects_pytest_option_arguments
+          args: []
+        - kind: test_function
+          name: test_public_probe_refuses_collection_time_recursion
+          args: []
+        - kind: test_function
+          name: test_probe_rejects_serial_project_state_contamination
+          args: []
+        - kind: test_function
+          name: test_probe_isolates_parallel_project_state_from_source_tree
+          args: []
+        - kind: test_function
+          name: test_probe_rejects_empty_directory_state_contamination
+          args: []
+        - kind: test_function
+          name: test_probe_rejects_file_mode_state_contamination
+          args: []
+        - kind: test_function
+          name: test_probe_rejects_pytest_cache_state_contamination
+          args: []
+        - kind: test_function
+          name: test_probe_detects_source_worktree_escape
+          args: []
+        - kind: test_function
+          name: test_probe_detects_source_git_control_escape
+          args: []
+        - kind: test_function
+          name: test_probe_detects_source_git_fetch_head_state_channel
+          args: []
+        - kind: test_function
+          name: test_probe_detects_empty_source_git_directory_state_channel
+          args: []
+        - kind: test_function
+          name: test_probe_detects_source_git_directory_mode_state_channel
+          args: []
+        - kind: test_function
+          name: test_probe_maps_inside_root_absolute_targets_into_snapshots
+          args: []
+        - kind: test_function
+          name: test_probe_rejects_outside_root_and_parent_targets
+          args: []
+        - kind: test_function
+          name: test_probe_rejects_targets_inside_excluded_snapshot_roots
+          args: []
+        - kind: test_function
+          name: test_probe_preserves_snapshot_bytes_modes_empty_dirs_and_internal_symlinks
+          args: []
+        - kind: test_function
+          name: test_probe_rejects_symlinks_that_escape_project_root
+          args: []
+        - kind: test_function
+          name: test_probe_rejects_python_named_venv_link_to_non_interpreter
+          args: []
+        - kind: test_function
+          name: test_probe_preserves_copied_venv_interpreter_links
+          args: []
+        - kind: test_function
+          name: test_probe_copies_node_modules_into_independent_snapshots
+          args: []
+        - kind: test_function
+          name: test_probe_isolates_linked_worktree_git_metadata
+          args: []
+        - kind: test_function
+          name: test_probe_sanitizes_standalone_repository_remotes
+          args: []
+        - kind: test_function
+          name: test_probe_binds_equal_serial_and_parallel_execution_environments
+          args: []
+        - kind: test_function
+          name: test_probe_rejects_mismatched_execution_environment
+          args: []
+        - kind: test_function
+          name: test_probe_binds_worker_environment_ids_to_collection_ids
+          args: []
+        - kind: test_function
+          name: test_probe_report_binds_evidence_to_exact_worker_count_and_dist_mode
+          args: []
+        - kind: test_function
+          name: test_probe_cli_reports_green_equivalence
+          args: []
+        - kind: test_function
+          name: test_probe_cli_reports_mismatch_and_nonzero_exit
+          args: []
+        - kind: test_function
+          name: test_probe_script_rejects_matching_nonzero_runs
+          args: []
+        - kind: test_function
+          name: test_probe_dependency_is_declared_and_locked
+          args: []
+  edit:
+    - path: manifests/drafts/121-02-shard-broad-pytest-batches-across-test-jobs.manifest.yaml
+      artifacts:
+        - kind: attribute
+          name: _abandoned_broad_pytest_subprocess_sharding
+          of: manifest
+          type: archived draft
+          description: "Corrects the archived diagnosis while retaining the rejected experiment and measurements."
+    - path: manifests/drafts/121-00-fast-verification-roadmap.epic.yaml
+      artifacts:
+        - kind: attribute
+          name: _full_and_deep_verification_performance_roadmap
+          of: manifest
+          type: draft epic
+          description: "Makes environment-complete serial/worker equivalence the first prerequisite without asserting an unproven cache leak."
+    - path: docs/plans/full-and-deep-verification-performance-redesign.md
+      artifacts:
+        - kind: attribute
+          name: _pytest_equivalence_prerequisite
+          of: performance redesign
+          type: markdown section
+          description: "Records the corrected 121-02 diagnosis and the zero-exit equivalence requirement."
+    - path: docs/plans/maid-runner-performance-backlog.md
+      artifacts:
+        - kind: attribute
+          name: _performance_backlog_121_02_correction
+          of: documentation
+          type: markdown
+          description: "Corrects the environment-confounded sharding result without reviving the rejected implementation."
+    - path: pyproject.toml
+      artifacts:
+        - kind: attribute
+          name: pytest_xdist_dev_dependency
+          of: dependency-groups.dev
+          type: dependency
+          description: "Installs the pinned runner-native worker implementation for equivalence testing without enabling it by default."
+    - path: uv.lock
+      artifacts:
+        - kind: attribute
+          name: pytest_xdist_lock
+          of: dependency-lock
+          type: lock entry
+  read:
+    - maid_runner/core/ts_module_paths.py
+    - maid_runner/core/ts_compiler_resolver.py
+    - maid_runner/core/ts_compiler_resolver.cjs
+    - package.json
+    - package-lock.json
+acceptance:
+  tests:
+    - uv run python tools/check_pytest_parallel_equivalence.py --project-root . --workers 8 --dist loadscope tests/
+  immutable: true
+validate:
+  - uv run python -m pytest -q tests/performance/test_pytest_parallel_equivalence_probe.py
+  - uv run maid validate manifests/121-03-prove-pytest-process-isolation-before-parallelism.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-10T15:37:35Z"
+  summary: >-
+    Proved the complete repository pytest suite produces identical serial and
+    8-worker loadscope collections, phase outcomes, exit status, worker evidence,
+    and execution-environment identities from independent disposable snapshots.
+    The previously measured direct parallel candidate completed in 44.11 seconds
+    versus the 187.53-second serial broad pytest baseline (about 4.25x faster),
+    establishing a safe prerequisite for later worker-policy integration without
+    changing the default gate in this manifest.
+  rationale: >-
+    The rejected 121-02 sharding experiment was environment-confounded and reused
+    state across runs. The replacement probe copies exact dependency boundaries,
+    isolates serial and parallel state, sanitizes all Git remotes, fingerprints
+    worktree and Git-control state, remaps only safe selectors, and binds evidence
+    to the requested scheduler, worker IDs, Python, pytest, and xdist versions.
+    Any source escape, unsafe link, collection drift, phase drift, nonzero exit,
+    missing worker, or environment mismatch fails closed.
+  lessons:
+    - lesson_type: performance
+      summary: >-
+        Repository-wide pytest parallelism is viable: the direct 8-worker
+        loadscope run was about 4.25x faster than serial while the immutable
+        equivalence probe certified the full observable outcome set.
+      tags:
+        - pytest
+        - xdist
+        - loadscope
+        - performance
+      paths:
+        - tools/check_pytest_parallel_equivalence.py
+        - tests/performance/test_pytest_parallel_equivalence_probe.py
+    - lesson_type: anti-gaming
+      summary: >-
+        A serial/parallel comparison must isolate filesystem and Git state,
+        sanitize remotes, bind every worker identity, and detect source escapes;
+        matching test names or exit codes alone can certify contaminated runs.
+      tags:
+        - fail-closed
+        - process-isolation
+        - git-isolation
+        - environment-identity
+      paths:
+        - tools/check_pytest_parallel_equivalence.py
+        - tests/performance/test_pytest_parallel_equivalence_probe.py
+    - lesson_type: performance
+      summary: >-
+        The exact deep gate spent 1,767.56 seconds before failing artifact
+        coverage, while aggregate maid test completed in 231.98 seconds. Deep
+        speedups therefore require runtime-evidence reuse and knockout isolation
+        in addition to pytest workers.
+      tags:
+        - deep-verify
+        - artifact-coverage
+        - runtime-evidence
+      paths:
+        - manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml
+        - manifests/drafts/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml
+        - manifests/121-14-run-isolated-knockouts-with-bounded-workers.manifest.yaml
+  review_notes:
+    - source: implementation-review-rounds
+      severity: needs-changes
+      summary: >-
+        Independent adversarial review found and drove closure of unsafe venv
+        interpreter links, linked-worktree Git pointer sharing, unbound worker
+        identities, nondeterministic clone reflogs, source-pointing remotes,
+        FETCH_HEAD/empty-directory/mode state channels, and non-origin remotes.
+    - source: implementation-re-review
+      severity: ready
+      summary: >-
+        Final revision-17 review found no remaining blockers and confirmed
+        complete Git-control metadata/topology coverage, remote sanitization,
+        deterministic snapshot seeding, and the existing selector, symlink,
+        environment, and source-escape protections.
+    - source: assessed-deep-gate
+      severity: warning
+      summary: >-
+        The exact deep command ran for 1,767.56 seconds and stopped at 1,684
+        repository-wide artifact findings. Focused coverage isolated two E710
+        errors for annotation-only frozen dataclasses that are instantiated and
+        behaviorally asserted; this validator limitation is recorded in
+        ~/.maid/bug-report/20260810-233645-maid-runner-dataclass-artifact-coverage.md.
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/performance/test_pytest_parallel_equivalence_probe.py]
+      status: passed
+      summary: "All 55 focused isolation, equivalence, escape, scheduler, environment, and CLI tests passed."
+    - command: [uv, run, maid, validate, manifests/121-03-prove-pytest-process-isolation-before-parallelism.manifest.yaml, --mode, implementation, --quiet]
+      status: passed
+      summary: "Implementation validation passed against approved plan-lock revision 17."
+    - command: [uv, run, python, tools/check_pytest_parallel_equivalence.py, --project-root, ., --workers, '8', --dist, loadscope, tests/]
+      status: passed
+      summary: >-
+        The exact immutable command passed in an isolated byte-copy of the
+        current dirty project in 301.70 seconds; the watched checkout separately
+        demonstrated fail-closed invalidation during concurrent Git writes.
+    - command: [uv, run, maid, validate, --quiet]
+      status: passed
+      summary: "Repository-wide manifest validation passed."
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: "All 246 repository manifest command groups passed in 231.98 seconds."
+    - command: [uv, run, maid, verify, --profile, deep, --require-plan-lock, --require-red-evidence, --since, 0e4e2c5]
+      status: failed
+      summary: >-
+        Schema, behavioral, and implementation passed; artifact coverage blocked
+        on 1,684 repository-wide findings after 1,767.56 seconds, including two
+        annotation-only dataclass E710 limitations documented in the bug report.

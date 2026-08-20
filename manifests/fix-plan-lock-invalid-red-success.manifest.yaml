@@ -1,0 +1,113 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Reject ordinary plan locks whose validation does not provide genuine red evidence"
+type: fix
+created: "2026-08-19T23:55:25Z"
+metadata:
+  planning_state: behavioral-contract
+  status: implementation-ready
+  promotion_ready: true
+  tests_status: created-red-confirmed
+  priority: high
+  tags: [plan-lock, red-evidence, validation-trust, bug-report]
+description: |
+  Close the false-success path reported by life-dashboard: `maid plan lock`
+  currently exits zero and writes a lock even when every validation command is
+  green or a command is explicitly classified invalid. An ordinary lock must
+  require genuine red evidence before it publishes local plan state. Audited
+  green migration remains available through `--legacy-baseline`, while an
+  explicit `--no-run` lock remains the documented opt-out with null evidence.
+
+  This changes no public signature. It strengthens the existing command
+  behavior and keeps invalid evidence visible in the refusal diagnostics.
+temptations:
+  - risk: "Do not relabel exit 0 or exit 2 as behavioral red."
+    instead: "Use the existing evidence classifier and refuse before atomically publishing the lock."
+  - risk: "Do not write a lock and rely on later verify to reject it."
+    instead: "Treat missing genuine red as a plan-lock command failure and leave the lock path absent."
+  - risk: "Do not remove the explicit no-run or audited legacy-baseline workflows."
+    instead: "Apply the new gate only to ordinary evidence-capturing plan lock."
+files:
+  scope:
+    - path: maid_runner/cli/commands/plan.py
+      reason: "Refuse ordinary lock publication when captured red evidence is invalid or not red, without changing CLI signatures."
+  create:
+    - path: tests/cli/test_plan_lock_rejects_invalid_red.py
+      artifacts:
+        - kind: test_function
+          name: test_plan_lock_rejects_non_red_validation_without_writing_lock
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: capsys, type: "pytest.CaptureFixture[str]"}
+            - {name: exit_code, type: int}
+            - {name: classification, type: str}
+          returns: None
+          description: "Green and invalid validation both make ordinary plan lock exit 1, explain the classification, and leave no lock file."
+  edit:
+    - path: tests/cli/test_plan_revise_auto_preserve.py
+      artifacts:
+        - kind: test_function
+          name: test_revise_with_invalid_existing_evidence_recaptures
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "Historical invalid evidence is seeded explicitly so revise recovery remains covered without asking ordinary plan lock to accept green validation."
+    - path: tests/cli/test_plan_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_main_dispatches_plan_lock
+          of: TestPlanParserRegistered
+          args:
+            - {name: self, type: TestPlanParserRegistered}
+            - {name: tmp_path, type: Path}
+            - {name: monkeypatch, type: pytest.MonkeyPatch}
+          returns: None
+          description: "Parser dispatch coverage uses the explicit no-run workflow instead of accepting an invalid collection failure as red evidence."
+    - path: tests/cli/test_plan_cmd_red_evidence.py
+      artifacts:
+        - kind: test_function
+          name: test_lock_records_collection_error_as_invalid_not_red
+          of: TestCmdPlanLockRedEvidence
+          args:
+            - {name: self, type: TestCmdPlanLockRedEvidence}
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "Collection-invalid evidence makes ordinary plan lock fail without publishing a lock."
+        - kind: test_function
+          name: test_revise_preserve_red_evidence_rejects_existing_non_red_evidence
+          of: TestCmdPlanReviseRedEvidence
+          args:
+            - {name: self, type: TestCmdPlanReviseRedEvidence}
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "Preserve mode continues to reject a pre-existing non-red evidence payload after ordinary lock stops creating one."
+  read:
+    - maid_runner/core/plan_lock.py
+    - manifests/067-02-capture-red-phase-evidence-on-lock.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/cli/test_plan_lock_rejects_invalid_red.py tests/cli/test_plan_cmd_red_evidence.py tests/cli/test_plan_cmd.py tests/cli/test_plan_revise_auto_preserve.py
+outcome:
+  status: completed
+  completed_at: "2026-08-20T00:35:29Z"
+  summary: "Ordinary plan lock now refuses green or invalid validation evidence before publishing a lock, while explicit no-run and audited legacy-baseline paths remain available."
+  rationale: "The command applies the existing red-evidence validity predicate immediately after capture and returns a visible classification diagnostic without writing local plan state. Existing revise recovery coverage now seeds historical invalid evidence explicitly instead of depending on the removed false-success path."
+  lessons:
+    - lesson_type: validation-trust
+      summary: "Evidence capture and evidence acceptance are separate gates; a successful capture operation must still fail closed when its classification is not genuine red."
+      tags: [plan-lock, red-evidence, fail-closed]
+      paths: [maid_runner/cli/commands/plan.py]
+  review_notes:
+    - source: independent-implementation-review-final
+      severity: ready
+      summary: "Confirmed plan-lock behavior, manifest scope, and regression coverage with no blocking or advisory findings."
+  validation:
+    - command: [uv, run, python, -m, pytest, tests/, -q, -n, "8", --dist, loadscope]
+      status: passed
+      summary: "Full repository suite passed 4539 tests with 14 skipped after final review fixes."
+    - command: [uv, run, maid, verify, --profile, deep, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, release/v2.next]
+      status: passed
+      summary: "All 11 deep verification gates passed; only pre-existing non-blocking E307 warnings remained."

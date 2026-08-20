@@ -1,0 +1,230 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Allow chain merge apply to consolidate a target file owned by multi-file manifests without dropping their unrelated public contracts or validation obligations"
+type: feature
+created: "2026-08-17T01:17:51Z"
+supersedes:
+  - chain-merge-apply-materialize
+metadata:
+  epic: chain-merge-defragmentation
+  priority: high
+  tags:
+    - chain-merge
+    - supersession
+    - artifact-coverage
+    - manifest-consolidation
+    - validation-trust
+description: |
+  Replace child 4's multi-file refusal with a preservation-safe file-scoped
+  materialization. A target file in a mature repository is commonly declared
+  by manifests that also own other files. Whole-manifest supersession remains
+  the storage model, so the new replacement manifest must carry those owners'
+  unrelated public contracts, imports, acceptance suites, removal records, and
+  path intent forward rather than dropping them or weakening per-owner runtime
+  evidence.
+
+  `apply_chain_merge` continues to snapshot the target's complete current
+  public surface. It additionally projects every directly superseded owner's
+  other public artifact declarations into the replacement using the strictest
+  original file mode (`create`/`snapshot` before `edit`), preserves file imports,
+  scope/read/delete paths, acceptance tests, and removed artifacts, and uses the
+  exact first-seen union of original validate commands. Duplicate artifact
+  contracts, imports, paths, commands, acceptance tests, and removal records use
+  stable first-owner order. The resulting chain passes the real
+  supersession audit and exposes the same merged public contracts for unrelated
+  files after the original owners become inactive.
+
+  The target is the complete current public snapshot, including public symbols
+  that no predecessor declared. Private declarations are intentionally omitted
+  from both the target and preserved remainder. MAID's planner contract and supersession auditor define
+  artifacts as public API; retaining legacy private declarations would preserve
+  untestable E710 debt and recreate the invalid direct-private-test shortcut.
+  Public target artifacts missing from current code still refuse atomically.
+  Path precedence is explicit: an artifact-bearing file outranks scope/read,
+  delete outranks scope/read, and scope outranks read. A carried-forward path
+  declared both artifact-bearing and deleted is contradictory and refuses
+  atomically instead of silently choosing one obligation.
+
+  Repeated apply is safe: when the generated snapshot slug is already active,
+  the replacement uses the first available numeric suffix. It never overwrites
+  or supersedes itself, so supersession integrity and the prior snapshot's
+  historical bytes remain intact.
+
+  This is not partial schema supersession: history remains auditable through
+  ordinary whole-manifest `supersedes`, and the replacement is self-contained.
+  It does not retire tests, alter evidence aggregation, auto-seal grandfather
+  locks, or claim equivalence without the existing coverage/knockout gate.
+temptations:
+  - risk: "Do not make multi-file apply pass by ignoring unrelated declarations or by writing a partial replacement before all checks pass."
+    instead: "Build the complete replacement in memory, carry every unrelated public artifact forward under the strictest original file mode, verify all refusal conditions, choose a non-colliding snapshot slug, and save once before asserting the real supersession audit has zero violations."
+  - risk: "Do not merge runtime evidence across still-active owners or weaken child 3b's conflicting-evidence E710 rule."
+    instead: "Preserve each superseded owner's exact validate command in deterministic first-seen order so evidence becomes shared only inside the explicit consolidated replacement."
+  - risk: "Do not retain legacy private artifacts or add tests that call private compatibility helpers directly."
+    instead: "Filter private declarations consistently with snapshot generation and the supersession auditor; preserve only public contracts."
+  - risk: "Do not lose non-artifact scope, read, or delete intent while focusing on artifact preservation."
+    instead: "Project and deduplicate all directly superseded owners' scope/read/delete paths with the documented precedence, refusing artifact/delete contradictions, and test each category."
+  - risk: "Do not preserve source artifacts while silently retiring imports, acceptance suites, or explicit removals."
+    instead: "Carry forward first-seen imports, acceptance tests with strongest immutability, and removed-artifact records, then assert their exact loaded values."
+files:
+  edit:
+    - path: maid_runner/core/chain_merge_apply.py
+      artifacts:
+        - kind: class
+          name: ChainMergeApplyResult
+        - kind: attribute
+          name: applied
+          of: ChainMergeApplyResult
+          type: bool
+        - kind: attribute
+          name: snapshot_path
+          of: ChainMergeApplyResult
+          type: str | None
+        - kind: attribute
+          name: superseded_slugs
+          of: ChainMergeApplyResult
+          type: tuple[str, ...]
+        - kind: attribute
+          name: refused_reason
+          of: ChainMergeApplyResult
+          type: str | None
+        - kind: attribute
+          name: missing_artifacts
+          of: ChainMergeApplyResult
+          type: tuple[str, ...]
+        - kind: function
+          name: apply_chain_merge
+          args:
+            - name: file_path
+              type: str
+            - name: chain
+              type: ManifestChain
+            - name: project_root
+              type: str
+              default: '"."'
+            - name: output_dir
+              type: str
+              default: '"manifests/"'
+          returns: ChainMergeApplyResult
+          description: "Materialize one complete current-public target snapshot while preserving directly superseded multi-file owners' unrelated public artifacts, imports, strictest file modes, acceptance and removal obligations, deterministic path precedence, inferred companion reads, and exact validation-command union; refuse artifact/delete contradictions atomically."
+    - path: tests/core/test_chain_merge_apply.py
+      artifacts:
+        - kind: test_function
+          name: test_apply_writes_snapshot_superseding_chain
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_refuses_when_snapshot_drops_declared_artifact
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_refuses_lean_file
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_leaves_source_unchanged
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_repeatedly_uses_noncolliding_snapshot_slug
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_preserves_multi_file_contract_and_validation_union
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_omits_legacy_private_artifacts
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_preserves_scope_read_and_delete_paths
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_keeps_snapshot_inferred_companion_reads
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_refuses_artifact_delete_path_conflict_atomically
+          args: []
+          returns: None
+  read:
+    - maid_runner/core/chain.py
+    - maid_runner/core/chain_merge.py
+    - maid_runner/core/manifest.py
+    - maid_runner/core/snapshot.py
+    - maid_runner/core/supersession_audit.py
+    - maid_runner/core/types.py
+    - tests/cli/test_chain_merge_apply_command.py
+    - tests/core/test_chain_merge_coverage_wiring.py
+    - manifests/chain-merge-apply-materialize.manifest.yaml
+    - manifests/chain-merge-equivalence-gate.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_chain_merge_apply.py tests/cli/test_chain_merge_apply_command.py
+  - uv run python -m pytest -q tests/core/test_chain_merge_coverage_wiring.py tests/core/test_chain_merge_equivalence.py
+outcome:
+  status: completed
+  summary: "Chain merge apply now safely consolidates multi-file owners without retiring their unrelated public contracts, validation and acceptance obligations, removals, imports, or non-artifact path intent."
+  rationale: "Whole-manifest supersession remains the storage model. The replacement carries each direct owner's public obligations forward in deterministic order, snapshots the target's complete current public surface, filters private debt, refuses contradictory artifact/delete paths atomically, and selects a non-colliding slug on repeated apply."
+  lessons:
+    - lesson_type: test-design
+      summary: "Any materializer whose output can become a later input needs a repeated-operation scenario. Single-apply coverage missed that the generated snapshot slug could overwrite and supersede itself; independent review reproduced E103 and an empty active chain."
+      tags:
+        - implementation-review
+        - chain-merge
+        - supersession
+        - safety
+      paths:
+        - maid_runner/core/chain_merge_apply.py
+        - tests/core/test_chain_merge_apply.py
+  review_notes:
+    - source: implementation-review-subagent
+      severity: P1
+      summary: "Repeated apply overwrote snapshot-src-foo and wrote a self-superseding manifest. Fixed with a deterministic non-colliding slug and a regression proving unchanged history, clean supersession integrity, and preserved contracts."
+    - source: implementation-review-subagent
+      severity: ready
+      summary: "Round-two review found no remaining actionable issues; residual risk is the unchanged 89 pre-existing E710 findings."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_chain_merge_apply.py
+        - tests/cli/test_chain_merge_apply_command.py
+      status: passed
+      summary: "12 focused apply and CLI tests passed, including repeated apply, whole-manifest preservation, path precedence, and atomic refusal."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "469 active manifests passed, 119 superseded manifests skipped, and no manifest failed."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "All 294 manifest test commands passed after installing the package-lock-pinned TypeScript dependency in the isolated worktree."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --profile
+        - deep
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - b35922f
+      status: failed-unrelated
+      summary: "Schema, behavioral, and implementation stages passed; artifact coverage remained blocked by the same 89 pre-existing E710 findings measured before this feature."
+  completed_at: "2026-08-17T01:38:53Z"

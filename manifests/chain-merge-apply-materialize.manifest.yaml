@@ -1,0 +1,208 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Add `maid chain merge <file> --apply` that materializes the merged contract via the existing snapshot primitive and supersedes the prior chain — refusing when the current snapshot would drop a declared artifact, so the anti-gaming artifact-preservation audit can never be violated. Tests are untouched.
+type: feature
+created: '2026-08-13T23:14:45Z'
+metadata:
+  origin: manifest-test-consolidation-design-2026-08-13
+  epic: chain-merge-defragmentation
+  tags:
+  - chain-merge
+  - snapshot
+  - supersession
+  - defragmentation
+  priority: medium
+description: |
+  Child 4 of the chain-merge-defragmentation epic. The manifest-side collapse.
+
+  CORRECTED SCOPE (supersedes the original draft framing). Investigation showed
+  snapshot-type manifests are NOT plan-locked, so there is no plan-lock /
+  red-evidence to "migrate". The real provenance mechanism under supersession is
+  the artifact-preservation audit (supersession_audit.py + the Grandfather lock):
+  a superseding manifest must preserve every artifact its superseded manifests
+  declared, or it is an anti-gaming violation. This child therefore reuses the
+  snapshot primitive, computes preservation directly, and REFUSES rather than
+  ever writing to the Grandfather control.
+
+  WHAT
+
+  apply_chain_merge(file_path, chain): builds the child 1 report, then:
+  - refuses on BLOCKED (structural) and LEAN (nothing to merge), writing nothing;
+  - generates a fresh snapshot of the file via generate_snapshot (current code);
+  - computes missing = declared-merged-artifact-keys - snapshot-artifact-keys;
+    if non-empty (the code legitimately dropped declared artifacts), REFUSES with
+    the missing keys and writes nothing — never auto-seals the Grandfather lock;
+  - otherwise sets supersedes to the active chain slugs for the file and saves the
+    snapshot via save_snapshot. Returns a ChainMergeApplyResult.
+  Surfaced as `maid chain merge <file> --apply [--json]`. Tests are never touched;
+  only a single snapshot manifest is written.
+
+  SCOPE BOUNDARIES
+
+  IN: `--apply` materialize via generate_snapshot + save_snapshot; supersedes the
+    active chain; refuse-on-conflict (missing declared artifact) and on
+    BLOCKED/LEAN; ChainMergeApplyResult with applied/refused/missing detail;
+    text + JSON.
+
+  OUT: auto-sealing the Grandfather lock (explicitly rejected — a later child if
+    ever); retiring or rewriting any test; the knockout equivalence gate
+    (child 5); repo-wide apply; any new snapshot-generation logic (reuse the
+    primitive).
+
+  EXPECTED RED PHASE
+
+  Tests import apply_chain_merge and drive `--apply`; red is the module and flag
+  do not exist (in-body ImportError / non-zero CLI exit).
+
+  PLANNED BEHAVIORAL TESTS (to be written by the hardening agent)
+
+  - apply on a DEFRAG file whose code contains every declared artifact writes one
+    snapshot manifest with supersedes set to the active chain slugs (applied);
+  - apply refuses (writes nothing) when the code dropped a declared artifact, and
+    reports the missing artifact key(s);
+  - apply refuses on a LEAN file and on a BLOCKED file, writing nothing;
+  - apply leaves the source file bytes unchanged (only a manifest is written);
+  - `maid chain merge <file> --apply --json` emits the ChainMergeApplyResult.
+
+  ADVERSARIAL SELF-REVIEW
+  - Artifact-drop hazard: supersede silently drops artifacts. Defense: preserve
+    check refuses on any missing declared key; never seals Grandfather.
+  - Test-loss hazard: apply touches tests. Defense: only a manifest is written;
+    pin a source-unchanged test.
+  - Unsafe-collapse hazard: apply on BLOCKED/LEAN. Defense: refuse, write nothing.
+temptations:
+- risk: Do not supersede the chain when the fresh snapshot drops a declared artifact; that is exactly the artifact-preservation violation the audit guards.
+  instead: Compute declared-minus-snapshot keys and refuse (write nothing) when any are missing; never auto-seal the Grandfather lock.
+- risk: Do not let `--apply` touch, retire, or rewrite any test file.
+  instead: Write only the snapshot manifest; pin a source-unchanged test.
+- risk: Do not apply on a BLOCKED or LEAN verdict.
+  instead: Refuse with a clear reason and non-zero exit, writing nothing.
+- risk: Do not reimplement snapshot generation.
+  instead: Reuse generate_snapshot / save_snapshot; add only supersession and the preservation refusal.
+files:
+  create:
+  - path: maid_runner/core/chain_merge_apply.py
+    artifacts:
+    - kind: class
+      name: ChainMergeApplyResult
+      description: Outcome of an apply attempt.
+    - kind: attribute
+      name: applied
+      of: ChainMergeApplyResult
+      type: bool
+    - kind: attribute
+      name: snapshot_path
+      of: ChainMergeApplyResult
+      type: Union[str, None]
+    - kind: attribute
+      name: superseded_slugs
+      of: ChainMergeApplyResult
+      type: tuple[str, Ellipsis]
+    - kind: attribute
+      name: refused_reason
+      of: ChainMergeApplyResult
+      type: Union[str, None]
+    - kind: attribute
+      name: missing_artifacts
+      of: ChainMergeApplyResult
+      type: tuple[str, Ellipsis]
+    - kind: function
+      name: apply_chain_merge
+      args:
+      - name: file_path
+        type: str
+      - name: chain
+        type: ManifestChain
+      - name: project_root
+        type: str
+      - name: output_dir
+        type: str
+      returns: ChainMergeApplyResult
+  - path: tests/core/test_chain_merge_apply.py
+    artifacts:
+    - kind: test_function
+      name: test_apply_writes_snapshot_superseding_chain
+    - kind: test_function
+      name: test_apply_refuses_when_snapshot_drops_declared_artifact
+    - kind: test_function
+      name: test_apply_refuses_lean_file
+    - kind: test_function
+      name: test_apply_leaves_source_unchanged
+    - kind: test_function
+      name: test_apply_refuses_multi_file_supersession
+  - path: tests/cli/test_chain_merge_apply_command.py
+    artifacts:
+    - kind: test_function
+      name: test_chain_merge_apply_json_writes_snapshot
+    - kind: test_function
+      name: test_chain_merge_apply_dry_run_stays_read_only
+  scope:
+  - path: maid_runner/cli/commands/chain.py
+    reason: Add a private apply dispatch/handler and route --apply without changing cmd_chain's public signature.
+  - path: maid_runner/cli/commands/_main.py
+    reason: Add the --apply flag to the merge subparser without changing build_parser/main signatures.
+  - path: maid_runner/cli/commands/_format.py
+    reason: Add a private apply-result formatter without changing existing public formatters.
+  read:
+  - maid_runner/core/chain_merge.py
+  - maid_runner/core/chain.py
+  - maid_runner/core/snapshot.py
+  - maid_runner/core/types.py
+  - AGENTS.md
+validate:
+- uv run python -m pytest tests/core/test_chain_merge_apply.py tests/cli/test_chain_merge_apply_command.py -v
+- uv run maid validate manifests/chain-merge-apply-materialize.manifest.yaml --mode behavioral
+outcome:
+  status: completed
+  summary: "Shipped `maid chain merge <file> --apply`: materialize the merged contract as a snapshot that supersedes the chain, refusing rather than ever violating the artifact-preservation audit."
+  rationale: "Child 4 of the chain-merge-defragmentation epic. Corrected from the draft's inaccurate premise: snapshots are not plan-locked, so there is no plan-lock/red-evidence to migrate — the real safety property is the anti-gaming artifact-preservation audit. Apply reuses generate_snapshot/save_snapshot and refuses on BLOCKED/LEAN, on multi-file supersession, and on any dropped declared artifact, never auto-sealing the Grandfather lock."
+  lessons:
+    - lesson_type: review-loop
+      summary: "Green behavioral tests missed that superseding a whole manifest drops artifacts it declares in OTHER files; the independent review reproduced the supersession-audit violation. Single-file preservation checks are insufficient when supersession retires multi-file manifests."
+      tags:
+        - implementation-review
+        - supersession
+        - anti-gaming
+      paths:
+        - maid_runner/core/chain_merge_apply.py
+        - tests/core/test_chain_merge_apply.py
+    - lesson_type: cli-design
+      summary: "Independent store_true flags (--apply, --dry-run) let a documented dry run mutate; a read-only flag must gate the mutating branch."
+      tags:
+        - cli-design
+        - safety
+      paths:
+        - maid_runner/cli/commands/chain.py
+  review_notes:
+    - source: implementation-review-subagent
+      severity: blocker
+      summary: "Apply produced applied=True while dropping other-file artifacts of superseded multi-file manifests (reproduced against the real SupersessionAuditor). Fixed by refusing multi-file supersession; re-verified with zero audit violations."
+    - source: implementation-review-subagent
+      severity: important
+      summary: "`--apply --dry-run` mutated. Fixed so --dry-run wins (read-only). Re-review verdict: ready to merge."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_chain_merge_apply.py
+        - tests/cli/test_chain_merge_apply_command.py
+      status: passed
+      summary: "5 behavioral tests passed (incl. multi-file refusal and --apply --dry-run read-only)."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/chain-merge-apply-materialize.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: "Implementation validation passed."

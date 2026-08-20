@@ -1,0 +1,676 @@
+{
+  "manifest_path": "manifests/121-05-reuse-fast-real-git-test-projects.manifest.yaml",
+  "manifest_hash": "sha256-contract:35ec02d2fc0e58a21d111aaaf8fb27a3389738b223e184a91edf3b6df4a9c020",
+  "test_hashes": {
+    "tests/core/test_git_project_templates.py": "sha256-pyast:v2:4884dee280b762b39ba8f41ba06be82c7f4db02ecea632ccc980b0f56f2825c2",
+    "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:63d776c7c667178c5cc136c3945cc4b8c5a651523763b34f08330408e4528054",
+    "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:v2:fbd34d55589b10dad67730fadb341f3932bbf3bfcf08bd429de88028e5b7b403",
+    "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:5b2ce9458cfaec7a9eb2eabebb103be617604185ba7fbe7bca4d88a869289820"
+  },
+  "created_at": "2026-08-11T00:12:44.993729+00:00",
+  "revision": 10,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:589331d922c5249a3b3071253f985f45846bdc6431d4da9bb96fb5624c06459a",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_git_subdirectory.py": "sha256-pyast:v2:66156ff9640e54b097f46bf1ef79ea77a935286ed9d16130e2a35ecc514d152a",
+        "tests/core/test_git_project_templates.py": "sha256-pyast:v2:9401c50a28cc8c539eb3cee75f3e93ef1cfc97f6f5e74713c2d4f6b0fbeac322",
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:1eb3fb60866b1307802facfb83875e278a58facd2cf99e298ea2ae9489065934",
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:v2:3fffa83c64ad23fa2a676c70800cb9fa343fce072f916f9ef988c6e032b0643f",
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:146e555680a6cda74148bffd8baf501aef87282c13290fc9f9880b51241bbf92"
+      },
+      "revised_at": "2026-08-11T00:18:31.886238+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-05-reuse-fast-real-git-test-projects.manifest.yaml -> manifests/121-05-reuse-fast-real-git-test-projects.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-05-reuse-fast-real-git-test-projects.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-05-reuse-fast-real-git-test-projects.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:021f87c0aa1a1cb8e37a8fa315076fffec8c41ac67335a62705338d36fa14bc9",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_git_subdirectory.py": "sha256-pyast:v2:66156ff9640e54b097f46bf1ef79ea77a935286ed9d16130e2a35ecc514d152a",
+        "tests/core/test_git_project_templates.py": "sha256-pyast:v2:9401c50a28cc8c539eb3cee75f3e93ef1cfc97f6f5e74713c2d4f6b0fbeac322",
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:1eb3fb60866b1307802facfb83875e278a58facd2cf99e298ea2ae9489065934",
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:v2:3fffa83c64ad23fa2a676c70800cb9fa343fce072f916f9ef988c6e032b0643f",
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:146e555680a6cda74148bffd8baf501aef87282c13290fc9f9880b51241bbf92"
+      },
+      "revised_at": "2026-08-11T00:26:27.920522+00:00",
+      "reason": "correct module-level pytest plugin artifact ownership and accept explicit fixture wiring",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_plan_cmd_stash_implementation.py:attribute:pytest_plugins",
+          "tests/cli/test_plan_cmd_stash_implementation.py:attribute:pytest_plugins:kind=attribute",
+          "tests/cli/test_plan_cmd_stash_implementation.py:attribute:pytest_plugins:type=tuple[str, ...]",
+          "tests/cli/test_plan_cmd_stash_import_obstruction.py:attribute:pytest_plugins",
+          "tests/cli/test_plan_cmd_stash_import_obstruction.py:attribute:pytest_plugins:kind=attribute",
+          "tests/cli/test_plan_cmd_stash_import_obstruction.py:attribute:pytest_plugins:type=tuple[str, ...]",
+          "tests/cli/test_plan_legacy_baseline_cmd.py:attribute:pytest_plugins",
+          "tests/cli/test_plan_legacy_baseline_cmd.py:attribute:pytest_plugins:kind=attribute",
+          "tests/cli/test_plan_legacy_baseline_cmd.py:attribute:pytest_plugins:type=tuple[str, ...]"
+        ],
+        "artifacts_removed": [
+          "tests/cli/test_plan_cmd_stash_implementation.py:attribute:module.pytest_plugins",
+          "tests/cli/test_plan_cmd_stash_implementation.py:attribute:module.pytest_plugins:kind=attribute",
+          "tests/cli/test_plan_cmd_stash_implementation.py:attribute:module.pytest_plugins:of=module",
+          "tests/cli/test_plan_cmd_stash_implementation.py:attribute:module.pytest_plugins:type=tuple[str, ...]",
+          "tests/cli/test_plan_cmd_stash_import_obstruction.py:attribute:module.pytest_plugins",
+          "tests/cli/test_plan_cmd_stash_import_obstruction.py:attribute:module.pytest_plugins:kind=attribute",
+          "tests/cli/test_plan_cmd_stash_import_obstruction.py:attribute:module.pytest_plugins:of=module",
+          "tests/cli/test_plan_cmd_stash_import_obstruction.py:attribute:module.pytest_plugins:type=tuple[str, ...]",
+          "tests/cli/test_plan_legacy_baseline_cmd.py:attribute:module.pytest_plugins",
+          "tests/cli/test_plan_legacy_baseline_cmd.py:attribute:module.pytest_plugins:kind=attribute",
+          "tests/cli/test_plan_legacy_baseline_cmd.py:attribute:module.pytest_plugins:of=module",
+          "tests/cli/test_plan_legacy_baseline_cmd.py:attribute:module.pytest_plugins:type=tuple[str, ...]"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4ddec7b7505be3360d2626f28037ec25e07f28235d8970430b510f62ba26d029",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_git_subdirectory.py": "sha256-pyast:v2:66156ff9640e54b097f46bf1ef79ea77a935286ed9d16130e2a35ecc514d152a",
+        "tests/core/test_git_project_templates.py": "sha256-pyast:v2:9401c50a28cc8c539eb3cee75f3e93ef1cfc97f6f5e74713c2d4f6b0fbeac322",
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:376f8f306819360f715826d50de03be6f0675ab4fed0c09b8076a2613c2bac1d",
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:v2:48c0b895751fcc8b629d3c2d720c19bc0a45a78d902ae8018cfd7d2737a47bfb",
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:239bf4fea12f6e613de09aad55802d4da9f1259816eacdbad121d5208649e6fd"
+      },
+      "revised_at": "2026-08-11T00:30:27.744189+00:00",
+      "reason": "remove unused adjacent test context from behavioral command scope",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [
+          "read:tests/core/test_plan_lock_git_subdirectory.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c9168ffe3c3369677baf24d107c70dddf64876864d44bcf464572b5104da39a7",
+      "prior_test_hashes": {
+        "tests/core/test_git_project_templates.py": "sha256-pyast:v2:9401c50a28cc8c539eb3cee75f3e93ef1cfc97f6f5e74713c2d4f6b0fbeac322",
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:376f8f306819360f715826d50de03be6f0675ab4fed0c09b8076a2613c2bac1d",
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:v2:48c0b895751fcc8b629d3c2d720c19bc0a45a78d902ae8018cfd7d2737a47bfb",
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:239bf4fea12f6e613de09aad55802d4da9f1259816eacdbad121d5208649e6fd"
+      },
+      "revised_at": "2026-08-11T01:12:10.258095+00:00",
+      "reason": "tighten review contract for stash equivalence, actual Git setup counts, and shape containment",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/conftest.py:function:git_project_template_factory",
+          "tests/conftest.py:function:git_project_template_factory:arg=tmp_path_factory:type=pytest.TempPathFactory:default=None",
+          "tests/conftest.py:function:git_project_template_factory:kind=function",
+          "tests/conftest.py:function:git_project_template_factory:returns=Iterator[GitProjectTemplateFactory]",
+          "tests/core/test_git_project_templates.py:test_stash_templates_match_bespoke_committed_git_state",
+          "tests/core/test_git_project_templates.py:test_stash_templates_match_bespoke_committed_git_state:kind=test_function",
+          "tests/core/test_git_project_templates.py:test_template_factory_rejects_unsupported_or_escaping_shape_without_writes",
+          "tests/core/test_git_project_templates.py:test_template_factory_rejects_unsupported_or_escaping_shape_without_writes:kind=test_function"
+        ],
+        "artifacts_removed": [
+          "tests/cli/test_plan_cmd_stash_implementation.py:attribute:pytest_plugins",
+          "tests/cli/test_plan_cmd_stash_implementation.py:attribute:pytest_plugins:kind=attribute",
+          "tests/cli/test_plan_cmd_stash_implementation.py:attribute:pytest_plugins:type=tuple[str, ...]",
+          "tests/cli/test_plan_cmd_stash_import_obstruction.py:attribute:pytest_plugins",
+          "tests/cli/test_plan_cmd_stash_import_obstruction.py:attribute:pytest_plugins:kind=attribute",
+          "tests/cli/test_plan_cmd_stash_import_obstruction.py:attribute:pytest_plugins:type=tuple[str, ...]",
+          "tests/cli/test_plan_legacy_baseline_cmd.py:attribute:pytest_plugins",
+          "tests/cli/test_plan_legacy_baseline_cmd.py:attribute:pytest_plugins:kind=attribute",
+          "tests/cli/test_plan_legacy_baseline_cmd.py:attribute:pytest_plugins:type=tuple[str, ...]",
+          "tests/support/git_project_templates.py:function:git_project_template_factory",
+          "tests/support/git_project_templates.py:function:git_project_template_factory:arg=tmp_path_factory:type=pytest.TempPathFactory:default=None",
+          "tests/support/git_project_templates.py:function:git_project_template_factory:kind=function",
+          "tests/support/git_project_templates.py:function:git_project_template_factory:returns=Iterator[GitProjectTemplateFactory]"
+        ],
+        "files_added": [
+          "edit:tests/conftest.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:e8e76b9b904cec4f608eae47c156ab62810614b926f451e09bcf801046b74fa6",
+      "prior_test_hashes": {
+        "tests/core/test_git_project_templates.py": "sha256-pyast:v2:717b31d685327ae293ca7c6791260cf450151200692eb5f5fbd02dfe33e9be7c",
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:63d776c7c667178c5cc136c3945cc4b8c5a651523763b34f08330408e4528054",
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:v2:fbd34d55589b10dad67730fadb341f3932bbf3bfcf08bd429de88028e5b7b403",
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:5b2ce9458cfaec7a9eb2eabebb103be617604185ba7fbe7bca4d88a869289820"
+      },
+      "revised_at": "2026-08-11T01:25:58.061072+00:00",
+      "reason": "distinguish absent Git template support from transitive import failures",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/conftest.py:function:load_git_project_template_factory",
+          "tests/conftest.py:function:load_git_project_template_factory:kind=function",
+          "tests/conftest.py:function:load_git_project_template_factory:returns=type[GitProjectTemplateFactory] | None",
+          "tests/core/test_git_project_templates.py:test_fixture_loader_reraises_transitive_module_import_failure",
+          "tests/core/test_git_project_templates.py:test_fixture_loader_reraises_transitive_module_import_failure:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:35ec02d2fc0e58a21d111aaaf8fb27a3389738b223e184a91edf3b6df4a9c020",
+      "prior_test_hashes": {
+        "tests/core/test_git_project_templates.py": "sha256-pyast:v2:ec0c29968468ddd58bd2a317ba6e2fe6c08d6372594c5e43942dbe82e31afb64",
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:63d776c7c667178c5cc136c3945cc4b8c5a651523763b34f08330408e4528054",
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:v2:fbd34d55589b10dad67730fadb341f3932bbf3bfcf08bd429de88028e5b7b403",
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:5b2ce9458cfaec7a9eb2eabebb103be617604185ba7fbe7bca4d88a869289820"
+      },
+      "revised_at": "2026-08-11T01:29:26.187352+00:00",
+      "reason": "capture reviewed implementation outcome and measured performance limits",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:35ec02d2fc0e58a21d111aaaf8fb27a3389738b223e184a91edf3b6df4a9c020",
+      "prior_test_hashes": {
+        "tests/core/test_git_project_templates.py": "sha256-pyast:v2:ec0c29968468ddd58bd2a317ba6e2fe6c08d6372594c5e43942dbe82e31afb64",
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:63d776c7c667178c5cc136c3945cc4b8c5a651523763b34f08330408e4528054",
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:v2:fbd34d55589b10dad67730fadb341f3932bbf3bfcf08bd429de88028e5b7b403",
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:5b2ce9458cfaec7a9eb2eabebb103be617604185ba7fbe7bca4d88a869289820"
+      },
+      "revised_at": "2026-08-12T10:19:47.896387+00:00",
+      "reason": "Accept approved 121-17 shared test isolation correction",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:35ec02d2fc0e58a21d111aaaf8fb27a3389738b223e184a91edf3b6df4a9c020",
+      "prior_test_hashes": {
+        "tests/core/test_git_project_templates.py": "sha256-pyast:v2:b1f3fdc870495ecc6b8032cdb38ae44593f65a4dcc745d138d834bd0d39e48e1",
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:63d776c7c667178c5cc136c3945cc4b8c5a651523763b34f08330408e4528054",
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:v2:fbd34d55589b10dad67730fadb341f3932bbf3bfcf08bd429de88028e5b7b403",
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:5b2ce9458cfaec7a9eb2eabebb103be617604185ba7fbe7bca4d88a869289820"
+      },
+      "revised_at": "2026-08-12T10:32:48.667057+00:00",
+      "reason": "Refresh the shared behavioral-test hash after 121-17 tightened only the private elapsed-time comparison adversary; the reviewed 121-05 production contract and red evidence are unchanged.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:35ec02d2fc0e58a21d111aaaf8fb27a3389738b223e184a91edf3b6df4a9c020",
+      "prior_test_hashes": {
+        "tests/core/test_git_project_templates.py": "sha256-pyast:v2:df54d5bd3267fabf8fe277e1436e291a5111f7bdadb3121f506848b7276ba4ea",
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:63d776c7c667178c5cc136c3945cc4b8c5a651523763b34f08330408e4528054",
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:v2:fbd34d55589b10dad67730fadb341f3932bbf3bfcf08bd429de88028e5b7b403",
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:5b2ce9458cfaec7a9eb2eabebb103be617604185ba7fbe7bca4d88a869289820"
+      },
+      "revised_at": "2026-08-17T10:03:52.327895+00:00",
+      "reason": "accept approved shared-test coverage for remaining E710 owners",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-11T01:26:02.560074+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_git_project_templates.py tests/cli/test_plan_legacy_baseline_cmd.py tests/cli/test_plan_cmd_stash_implementation.py tests/cli/test_plan_cmd_stash_import_obstruction.py",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/cli/test_plan_cmd_stash_implementation.py::test_stash_implementation_rejects_unrelated_dirty_paths_before_stashing\nFAILED tests/cli/test_plan_cmd_stash_implementation.py::test_stash_implementation_allows_current_lock_dirty\nFAILED tests/cli/test_plan_cmd_stash_implementation.py::test_stash_implementation_allows_matching_active_manifest_marker\nFAILED tests/cli/test_plan_cmd_stash_implementation.py::test_stash_implementation_rejects_different_active_manifest_marker\nFAILED tests/cli/test_plan_cmd_stash_implementation.py::test_stash_implementation_rejects_staged_different_active_marker\nFAILED tests/cli/test_plan_cmd_stash_implementation.py::test_stash_implementation_allows_matching_promoted_draft_deletion\nFAILED tests/cli/test_plan_cmd_stash_implementation.py::test_stash_implementation_rejects_matching_draft_modification\nFAILED tests/cli/test_plan_cmd_stash_implementation.py::test_stash_implementation_rejects_staged_matching_draft_modification_then_delete\nFAILED tests/cli/test_plan_cmd_stash_implementation.py::test_stash_implementation_rejects_staged_matching_draft_add_then_delete\nFAILED tests/cli/test_plan_cmd_stash_implementation.py::test_stash_implementation_rejects_unrelated_draft_deletion\nFAILED tests/cli/test_plan_cmd_stash_implementation.py::test_stash_implementation_ignores_clean_missing_create_targets\nFAILED tests/cli/test_plan_cmd_stash_implementation.py::test_stash_implementation_restores_original_when_validate_creates_new_stash\nFAILED tests/cli/test_plan_cmd_stash_implementation.py::test_stash_implementation_preserves_stash_when_validate_dirties_target\nFAILED tests/cli/test_plan_cmd_stash_implementation.py::test_stash_implementation_rejects_validate_mutated_behavioral_test\nFAILED tests/cli/test_plan_cmd_stash_implementation.py::test_stash_implementation_rejects_conflicting_revise_modes\nFAILED tests/cli/test_plan_cmd_stash_import_obstruction.py::test_stash_revision_accepts_red_when_restoration_resolves_import_obstruction\nFAILED tests/cli/test_plan_cmd_stash_import_obstruction.py::test_stash_revision_rejects_invalid_command_that_restoration_does_not_resolve\nFAILED tests/cli/test_plan_cmd_stash_import_obstruction.py::test_stash_revision_recovers_exact_implementation_when_restored_validation_mutates_it[content]\nFAILED tests/cli/test_plan_cmd_stash_import_obstruction.py::test_stash_revision_recovers_exact_implementation_when_restored_validation_mutates_it[mode]\n42 failed, 11 passed in 4.02s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-05-reuse-fast-real-git-test-projects.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/076-01-add-stash-backed-plan-revise.lock.json",
+      ".maid/plan-locks/076-03-allow-lifecycle-dirt-in-stash-revise.lock.json",
+      ".maid/plan-locks/fix-legacy-baseline-first-commit.lock.json",
+      ".maid/plan-locks/fix-legacy-baseline-revise-preservation.lock.json",
+      ".maid/plan-locks/fix-legacy-plan-lock-baseline-migration.lock.json",
+      ".maid/plan-locks/fix-plan-lock-git-subdirectory-paths.lock.json",
+      ".maid/plan-locks/fix-stash-revise-import-obstruction.lock.json",
+      ".maid/plan-locks/fix-stash-revise-red-evidence-diagnostics.lock.json",
+      "manifests/fix-legacy-plan-lock-baseline-migration.manifest.yaml"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/cli/test_plan_cmd_stash_implementation.py:function:_write_tracked_project",
+      "tests/cli/test_plan_cmd_stash_implementation.py:function:_write_tracked_project:arg=project_root:type=Path:default=None",
+      "tests/cli/test_plan_cmd_stash_implementation.py:function:_write_tracked_project:arg=template_factory:type=GitProjectTemplateFactory | None:default=None",
+      "tests/cli/test_plan_cmd_stash_implementation.py:function:_write_tracked_project:kind=function",
+      "tests/cli/test_plan_cmd_stash_implementation.py:function:_write_tracked_project:returns=Path",
+      "tests/cli/test_plan_cmd_stash_import_obstruction.py:function:_write_locked_full_stack_project",
+      "tests/cli/test_plan_cmd_stash_import_obstruction.py:function:_write_locked_full_stack_project:arg=project_root:type=Path:default=None",
+      "tests/cli/test_plan_cmd_stash_import_obstruction.py:function:_write_locked_full_stack_project:arg=template_factory:type=GitProjectTemplateFactory | None:default=None",
+      "tests/cli/test_plan_cmd_stash_import_obstruction.py:function:_write_locked_full_stack_project:kind=function",
+      "tests/cli/test_plan_cmd_stash_import_obstruction.py:function:_write_locked_full_stack_project:returns=Path",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:function:_write_committed_legacy_project",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:function:_write_committed_legacy_project:arg=committed_additional_commands:type=tuple[str, Ellipsis]:default=()",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:function:_write_committed_legacy_project:arg=committed_command:type=str:default='python scripts/validate.py'",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:function:_write_committed_legacy_project:arg=ignore_maid:type=bool:default=False",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:function:_write_committed_legacy_project:arg=project_root:type=Path:default=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:function:_write_committed_legacy_project:arg=template_factory:type=GitProjectTemplateFactory | None:default=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:function:_write_committed_legacy_project:arg=validate_exit:type=int:default=0",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:function:_write_committed_legacy_project:arg=validation_lock_payload:type=str | None:default=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:function:_write_committed_legacy_project:arg=validation_mutation:type=str | None:default=None",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:function:_write_committed_legacy_project:kind=function",
+      "tests/cli/test_plan_legacy_baseline_cmd.py:function:_write_committed_legacy_project:returns=Path",
+      "tests/conftest.py:function:git_project_template_factory",
+      "tests/conftest.py:function:git_project_template_factory:arg=tmp_path_factory:type=pytest.TempPathFactory:default=None",
+      "tests/conftest.py:function:git_project_template_factory:kind=function",
+      "tests/conftest.py:function:git_project_template_factory:returns=Iterator[GitProjectTemplateFactory]",
+      "tests/conftest.py:function:load_git_project_template_factory",
+      "tests/conftest.py:function:load_git_project_template_factory:kind=function",
+      "tests/conftest.py:function:load_git_project_template_factory:returns=type[GitProjectTemplateFactory] | None",
+      "tests/core/test_git_project_templates.py:test_distinct_template_shape_builds_distinct_committed_state",
+      "tests/core/test_git_project_templates.py:test_distinct_template_shape_builds_distinct_committed_state:kind=test_function",
+      "tests/core/test_git_project_templates.py:test_fixture_loader_reraises_transitive_module_import_failure",
+      "tests/core/test_git_project_templates.py:test_fixture_loader_reraises_transitive_module_import_failure:kind=test_function",
+      "tests/core/test_git_project_templates.py:test_policy_builders_use_templates_when_factory_is_explicit",
+      "tests/core/test_git_project_templates.py:test_policy_builders_use_templates_when_factory_is_explicit:kind=test_function",
+      "tests/core/test_git_project_templates.py:test_session_fixture_exposes_factory_contract",
+      "tests/core/test_git_project_templates.py:test_session_fixture_exposes_factory_contract:kind=test_function",
+      "tests/core/test_git_project_templates.py:test_stash_templates_match_bespoke_committed_git_state",
+      "tests/core/test_git_project_templates.py:test_stash_templates_match_bespoke_committed_git_state:kind=test_function",
+      "tests/core/test_git_project_templates.py:test_template_and_legacy_builder_expose_equivalent_initial_git_state",
+      "tests/core/test_git_project_templates.py:test_template_and_legacy_builder_expose_equivalent_initial_git_state:kind=test_function",
+      "tests/core/test_git_project_templates.py:test_template_clone_has_independent_index_and_worktree",
+      "tests/core/test_git_project_templates.py:test_template_clone_has_independent_index_and_worktree:kind=test_function",
+      "tests/core/test_git_project_templates.py:test_template_factory_rejects_unsupported_or_escaping_shape_without_writes",
+      "tests/core/test_git_project_templates.py:test_template_factory_rejects_unsupported_or_escaping_shape_without_writes:kind=test_function",
+      "tests/core/test_git_project_templates.py:test_template_setup_runs_once_for_multiple_policy_cases",
+      "tests/core/test_git_project_templates.py:test_template_setup_runs_once_for_multiple_policy_cases:kind=test_function",
+      "tests/core/test_git_project_templates.py:test_template_source_remains_byte_and_status_clean_after_clone_mutation",
+      "tests/core/test_git_project_templates.py:test_template_source_remains_byte_and_status_clean_after_clone_mutation:kind=test_function",
+      "tests/support/git_project_templates.py:attribute:GitProjectTemplate.revision",
+      "tests/support/git_project_templates.py:attribute:GitProjectTemplate.revision:kind=attribute",
+      "tests/support/git_project_templates.py:attribute:GitProjectTemplate.revision:of=GitProjectTemplate",
+      "tests/support/git_project_templates.py:attribute:GitProjectTemplate.revision:type=str",
+      "tests/support/git_project_templates.py:attribute:GitProjectTemplate.shape",
+      "tests/support/git_project_templates.py:attribute:GitProjectTemplate.shape:kind=attribute",
+      "tests/support/git_project_templates.py:attribute:GitProjectTemplate.shape:of=GitProjectTemplate",
+      "tests/support/git_project_templates.py:attribute:GitProjectTemplate.shape:type=str",
+      "tests/support/git_project_templates.py:attribute:GitProjectTemplate.source_root",
+      "tests/support/git_project_templates.py:attribute:GitProjectTemplate.source_root:kind=attribute",
+      "tests/support/git_project_templates.py:attribute:GitProjectTemplate.source_root:of=GitProjectTemplate",
+      "tests/support/git_project_templates.py:attribute:GitProjectTemplate.source_root:type=Path",
+      "tests/support/git_project_templates.py:attribute:GitProjectTemplateFactory.build_count",
+      "tests/support/git_project_templates.py:attribute:GitProjectTemplateFactory.build_count:kind=attribute",
+      "tests/support/git_project_templates.py:attribute:GitProjectTemplateFactory.build_count:of=GitProjectTemplateFactory",
+      "tests/support/git_project_templates.py:attribute:GitProjectTemplateFactory.build_count:type=int",
+      "tests/support/git_project_templates.py:attribute:GitProjectTemplateFactory.root",
+      "tests/support/git_project_templates.py:attribute:GitProjectTemplateFactory.root:kind=attribute",
+      "tests/support/git_project_templates.py:attribute:GitProjectTemplateFactory.root:of=GitProjectTemplateFactory",
+      "tests/support/git_project_templates.py:attribute:GitProjectTemplateFactory.root:type=Path",
+      "tests/support/git_project_templates.py:class:GitProjectTemplate",
+      "tests/support/git_project_templates.py:class:GitProjectTemplate:kind=class",
+      "tests/support/git_project_templates.py:class:GitProjectTemplateFactory",
+      "tests/support/git_project_templates.py:class:GitProjectTemplateFactory:kind=class",
+      "tests/support/git_project_templates.py:function:build_git_project_template",
+      "tests/support/git_project_templates.py:function:build_git_project_template:arg=root:type=Path:default=None",
+      "tests/support/git_project_templates.py:function:build_git_project_template:arg=shape:type=str:default=None",
+      "tests/support/git_project_templates.py:function:build_git_project_template:kind=function",
+      "tests/support/git_project_templates.py:function:build_git_project_template:returns=GitProjectTemplate",
+      "tests/support/git_project_templates.py:function:clone_git_project_template",
+      "tests/support/git_project_templates.py:function:clone_git_project_template:arg=destination:type=Path:default=None",
+      "tests/support/git_project_templates.py:function:clone_git_project_template:arg=template:type=GitProjectTemplate:default=None",
+      "tests/support/git_project_templates.py:function:clone_git_project_template:kind=function",
+      "tests/support/git_project_templates.py:function:clone_git_project_template:returns=Path",
+      "tests/support/git_project_templates.py:method:GitProjectTemplateFactory.get",
+      "tests/support/git_project_templates.py:method:GitProjectTemplateFactory.get:arg=shape:type=str:default=None",
+      "tests/support/git_project_templates.py:method:GitProjectTemplateFactory.get:kind=method",
+      "tests/support/git_project_templates.py:method:GitProjectTemplateFactory.get:of=GitProjectTemplateFactory",
+      "tests/support/git_project_templates.py:method:GitProjectTemplateFactory.get:returns=GitProjectTemplate"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_git_project_templates.py",
+        "tests/support/git_project_templates.py"
+      ],
+      "edit": [
+        "tests/cli/test_plan_cmd_stash_implementation.py",
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py",
+        "tests/cli/test_plan_legacy_baseline_cmd.py",
+        "tests/conftest.py"
+      ],
+      "read": [
+        "docs/plans/full-and-deep-verification-performance-redesign.md",
+        "maid_runner/cli/commands/plan.py",
+        "maid_runner/core/plan_lock.py",
+        "maid_runner/core/worktree.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/support/git_project_templates.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "GitProjectTemplate",
+              "description": "Immutable template descriptor with source repository, committed revision, and declared fixture shape."
+            },
+            {
+              "kind": "attribute",
+              "name": "source_root",
+              "of": "GitProjectTemplate",
+              "type": "Path"
+            },
+            {
+              "kind": "attribute",
+              "name": "revision",
+              "of": "GitProjectTemplate",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "shape",
+              "of": "GitProjectTemplate",
+              "type": "str"
+            },
+            {
+              "kind": "class",
+              "name": "GitProjectTemplateFactory",
+              "description": "Session-owned cache that builds each immutable template shape once."
+            },
+            {
+              "kind": "attribute",
+              "name": "root",
+              "of": "GitProjectTemplateFactory",
+              "type": "Path"
+            },
+            {
+              "kind": "attribute",
+              "name": "build_count",
+              "of": "GitProjectTemplateFactory",
+              "type": "int"
+            },
+            {
+              "kind": "method",
+              "name": "get",
+              "description": "Returns the cached immutable shape or builds it once under the session root.",
+              "of": "GitProjectTemplateFactory",
+              "args": [
+                {
+                  "name": "shape",
+                  "type": "str"
+                }
+              ],
+              "returns": "GitProjectTemplate"
+            },
+            {
+              "kind": "function",
+              "name": "build_git_project_template",
+              "description": "Creates and commits one canonical tiny real-Git project for a supported shape.",
+              "args": [
+                {
+                  "name": "root",
+                  "type": "Path"
+                },
+                {
+                  "name": "shape",
+                  "type": "str"
+                }
+              ],
+              "returns": "GitProjectTemplate"
+            },
+            {
+              "kind": "function",
+              "name": "clone_git_project_template",
+              "description": "Creates an independent local clone/worktree and verifies it starts at the template revision with a clean index.",
+              "args": [
+                {
+                  "name": "template",
+                  "type": "GitProjectTemplate"
+                },
+                {
+                  "name": "destination",
+                  "type": "Path"
+                }
+              ],
+              "returns": "Path"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_git_project_templates.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_template_clone_has_independent_index_and_worktree"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_template_source_remains_byte_and_status_clean_after_clone_mutation"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_template_setup_runs_once_for_multiple_policy_cases"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_template_and_legacy_builder_expose_equivalent_initial_git_state"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_distinct_template_shape_builds_distinct_committed_state"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_policy_builders_use_templates_when_factory_is_explicit"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_session_fixture_exposes_factory_contract"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_stash_templates_match_bespoke_committed_git_state"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_template_factory_rejects_unsupported_or_escaping_shape_without_writes"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_fixture_loader_reraises_transitive_module_import_failure"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "tests/conftest.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "load_git_project_template_factory",
+              "description": "Loads optional template support only when its exact module exists and propagates transitive import failures.",
+              "returns": "type[GitProjectTemplateFactory] | None"
+            },
+            {
+              "kind": "function",
+              "name": "git_project_template_factory",
+              "description": "Session-scoped pytest fixture that owns and cleans the immutable template cache and fails behaviorally when its implementation is absent.",
+              "args": [
+                {
+                  "name": "tmp_path_factory",
+                  "type": "pytest.TempPathFactory"
+                }
+              ],
+              "returns": "Iterator[GitProjectTemplateFactory]"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_plan_legacy_baseline_cmd.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "_write_committed_legacy_project",
+              "description": "Uses the immutable legacy template for ordinary cases and preserves bespoke setup for scenario-specific history.",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "committed_command",
+                  "type": "str",
+                  "default": "'python scripts/validate.py'"
+                },
+                {
+                  "name": "committed_additional_commands",
+                  "type": "tuple[str, Ellipsis]",
+                  "default": "()"
+                },
+                {
+                  "name": "validate_exit",
+                  "type": "int",
+                  "default": "0"
+                },
+                {
+                  "name": "validation_mutation",
+                  "type": "str | None",
+                  "default": "None"
+                },
+                {
+                  "name": "validation_lock_payload",
+                  "type": "str | None",
+                  "default": "None"
+                },
+                {
+                  "name": "ignore_maid",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "template_factory",
+                  "type": "GitProjectTemplateFactory | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "Path"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_plan_cmd_stash_implementation.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "_write_tracked_project",
+              "description": "Clones the common red-contract template before applying each stash scenario delta.",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "template_factory",
+                  "type": "GitProjectTemplateFactory | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "Path"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_plan_cmd_stash_import_obstruction.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "_write_locked_full_stack_project",
+              "description": "Reuses a committed import-obstruction template without sharing mutable Git state.",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "template_factory",
+                  "type": "GitProjectTemplateFactory | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "Path"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/plan_lock.py",
+        "maid_runner/core/worktree.py",
+        "maid_runner/cli/commands/plan.py",
+        "docs/plans/full-and-deep-verification-performance-redesign.md"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_plan_cmd_stash_implementation.py",
+      "tests/cli/test_plan_cmd_stash_import_obstruction.py",
+      "tests/cli/test_plan_legacy_baseline_cmd.py",
+      "tests/core/test_git_project_templates.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_git_project_templates.py tests/cli/test_plan_legacy_baseline_cmd.py tests/cli/test_plan_cmd_stash_implementation.py tests/cli/test_plan_cmd_stash_import_obstruction.py",
+      "uv run maid validate manifests/121-05-reuse-fast-real-git-test-projects.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

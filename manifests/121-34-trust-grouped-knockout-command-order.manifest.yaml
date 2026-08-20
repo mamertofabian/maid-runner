@@ -1,0 +1,78 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Trust grouped coverage evidence for knockout when command identities match"
+type: refactor
+created: "2026-08-13T10:40:17Z"
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - knockout
+    - runtime-evidence
+description: |
+  121-32 decides focused knockout from command completeness, but run_knockout_batch
+  discards the coverage bundle unless _knockout_evidence_is_current succeeds.
+  That helper projects knockout-target commands, then asks runtime_evidence_is_current
+  for tuple equality against chain order. Grouped collection emits the same
+  command identities in group-execution order. On this repo that is 337 matching
+  identities in a different order, so trusted_evidence is None and every knockout
+  exact-fallbacks.
+
+  Treat the coverage bundle as current for knockout when the knockout-relevant
+  command identities and group keys match and the checkout digest still matches,
+  regardless of grouped vs chain order. A missing command identity still discards
+  the bundle. Digest changes still discard it.
+
+  Do not claim the five-minute deep budget in this contract.
+temptations:
+  - risk: "Do not discard grouped coverage evidence because command order differs from chain order."
+    instead: "Compare knockout-relevant command identities and group keys as an order-independent match before trusting the bundle."
+  - risk: "Do not trust evidence that is missing a knockout command identity."
+    instead: "If any expected knockout command identity is absent, leave trusted_evidence unset so those knockouts exact-fallback."
+files:
+  create:
+    - path: tests/core/test_knockout_trusts_grouped_command_order.py
+      artifacts:
+        - kind: test_function
+          name: test_reversed_grouped_command_order_still_uses_focused_knockout
+          args: []
+        - kind: test_function
+          name: test_missing_knockout_command_identity_still_forces_exact_fallback
+          args: []
+  scope:
+    - path: maid_runner/core/knockout.py
+      reason: "Knockout must trust grouped coverage evidence when the same command identities are present in a different order."
+  read:
+    - maid_runner/core/runtime_evidence.py
+    - manifests/121-32-focused-knockout-despite-sibling-unproven-lifecycles.manifest.yaml
+    - tests/core/test_focused_knockout_despite_sibling_unproven_lifecycles.py
+validate:
+  - uv run python -m pytest -q tests/core/test_knockout_trusts_grouped_command_order.py tests/core/test_focused_knockout_despite_sibling_unproven_lifecycles.py
+  - uv run maid validate manifests/121-34-trust-grouped-knockout-command-order.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-13T10:55:00Z"
+  summary: "Knockout trusts grouped coverage evidence when the knockout-relevant command identities and group keys match, even if grouped collection emitted them in a different order than chain order. A missing command identity still discards the bundle."
+  rationale: "This repo's grouped pytest union has the same 337 knockout command identities as chain order, but group-execution order made tuple equality fail. That discarded trusted_evidence and forced exact fallback for every knockout after 121-32."
+  lessons:
+    - lesson_type: performance
+      summary: "Grouped coverage command order is not chain order; knockout must match identities, not tuple position, before trusting evidence."
+      tags: [performance, knockout, runtime-evidence]
+      paths:
+        - maid_runner/core/knockout.py
+  review_notes:
+    - source: self-review
+      severity: ready
+      summary: "Commands are reordered to expected chain order before runtime_evidence_is_current. Missing identities still reject the bundle. User rule disabled reviewer subagents; this is a local-only review."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_knockout_trusts_grouped_command_order.py, tests/core/test_focused_knockout_despite_sibling_unproven_lifecycles.py]
+      status: passed
+      summary: "4 tests passed."
+    - command: [uv, run, maid, validate, manifests/121-34-trust-grouped-knockout-command-order.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "Implementation validation passed."

@@ -1,0 +1,127 @@
+{
+  "manifest_path": "manifests/121-24-task-scoped-deep-verification.manifest.yaml",
+  "manifest_hash": "sha256-contract:42133c34fa8f28a22674613f0b86bf4a2353c9b49b0105ab89d8426cce7b2768",
+  "test_hashes": {
+    "tests/cli/test_verify_task_scoped_tests_stage.py": "sha256-pyast:v2:e71c53de033945ffd77faaaf9573c3da1f812907e4800bfc0a5aceee75e50a54",
+    "tests/cli/test_task_scoped_deep_stages.py": "sha256-pyast:v2:2931e45340a5e0e4697ffc0d48730f04afc2a3ce0ebcc4e217017bc50349cdaf"
+  },
+  "created_at": "2026-08-13T09:23:16.259063+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:9a5dbc5979c05cc193fbd5da7ecc7d8cfc9dcd8e039270c314b9a492a9e2d8be",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_task_scoped_tests_stage.py": "sha256-pyast:v2:e71c53de033945ffd77faaaf9573c3da1f812907e4800bfc0a5aceee75e50a54",
+        "tests/cli/test_task_scoped_deep_stages.py": "sha256-pyast:v2:2931e45340a5e0e4697ffc0d48730f04afc2a3ce0ebcc4e217017bc50349cdaf"
+      },
+      "revised_at": "2026-08-13T09:23:18.963922+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-24-task-scoped-deep-verification.manifest.yaml -> manifests/121-24-task-scoped-deep-verification.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/121-24-task-scoped-deep-verification.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/121-24-task-scoped-deep-verification.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-13T09:23:21.554564+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_task_scoped_deep_stages.py tests/cli/test_verify_task_scoped_tests_stage.py",
+        "exit_code": 1,
+        "output_tail": "            }\n    \n        monkeypatch.setattr(\n            \"maid_runner.core.knockout.run_knockout_batch\", fake_knockout\n        )\n    \n>       stage = _knockout_stage(\n            tmp_path,\n            \"manifests\",\n            limit=None,\n            allow_dirty=False,\n            manifest_paths=(manifests[0].source_path,),\n        )\nE       TypeError: _knockout_stage() got an unexpected keyword argument 'manifest_paths'\n\ntests/cli/test_task_scoped_deep_stages.py:66: TypeError\n=========================== short test summary info ============================\nFAILED tests/cli/test_task_scoped_deep_stages.py::test_coverage_directory_run_limits_batch_to_selected_manifests\nFAILED tests/cli/test_task_scoped_deep_stages.py::test_knockout_stage_limits_batch_to_selected_manifests\n2 failed, 10 passed in 1.92s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-24-task-scoped-deep-verification.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/cli/test_task_scoped_deep_stages.py:test_coverage_directory_run_limits_batch_to_selected_manifests",
+      "tests/cli/test_task_scoped_deep_stages.py:test_coverage_directory_run_limits_batch_to_selected_manifests:kind=test_function",
+      "tests/cli/test_task_scoped_deep_stages.py:test_knockout_stage_limits_batch_to_selected_manifests",
+      "tests/cli/test_task_scoped_deep_stages.py:test_knockout_stage_limits_batch_to_selected_manifests:kind=test_function",
+      "tests/cli/test_task_scoped_deep_stages.py:test_unspecified_manifest_paths_keep_full_coverage_chain",
+      "tests/cli/test_task_scoped_deep_stages.py:test_unspecified_manifest_paths_keep_full_coverage_chain:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_task_scoped_deep_stages.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/core/artifact_coverage.py",
+        "maid_runner/core/knockout.py",
+        "manifests/121-01-add-explicit-task-scoped-handoff-tests.manifest.yaml",
+        "tests/cli/test_verify_task_scoped_tests_stage.py"
+      ],
+      "scope": [
+        "maid_runner/cli/commands/validate.py",
+        "maid_runner/cli/commands/verify.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_task_scoped_deep_stages.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_coverage_directory_run_limits_batch_to_selected_manifests"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_knockout_stage_limits_batch_to_selected_manifests"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unspecified_manifest_paths_keep_full_coverage_chain"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "tests/cli/test_verify_task_scoped_tests_stage.py",
+        "manifests/121-01-add-explicit-task-scoped-handoff-tests.manifest.yaml",
+        "maid_runner/core/artifact_coverage.py",
+        "maid_runner/core/knockout.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/validate.py",
+          "reason": "Private _run_artifact_coverage_by_manifest accepts optional manifest_paths and batches only that subset while returning empty reports for other active manifests."
+        },
+        {
+          "path": "maid_runner/cli/commands/verify.py",
+          "reason": "Compute the task-scope closure before coverage and pass it to coverage and knockout stages; knockout filters run_knockout_batch inputs."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_task_scoped_deep_stages.py",
+      "tests/cli/test_verify_task_scoped_tests_stage.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_task_scoped_deep_stages.py tests/cli/test_verify_task_scoped_tests_stage.py",
+      "uv run maid validate manifests/121-24-task-scoped-deep-verification.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

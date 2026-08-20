@@ -1,0 +1,151 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Declare the three public chain-merge CLI formatter functions so additive chain merging makes them visible to every active `_format.py` contract and eliminates the repository-wide E301 drift.
+type: fix
+created: '2026-08-15T14:19:28Z'
+metadata:
+  planning_state: behavioral-contract
+  promotion_ready: true
+  tests_status: written-red-confirmed
+  status: implementation-ready
+  epic: chain-merge-defragmentation
+  tags:
+  - chain-merge
+  - manifest-contract
+  - e301
+  priority: high
+description: |
+  The chain-merge report, sweep, and apply children added top-level public
+  formatter functions to `maid_runner/cli/commands/_format.py`, but described
+  those edits as private scope-only wiring. Python correctly exposes the names
+  as public, so every older active manifest that contracts `_format.py` reports
+  all three as E301 unexpected artifacts during full validation.
+
+  This is an additive contract repair: the functions and their behavior already
+  exist and remain unchanged. Declare only the three missing public artifacts in
+  a new `files.edit` contract. Manifest-chain merging then combines them with the
+  older `_format.py` contracts; no prior manifest is superseded and no production
+  code is changed.
+
+  The behavioral test exercises text and JSON output for each exact formatter
+  symbol, then runs the repository validator to prove the cross-manifest E301
+  regression is actually closed. Before promotion that final assertion fails on
+  the 19 affected active manifests, providing the intended red phase.
+temptations:
+- risk: Do not rename the functions with leading underscores merely to evade E301.
+  instead: Preserve the shipped public imports from `chain.py` and declare their exact additive contract.
+- risk: Do not supersede the many older `_format.py` manifests or copy their full artifact inventory.
+  instead: Add one narrow manifest containing only the three new functions and rely on normal chain merging.
+- risk: Do not weaken E301 or exclude `_format.py` from implementation validation.
+  instead: Keep strict unexpected-artifact validation and prove the full repository passes once the missing contract is active.
+files:
+  edit:
+  - path: maid_runner/cli/commands/_format.py
+    artifacts:
+    - kind: function
+      name: format_chain_merge_report
+      args:
+      - name: report
+        type: ChainMergeReport
+      - name: json_mode
+        type: bool
+        default: 'False'
+      returns: str
+      description: Render one chain-merge report as deterministic text or a single JSON document.
+    - kind: function
+      name: format_chain_merge_summary
+      args:
+      - name: summary
+        type: ChainMergeSweepSummary
+      - name: json_mode
+        type: bool
+        default: 'False'
+      returns: str
+      description: Render the repository-wide chain-merge sweep summary as text or JSON.
+    - kind: function
+      name: format_chain_merge_apply_result
+      args:
+      - name: result
+        type: ChainMergeApplyResult
+      - name: json_mode
+        type: bool
+        default: 'False'
+      returns: str
+      description: Render an applied or refused chain-merge materialization result as text or JSON.
+  create:
+  - path: tests/cli/test_chain_merge_formatter_contract.py
+    artifacts:
+    - kind: test_function
+      name: test_chain_merge_formatters_render_text_and_json
+    - kind: test_function
+      name: test_chain_merge_formatters_are_accepted_by_all_active_contracts
+  read:
+  - maid_runner/core/chain_merge.py
+  - maid_runner/core/chain_merge_apply.py
+  - maid_runner/core/chain_merge_sweep.py
+  - manifests/chain-merge-fragmentation-report.manifest.yaml
+  - manifests/chain-merge-repo-wide-sweep.manifest.yaml
+  - manifests/chain-merge-apply-materialize.manifest.yaml
+  - AGENTS.md
+validate:
+- uv run python -m pytest -q tests/cli/test_chain_merge_formatter_contract.py
+outcome:
+  status: completed
+  completed_at: '2026-08-15T22:21:31+08:00'
+  summary: Declared the three shipped public chain-merge CLI formatters through
+    one additive contract, eliminating all repository-wide `_format.py` E301
+    failures without changing production code or superseding older manifests.
+  rationale: |
+    The formatter functions were already public Python APIs but the original
+    chain-merge children described their `_format.py` edits as private scope-only
+    wiring. A narrow additive manifest is the least disruptive repair: normal
+    manifest-chain merging makes the functions visible to every active
+    `_format.py` contract while preserving all prior contracts and behavior.
+  lessons:
+  - lesson_type: manifest-contract
+    summary: Scope-only authorization does not contract a top-level public Python
+      function; additive public helpers must be declared under files.edit even
+      when their callers and behavior were already implemented.
+    tags:
+    - manifest-contract
+    - e301
+    - chain-merge
+    paths:
+    - maid_runner/cli/commands/_format.py
+    - manifests/fix-chain-merge-formatter-contract.manifest.yaml
+  - lesson_type: workflow
+    summary: Contract-activation fixes can be red while a manifest is a draft and
+      green immediately after promotion, so valid draft evidence must survive a
+      contract-preserving promotion rather than being replaced by the green run.
+    tags:
+    - plan-lock
+    - promotion
+    - red-evidence
+    paths:
+    - .maid/plan-locks/fix-chain-merge-formatter-contract.lock.json
+  review_notes:
+  - source: independent-implementation-reviewer-formatter_contract_review
+    severity: ready
+    summary: Re-review confirmed the earlier invalid-red blocker was resolved;
+      direct task-scoped enforcement passes, signatures and scope match, and no
+      production code changed. No actionable findings remain.
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/cli/test_chain_merge_formatter_contract.py]
+    status: passed
+    summary: Both direct formatter behavior and repository-wide contract visibility passed.
+  - command: [uv, run, maid, validate, manifests/fix-chain-merge-formatter-contract.manifest.yaml, --mode, implementation]
+    status: passed
+    summary: The promoted additive formatter contract passed implementation validation.
+  - command: [uv, run, maid, test, --manifest, manifests/fix-chain-merge-formatter-contract.manifest.yaml]
+    status: passed
+    summary: The manifest's declared command passed.
+  - command: [uv, run, maid, validate]
+    status: passed
+    summary: Full validation passed 463 active manifests with zero failures; 118 were superseded.
+  - command: [uv, run, maid, verify, --profile, deep, --require-plan-lock, --require-red-evidence, --since, 431669f804381796962f68ae315db234c9a62055]
+    status: failed-unrelated
+    summary: Schema and behavioral stages passed with no E301 or E705; implementation stopped on pre-existing E307 warnings for Makefile and ts_compiler_resolver.cjs plus the pre-existing E310 Protocol-stub heuristic.

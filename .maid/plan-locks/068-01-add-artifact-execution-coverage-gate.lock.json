@@ -1,12 +1,12 @@
 {
   "manifest_path": "manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml",
-  "manifest_hash": "sha256:a15dff5fc9cd391ad5cf57f139fb92b300a89e946d4f2ae64682e995552e79c0",
+  "manifest_hash": "sha256-contract:1c846161fda218c459aebbf00d1c33e3a2e114f72c8df11ff4477c3591dd2b7c",
   "test_hashes": {
-    "tests/core/test_artifact_coverage.py": "sha256:35e52d1e7112f99a54d61adfd2b874a642482655a4ac1ddc906cfa154eb55aae",
-    "tests/cli/test_artifact_coverage_cmd.py": "sha256:63c23ad2a642ababef5be0bc7622cb442db951079301d0b834f5537eb98bce01"
+    "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c6adf63404255225ba4db9f92341fffc0cf9b1c8f6ac9e2fbc6b9edc7c257114",
+    "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7"
   },
   "created_at": "2026-06-15T23:00:39.726478+00:00",
-  "revision": 10,
+  "revision": 13,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:042dcec41628bbf87c823a098dc3ec74db80cc36e9bbb972ff11b874de8b9038",
@@ -15,7 +15,9 @@
         "tests/cli/test_artifact_coverage_cmd.py": "sha256:1cde35af9ee06b33a4e7b64ab6b0ced6a45cb49827cd3f358105271eb480a6b2"
       },
       "revised_at": "2026-06-15T23:00:44.508653+00:00",
-      "reason": "Migrated by maid manifest promote: manifests/drafts/068-01-add-artifact-execution-coverage-gate.manifest.yaml -> manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml"
+      "reason": "Migrated by maid manifest promote: manifests/drafts/068-01-add-artifact-execution-coverage-gate.manifest.yaml -> manifests/068-01-add-artifact-execution-coverage-gate.manifest.yaml",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:e3fcabe7a494b850f78e518d7c97cb8a8b46afaa40accc88580ffa40cc355826",
@@ -24,7 +26,9 @@
         "tests/cli/test_artifact_coverage_cmd.py": "sha256:1cde35af9ee06b33a4e7b64ab6b0ced6a45cb49827cd3f358105271eb480a6b2"
       },
       "revised_at": "2026-06-15T23:05:13.504470+00:00",
-      "reason": "Add explicit behavioral-test anchors for declared public artifacts without weakening artifact-coverage scenarios"
+      "reason": "Add explicit behavioral-test anchors for declared public artifacts without weakening artifact-coverage scenarios",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:e3fcabe7a494b850f78e518d7c97cb8a8b46afaa40accc88580ffa40cc355826",
@@ -33,7 +37,9 @@
         "tests/cli/test_artifact_coverage_cmd.py": "sha256:f6b72dd7a90556b120f06eaa4e1973e55530b99c5c42853b283dda37580e54ea"
       },
       "revised_at": "2026-06-15T23:09:34.658801+00:00",
-      "reason": "Refresh lock after non-behavioral CLI test helper lint cleanup"
+      "reason": "Refresh lock after non-behavioral CLI test helper lint cleanup",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:e3fcabe7a494b850f78e518d7c97cb8a8b46afaa40accc88580ffa40cc355826",
@@ -42,7 +48,9 @@
         "tests/cli/test_artifact_coverage_cmd.py": "sha256:63c23ad2a642ababef5be0bc7622cb442db951079301d0b834f5537eb98bce01"
       },
       "revised_at": "2026-06-15T23:17:36.137964+00:00",
-      "reason": "Address implementation review findings: require class artifacts to execute declared methods and declare uv.lock scope"
+      "reason": "Address implementation review findings: require class artifacts to execute declared methods and declare uv.lock scope",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:40394b509661ef230515f33ae85d1b5c8308df5d8da4b7b2991e303e33e981bb",
@@ -51,7 +59,9 @@
         "tests/cli/test_artifact_coverage_cmd.py": "sha256:63c23ad2a642ababef5be0bc7622cb442db951079301d0b834f5537eb98bce01"
       },
       "revised_at": "2026-06-15T23:29:37.503805+00:00",
-      "reason": "Address re-review finding: reject import-only one-line function and method definitions"
+      "reason": "Address re-review finding: reject import-only one-line function and method definitions",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:40394b509661ef230515f33ae85d1b5c8308df5d8da4b7b2991e303e33e981bb",
@@ -60,7 +70,9 @@
         "tests/cli/test_artifact_coverage_cmd.py": "sha256:63c23ad2a642ababef5be0bc7622cb442db951079301d0b834f5537eb98bce01"
       },
       "revised_at": "2026-06-15T23:42:02.595126+00:00",
-      "reason": "Address implementation review finding: executed one-line function and method bodies must pass while import-only definitions still fail"
+      "reason": "Address implementation review finding: executed one-line function and method bodies must pass while import-only definitions still fail",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:40394b509661ef230515f33ae85d1b5c8308df5d8da4b7b2991e303e33e981bb",
@@ -69,7 +81,9 @@
         "tests/cli/test_artifact_coverage_cmd.py": "sha256:63c23ad2a642ababef5be0bc7622cb442db951079301d0b834f5537eb98bce01"
       },
       "revised_at": "2026-06-15T23:48:25.589392+00:00",
-      "reason": "Clean up artifact coverage internals after revision 7 while preserving behavior"
+      "reason": "Clean up artifact coverage internals after revision 7 while preserving behavior",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:40394b509661ef230515f33ae85d1b5c8308df5d8da4b7b2991e303e33e981bb",
@@ -78,7 +92,9 @@
         "tests/cli/test_artifact_coverage_cmd.py": "sha256:63c23ad2a642ababef5be0bc7622cb442db951079301d0b834f5537eb98bce01"
       },
       "revised_at": "2026-06-15T23:55:06.092605+00:00",
-      "reason": "Address re-review finding: one-line import inside test must not satisfy execution coverage without a runtime call"
+      "reason": "Address re-review finding: one-line import inside test must not satisfy execution coverage without a runtime call",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:40394b509661ef230515f33ae85d1b5c8308df5d8da4b7b2991e303e33e981bb",
@@ -87,7 +103,77 @@
         "tests/cli/test_artifact_coverage_cmd.py": "sha256:63c23ad2a642ababef5be0bc7622cb442db951079301d0b834f5537eb98bce01"
       },
       "revised_at": "2026-06-15T23:55:58.933021+00:00",
-      "reason": "Record same-line runtime call evidence in manifest contract"
+      "reason": "Record same-line runtime call evidence in manifest contract",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:a15dff5fc9cd391ad5cf57f139fb92b300a89e946d4f2ae64682e995552e79c0",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256:35e52d1e7112f99a54d61adfd2b874a642482655a4ac1ddc906cfa154eb55aae",
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256:63c23ad2a642ababef5be0bc7622cb442db951079301d0b834f5537eb98bce01"
+      },
+      "revised_at": "2026-08-10T23:47:19.791805+00:00",
+      "reason": "accept approved 121-04 shared-test performance refactor",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "create:maid_runner/core/artifact_coverage.py",
+          "edit:maid_runner/cli/commands/_format.py",
+          "edit:maid_runner/cli/commands/_main.py",
+          "edit:maid_runner/cli/commands/validate.py",
+          "edit:maid_runner/cli/commands/verify.py",
+          "edit:maid_runner/core/result.py",
+          "edit:pyproject.toml",
+          "edit:uv.lock",
+          "read:maid_runner/core/_test_command_execution.py",
+          "read:maid_runner/core/manifest.py",
+          "read:maid_runner/validators/_python_implementation.py",
+          "read:tests/cli/test_artifact_coverage_cmd.py",
+          "read:tests/core/test_artifact_coverage.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:1c846161fda218c459aebbf00d1c33e3a2e114f72c8df11ff4477c3591dd2b7c",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:b70bd0132cd32d6cfb1ce3770704db673c1a2548caae8270bdcad2c7fc3f422c",
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7"
+      },
+      "revised_at": "2026-08-13T13:57:55.317646+00:00",
+      "reason": "Accept reviewed shared-test changes from the 121 performance checkpoint.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:1c846161fda218c459aebbf00d1c33e3a2e114f72c8df11ff4477c3591dd2b7c",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:8f74ec2804c14f671b06024eb9ba13ff558ac2a07862b3a9df7cc795891b3a0d",
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7"
+      },
+      "revised_at": "2026-08-14T10:32:26.126923+00:00",
+      "reason": "Accept reviewed shared-test evolution for descendant-owning exact coverage execution.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -114,6 +200,8 @@
       }
     ]
   },
+  "legacy_baseline": null,
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       "maid_runner/cli/commands/_format.py:function:format_validation_result",
@@ -210,6 +298,295 @@
       "uv.lock:attribute:configuration._quality_lockfile_resolution:of=configuration",
       "uv.lock:attribute:configuration._quality_lockfile_resolution:type=uv lockfile entry"
     ],
+    "files": {
+      "create": [
+        "maid_runner/core/artifact_coverage.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/_format.py",
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/validate.py",
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/core/result.py",
+        "pyproject.toml",
+        "uv.lock"
+      ],
+      "read": [
+        "maid_runner/core/_test_command_execution.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/validators/_python_implementation.py",
+        "tests/cli/test_artifact_coverage_cmd.py",
+        "tests/core/test_artifact_coverage.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "maid_runner/core/artifact_coverage.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "ArtifactCoverageFinding",
+              "description": "Per-artifact execution finding mapping a declared public function/method to whether any body line executed."
+            },
+            {
+              "kind": "attribute",
+              "name": "artifact_name",
+              "of": "ArtifactCoverageFinding",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "artifact_kind",
+              "of": "ArtifactCoverageFinding",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "parent_class",
+              "of": "ArtifactCoverageFinding",
+              "type": "str | None"
+            },
+            {
+              "kind": "attribute",
+              "name": "file_path",
+              "of": "ArtifactCoverageFinding",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "executed",
+              "of": "ArtifactCoverageFinding",
+              "type": "bool"
+            },
+            {
+              "kind": "method",
+              "name": "to_dict",
+              "description": "JSON-serializable finding shape used by ArtifactCoverageReport.",
+              "of": "ArtifactCoverageFinding",
+              "returns": "dict"
+            },
+            {
+              "kind": "class",
+              "name": "ArtifactCoverageReport",
+              "description": "Aggregate artifact-coverage result with structured findings and E710/E307 errors."
+            },
+            {
+              "kind": "attribute",
+              "name": "findings",
+              "of": "ArtifactCoverageReport",
+              "type": "tuple[ArtifactCoverageFinding, ...]"
+            },
+            {
+              "kind": "attribute",
+              "name": "errors",
+              "of": "ArtifactCoverageReport",
+              "type": "tuple[ValidationError, ...]"
+            },
+            {
+              "kind": "attribute",
+              "name": "success",
+              "of": "ArtifactCoverageReport",
+              "type": "bool"
+            },
+            {
+              "kind": "method",
+              "name": "to_dict",
+              "description": "JSON-serializable report shape used by CLI --json output.",
+              "of": "ArtifactCoverageReport",
+              "returns": "dict"
+            },
+            {
+              "kind": "function",
+              "name": "coverage_is_available",
+              "description": "Return whether the coverage.py dependency from the quality extra is importable.",
+              "returns": "bool"
+            },
+            {
+              "kind": "function",
+              "name": "run_artifact_coverage",
+              "description": "Run the manifest's pytest-based validate commands under coverage.py, map declared public function/method artifacts to AST body line ranges, use runtime call evidence to disambiguate same-line Python bodies, and report E710 for artifacts with no executed body line.",
+              "args": [
+                {
+                  "name": "manifest",
+                  "type": "Manifest"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                }
+              ],
+              "returns": "ArtifactCoverageReport"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/result.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "ARTIFACT_NOT_EXECUTED_BY_TESTS",
+              "description": "E710: no body line of a declared public function/method artifact was executed by the behavioral tests.",
+              "of": "ErrorCode",
+              "type": "str"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/validate.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_validate",
+              "description": "Validate honors the opt-in --artifact-coverage flag with text and JSON output.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/verify.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_verify",
+              "description": "Verify honors the opt-in --artifact-coverage flag with text and JSON output.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/_format.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "format_validation_result",
+              "description": "Validation formatter includes artifact-coverage report details in text and JSON output when the opt-in gate is requested.",
+              "args": [
+                {
+                  "name": "result",
+                  "type": "ValidationResult"
+                },
+                {
+                  "name": "json_mode",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "quiet",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "test_result",
+                  "type": "BatchTestResult | None",
+                  "default": "None"
+                },
+                {
+                  "name": "tests_requested",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "artifact_coverage_report",
+                  "type": "ArtifactCoverageReport | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "str"
+            },
+            {
+              "kind": "function",
+              "name": "format_verify_result",
+              "description": "Verify formatter renders artifact-coverage stages with per-artifact findings and structured E710/E307 errors in text and JSON.",
+              "args": [
+                {
+                  "name": "result",
+                  "type": "VerificationResult"
+                },
+                {
+                  "name": "json_mode",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "str"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "build_parser",
+              "description": "Validate and verify parsers expose the opt-in --artifact-coverage flag.",
+              "returns": "argparse.ArgumentParser"
+            },
+            {
+              "kind": "function",
+              "name": "main",
+              "description": "Dispatch passes --artifact-coverage through to cmd_validate and cmd_verify.",
+              "args": [
+                {
+                  "name": "argv",
+                  "type": "list[str] | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "pyproject.toml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_quality_optional_dependency_extra",
+              "description": "Optional dependency extra named quality providing coverage.py for the artifact-coverage gate.",
+              "of": "configuration",
+              "type": "toml optional-dependencies entry"
+            }
+          ]
+        },
+        {
+          "path": "uv.lock",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_quality_lockfile_resolution",
+              "description": "Lockfile resolution for the coverage.py dependency exposed by the quality optional extra.",
+              "of": "configuration",
+              "type": "uv lockfile entry"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/validators/_python_implementation.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/_test_command_execution.py",
+        "tests/core/test_artifact_coverage.py",
+        "tests/cli/test_artifact_coverage_cmd.py"
+      ]
+    },
     "test_files": [
       "tests/cli/test_artifact_coverage_cmd.py",
       "tests/core/test_artifact_coverage.py"

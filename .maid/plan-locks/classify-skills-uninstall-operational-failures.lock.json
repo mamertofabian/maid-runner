@@ -1,0 +1,135 @@
+{
+  "manifest_path": "manifests/classify-skills-uninstall-operational-failures.manifest.yaml",
+  "manifest_hash": "sha256-contract:f7a9a1b4e46f138ef5a7996a14d6379be554152af3aa000a1b0eff09015363ab",
+  "test_hashes": {
+    "tests/cli/test_skills_install.py": "sha256-pyast:v2:efaeda0150ab0d4292b938689448b05d25cec76cb72793267b1d0dd130f2a4bc"
+  },
+  "created_at": "2026-08-20T10:53:07.622619+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:b627d6b6121dbc8122bbbbeaccf1aeee9839ece04007f280b8c9b6b0493ad125",
+      "prior_test_hashes": {
+        "tests/cli/test_skills_install.py": "sha256-pyast:v2:efaeda0150ab0d4292b938689448b05d25cec76cb72793267b1d0dd130f2a4bc"
+      },
+      "revised_at": "2026-08-20T10:53:11.522960+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/classify-skills-uninstall-operational-failures.manifest.yaml -> manifests/classify-skills-uninstall-operational-failures.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c50c1a1f142e160d00faaa8a0ce1d193a0948bd928ae870fdf93fa0461997a32",
+      "prior_test_hashes": {
+        "tests/cli/test_skills_install.py": "sha256-pyast:v2:efaeda0150ab0d4292b938689448b05d25cec76cb72793267b1d0dd130f2a4bc"
+      },
+      "revised_at": "2026-08-20T10:53:40.494369+00:00",
+      "reason": "run the complete behavioral test file so maid test can prove command coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/cli/test_skills_install.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/cli/test_skills_install.py -k test_skills_uninstall_classifies_validation_rejection_as_operational_failure"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-20T10:53:40.934383+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_skills_install.py",
+        "exit_code": 1,
+        "output_tail": "        def reject_changed_ownership(*_args: object, **_kwargs: object) -> None:\n            raise ValueError(\"changed after uninstall planning\")\n    \n        monkeypatch.setattr(\n            skills_mod, \"uninstall_onboard_skill\", reject_changed_ownership\n        )\n    \n        exit_code = main(\n            [\"skills\", \"uninstall\", \"--target-root\", str(tmp_path / \"home\")]\n        )\n    \n>       assert exit_code == 1\nE       assert 2 == 1\n\ntests/cli/test_skills_install.py:169: AssertionError\n----------------------------- Captured stderr call -----------------------------\nError: changed after uninstall planning\n=========================== short test summary info ============================\nFAILED tests/cli/test_skills_install.py::test_skills_uninstall_classifies_validation_rejection_as_operational_failure\n1 failed, 10 passed in 0.22s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/cli/test_skills_install.py:test_skills_uninstall_classifies_validation_rejection_as_operational_failure",
+      "tests/cli/test_skills_install.py:test_skills_uninstall_classifies_validation_rejection_as_operational_failure:arg=capsys:type=pytest.CaptureFixture:default=None",
+      "tests/cli/test_skills_install.py:test_skills_uninstall_classifies_validation_rejection_as_operational_failure:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_skills_install.py:test_skills_uninstall_classifies_validation_rejection_as_operational_failure:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_skills_install.py:test_skills_uninstall_classifies_validation_rejection_as_operational_failure:kind=test_function",
+      "tests/cli/test_skills_install.py:test_skills_uninstall_classifies_validation_rejection_as_operational_failure:returns=None"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "tests/cli/test_skills_install.py"
+      ],
+      "read": [
+        "maid_runner/core/skill_install.py",
+        "maid_runner/core/uninstall.py",
+        "manifests/fix-windows-uninstall-portability.manifest.yaml"
+      ],
+      "scope": [
+        "maid_runner/cli/commands/skills.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "tests/cli/test_skills_install.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_skills_uninstall_classifies_validation_rejection_as_operational_failure",
+              "description": "A documented ValueError safety rejection is printed and returned as exit 1 rather than being mislabeled as an internal exit-2 failure.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/fix-windows-uninstall-portability.manifest.yaml",
+        "maid_runner/core/skill_install.py",
+        "maid_runner/core/uninstall.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/skills.py",
+          "reason": "Existing private command-handler composition maps documented backend safety failures to the public CLI exit contract without adding an artifact."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_skills_install.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_skills_install.py"
+    ]
+  }
+}

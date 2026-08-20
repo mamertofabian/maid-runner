@@ -277,11 +277,14 @@ Before reporting completion, run a read-only MAID implementation review using th
 - validation passed
 - no implementation-phase drift or process violations were introduced
 
-Use a fresh read-only reviewer with an explicit review packet containing the
-manifest path, changed files, diff summary, and validation output. Do not fork
-the full session context into the reviewer and do not rely on the implementation
-transcript; this preserves the same independent-review pattern used by
-loop-style reviewer agents. Do not require a separate per-turn reviewer approval
+Use a fresh read-only reviewer with an explicit verdict-neutral packet containing
+the task baseline, complete baseline-to-current diff, complete changed-file list,
+complete manifest-declared artifact definitions and file inventory, factual validation outcomes,
+environment limits, and plan-revision signal. Exclude prior review lineage and
+coordinator-owned follow-up state. Do not fork the full session context into the
+reviewer and do not rely on the implementation transcript; this preserves the
+same independent-review pattern used by loop-style reviewer agents. Do not
+require a separate per-turn reviewer approval
 when the target repo, active skill, or user prompt grants standing
 authorization for MAID reviewer subagents.
 

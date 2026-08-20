@@ -1,0 +1,162 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Emit canonical UTC Z timestamps from every snapshot manifest creation path so generated active manifests pass E118 validation"
+type: fix
+created: "2026-08-17T02:14:22Z"
+metadata:
+  priority: high
+  tags:
+    - snapshot
+    - timestamp
+    - validation-trust
+    - chain-merge
+description: |
+  Snapshot generation currently uses `datetime.isoformat()`, which emits a
+  `+00:00` offset. Active manifest validation requires the repository's
+  canonical full UTC form ending in `Z`, so structurally valid chain-merge
+  snapshots immediately fail E118.
+
+  Normalize creation time at the snapshot boundary without changing public
+  signatures or parsing policy. Single-file snapshots, populated system
+  snapshots, and the empty-system fallback must all emit the same canonical
+  whole-second `YYYY-MM-DDTHH:MM:SSZ` form. Saving existing manifests remains
+  unchanged because this fix owns creation, not serialization.
+temptations:
+  - risk: "Do not weaken E118 to accept every ISO-8601 offset form."
+    instead: "Make snapshot producers emit the existing canonical UTC Z representation required of active manifests."
+  - risk: "Do not fix only generate_snapshot while leaving system or empty-system snapshots inconsistent."
+    instead: "Route all three creation paths through one private UTC timestamp helper and exercise each through the public generators."
+  - risk: "Do not freeze or mock wall-clock time just to make the test deterministic."
+    instead: "Assert exact whole-second UTC-Z shape and bound the parsed value between UTC instants captured immediately before and after generation."
+files:
+  edit:
+    - path: maid_runner/core/snapshot.py
+      artifacts:
+        - kind: function
+          name: generate_snapshot
+          args:
+            - name: file_path
+              type: Union[str, Path]
+            - name: project_root
+              type: Union[str, Path]
+              default: '"."'
+            - name: include_private
+              type: bool
+              default: "False"
+            - name: registry
+              type: ValidatorRegistry | None
+              default: "None"
+          returns: Manifest
+        - kind: function
+          name: generate_system_snapshot
+          args:
+            - name: manifest_dir
+              type: Union[str, Path]
+              default: '"manifests/"'
+            - name: project_root
+              type: Union[str, Path]
+              default: '"."'
+            - name: include_private
+              type: bool
+              default: "False"
+            - name: registry
+              type: ValidatorRegistry | None
+              default: "None"
+          returns: Manifest
+  create:
+    - path: tests/core/test_snapshot_created_timestamp.py
+      artifacts:
+        - kind: test_function
+          name: test_snapshot_generators_emit_canonical_utc_z_created_timestamps
+          args: []
+          returns: None
+  read:
+    - maid_runner/core/chain.py
+    - maid_runner/core/types.py
+    - tests/core/test_snapshot.py
+    - manifests/consolidate-core-snapshot-contract.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_snapshot_created_timestamp.py tests/core/test_snapshot.py
+outcome:
+  status: completed
+  completed_at: "2026-08-17T02:32:21Z"
+  summary: "All snapshot creation paths now emit canonical whole-second UTC Z timestamps, so newly generated active manifests satisfy E118 without relaxing validation."
+  rationale: "A private creation-time helper centralizes the repository's existing timestamp contract while preserving both public snapshot APIs and leaving serialization of existing manifests unchanged."
+  lessons:
+    - lesson_type: testing
+      summary: "Timestamp producer tests should assert both the validator-facing exact shape and a real before/after time bound so a constant but well-shaped value cannot satisfy the contract."
+      tags:
+        - snapshot
+        - timestamp
+        - anti-gaming
+      paths:
+        - maid_runner/core/snapshot.py
+        - tests/core/test_snapshot_created_timestamp.py
+    - lesson_type: validation
+      summary: "Fresh worktrees need the lockfile-defined Node dependency before the combined suite can exercise TypeScript compiler resolution; the six initial TypeScript failures disappeared after npm ci."
+      tags:
+        - worktree
+        - test-environment
+        - typescript
+      paths:
+        - package-lock.json
+  review_notes:
+    - source: snapshot-utc-z-implementation-review
+      severity: medium
+      summary: "The initial review found only an out-of-scope active-task marker; maid task stop removed it before Outcome capture."
+    - source: snapshot-utc-z-implementation-re-review
+      severity: ready
+      summary: "No remaining findings; implementation, behavioral contract, scope, and plan-lock integrity were ready."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_snapshot_created_timestamp.py
+        - tests/core/test_snapshot.py
+      status: passed
+      summary: "All 34 focused and legacy snapshot tests passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/fix-snapshot-created-utc-z.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: "Implementation validation passed against the locked contract."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "All 470 active manifests passed repository-wide validation."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "All 294 declared test commands passed after restoring the fresh worktree's lockfile-defined Node dependency."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --profile
+        - deep
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - 22feb04
+      status: failed
+      summary: "Schema, behavioral, and implementation stages passed; artifact coverage remained blocked only by the known pre-existing E710 owner debt scheduled for consolidation."

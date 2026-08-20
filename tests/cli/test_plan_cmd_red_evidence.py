@@ -152,11 +152,8 @@ class TestCmdPlanLockRedEvidence:
 
         exit_code = cmd_plan_lock(_lock_args(manifest_path, tmp_path))
 
-        assert exit_code == 0
-        evidence = _lock_record(tmp_path)["red_evidence"]
-        assert evidence["red"] is False
-        assert evidence["commands"][0]["exit_code"] == 2
-        assert evidence["commands"][0]["classification"] == "invalid"
+        assert exit_code == 1
+        assert not default_plan_lock_path(tmp_path, "demo-task").exists()
 
 
 class TestCmdPlanReviseRedEvidence:
@@ -242,7 +239,22 @@ class TestCmdPlanReviseRedEvidence:
         self, tmp_path: Path
     ) -> None:
         manifest_path = _write_project(tmp_path, exit_code=0)
-        assert cmd_plan_lock(_lock_args(manifest_path, tmp_path)) == 0
+        assert cmd_plan_lock(_lock_args(manifest_path, tmp_path, no_run=True)) == 0
+        lock_path = default_plan_lock_path(tmp_path, "demo-task")
+        record = _lock_record(tmp_path)
+        record["red_evidence"] = {
+            "red": False,
+            "captured_at": "2026-08-20T00:00:00Z",
+            "commands": [
+                {
+                    "command": "python scripts/validate.py",
+                    "exit_code": 0,
+                    "classification": "not_red",
+                    "output_tail": "validate exit 0",
+                }
+            ],
+        }
+        lock_path.write_text(json.dumps(record))
         original_record = _lock_record(tmp_path)
 
         exit_code = cmd_plan_revise(

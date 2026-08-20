@@ -1,0 +1,114 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Escalate only genuinely-red coverage commands instead of the whole batch"
+type: refactor
+created: "2026-08-13T07:11:47Z"
+metadata:
+  priority: high
+  epic: 121-00-fast-verification-roadmap
+  tags:
+    - performance
+    - artifact-coverage
+    - fallback
+    - isolation
+description: |
+  The isolated fallback worker collapsed every safety signal into one
+  whole-batch `unsafe` flag: a single command with a non-zero exit forced all
+  commands to replay serially in place. On a real repository even a handful of
+  genuinely failing coverage commands then discarded the entire parallel batch,
+  so the isolated path executed once in snapshots and again serially -- slower
+  than the legacy loop it was meant to beat. A bounded serial-versus-isolated
+  probe on this repository reproduced exactly that: three real commands, one of
+  which exits non-zero, escalated all three and ran 239s against a 147s serial
+  baseline.
+
+  Distinguish the safety signals. A material project write or a harness/worker
+  error can corrupt a later reader through the shared checkout, so it still
+  fails the whole batch closed and is proven by the existing 121-13/121-14/
+  121-15 adversaries. A command that merely exited non-zero without writing
+  material state left its lane snapshot clean -- the lane clears its change
+  journal before each command -- so it escalates only its own identity to the
+  caller's in-place replay while every proven-clean command keeps its isolated
+  result. The escalation set is emitted in immutable chain/command order so
+  serial replay and reports stay deterministic.
+
+  This is the change that lets the ~296 clean commands run in parallel while the
+  handful of genuinely failing meta-tests (for example the coverage-under-
+  coverage tool-id conflicts) replay in place. Whole-batch escalation for
+  material writes and worker errors is retained deliberately; narrowing those
+  rare, genuinely dangerous cases is out of scope here. Lane snapshot recycling
+  after a material write is deferred as a separate optimization because material
+  writes remain whole-batch.
+
+  The behavior lives inside run_isolated_artifact_coverage_fallbacks, whose
+  signature and return type are unchanged, so this manifest contracts the
+  observable escalation set through new focused tests and scopes the worker file
+  for edit rather than re-declaring its public surface.
+temptations:
+  - risk: "Do not narrow material-write or harness-error escalation to per-identity in this slice."
+    instead: "Keep material writes and worker errors whole-batch fail-closed; only a non-zero exit without material writes escalates a single identity."
+  - risk: "Do not emit the escalation set in lane-completion order."
+    instead: "Filter the ordered identity sequence so serial replay and reports keep deterministic chain/command order."
+  - risk: "Do not assume a red command left the snapshot clean without checking material writes."
+    instead: "Escalate a non-zero exit alone only in the branch where the result has no errors and no material_project_writes."
+  - risk: "Do not edit the 121-15 shared fallback-worker tests to make the new behavior pass."
+    instead: "Add a self-contained test file for the mixed red/green case; the existing all-red and material-write adversaries must still pass unchanged."
+files:
+  create:
+    - path: tests/core/test_artifact_coverage_partial_escalation.py
+      artifacts:
+        - kind: test_function
+          name: test_single_red_command_escalates_only_itself_and_keeps_clean_isolated
+          args: []
+        - kind: test_function
+          name: test_all_red_commands_still_escalate_every_identity
+          args: []
+  scope:
+    - path: maid_runner/core/_artifact_coverage_fallback_worker.py
+      reason: "Split the whole-batch unsafe flag so a non-zero-exit-only command escalates a single identity; signature and return type of run_isolated_artifact_coverage_fallbacks are unchanged."
+  read:
+    - manifests/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml
+    - manifests/121-19-route-exact-coverage-batch-through-isolated-lanes.manifest.yaml
+    - tests/core/test_artifact_coverage_fallback_workers.py
+    - maid_runner/core/artifact_coverage.py
+    - docs/plans/full-and-deep-verification-performance-redesign.md
+validate:
+  - uv run python -m pytest -q tests/core/test_artifact_coverage_partial_escalation.py tests/core/test_artifact_coverage_fallback_workers.py
+  - uv run maid validate manifests/121-20-escalate-only-affected-coverage-identities.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-13T16:30:00Z"
+  summary: "The isolated fallback worker now escalates only a genuinely red command (non-zero exit without material writes) to in-place replay, in deterministic chain order, while material writes and worker/harness errors stay whole-batch fail-closed."
+  rationale: "The single whole-batch unsafe flag discarded the entire parallel batch whenever any command failed, so on a repository with a few genuinely failing commands the isolated path did the work twice and ran slower than the legacy serial loop. A non-zero exit without material writes leaves the lane snapshot clean, so escalating it alone is safe and preserves every 121-13/121-14/121-15 material-write and worker-error adversary unchanged."
+  lessons:
+    - lesson_type: performance
+      summary: "Collapsing distinct safety signals into one whole-batch flag turns a rare failure into a full serial rerun; separate the genuinely-dangerous signals (material writes, worker errors) from a plain non-zero exit and escalate the latter per identity."
+      tags: [performance, artifact-coverage, fallback, replay]
+      paths:
+        - maid_runner/core/_artifact_coverage_fallback_worker.py
+    - lesson_type: process
+      summary: "Capturing plan-lock red evidence after the implementation is applied records red=False and blocks handoff with E705; stash the scoped edit, confirm the intended red, then lock or plan revise while the tree is genuinely red."
+      tags: [maid-workflow, plan-lock, red-evidence]
+      paths:
+        - maid_runner/core/_artifact_coverage_fallback_worker.py
+  review_notes:
+    - source: review_121_perf_batch_impl
+      severity: needs-changes
+      summary: "Independent review confirmed the escalation logic and lane-snapshot-reuse safety are correct, but blocked on invalid (red=False) plan-lock evidence for 121-20 and 121-26."
+    - source: review_121_perf_batch_fix
+      severity: ready
+      summary: "Red evidence recaptured from a verified-red tree (plan revise revision 3, red=True); task-scoped handoff gate then passed all nine stages with zero blocking findings."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_artifact_coverage_partial_escalation.py, tests/core/test_artifact_coverage_fallback_workers.py]
+      status: passed
+      summary: "19 tests pass, including the preserved all-red and material-write whole-batch adversaries; red phase confirmed (whole-batch returned all identities before the change)."
+    - command: [uv, run, maid, validate, manifests/121-20-escalate-only-affected-coverage-identities.manifest.yaml, --mode, implementation, --packet]
+      status: passed
+      summary: "Implementation validation passed."
+    - command: [uv, run, maid, verify, --profile, handoff, --since, 08b73b9, --summary]
+      status: passed
+      summary: "Task-scoped handoff gate passed all nine stages with zero blocking findings after red-evidence recapture."

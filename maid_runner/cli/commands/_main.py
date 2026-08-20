@@ -70,6 +70,34 @@ class _StoreExplicit(argparse.Action):
         setattr(namespace, f"{self.dest}_explicit", True)
 
 
+def _pytest_workers_arg(value: str) -> int | str:
+    if value == "auto":
+        return value
+    try:
+        workers = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(
+            "pytest workers must be a positive integer or auto"
+        ) from exc
+    if workers < 1:
+        raise argparse.ArgumentTypeError(
+            "pytest workers must be a positive integer or auto"
+        )
+    return workers
+
+
+def _positive_command_timeout_arg(value: str) -> int:
+    try:
+        timeout = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(
+            "command timeout must be a positive integer"
+        ) from exc
+    if timeout < 1:
+        raise argparse.ArgumentTypeError("command timeout must be a positive integer")
+    return timeout
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = _NoAbbrevArgumentParser(
         prog="maid",
@@ -315,6 +343,7 @@ def _register_test_parser(sub: argparse._SubParsersAction) -> None:
     from maid_runner.core.test_runner import _positive_jobs_arg
 
     p = sub.add_parser("test", help="Run validation commands from manifests")
+    p.set_defaults(jobs_explicit=False, pytest_workers_explicit=False)
     p.add_argument(
         "--manifest", default=None, help="Run validate commands for one manifest"
     )
@@ -331,9 +360,17 @@ def _register_test_parser(sub: argparse._SubParsersAction) -> None:
     )
     p.add_argument(
         "--jobs",
+        action=_StoreExplicit,
         type=_positive_jobs_arg,
         default=1,
         help="Run independent implementation command groups with this many workers",
+    )
+    p.add_argument(
+        "--pytest-workers",
+        action=_StoreExplicit,
+        type=_pytest_workers_arg,
+        default=None,
+        help="Run pytest with a positive worker count or auto",
     )
     p.add_argument(
         "--verbose", action="store_true", help="Print command output while tests run"
@@ -375,6 +412,7 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
     )
 
     p = sub.add_parser("verify", help="Run the full MAID verification gate")
+    p.set_defaults(test_jobs_explicit=False, pytest_workers_explicit=False)
     p.add_argument(
         "--profile",
         choices=verify_profile_names(),
@@ -506,9 +544,17 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
     )
     p.add_argument(
         "--test-jobs",
+        action=_StoreExplicit,
         type=_positive_jobs_arg,
         default=1,
         help="Run the verify tests stage with this many test command workers",
+    )
+    p.add_argument(
+        "--pytest-workers",
+        action=_StoreExplicit,
+        type=_pytest_workers_arg,
+        default=None,
+        help="Run verify's pytest commands with a positive worker count or auto",
     )
     p.add_argument(
         "--test-scope",
@@ -571,7 +617,10 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
     p.add_argument(
         "--knockout-allow-dirty",
         action="store_true",
-        help="Allow --knockout to rewrite dirty target files",
+        help=(
+            "Deprecated compatibility flag; isolated knockout snapshots never "
+            "rewrite dirty target files"
+        ),
     )
     p.add_argument(
         "--packet",
@@ -580,6 +629,11 @@ def _register_verify_parser(sub: argparse._SubParsersAction) -> None:
         const=_DEFAULT_FAILURE_PACKET_PATH,
         default=None,
         help="Write a failure packet JSON file on verification failure",
+    )
+    p.add_argument(
+        "--no-cache",
+        action="store_true",
+        help="Skip persistent artifact-coverage evidence cache reads and writes",
     )
     p.add_argument(
         "--sarif",
@@ -665,6 +719,14 @@ def _register_plan_parser(sub: argparse._SubParsersAction) -> None:
         default=".",
         dest="project_root",
         help="Project root containing the manifest",
+    )
+    lp.add_argument(
+        "--command-timeout",
+        type=_positive_command_timeout_arg,
+        default=300,
+        dest="command_timeout",
+        metavar="SECONDS",
+        help="Maximum seconds per evidence-capture command (default: 300)",
     )
     rp = psub.add_parser("revise", help="Re-lock a manifest with a revision reason")
     rp.add_argument("manifest_path")
@@ -1717,6 +1779,43 @@ def _register_chain_parser(sub: argparse._SubParsersAction) -> None:
         default=None,
         dest="version_tag",
         help="Replay events through this version tag",
+    )
+
+    mp = csub.add_parser(
+        "merge", help="Report a file's merged manifest chain (read-only)"
+    )
+    mp.add_argument("file_path", nargs="?", default=None)
+    mp.add_argument(
+        "--all",
+        action="store_true",
+        help="Report every tracked production file as an aggregate summary",
+    )
+    mp.add_argument(
+        "--manifest-dir", default="manifests/", help="Directory of manifests to read"
+    )
+    mp.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Report only; do not materialize (default)",
+    )
+    mp.add_argument(
+        "--apply",
+        action="store_true",
+        help="Materialize the merged contract as a snapshot that supersedes the chain",
+    )
+    mp.add_argument(
+        "--verify-equivalence",
+        metavar="BASELINE_REPORT",
+        default=None,
+        help="Compare current recorded evidence with a saved pre-consolidation report",
+    )
+    mp.add_argument(
+        "--refresh-evidence",
+        action="store_true",
+        help="Collect live coverage and knockout evidence for the requested file",
+    )
+    mp.add_argument(
+        "--json", action="store_true", help="Print chain merge report as JSON"
     )
 
 

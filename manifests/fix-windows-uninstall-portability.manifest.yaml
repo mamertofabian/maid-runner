@@ -1,0 +1,238 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Make both MAID uninstall commands ownership-safe and functional on native Windows
+type: fix
+created: '2026-08-10T23:47:58Z'
+supersedes:
+- add-owned-payload-uninstall
+metadata:
+  status: implementation-ready
+  tags: [cli, uninstall, windows, filesystem-safety]
+  priority: high
+  reported_error: safe descriptor-relative uninstall is unavailable on this platform
+description: |
+  Supersede the original ownership-safe uninstall contract because it explicitly
+  required platforms without POSIX descriptor-relative mutation to fail closed,
+  making both `maid init --uninstall` and `maid skills uninstall` unusable on
+  native Windows.
+
+  Preserve the existing public function signatures, deterministic reports,
+  ownership comparisons, dry-run parity, selected-tool boundaries, idempotence,
+  merged-file cleanup, and modified-file preservation. POSIX keeps the current
+  descriptor-relative no-follow backend unchanged.
+
+  Add a Windows-only mutation backend that opens and pins the project/home root
+  and every parent directory without delete sharing, rejects symbolic-link and
+  reparse-point boundaries, and atomically quarantines the leaf under a
+  cryptographically unpredictable sibling name while its parent is pinned.
+  Revalidate identity and content at the quarantine path so validation is bound
+  to the exact object already selected for mutation; restore the visible owned
+  path on mismatch or cleanup failure. Whole-path removal deletes only that
+  validated quarantine without following links. Managed-file edits use a
+  same-directory temporary file, quarantine-first validation, atomic
+  installation, and rollback on failure. Fail closed if parent locking,
+  identity validation, mutation, cleanup, or rollback cannot be completed; do
+  not enable a pathname fallback on other platforms lacking the POSIX primitives.
+  Rollback uses Windows' atomic non-replacing rename semantics so a destination
+  created concurrently is never overwritten. If cleanup of an old managed file
+  fails after replacement, quarantine and validate the installed replacement
+  before restoring the original; preserve both quarantines when the installed
+  file changed concurrently. Inspection failures still attempt original-path
+  restoration, and nested restoration failures report the exact paths and state
+  of both retained quarantines.
+
+  Extend the existing native Windows CI job to run init and uninstall
+  portability coverage. Exercise successful repository and user-skill cleanup,
+  preservation of custom project/user data, rejection of Windows junction
+  boundaries, a leaf edit at the final validation/mutation boundary, and
+  recoverable quarantine cleanup failure. The prior uninstall Outcomes require
+  race injection at the exact planning/apply boundary and byte-bound snapshots;
+  these controls remain part of the superseding contract.
+temptations:
+- risk: Do not make Windows pass by calling shutil.rmtree directly on a validated pathname.
+  instead: Pin every ancestor with non-delete-sharing Windows handles, quarantine the selected leaf atomically, revalidate that exact quarantine, then remove only the validated quarantine path.
+- risk: Do not weaken the existing POSIX descriptor-relative implementation or enable a generic unsafe fallback.
+  instead: Dispatch to the Windows backend only on native Windows and keep every other unsupported platform fail-closed.
+- risk: Do not treat ordinary symlinks as the only Windows redirection boundary.
+  instead: Reject every ancestor carrying FILE_ATTRIBUTE_REPARSE_POINT, including directory junctions, before mutation.
+- risk: Do not let successful deletion obscure partial ownership or user data loss.
+  instead: Retain exact payload comparison, manifest validation, deterministic dry runs, custom-data assertions, quarantine-bound revalidation, and visible-path rollback on mismatch or cleanup failure.
+files:
+  edit:
+  - path: maid_runner/core/uninstall.py
+    artifacts:
+    - {kind: class, name: UninstallReport, description: Deterministic report shared by both uninstall mechanisms.}
+    - {kind: attribute, name: removed, of: UninstallReport, type: 'list[str]'}
+    - {kind: attribute, name: preserved, of: UninstallReport, type: 'list[str]'}
+    - {kind: attribute, name: missing, of: UninstallReport, type: 'list[str]'}
+  - path: maid_runner/core/skill_install.py
+    artifacts:
+    - kind: function
+      name: uninstall_onboard_skill
+      args:
+      - {name: target_root, type: Path}
+      - {name: payload_root, type: Path}
+      - {name: dry_run, type: bool}
+      returns: UninstallReport
+      description: Remove only unchanged user-level Claude and Codex maid-onboard directories on POSIX and Windows while preserving modified, redirected, and unrelated skills.
+  - path: maid_runner/cli/commands/init.py
+    artifacts:
+    - kind: function
+      name: uninstall_init_payload
+      args:
+      - {name: project_root, type: Path}
+      - {name: tools, type: 'tuple[str, Ellipsis]'}
+      - {name: dry_run, type: bool}
+      returns: UninstallReport
+      description: Preflight and safely remove selected MAID-owned repository payloads on POSIX and Windows without crossing link or reparse boundaries.
+  - path: tests/cli/test_uninstall_cmd.py
+    artifacts:
+    - {kind: test_function, name: test_uninstall_onboard_skill_removes_only_owned_user_level_skills, args: [{name: tmp_path, type: Path}], returns: None}
+    - {kind: test_function, name: test_uninstall_onboard_skill_preserves_modified_user_level_copy, args: [{name: tmp_path, type: Path}], returns: None}
+    - {kind: test_function, name: test_uninstall_onboard_skill_removes_owned_links_without_following_targets, args: [{name: tmp_path, type: Path}], returns: None}
+    - {kind: test_function, name: test_skills_uninstall_dry_run_is_non_mutating_and_repeatable, args: [{name: tmp_path, type: Path}, {name: capsys, type: pytest.CaptureFixture}], returns: None}
+    - {kind: test_function, name: test_init_uninstall_removes_all_owned_agent_payloads_and_guidance, args: [{name: tmp_path, type: Path}, {name: monkeypatch, type: pytest.MonkeyPatch}], returns: None}
+    - {kind: test_function, name: test_init_uninstall_removes_shared_scaffold_but_preserves_project_data, args: [{name: tmp_path, type: Path}, {name: monkeypatch, type: pytest.MonkeyPatch}], returns: None}
+    - {kind: test_function, name: test_init_uninstall_preserves_modified_generated_files_and_reports_them, args: [{name: tmp_path, type: Path}, {name: monkeypatch, type: pytest.MonkeyPatch}], returns: None}
+    - {kind: test_function, name: test_init_uninstall_selected_tool_boundaries_are_isolated, args: [{name: tmp_path, type: Path}, {name: monkeypatch, type: pytest.MonkeyPatch}], returns: None}
+    - {kind: test_function, name: test_init_uninstall_rejects_malformed_markers_before_any_removal, args: [{name: tmp_path, type: Path}, {name: monkeypatch, type: pytest.MonkeyPatch}, {name: capsys, type: pytest.CaptureFixture}], returns: None}
+    - {kind: test_function, name: test_init_uninstall_rejects_unsafe_installed_manifests_without_mutation, args: [{name: tmp_path, type: Path}, {name: monkeypatch, type: pytest.MonkeyPatch}, {name: capsys, type: pytest.CaptureFixture}], returns: None}
+    - {kind: test_function, name: test_init_uninstall_rejects_symlinked_agent_boundaries_without_mutation, args: [{name: tmp_path, type: Path}, {name: monkeypatch, type: pytest.MonkeyPatch}, {name: capsys, type: pytest.CaptureFixture}], returns: None}
+    - {kind: test_function, name: test_init_uninstall_revalidates_plan_before_applying_mutations, args: [{name: tmp_path, type: Path}, {name: monkeypatch, type: pytest.MonkeyPatch}, {name: capsys, type: pytest.CaptureFixture}], returns: None}
+  create:
+  - path: tests/cli/test_uninstall_windows_portability.py
+    artifacts:
+    - {kind: test_function, name: test_init_uninstall_completes_on_windows_and_preserves_project_data, args: [{name: tmp_path, type: Path}, {name: monkeypatch, type: pytest.MonkeyPatch}], returns: None, description: Native Windows repository uninstall succeeds and preserves custom manifests.}
+    - {kind: test_function, name: test_skills_uninstall_completes_on_windows_and_preserves_custom_skills, args: [{name: tmp_path, type: Path}], returns: None, description: Native Windows user-skill uninstall succeeds and preserves custom skills.}
+    - {kind: test_function, name: test_init_uninstall_rejects_windows_junction_boundaries, args: [{name: tmp_path, type: Path}, {name: monkeypatch, type: pytest.MonkeyPatch}], returns: None, description: Native Windows repository uninstall refuses a junctioned agent boundary without touching its target.}
+    - {kind: test_function, name: test_init_uninstall_rejects_leaf_edit_at_mutation_boundary, args: [{name: tmp_path, type: Path}, {name: monkeypatch, type: pytest.MonkeyPatch}], returns: None, description: A user edit injected at the final mutation boundary is detected on the exact quarantined Windows leaf and restored rather than overwritten or deleted.}
+    - {kind: test_function, name: test_skills_uninstall_restores_visible_path_when_cleanup_fails, args: [{name: tmp_path, type: Path}, {name: monkeypatch, type: pytest.MonkeyPatch}], returns: None, description: A simulated locked-descendant cleanup failure restores the visible owned path and leaves no hidden quarantine orphan.}
+    - {kind: test_function, name: test_skills_uninstall_rollback_never_overwrites_new_destination, args: [{name: tmp_path, type: Path}, {name: monkeypatch, type: pytest.MonkeyPatch}], returns: None, description: 'A destination created at the rollback boundary remains untouched while the owned quarantine is preserved and reported through failure.'}
+    - {kind: test_function, name: test_init_uninstall_preserves_concurrent_replacement_edit_during_rollback, args: [{name: tmp_path, type: Path}, {name: monkeypatch, type: pytest.MonkeyPatch}], returns: None, description: 'Old-file cleanup failure quarantines and validates the installed replacement, restores the original, and preserves a concurrently edited replacement quarantine.'}
+    - {kind: test_function, name: test_init_uninstall_restores_original_when_replacement_validation_fails, args: [{name: tmp_path, type: Path}, {name: monkeypatch, type: pytest.MonkeyPatch}, {name: capsys, type: 'pytest.CaptureFixture[str]'}], returns: None, description: 'An inspection failure after replacement quarantine still restores the original visible path and reports the retained replacement quarantine.'}
+    - {kind: test_function, name: test_init_uninstall_reports_both_quarantines_when_nested_restore_fails, args: [{name: tmp_path, type: Path}, {name: monkeypatch, type: pytest.MonkeyPatch}, {name: capsys, type: 'pytest.CaptureFixture[str]'}], returns: None, description: 'A changed replacement plus a concurrently recreated destination preserves user data and reports both exact quarantine paths when original restoration cannot proceed.'}
+    - {kind: test_function, name: test_windows_ci_runs_uninstall_portability_regressions, args: [], returns: None, description: The native Windows CI job continuously runs both init and uninstall portability suites.}
+  scope:
+  - path: .github/workflows/maid-test.yml
+    reason: Extend the guarded native Windows portability job with the new uninstall behavioral suite.
+  - path: maid_runner/cli/commands/skills.py
+    reason: Existing uninstall reporting composition remains in writable scope for any Windows-specific error routing needed without public API changes.
+  - path: maid_runner/cli/commands/_main.py
+    reason: Existing parser composition remains in writable scope without changing its public API.
+  read:
+  - manifests/add-skills-install-command.manifest.yaml
+  - manifests/add-init-pre-commit-verification.manifest.yaml
+  - manifests/fix-windows-init-portability.manifest.yaml
+  - manifests/fix-init-uninstall-legacy-precommit-markers.manifest.yaml
+  - maid_runner/claude/manifest.json
+  - maid_runner/claude/settings.json
+  - maid_runner/codex/manifest.json
+  - maid_runner/cursor/manifest.json
+  - tests/cli/test_init_hook_payloads.py
+  - tests/cli/test_init_pre_commit.py
+  - tests/cli/test_init_payload_portability.py
+  - tests/cli/test_skills_install.py
+validate:
+- uv run python -m pytest -q tests/cli/test_uninstall_cmd.py tests/cli/test_uninstall_windows_portability.py tests/cli/test_skills_install.py tests/cli/test_init_hook_payloads.py tests/cli/test_init_pre_commit.py tests/cli/test_init_payload_portability.py
+outcome:
+  status: completed
+  completed_at: "2026-08-11T08:56:23+08:00"
+  summary: "Enabled `maid init --uninstall` and `maid skills uninstall` on native Windows with a fail-closed, reparse-aware quarantine backend while preserving the existing descriptor-relative POSIX implementation."
+  rationale: "Windows cannot provide the POSIX dir-fd primitives used by the original uninstall path. The Windows-only backend pins the target ancestry with non-delete-sharing Win32 handles, rejects symlinks and all reparse-point ancestors, atomically quarantines each selected leaf, validates the exact quarantine before deletion, and restores or retains recoverable state on races and cleanup failures. Unsupported non-Windows platforms continue to refuse pathname mutation."
+  lessons:
+    - lesson_type: filesystem-safety
+      summary: "A Windows pathname mutation can remain fail-closed without emulating POSIX dir-fd calls by combining ancestor handles, reparse-point rejection, same-parent atomic quarantine, and validation of the quarantined object rather than the now-vacant original pathname."
+      tags:
+        - windows
+        - uninstall
+        - reparse-points
+        - race-safety
+      paths:
+        - maid_runner/core/uninstall.py
+        - maid_runner/core/skill_install.py
+        - maid_runner/cli/commands/init.py
+    - lesson_type: review-hardening
+      summary: "Rollback paths need the same race analysis as the forward delete: non-replacing restoration, validation of replacement quarantines, guarded inspection failures, and diagnostics naming every retained quarantine prevent recovery logic from overwriting concurrent user data."
+      tags:
+        - rollback
+        - quarantine
+        - concurrency
+        - fail-loud
+      paths:
+        - maid_runner/core/uninstall.py
+        - tests/cli/test_uninstall_windows_portability.py
+  review_notes:
+    - source: independent-review-rounds-1-to-3
+      severity: needs-changes
+      summary: "Review identified leaf mutation races, orphan cleanup risk, check-then-overwrite restoration, replacement-cleanup TOCTOU, unguarded inspection failures, and incomplete dual-quarantine diagnostics; each finding was fixed and covered by a native Windows regression scenario."
+    - source: independent-review-final
+      severity: info
+      summary: "Final read-only re-review returned ready with no blocking findings. Residual risk is limited to native Win32 execution awaiting the configured windows-latest CI job and partial rmtree cleanup retaining recoverable owned state while failing loudly."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/cli/test_uninstall_cmd.py
+        - tests/cli/test_uninstall_windows_portability.py
+        - tests/cli/test_skills_install.py
+        - tests/cli/test_init_hook_payloads.py
+        - tests/cli/test_init_pre_commit.py
+        - tests/cli/test_init_payload_portability.py
+      status: passed
+      summary: "Focused uninstall and neighboring init/skills coverage passed with 59 tests and 9 native-Windows skips on Linux."
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - tests/
+        - -q
+      status: passed
+      summary: "The full pytest suite passed with 3,938 tests and 14 platform-dependent skips."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "All 246 active-manifest validation commands passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Repository-wide manifest validation passed for 416 active manifests and 112 superseded manifests."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --profile
+        - handoff
+        - --since
+        - 48c35b9ced15f4f357f487b6c85e593100cd7a1d
+      status: passed
+      summary: "The handoff safety floor passed all stages with no blockers before Outcome capture."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --profile
+        - deep
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - 48c35b9ced15f4f357f487b6c85e593100cd7a1d
+      status: failed
+      summary: "Schema, behavioral, and implementation stages passed; the repository-wide artifact-coverage stage reported 1,681 pre-existing E710 brownfield coverage findings, including the known field-only UninstallReport dataclass limitation, so the required handoff profile is used as the delivery gate."

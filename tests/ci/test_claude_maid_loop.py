@@ -24,6 +24,62 @@ class TestClaudeMaidLoopDiscovery(unittest.TestCase):
 
 
 class TestClaudeMaidLoopCommand(unittest.TestCase):
+    def test_public_automation_wrappers_execute_delegates_and_stream_process(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_dir = Path(temp_dir)
+            stdout_path = output_dir / "run.jsonl"
+            stderr_path = output_dir / "run.stderr.log"
+            final_path = output_dir / "run.final.md"
+            event = '{"type":"result","result":"complete"}'
+
+            result = claude_maid_loop.run_claude_stream_command(
+                [sys.executable, "-c", f"print({event!r})"],
+                stdout_path,
+                stderr_path,
+                final_path,
+            )
+
+            self.assertEqual(0, result.returncode)
+            self.assertIn('"result":"complete"', stdout_path.read_text())
+            self.assertEqual("", stderr_path.read_text())
+            self.assertEqual("complete", final_path.read_text())
+
+        packet = claude_maid_loop.CommitPacket(
+            message="test: wrapper",
+            files=["tests/example.py"],
+        )
+        with (
+            mock.patch.object(
+                claude_maid_loop,
+                "_core_git_status_short",
+                return_value=" M tests/example.py\n",
+            ) as status,
+            mock.patch.object(
+                claude_maid_loop,
+                "_core_ask_commit_approval",
+                return_value=True,
+            ) as approval,
+            mock.patch.object(
+                claude_maid_loop,
+                "_core_commit_ready_changes",
+                return_value=0,
+            ) as commit,
+        ):
+            self.assertEqual(
+                " M tests/example.py\n", claude_maid_loop.git_status_short()
+            )
+            self.assertTrue(claude_maid_loop.ask_commit_approval(2, "READY"))
+            self.assertEqual(0, claude_maid_loop.commit_ready_changes(packet))
+
+        status.assert_called_once_with(claude_maid_loop._ROOT)
+        approval.assert_called_once_with(2, "READY")
+        committed_packet, committed_root = commit.call_args.args
+        self.assertEqual(packet.message, committed_packet.message)
+        self.assertEqual(packet.files, committed_packet.files)
+        self.assertEqual(claude_maid_loop._ROOT, committed_root)
+
     def test_direct_script_dry_run_entrypoint_imports_shared_core(self) -> None:
         process = subprocess.run(
             [

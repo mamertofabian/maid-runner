@@ -1,0 +1,318 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Clear repository-wide release knockout blockers without weakening differential proof"
+type: fix
+created: "2026-08-18T10:34:24Z"
+supersedes:
+  - 121-48-share-knockout-command-controls
+metadata:
+  priority: critical
+  epic: 121-00-fast-verification-roadmap
+  tags: [knockout, deep-verification, reexport, performance, validation-trust]
+description: |
+  The exact release-baseline deep gate completed schema, behavioral,
+  implementation, and artifact coverage, then failed knockout after 4h28m.
+  Five E712 failures came from repeated waves of identical `pytest tests/ -v`
+  baselines launched under different manifest slugs: seven copies contend at
+  once and exceed the fixed 300-second command timeout even though the command
+  is green without that contention. Another E712 came from the public
+  `maid_runner.daemon.serve` package re-export, whose declaration file has no
+  local function body. Two E711 findings came from older chain-merge owner
+  commands that do not distinguish their abstract protocol bodies from the
+  knockout sentinel.
+
+  Evolve 121-48 so the owned default `KnockoutCommandExecutor` may share one
+  immutable post-baseline checkpoint across manifest slugs when the exact
+  selected command and all captured project/environment identities match.
+  The slug is only result attribution at this owned boundary and is not passed
+  to the subprocess environment. Injected executors retain the existing
+  slug-isolated lifecycle because they may assign custom slug semantics. Every
+  artifact still receives its own mutant and restored green control, cache
+  attribution, deterministic report, and fail-closed drift checks.
+
+  Some release mutations remain deliberately ineligible for shared baselines:
+  duplicate-owner specs retain independent declaration lifecycles, and legacy
+  snapshot owners carry ordered multi-command validation. The owned default
+  executor must serialize an identical command across those independent
+  lifecycles so several broad baselines cannot contend into false E712
+  timeouts. Different commands remain parallel, and injected executors retain
+  their existing behavior.
+
+  Resolve a declared one-level Python package re-export through the existing
+  module-path resolver and mutate the resolved implementation body while
+  preserving the public facade path/name in results and diagnostics. Plain and
+  aliased named exports are supported; unresolved, star, and multi-hop exports
+  remain E712. Finally, strengthen the exact test files already executed by the
+  older DetectionEvidenceSource and CoverageEvidenceSource owner manifests so
+  each command rejects the `maid-knockout` exception payload independently.
+temptations:
+  - risk: "Do not share baselines across injected executors, different commands, environments, repository inputs, or dependency identities."
+    instead: "Cross slug boundaries only for the default executor whose subprocess behavior is slug-invariant; preserve legacy isolation everywhere else."
+  - risk: "Do not let duplicate-owner or multi-command specs bypass contention control merely because their declaration execution must remain independent."
+    instead: "Serialize identical commands at the owned default-executor boundary while retaining separate snapshots, mutations, restored controls, command order, and report attribution."
+  - risk: "Do not mutate or wrap the public package facade merely to manufacture a local function body."
+    instead: "Resolve one safe named re-export, mutate its implementation body in the snapshot, and keep manifest-facing report identity unchanged."
+  - risk: "Do not guess through star or multi-hop exports or turn an unresolved body into success."
+    instead: "Use the existing one-level resolver and retain deterministic E712 whenever it cannot prove a concrete implementation target."
+  - risk: "Do not satisfy the two E711 findings by sharing detection between independent manifest declarations."
+    instead: "Make each older owner command itself fail on the sentinel payload while remaining green for the intended abstract contract body."
+files:
+  edit:
+    - path: maid_runner/core/_knockout_snapshot.py
+      artifacts:
+        - kind: class
+          name: WorkerRetainedProjectSnapshotBackend
+          description: "Retains isolated dependencies and immutable inputs for stable-path command groups."
+        - kind: method
+          name: retain
+          of: WorkerRetainedProjectSnapshotBackend
+          args:
+            - name: self
+          returns: AbstractContextManager[None]
+        - kind: method
+          name: create
+          of: WorkerRetainedProjectSnapshotBackend
+          args:
+            - name: self
+            - name: project_root
+              type: Path
+            - name: required_paths
+              type: Sequence[str]
+            - name: worker_id
+              type: str
+          returns: AbstractContextManager[KnockoutProjectSnapshot]
+    - path: maid_runner/core/knockout.py
+      artifacts:
+        - kind: class
+          name: KnockoutMutationSpec
+          description: "One public artifact identity mapped to the concrete local or resolved implementation body that knockout mutates."
+        - kind: attribute
+          name: mutation_file_path
+          of: KnockoutMutationSpec
+          type: str | None
+          description: "Optional concrete project-relative Python file containing the body to mutate; newly built specs always populate it, while None preserves compatibility for externally constructed legacy specs and falls back to the declared path."
+        - kind: attribute
+          name: mutation_artifact_name
+          of: KnockoutMutationSpec
+          type: str | None
+          description: "Optional concrete implementation symbol to mutate after resolving an aliased re-export; newly built specs always populate it, while None preserves compatibility for externally constructed legacy specs and falls back to the public artifact name."
+        - kind: function
+          name: build_knockout_mutation_specs
+          args:
+            - name: manifests
+              type: Sequence[Manifest]
+            - name: project_root
+              type: Path
+            - name: limit
+              type: int | None
+              default: "None"
+          returns: tuple[KnockoutMutationSpec, ...]
+        - kind: function
+          name: run_knockout_batch
+          args:
+            - name: manifests
+              type: Sequence[Manifest]
+            - name: project_root
+              type: Path
+            - name: evidence
+              type: RuntimeEvidenceBundle | None
+              default: "None"
+            - name: limit
+              type: int | None
+              default: "None"
+            - name: allow_dirty
+              type: bool
+              default: "False"
+            - name: executor
+              type: KnockoutCommandExecutor | None
+              default: "None"
+            - name: snapshot_backend
+              type: ProjectSnapshotBackend | None
+              default: "None"
+            - name: jobs
+              type: int
+              default: "1"
+            - name: max_processes
+              type: int
+              default: "1"
+            - name: no_cache
+              type: bool
+              default: "False"
+          returns: dict[str, KnockoutReport]
+    - path: tests/core/test_knockout_shared_controls.py
+      artifacts:
+        - {kind: test_function, name: test_exact_command_group_runs_one_baseline_and_resets_generated_state, args: [{name: tmp_path, type: Path}], returns: None}
+        - {kind: test_function, name: test_command_groups_do_not_cross_manifest_slug_identity, args: [{name: tmp_path, type: Path}], returns: None}
+        - {kind: test_function, name: test_focused_groups_share_only_equal_selected_commands, args: [{name: tmp_path, type: Path}], returns: None}
+        - {kind: test_function, name: test_grouped_focused_green_member_keeps_exact_fallback, args: [{name: tmp_path, type: Path}], returns: None}
+        - {kind: test_function, name: test_shared_baseline_failure_is_projected_fail_closed_once, args: [{name: tmp_path, type: Path}], returns: None}
+        - {kind: test_function, name: test_grouped_exact_verdicts_keep_e711_e712_and_later_group_order, args: [{name: tmp_path, type: Path}], returns: None}
+        - {kind: test_function, name: test_multi_command_declarations_keep_independent_transitions, args: [{name: tmp_path, type: Path}], returns: None}
+        - {kind: test_function, name: test_custom_snapshot_backend_keeps_independent_transitions, args: [{name: tmp_path, type: Path}], returns: None}
+        - {kind: test_function, name: test_dependency_drift_between_group_mutations_fails_closed, args: [{name: tmp_path, type: Path}], returns: None}
+        - {kind: test_function, name: test_live_input_drift_during_group_returns_e712_reports, args: [{name: tmp_path, type: Path}, {name: drift, type: str}], returns: None}
+        - {kind: test_function, name: test_mixed_cache_hits_group_only_remaining_exact_commands, args: [{name: tmp_path, type: Path}], returns: None}
+        - {kind: test_function, name: test_group_checkpoints_completed_artifact_before_later_failure, args: [{name: tmp_path, type: Path}], returns: None}
+    - path: tests/core/test_knockout_workers.py
+      artifacts:
+        - {kind: test_function, name: test_independent_mutations_overlap_without_shared_snapshot_state, args: [name: tmp_path], returns: None}
+    - path: tests/core/test_knockout_snapshot_template.py
+      artifacts:
+        - {kind: test_function, name: test_bounded_template_batch_matches_reports_without_snapshot_convoy, args: [{name: tmp_path, type: Path}], returns: None}
+    - path: tests/core/test_knockout_evidence_cache.py
+      artifacts:
+        - {kind: test_function, name: test_interrupted_knockout_batch_retains_completed_spec_cache, args: [{name: tmp_path, type: Path}], returns: None}
+    - path: tests/core/test_knockout_cache_key_context.py
+      artifacts:
+        - {kind: test_function, name: test_cache_context_is_fresh_per_invocation_and_invalidates_content_changes, args: [{name: tmp_path, type: Path}], returns: None}
+    - path: tests/core/test_knockout.py
+      artifacts:
+        - {kind: test_function, name: test_knockout_rechecks_dirty_state_before_each_artifact_rewrite, args: [{name: tmp_path, type: Path}], returns: None}
+    - path: tests/core/test_chain_merge.py
+      artifacts:
+        - kind: test_function
+          name: test_detection_protocol_owner_command_rejects_knockout_sentinel
+          args: []
+          returns: None
+    - path: tests/core/test_chain_merge_coverage_wiring.py
+      artifacts:
+        - kind: test_function
+          name: test_coverage_protocol_owner_command_rejects_knockout_sentinel
+          args: []
+          returns: None
+  scope:
+    - path: maid_runner/core/_knockout_worker.py
+      reason: "Group identical default-executor commands across slug attribution while retaining per-declaration reports and controls."
+  create:
+    - path: tests/core/test_knockout_release_blockers.py
+      artifacts:
+        - kind: test_function
+          name: test_default_executor_shares_identical_baseline_across_manifest_slugs
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_default_executor_serializes_identical_ineligible_commands
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_default_executor_keeps_distinct_commands_parallel
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_injected_executor_keeps_identical_commands_parallel
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_knockout_mutates_one_level_package_reexport_implementation
+          args:
+            - name: tmp_path
+              type: Path
+            - name: export_style
+              type: str
+          returns: None
+        - kind: test_function
+          name: test_knockout_reexport_resolution_fails_closed_when_target_is_ambiguous
+          args:
+            - name: tmp_path
+              type: Path
+            - name: layout
+              type: str
+          returns: None
+  read:
+    - manifests/121-48-share-knockout-command-controls.manifest.yaml
+    - manifests/121-11-deduplicate-knockout-mutation-specs.manifest.yaml
+    - manifests/fix-e710-reexport-artifact-coverage.manifest.yaml
+    - manifests/chain-merge-fragmentation-report.manifest.yaml
+    - manifests/chain-merge-coverage-evidence.manifest.yaml
+    - maid_runner/core/module_paths.py
+    - maid_runner/core/artifact_coverage.py
+    - maid_runner/core/chain_merge.py
+    - tests/core/test_knockout_differential_detection.py
+    - tests/core/test_knockout_snapshot.py
+    - tests/core/test_knockout_batch.py
+    - tests/core/test_retained_worker_snapshots.py
+    - tests/core/test_shared_environment_snapshots.py
+validate:
+  - uv run python -m pytest -q tests/core/test_knockout_release_blockers.py tests/core/test_chain_merge.py tests/core/test_chain_merge_coverage_wiring.py
+  - uv run python -m pytest -q tests/core/test_knockout_shared_controls.py tests/core/test_knockout_differential_detection.py tests/core/test_knockout_workers.py tests/core/test_knockout_snapshot_template.py tests/core/test_knockout_evidence_cache.py tests/core/test_retained_worker_snapshots.py tests/core/test_knockout_batch.py tests/core/test_knockout_snapshot.py tests/core/test_knockout_cache_key_context.py tests/core/test_shared_environment_snapshots.py tests/core/test_knockout.py
+  - uv run maid validate manifests/121-49-clear-release-knockout-blockers.manifest.yaml --mode schema --quiet
+outcome:
+  status: partial
+  completed_at: "2026-08-18T21:25:25Z"
+  summary: Knockout now resolves one-level re-export implementations, shares eligible owned baselines across slugs, and serializes identical default-executor commands that retain independent declaration lifecycles; branch-level deep verification remains blocked before knockout by unrelated project-content drift.
+  rationale: |
+    Plain and aliased package exports now mutate their concrete implementation
+    file and symbol while reports retain the public facade identity. Eligible
+    exact commands share a baseline across manifest slugs only for the owned
+    executor. Duplicate-owner and multi-command declarations remain separate,
+    but identical owned commands are serialized so broad baselines cannot
+    contend into false E712 timeouts; distinct and injected commands remain
+    parallel. The DetectionEvidenceSource and CoverageEvidenceSource owner
+    commands independently reject the knockout sentinel.
+
+    Focused and inherited regression suites, implementation validation, all
+    active manifests, and all declared MAID test commands passed. Independent
+    implementation review returned Ready to merge with no blockers. The exact
+    release deep gate accumulated 1,293 persistent knockout records before a
+    scheduled shutdown. Its resumed run passed schema, behavioral, and
+    implementation, then failed artifact coverage because ignored
+    `.claude/insights` files were generated during evidence collection and
+    `_content_digest` does not honor Git ignore/exclude rules. Knockout did not
+    run to a final verdict, so release merge-readiness is intentionally not
+    claimed.
+  lessons:
+    - lesson_type: performance
+      summary: Identical commands that cannot share a baseline still require command-keyed serialization at the owned executor boundary to prevent deterministic timeout contention.
+      tags: [knockout, contention, command-serialization, deep-verification]
+      paths:
+        - maid_runner/core/knockout.py
+        - maid_runner/core/_knockout_worker.py
+    - lesson_type: validation-trust
+      summary: Re-export knockout must bind concrete mutation coordinates separately from stable public report identity and include both paths in snapshot and cache checks.
+      tags: [reexport, cache-integrity, snapshot-isolation, fail-closed]
+      paths:
+        - maid_runner/core/knockout.py
+        - maid_runner/core/_knockout_worker.py
+    - lesson_type: workflow
+      summary: Repository content baselines can fail on ignored agent-generated advisory files unless digest exclusions align with Git ignore semantics.
+      tags: [artifact-coverage, content-drift, gitignore, environment]
+      paths:
+        - maid_runner/core/runtime_evidence.py
+  review_notes:
+    - source: 121_49_plan_review
+      severity: blocking-fixed
+      summary: Review required duplicate-owner and multi-command coverage plus controls proving distinct owned commands and identical injected commands remain parallel.
+    - source: 121_49_impl_review_r4
+      severity: ready
+      summary: Final review found no blockers in command-keyed locking, executor boundaries, re-export mutation, snapshot/cache integrity, or declared scope.
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_knockout_release_blockers.py, tests/core/test_chain_merge.py, tests/core/test_chain_merge_coverage_wiring.py]
+      status: passed
+      summary: All 26 focused blocker and concurrency-boundary tests passed.
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_knockout_shared_controls.py, tests/core/test_knockout_differential_detection.py, tests/core/test_knockout_workers.py, tests/core/test_knockout_snapshot_template.py, tests/core/test_knockout_evidence_cache.py, tests/core/test_retained_worker_snapshots.py, tests/core/test_knockout_batch.py, tests/core/test_knockout_snapshot.py, tests/core/test_knockout_cache_key_context.py, tests/core/test_shared_environment_snapshots.py, tests/core/test_knockout.py]
+      status: passed
+      summary: All 117 inherited knockout regression tests passed.
+    - command: [uv, run, maid, validate, manifests/121-49-clear-release-knockout-blockers.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: Implementation validation passed against plan-lock revision 4.
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: All 268 active manifests passed; 349 superseded manifests were skipped.
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: All 297 declared command groups passed.
+    - command: [uv, run, maid, verify, --profile, deep, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, e642cd1]
+      status: failed
+      summary: Resumed release gate passed schema, behavioral, and implementation but artifact coverage failed closed after ignored agent insight files changed the content baseline; knockout was not reached.

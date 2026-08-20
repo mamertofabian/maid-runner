@@ -1,0 +1,245 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Preserve target contracts, artifact order, and tracked paths when materializing a file-scoped chain merge"
+type: fix
+created: "2026-08-17T04:18:49Z"
+supersedes:
+  - fix-chain-merge-full-artifact-spec
+metadata:
+  priority: critical
+  tags:
+    - chain-merge
+    - contract-equivalence
+    - supersession
+    - validation-trust
+description: |
+  File-scoped chain merge now preserves complete ArtifactSpecs for carried
+  non-target files, but it still replaces the target file's effective contract
+  with structurally inferred snapshot declarations. That weakens descriptions,
+  parameters, types, default-hook flags, and other behavioral metadata, and it
+  changes first-seen artifact order. Private-only carried files are also
+  dropped entirely, which silently removes their path ownership.
+
+  Materialization must retain every structurally matched existing public target
+  ArtifactSpec exactly and in the active chain's first-seen order, then append
+  genuinely new public artifacts with their complete inferred specs in source
+  order. Exact-signature declarations that structural snapshot evidence cannot
+  match remain an atomic refusal rather than being weakened. The same ordered
+  equivalence must hold through the post-apply active chain and a subsequent
+  materialization. Because schema-valid FileSpecs require at least one artifact,
+  a carried writable path left with no public artifacts after private filtering
+  remains tracked as an explicit scope entry instead of disappearing. Existing
+  carried-contract preservation, private artifact filtering, target and carried
+  imports, other scope/read/delete obligations, validation commands,
+  acceptance, removals, and atomic refusals remain unchanged.
+
+  The public apply function accepts an optional ValidatorRegistry dependency and
+  forwards it to snapshot generation. The default remains the built-in registry,
+  while the seam makes plugin-provided exact-signature evidence testable without
+  global entry-point mutation or implementation-private monkeypatching.
+temptations:
+  - risk: "Do not replace all target artifacts with the generated structural snapshot."
+    instead: "Keep the active chain's complete public target specs first and append only snapshot keys that the chain did not already declare."
+  - risk: "Do not compare target artifacts as unordered identity maps."
+    instead: "Assert whole ArtifactSpec tuple equality before and after apply so both values and first-seen order are contractual."
+  - risk: "Do not discard a carried writable path merely because all of its declared artifacts are private, or emit an invalid empty FileSpec."
+    instead: "Filter private artifacts and retain ownership through a deterministic files.scope entry, which is the schema-valid artifact-free representation."
+  - risk: "Do not make the consolidation snapshots or current repository state part of the implementation."
+    instead: "Fix the generic materializer against an isolated temporary-project regression and regenerate consolidation output only after review."
+files:
+  edit:
+    - path: maid_runner/core/chain_merge_apply.py
+      artifacts:
+        - kind: class
+          name: ChainMergeApplyResult
+        - kind: attribute
+          name: applied
+          of: ChainMergeApplyResult
+          type: bool
+        - kind: attribute
+          name: snapshot_path
+          of: ChainMergeApplyResult
+          type: str | None
+        - kind: attribute
+          name: superseded_slugs
+          of: ChainMergeApplyResult
+          type: tuple[str, ...]
+        - kind: attribute
+          name: refused_reason
+          of: ChainMergeApplyResult
+          type: str | None
+        - kind: attribute
+          name: missing_artifacts
+          of: ChainMergeApplyResult
+          type: tuple[str, ...]
+        - kind: function
+          name: apply_chain_merge
+          args:
+            - name: file_path
+              type: str
+            - name: chain
+              type: ManifestChain
+            - name: project_root
+              type: str
+              default: '"."'
+            - name: output_dir
+              type: str
+              default: '"manifests/"'
+            - name: registry
+              type: ValidatorRegistry | None
+              default: "None"
+          returns: ChainMergeApplyResult
+          description: "Materialize a self-contained replacement that preserves complete ordered public contracts and whole-manifest path obligations while appending newly discovered target artifacts."
+    - path: tests/core/test_chain_merge_apply.py
+      artifacts:
+        - kind: test_function
+          name: test_apply_writes_snapshot_superseding_chain
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_refuses_when_snapshot_drops_declared_artifact
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_refuses_lean_file
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_leaves_source_unchanged
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_repeatedly_uses_noncolliding_snapshot_slug
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_preserves_multi_file_contract_and_validation_union
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_omits_legacy_private_artifacts
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_preserves_scope_read_and_delete_paths
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_keeps_snapshot_inferred_companion_reads
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_refuses_artifact_delete_path_conflict_atomically
+          args: []
+          returns: None
+    - path: tests/core/test_chain_merge_full_artifact_specs.py
+      artifacts:
+        - kind: test_function
+          name: test_apply_preserves_latest_complete_specs_for_every_carried_artifact
+          args: []
+          returns: None
+  create:
+    - path: tests/core/test_chain_merge_target_contract_equivalence.py
+      artifacts:
+        - kind: test_function
+          name: test_apply_preserves_ordered_target_specs_and_private_only_paths
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_preserves_complete_target_test_details
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_refuses_unmatched_exact_target_signature_atomically
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_apply_appends_distinct_inferred_overloads_once
+          args: []
+          returns: None
+  read:
+    - maid_runner/core/chain.py
+    - maid_runner/core/chain_merge.py
+    - maid_runner/core/manifest.py
+    - maid_runner/core/snapshot.py
+    - maid_runner/core/supersession_audit.py
+    - maid_runner/core/types.py
+    - maid_runner/validators/base.py
+    - maid_runner/validators/registry.py
+    - tests/cli/test_chain_merge_apply_command.py
+    - tests/core/test_chain_merge_coverage_wiring.py
+    - tests/core/test_chain_merge_equivalence.py
+    - manifests/fix-chain-merge-full-artifact-spec.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_chain_merge_target_contract_equivalence.py tests/core/test_chain_merge_full_artifact_specs.py tests/core/test_chain_merge_apply.py tests/cli/test_chain_merge_apply_command.py
+  - uv run python -m pytest -q tests/core/test_chain_merge_coverage_wiring.py tests/core/test_chain_merge_equivalence.py
+outcome:
+  status: completed
+  completed_at: "2026-08-17T04:34:47Z"
+  summary: "File-scoped chain merge now preserves complete ordered target contracts, appends distinct inferred artifacts without collapsing exact overloads, and retains private-only path ownership through schema-valid scope entries."
+  rationale: "Structural snapshots are implementation evidence, not replacements for richer active contracts. Merging retained target specs before distinct inferred specs preserves behavioral metadata and deterministic order while an optional registry seam proves plugin-owned exact identities without global mutation."
+  lessons:
+    - lesson_type: test-design
+      summary: "Materializer equivalence must compare the complete ordered target tuple and the complete inferred suffix; name-only or mapping-only checks miss metadata loss, ordering drift, and overload collapse."
+      tags:
+        - chain-merge
+        - contract-equivalence
+        - anti-gaming
+        - maid-runner-feedback
+      paths:
+        - maid_runner/core/chain_merge_apply.py
+        - tests/core/test_chain_merge_target_contract_equivalence.py
+    - lesson_type: design
+      summary: "Signature-aware deduplication must use exact contract identity whenever either side is exact, while unsigned function/test-function normalization remains structural."
+      tags:
+        - artifact-spec
+        - exact-signature
+        - supersession
+        - maid-runner-feedback
+      paths:
+        - maid_runner/core/chain_merge_apply.py
+    - lesson_type: validation
+      summary: "Format behavioral tests before plan lock; post-lock formatting correctly triggers tamper detection and requires a sanctioned stash-backed revision with fresh red evidence."
+      tags:
+        - plan-lock
+        - red-evidence
+        - workflow-integrity
+        - maid-runner-feedback
+      paths:
+        - tests/core/test_chain_merge_target_contract_equivalence.py
+  review_notes:
+    - source: target-contract-plan-review
+      severity: approved
+      summary: "After review-driven revisions, the contract covered full target specs and order, complete inferred suffixes, imports, private-only scope, repeated apply, exact-signature refusal, and duplicate overload evidence."
+    - source: target-contract-implementation-review-round-1
+      severity: P1
+      summary: "Review caught a post-lock formatting hash mismatch plus signature-insensitive and non-accumulating inferred-artifact deduplication."
+    - source: target-contract-implementation-review-round-2
+      severity: ready
+      summary: "No remaining findings; revision 4 lock integrity, overload preservation, deduplication, registry compatibility, and path precedence were confirmed."
+  validation:
+    - command: [uv, run, ruff, check, maid_runner/core/chain_merge_apply.py, tests/core/test_chain_merge_target_contract_equivalence.py]
+      status: passed
+      summary: "Changed production and behavioral test files passed Ruff."
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_chain_merge_target_contract_equivalence.py, tests/core/test_chain_merge_full_artifact_specs.py, tests/core/test_chain_merge_apply.py, tests/cli/test_chain_merge_apply_command.py]
+      status: passed
+      summary: "All 17 focused target, carried-contract, apply, and CLI tests passed."
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_chain_merge_coverage_wiring.py, tests/core/test_chain_merge_equivalence.py]
+      status: passed
+      summary: "All 27 adjacent equivalence and coverage-wiring tests passed."
+    - command: [uv, run, maid, validate, manifests/fix-chain-merge-target-contract-equivalence.manifest.yaml, --mode, implementation, --packet]
+      status: passed
+      summary: "Implementation validation passed against plan-lock revision 4."
+    - command: [uv, run, maid, validate, --packet]
+      status: passed
+      summary: "All 470 active manifests passed; 121 superseded manifests were skipped."
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: "All 294 declared validation commands passed."
+    - command: [uv, run, maid, verify, --profile, deep, --require-plan-lock, --require-red-evidence, --since, 8bbb582]
+      status: failed-unrelated
+      summary: "Schema, behavioral, and implementation stages passed; artifact coverage remained blocked by the quarantined pre-consolidation E710 debt."

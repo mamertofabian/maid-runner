@@ -2,11 +2,11 @@
   "manifest_path": "manifests/fix-ci-artifact-coverage-diagnostic-truncation.manifest.yaml",
   "manifest_hash": "sha256-contract:4bf3b2199a2da53fb2b4502a068b37d751deb4d035b7d47e9086187ab6e6e02c",
   "test_hashes": {
-    "tests/cli/test_nested_strict_preview.py": "sha256-pyast:v2:5b27343e95c82a599a84994da121fc8778edbc616803d663d77c177fe6d640af",
-    "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:d1bfa874a1818e2894ed4a054d2d0b5651e2eda7c54e56b0bee6bde123f34b05"
+    "tests/cli/test_nested_strict_preview.py": "sha256-pyast:v2:ce04a297d8ff4927ec2e652c2e531667b49778ac54269e6e46d31f78ccfe1f5c",
+    "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:8da6d872f0b7139de99a33b66621e4fd2229982b643bb199e7fe3d7eb1727485"
   },
   "created_at": "2026-08-10T13:28:13.097449+00:00",
-  "revision": 4,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:202690b4d566d03134619719e98c6194d47e83e03bee408b5ef245985a439306",
@@ -52,6 +52,24 @@
       },
       "revised_at": "2026-08-10T14:32:39.635501+00:00",
       "reason": "address review: preserve near-limit tails and prevent long context eviction",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4bf3b2199a2da53fb2b4502a068b37d751deb4d035b7d47e9086187ab6e6e02c",
+      "prior_test_hashes": {
+        "tests/cli/test_nested_strict_preview.py": "sha256-pyast:v2:5b27343e95c82a599a84994da121fc8778edbc616803d663d77c177fe6d640af",
+        "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:d1bfa874a1818e2894ed4a054d2d0b5651e2eda7c54e56b0bee6bde123f34b05"
+      },
+      "revised_at": "2026-08-10T23:47:20.762534+00:00",
+      "reason": "accept approved 121-04 shared-test performance refactor",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

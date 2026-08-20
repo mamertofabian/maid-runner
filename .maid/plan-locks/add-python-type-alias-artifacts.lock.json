@@ -1,0 +1,369 @@
+{
+  "manifest_path": "manifests/add-python-type-alias-artifacts.manifest.yaml",
+  "manifest_hash": "sha256-contract:4433833394a1bd52fea066b8908c35abcbe5d9cb2e941a05573aa8196b334aad",
+  "test_hashes": {
+    "tests/validators/test_python_type_alias.py": "sha256-pyast:v2:ba92cc06e1b653745764adb15b9e02a252e64ada14e15197d2202779b16b993d"
+  },
+  "created_at": "2026-08-19T23:55:06.484030+00:00",
+  "revision": 10,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:74df749916a1691bc20d6dfb1d47d7b9faf88b054dc515c9d528462587bb8005",
+      "prior_test_hashes": {
+        "tests/validators/test_python_type_alias.py": "sha256-pyast:v2:70402cb652bacb1bf1cc4a3a1912a05351258da1068bbb1686fe32cc56663d14"
+      },
+      "revised_at": "2026-08-19T23:55:25.986339+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/add-python-type-alias-artifacts.manifest.yaml -> manifests/add-python-type-alias-artifacts.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:600b1806d7be9a79fb47fc4a941bb665abae2fa692545880cc988f419fe1a520",
+      "prior_test_hashes": {
+        "tests/validators/test_python_type_alias.py": "sha256-pyast:v2:70402cb652bacb1bf1cc4a3a1912a05351258da1068bbb1686fe32cc56663d14"
+      },
+      "revised_at": "2026-08-19T23:59:27.097520+00:00",
+      "reason": "Sequence same-second promoted contracts deterministically",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:51b45d9357a4fc0c7b2988008f478787b28f1b9f2d3b16dbb920d96312515d30",
+      "prior_test_hashes": {
+        "tests/validators/test_python_type_alias.py": "sha256-pyast:v2:70402cb652bacb1bf1cc4a3a1912a05351258da1068bbb1686fe32cc56663d14"
+      },
+      "revised_at": "2026-08-20T00:20:50.669012+00:00",
+      "reason": "Preserve quoted Literal values in exact alias targets after independent review",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/validators/test_python_type_alias.py:test_python_type_alias_literal_target_preserves_quoted_values",
+          "tests/validators/test_python_type_alias.py:test_python_type_alias_literal_target_preserves_quoted_values:arg=tmp_path:type=Path:default=None",
+          "tests/validators/test_python_type_alias.py:test_python_type_alias_literal_target_preserves_quoted_values:kind=test_function",
+          "tests/validators/test_python_type_alias.py:test_python_type_alias_literal_target_preserves_quoted_values:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:fd58c6bb3f931347254e30a1d40b41407eb1cbf06b0e445909ba7ff8cbedbdda",
+      "prior_test_hashes": {
+        "tests/validators/test_python_type_alias.py": "sha256-pyast:v2:70402cb652bacb1bf1cc4a3a1912a05351258da1068bbb1686fe32cc56663d14"
+      },
+      "revised_at": "2026-08-20T00:21:35.093175+00:00",
+      "reason": "Lock reviewed Literal target regression coverage after implementation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:fd58c6bb3f931347254e30a1d40b41407eb1cbf06b0e445909ba7ff8cbedbdda",
+      "prior_test_hashes": {
+        "tests/validators/test_python_type_alias.py": "sha256-pyast:v2:401d50f438e5d940d4bed5f3a67ad233337d63c1ecd28d5c04027caaa1dca793"
+      },
+      "revised_at": "2026-08-20T00:25:35.856977+00:00",
+      "reason": "Confine Literal rendering to alias targets and normalize equivalent quote styles",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/validators/test_python_type_alias.py:test_literal_value_rendering_change_is_scoped_to_alias_targets",
+          "tests/validators/test_python_type_alias.py:test_literal_value_rendering_change_is_scoped_to_alias_targets:arg=tmp_path:type=Path:default=None",
+          "tests/validators/test_python_type_alias.py:test_literal_value_rendering_change_is_scoped_to_alias_targets:kind=test_function",
+          "tests/validators/test_python_type_alias.py:test_literal_value_rendering_change_is_scoped_to_alias_targets:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:maid_runner/core/_type_compare.py"
+        ],
+        "files_removed": [
+          "read:maid_runner/core/_type_compare.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ff4fad9fd6e8948505a9d55858235a2ec6c9838e0f6340d38767c0f35b058938",
+      "prior_test_hashes": {
+        "tests/validators/test_python_type_alias.py": "sha256-pyast:v2:401d50f438e5d940d4bed5f3a67ad233337d63c1ecd28d5c04027caaa1dca793"
+      },
+      "revised_at": "2026-08-20T00:27:12.492566+00:00",
+      "reason": "Lock scoped alias Literal rendering and semantic quote normalization coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ff4fad9fd6e8948505a9d55858235a2ec6c9838e0f6340d38767c0f35b058938",
+      "prior_test_hashes": {
+        "tests/validators/test_python_type_alias.py": "sha256-pyast:v2:faf6b8cc4eb51bccef11c291a1721ba2634ae7d8cd2074ebf12654ea72d62c02"
+      },
+      "revised_at": "2026-08-20T00:30:40.822398+00:00",
+      "reason": "Harden alias value-context rendering and quoted-token collision resistance",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/validators/test_python_type_alias.py:test_python_type_alias_value_metadata_preserves_source_semantics",
+          "tests/validators/test_python_type_alias.py:test_python_type_alias_value_metadata_preserves_source_semantics:arg=tmp_path:type=Path:default=None",
+          "tests/validators/test_python_type_alias.py:test_python_type_alias_value_metadata_preserves_source_semantics:kind=test_function",
+          "tests/validators/test_python_type_alias.py:test_python_type_alias_value_metadata_preserves_source_semantics:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4433833394a1bd52fea066b8908c35abcbe5d9cb2e941a05573aa8196b334aad",
+      "prior_test_hashes": {
+        "tests/validators/test_python_type_alias.py": "sha256-pyast:v2:faf6b8cc4eb51bccef11c291a1721ba2634ae7d8cd2074ebf12654ea72d62c02"
+      },
+      "revised_at": "2026-08-20T00:32:25.434442+00:00",
+      "reason": "Lock value-context alias targets and collision-resistant quote comparison",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4433833394a1bd52fea066b8908c35abcbe5d9cb2e941a05573aa8196b334aad",
+      "prior_test_hashes": {
+        "tests/validators/test_python_type_alias.py": "sha256-pyast:v2:ba92cc06e1b653745764adb15b9e02a252e64ada14e15197d2202779b16b993d"
+      },
+      "revised_at": "2026-08-20T00:36:23.994177+00:00",
+      "reason": "Capture post-review Outcome evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-20T00:32:25.841756+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/validators/test_python_type_alias.py",
+        "exit_code": 1,
+        "output_tail": "            \"tuple[int, ...]\",\n        )\n        ellipsis_exact = ValidationEngine(project_root=ellipsis_root).validate(\n            ellipsis_manifest, mode=ValidationMode.IMPLEMENTATION\n        )\n>       assert ellipsis_exact.success is True, [\n            error.message for error in ellipsis_exact.errors\n        ]\nE       AssertionError: [\"Artifact 'JsonValue' not defined in src/catalog.py\", \"Artifact 'JsonObject' not defined in src/catalog.py\", \"Unexpected public artifact 'JsonValue' in src/catalog.py\", \"Unexpected public artifact 'JsonObject' in src/catalog.py\"]\nE       assert False is True\nE        +  where False = ValidationResult(success=False, manifest_slug='catalog', manifest_path='/tmp/pytest-of-atomrem/pytest-1039/test_python...e, end_line=None, end_column=None), suggestion=None)], warnings=[], file_tracking=None, duration_ms=1.7692279998300364).success\n\ntests/validators/test_python_type_alias.py:178: AssertionError\n=========================== short test summary info ============================\nFAILED tests/validators/test_python_type_alias.py::test_python_type_aliases_pass_exact_implementation_validation[from typing import TypeAlias\\n\\nJsonValue: TypeAlias = str | int | None | list[\"JsonValue\"] | dict[str, \"JsonValue\"]\\nJsonObject: TypeAlias = dict[str, JsonValue]\\n]\nFAILED tests/validators/test_python_type_alias.py::test_python_type_aliases_pass_exact_implementation_validation[import typing as t\\n\\nJsonValue: t.TypeAlias = str | int | None | list[\"JsonValue\"] | dict[str, \"JsonValue\"]\\nJsonObject: t.TypeAlias = dict[str, JsonValue]\\n]\nFAILED tests/validators/test_python_type_alias.py::test_python_type_alias_target_mismatch_reports_e302\nFAILED tests/validators/test_python_type_alias.py::test_python_type_alias_literal_target_preserves_quoted_values\nFAILED tests/validators/test_python_type_alias.py::test_python_type_alias_value_metadata_preserves_source_semantics\n5 failed, 2 passed in 0.18s",
+        "classification": "red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/fix-merge-aware-worktree-scope.lock.json",
+      ".maid/plan-locks/fix-plan-lock-invalid-red-success.lock.json",
+      "maid_runner/cli/commands/plan.py",
+      "maid_runner/core/worktree.py",
+      "manifests/fix-merge-aware-worktree-scope.manifest.yaml",
+      "manifests/fix-plan-lock-invalid-red-success.manifest.yaml",
+      "tests/cli/test_plan_cmd.py",
+      "tests/cli/test_plan_cmd_red_evidence.py",
+      "tests/cli/test_plan_lock_rejects_invalid_red.py",
+      "tests/cli/test_plan_revise_auto_preserve.py",
+      "tests/core/validation/test_merge_worktree_scope.py"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/validators/test_python_type_alias.py:test_literal_value_rendering_change_is_scoped_to_alias_targets",
+      "tests/validators/test_python_type_alias.py:test_literal_value_rendering_change_is_scoped_to_alias_targets:arg=tmp_path:type=Path:default=None",
+      "tests/validators/test_python_type_alias.py:test_literal_value_rendering_change_is_scoped_to_alias_targets:kind=test_function",
+      "tests/validators/test_python_type_alias.py:test_literal_value_rendering_change_is_scoped_to_alias_targets:returns=None",
+      "tests/validators/test_python_type_alias.py:test_ordinary_annotated_assignment_does_not_satisfy_type_artifact",
+      "tests/validators/test_python_type_alias.py:test_ordinary_annotated_assignment_does_not_satisfy_type_artifact:arg=tmp_path:type=Path:default=None",
+      "tests/validators/test_python_type_alias.py:test_ordinary_annotated_assignment_does_not_satisfy_type_artifact:kind=test_function",
+      "tests/validators/test_python_type_alias.py:test_ordinary_annotated_assignment_does_not_satisfy_type_artifact:returns=None",
+      "tests/validators/test_python_type_alias.py:test_python_type_alias_literal_target_preserves_quoted_values",
+      "tests/validators/test_python_type_alias.py:test_python_type_alias_literal_target_preserves_quoted_values:arg=tmp_path:type=Path:default=None",
+      "tests/validators/test_python_type_alias.py:test_python_type_alias_literal_target_preserves_quoted_values:kind=test_function",
+      "tests/validators/test_python_type_alias.py:test_python_type_alias_literal_target_preserves_quoted_values:returns=None",
+      "tests/validators/test_python_type_alias.py:test_python_type_alias_target_mismatch_reports_e302",
+      "tests/validators/test_python_type_alias.py:test_python_type_alias_target_mismatch_reports_e302:arg=tmp_path:type=Path:default=None",
+      "tests/validators/test_python_type_alias.py:test_python_type_alias_target_mismatch_reports_e302:kind=test_function",
+      "tests/validators/test_python_type_alias.py:test_python_type_alias_target_mismatch_reports_e302:returns=None",
+      "tests/validators/test_python_type_alias.py:test_python_type_alias_value_metadata_preserves_source_semantics",
+      "tests/validators/test_python_type_alias.py:test_python_type_alias_value_metadata_preserves_source_semantics:arg=tmp_path:type=Path:default=None",
+      "tests/validators/test_python_type_alias.py:test_python_type_alias_value_metadata_preserves_source_semantics:kind=test_function",
+      "tests/validators/test_python_type_alias.py:test_python_type_alias_value_metadata_preserves_source_semantics:returns=None",
+      "tests/validators/test_python_type_alias.py:test_python_type_aliases_pass_exact_implementation_validation",
+      "tests/validators/test_python_type_alias.py:test_python_type_aliases_pass_exact_implementation_validation:arg=source:type=str:default=None",
+      "tests/validators/test_python_type_alias.py:test_python_type_aliases_pass_exact_implementation_validation:arg=tmp_path:type=Path:default=None",
+      "tests/validators/test_python_type_alias.py:test_python_type_aliases_pass_exact_implementation_validation:kind=test_function",
+      "tests/validators/test_python_type_alias.py:test_python_type_aliases_pass_exact_implementation_validation:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/validators/test_python_type_alias.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/validators/base.py",
+        "maid_runner/validators/python.py",
+        "manifests/029-04-move-python-implementation-collector-module.manifest.yaml",
+        "manifests/093-02-add-validator-type-comparison-hook.manifest.yaml"
+      ],
+      "scope": [
+        "maid_runner/core/_implementation_validation.py",
+        "maid_runner/core/_type_compare.py",
+        "maid_runner/validators/_python_implementation.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/validators/test_python_type_alias.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_python_type_aliases_pass_exact_implementation_validation",
+              "description": "Direct and module-aliased stdlib TypeAlias declarations satisfy exact Python implementation contracts.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "source",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_python_type_alias_target_mismatch_reports_e302",
+              "description": "A declared type alias whose assigned target differs from the manifest reports E302.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_python_type_alias_literal_target_preserves_quoted_values",
+              "description": "Quoted Literal values survive alias-target collection: equivalent quote spellings pass while unquoted names, including adversarial placeholder-like identifiers, report E302.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_python_type_alias_value_metadata_preserves_source_semantics",
+              "description": "Ellipsis and Annotated metadata retain value syntax in alias targets, while their lossy spellings report E302.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_literal_value_rendering_change_is_scoped_to_alias_targets",
+              "description": "Ordinary function annotations retain their prior representation while alias targets preserve Literal string values.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_ordinary_annotated_assignment_does_not_satisfy_type_artifact",
+              "description": "An ordinary annotated module attribute cannot masquerade as a type alias artifact.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/validators/python.py",
+        "maid_runner/validators/base.py",
+        "manifests/029-04-move-python-implementation-collector-module.manifest.yaml",
+        "manifests/093-02-add-validator-type-comparison-hook.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/validators/_python_implementation.py",
+          "reason": "Recognize stdlib TypeAlias markers and collect their assigned structural target without changing public validator APIs."
+        },
+        {
+          "path": "maid_runner/core/_implementation_validation.py",
+          "reason": "Compare declared type artifact targets through the existing validator type matcher."
+        },
+        {
+          "path": "maid_runner/core/_type_compare.py",
+          "reason": "Normalize semantically equivalent quote spellings in string-valued type arguments before exact comparison."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/validators/test_python_type_alias.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/validators/test_python_type_alias.py"
+    ]
+  }
+}

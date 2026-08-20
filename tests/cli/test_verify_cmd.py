@@ -121,6 +121,34 @@ def _without_durations(value):
     return value
 
 
+def _write_worker_verify_project(tmp_path):
+    manifests = tmp_path / "manifests"
+    tests = tmp_path / "tests"
+    src = tmp_path / "src"
+    manifests.mkdir()
+    tests.mkdir()
+    src.mkdir()
+    (src / "gate.py").write_text("def gate(): return True\n")
+    (tests / "test_gate.py").write_text("def test_gate(): assert True\n")
+    manifest = manifests / "gate.manifest.yaml"
+    manifest.write_text(
+        """schema: "2"
+goal: Gate
+files:
+  edit:
+    - path: src/gate.py
+      artifacts:
+        - kind: function
+          name: gate
+  read:
+    - tests/test_gate.py
+validate:
+  - pytest tests/test_gate.py -q
+"""
+    )
+    return manifest
+
+
 def test_verify_parser_accepts_test_jobs_option():
     from maid_runner.cli.commands._main import build_parser
 
@@ -129,6 +157,164 @@ def test_verify_parser_accepts_test_jobs_option():
 
     assert args.test_jobs == 4
     assert args.fail_fast is False
+
+
+def test_verify_explicit_default_equal_jobs_and_workers_remain_explicit():
+    from maid_runner.cli.commands._main import build_parser
+
+    parser = build_parser()
+    silent = parser.parse_args(["verify"])
+    explicit = parser.parse_args(
+        ["verify", "--test-jobs", "1", "--pytest-workers", "1"]
+    )
+
+    assert getattr(silent, "test_jobs_explicit", False) is False
+    assert getattr(silent, "pytest_workers_explicit", False) is False
+    assert explicit.test_jobs_explicit is True
+    assert explicit.pytest_workers_explicit is True
+
+
+def test_verify_explicit_pytest_workers_reaches_tests_stage_and_overrides_project_default(
+    tmp_path, monkeypatch, capsys
+):
+    from maid_runner.cli.commands._main import main
+    from maid_runner.cli.commands.verify import _tests_stage
+    from maid_runner.core.result import TestRunResult, VerificationResult
+
+    observed = {}
+
+    manifest = _write_worker_verify_project(tmp_path)
+
+    def fake_prepare(command, **kwargs):
+        from types import SimpleNamespace
+
+        observed["pytest_workers"] = kwargs["pytest_workers"]
+        return SimpleNamespace(command=command, environment_overrides={}, notice=None)
+
+    def fake_run(command, **kwargs):
+        observed["command"] = command
+        return TestRunResult(
+            manifest_slug=kwargs.get("manifest_slug", ""),
+            command=command,
+            exit_code=0,
+            stdout="",
+            stderr="",
+            duration_ms=1.0,
+        )
+
+    def fake_run_verify(**kwargs):
+        stage = _tests_stage(
+            tmp_path,
+            "manifests/",
+            fail_fast=False,
+            pytest_workers=kwargs["pytest_workers"],
+        )
+        return VerificationResult(stages=(stage,), duration_ms=stage._duration_ms)
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(
+        "maid_runner.core.test_runner.prepare_pytest_command", fake_prepare
+    )
+    monkeypatch.setattr(
+        "maid_runner.core.test_runner.finalize_pytest_timing", lambda *args: None
+    )
+    monkeypatch.setattr("maid_runner.core.test_runner.run_command", fake_run)
+    monkeypatch.setattr("maid_runner.cli.commands.verify._run_verify", fake_run_verify)
+
+    assert main(["verify", "--pytest-workers", "1"]) == 0
+    assert observed["pytest_workers"] == 1
+    assert observed["command"] == ("pytest", "tests/test_gate.py", "-q")
+    assert manifest.is_file()
+
+
+def test_task_scoped_worker_override_reaches_selected_implementation_command_and_notice(
+    tmp_path, monkeypatch, capsys
+):
+    from maid_runner.cli.commands._main import main
+    from maid_runner.cli.commands.verify import _tests_stage
+    from maid_runner.core._pytest_worker_execution import TestSchedulingNotice
+    from maid_runner.core.result import TestRunResult, VerificationResult
+
+    observed = {}
+    manifest = _write_worker_verify_project(tmp_path)
+    notice = TestSchedulingNotice(
+        command_group=("pytest", "tests/test_gate.py", "-q"),
+        mode="workers",
+        workers=8,
+        reason="workers:predicted-at-or-above-threshold",
+    )
+
+    def fake_prepare(command, **kwargs):
+        from types import SimpleNamespace
+
+        observed["pytest_workers"] = kwargs["pytest_workers"]
+        return SimpleNamespace(
+            command=(*command, "-n", "8", "--dist", "loadscope"),
+            environment_overrides={},
+            notice=notice,
+        )
+
+    def fake_run(command, **kwargs):
+        observed["command"] = command
+        return TestRunResult(
+            manifest_slug=kwargs.get("manifest_slug", ""),
+            command=command,
+            exit_code=0,
+            stdout="",
+            stderr="",
+            duration_ms=1.0,
+        )
+
+    def fake_run_verify(**kwargs):
+        stage = _tests_stage(
+            tmp_path,
+            "manifests/",
+            fail_fast=False,
+            manifest_paths=(manifest,),
+            pytest_workers=kwargs["pytest_workers"],
+        )
+        observed["notices"] = stage._tests.scheduling_notices
+        return VerificationResult(stages=(stage,), duration_ms=stage._duration_ms)
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(
+        "maid_runner.core.test_runner.prepare_pytest_command", fake_prepare
+    )
+    monkeypatch.setattr(
+        "maid_runner.core.test_runner.finalize_pytest_timing", lambda *args: None
+    )
+    monkeypatch.setattr("maid_runner.core.test_runner.run_command", fake_run)
+    monkeypatch.setattr("maid_runner.cli.commands.verify._run_verify", fake_run_verify)
+
+    assert main(["verify", "--test-scope", "task", "--pytest-workers", "8"]) == 0
+    assert observed["pytest_workers"] == 8
+    assert observed["command"][-4:] == ("-n", "8", "--dist", "loadscope")
+    assert observed["notices"] == (notice,)
+
+
+def test_silent_verify_cli_uses_repository_worker_and_job_config(tmp_path, monkeypatch):
+    from maid_runner.cli.commands._main import main
+    from maid_runner.core.result import VerificationResult
+
+    (tmp_path / ".maidrc.yaml").write_text(
+        """test_execution:
+  pytest_workers: 8
+  accepted_pytest_worker_counts: [8]
+  command_jobs: 2
+  max_processes: 16
+"""
+    )
+    observed = {}
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(
+        "maid_runner.cli.commands.verify._run_verify",
+        lambda **kwargs: observed.update(kwargs)
+        or VerificationResult(stages=(), duration_ms=0.0),
+    )
+
+    assert main(["verify"]) == 0
+    assert observed["test_jobs"] == 2
+    assert observed["pytest_workers"] is None
 
 
 def test_verify_parser_rejects_invalid_test_jobs_option():

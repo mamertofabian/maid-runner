@@ -6,10 +6,14 @@ import json
 import subprocess
 from pathlib import Path
 from types import SimpleNamespace
+from typing import TYPE_CHECKING
 
 from maid_runner.cli.commands._main import build_parser
 from maid_runner.cli.commands.plan import cmd_plan_lock, cmd_plan_revise
 from maid_runner.core.plan_lock import default_plan_lock_path
+
+if TYPE_CHECKING:
+    from tests.support.git_project_templates import GitProjectTemplateFactory
 
 
 def _git(project_root: Path, *args: str) -> str:
@@ -70,7 +74,17 @@ def _lock_record(project_root: Path, slug: str = "demo-task") -> dict:
     return json.loads(default_plan_lock_path(project_root, slug).read_text())
 
 
-def _write_tracked_project(project_root: Path) -> Path:
+def _write_tracked_project(
+    project_root: Path,
+    template_factory: GitProjectTemplateFactory | None = None,
+) -> Path:
+    if template_factory is not None:
+        from tests.support.git_project_templates import clone_git_project_template
+
+        template = template_factory.get("stash-red-contract")
+        clone_git_project_template(template, project_root)
+        return project_root / "manifests" / "demo-task.manifest.yaml"
+
     (project_root / "manifests").mkdir()
     (project_root / "src").mkdir()
     (project_root / "tests").mkdir()
@@ -104,6 +118,9 @@ validate:
     _git(project_root, "init", "-q")
     _commit_all(project_root, "red contract")
     assert cmd_plan_lock(_lock_args(manifest_path, project_root)) == 0
+    from tests.support.git_project_templates import _remove_python_caches
+
+    _remove_python_caches(project_root)
     _commit_all(project_root, "plan lock")
     return manifest_path
 
@@ -166,8 +183,9 @@ def test_revise_parser_exposes_stash_implementation() -> None:
 
 def test_stash_implementation_recaptures_red_evidence_and_restores_tracked_change(
     tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
 ) -> None:
-    manifest_path = _write_tracked_project(tmp_path)
+    manifest_path = _write_tracked_project(tmp_path, git_project_template_factory)
     implementation_path = tmp_path / "src" / "demo.py"
     implementation_path.write_text("def demo() -> int:\n    return 1\n")
     test_path = tmp_path / "tests" / "test_demo.py"
@@ -201,6 +219,7 @@ def test_stash_implementation_recaptures_red_evidence_and_restores_tracked_chang
 
 def test_stash_implementation_restores_untracked_declared_create_file(
     tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
 ) -> None:
     manifest_path = _write_untracked_create_project(tmp_path)
     generated_path = tmp_path / "src" / "generated.py"
@@ -228,9 +247,10 @@ def test_stash_implementation_restores_untracked_declared_create_file(
 
 def test_stash_implementation_rejects_green_stashed_state_without_revising_lock(
     tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
     capsys,
 ) -> None:
-    manifest_path = _write_tracked_project(tmp_path)
+    manifest_path = _write_tracked_project(tmp_path, git_project_template_factory)
     implementation_path = tmp_path / "src" / "demo.py"
     implementation_path.write_text("def demo() -> int:\n    return 1\n")
     test_path = tmp_path / "tests" / "test_demo.py"
@@ -260,9 +280,10 @@ def test_stash_implementation_rejects_green_stashed_state_without_revising_lock(
 
 def test_stash_implementation_invalid_red_evidence_names_command_details(
     tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
     capsys,
 ) -> None:
-    manifest_path = _write_tracked_project(tmp_path)
+    manifest_path = _write_tracked_project(tmp_path, git_project_template_factory)
     (tmp_path / "scripts").mkdir()
     (tmp_path / "scripts" / "invalid_red_evidence.py").write_text(
         "import sys\n"
@@ -303,8 +324,9 @@ def test_stash_implementation_invalid_red_evidence_names_command_details(
 
 def test_stash_implementation_rejects_unrelated_dirty_paths_before_stashing(
     tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
 ) -> None:
-    manifest_path = _write_tracked_project(tmp_path)
+    manifest_path = _write_tracked_project(tmp_path, git_project_template_factory)
     implementation_path = tmp_path / "src" / "demo.py"
     implementation_path.write_text("def demo() -> int:\n    return 1\n")
     (tmp_path / "README.md").write_text("unrelated user work\n")
@@ -323,8 +345,9 @@ def test_stash_implementation_rejects_unrelated_dirty_paths_before_stashing(
 
 def test_stash_implementation_allows_current_lock_dirty(
     tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
 ) -> None:
-    manifest_path = _write_tracked_project(tmp_path)
+    manifest_path = _write_tracked_project(tmp_path, git_project_template_factory)
     implementation_path = tmp_path / "src" / "demo.py"
     implementation_path.write_text("def demo() -> int:\n    return 1\n")
     lock_path = default_plan_lock_path(tmp_path, "demo-task")
@@ -346,8 +369,9 @@ def test_stash_implementation_allows_current_lock_dirty(
 
 def test_stash_implementation_allows_matching_active_manifest_marker(
     tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
 ) -> None:
-    manifest_path = _write_tracked_project(tmp_path)
+    manifest_path = _write_tracked_project(tmp_path, git_project_template_factory)
     implementation_path = tmp_path / "src" / "demo.py"
     implementation_path.write_text("def demo() -> int:\n    return 1\n")
     active_marker = tmp_path / ".maid" / "active-manifest"
@@ -370,8 +394,9 @@ def test_stash_implementation_allows_matching_active_manifest_marker(
 
 def test_stash_implementation_rejects_different_active_manifest_marker(
     tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
 ) -> None:
-    manifest_path = _write_tracked_project(tmp_path)
+    manifest_path = _write_tracked_project(tmp_path, git_project_template_factory)
     implementation_path = tmp_path / "src" / "demo.py"
     implementation_path.write_text("def demo() -> int:\n    return 1\n")
     active_marker = tmp_path / ".maid" / "active-manifest"
@@ -396,8 +421,9 @@ def test_stash_implementation_rejects_different_active_manifest_marker(
 
 def test_stash_implementation_rejects_staged_different_active_marker(
     tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
 ) -> None:
-    manifest_path = _write_tracked_project(tmp_path)
+    manifest_path = _write_tracked_project(tmp_path, git_project_template_factory)
     implementation_path = tmp_path / "src" / "demo.py"
     implementation_path.write_text("def demo() -> int:\n    return 1\n")
     active_marker = tmp_path / ".maid" / "active-manifest"
@@ -424,8 +450,9 @@ def test_stash_implementation_rejects_staged_different_active_marker(
 
 def test_stash_implementation_allows_matching_promoted_draft_deletion(
     tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
 ) -> None:
-    manifest_path = _write_tracked_project(tmp_path)
+    manifest_path = _write_tracked_project(tmp_path, git_project_template_factory)
     draft_path = tmp_path / "manifests" / "drafts" / "demo-task.manifest.yaml"
     draft_path.parent.mkdir()
     draft_path.write_text(manifest_path.read_text())
@@ -451,8 +478,9 @@ def test_stash_implementation_allows_matching_promoted_draft_deletion(
 
 def test_stash_implementation_rejects_matching_draft_modification(
     tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
 ) -> None:
-    manifest_path = _write_tracked_project(tmp_path)
+    manifest_path = _write_tracked_project(tmp_path, git_project_template_factory)
     draft_path = tmp_path / "manifests" / "drafts" / "demo-task.manifest.yaml"
     draft_path.parent.mkdir()
     draft_path.write_text(manifest_path.read_text())
@@ -480,8 +508,9 @@ def test_stash_implementation_rejects_matching_draft_modification(
 
 def test_stash_implementation_rejects_staged_matching_draft_modification_then_delete(
     tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
 ) -> None:
-    manifest_path = _write_tracked_project(tmp_path)
+    manifest_path = _write_tracked_project(tmp_path, git_project_template_factory)
     draft_path = tmp_path / "manifests" / "drafts" / "demo-task.manifest.yaml"
     draft_path.parent.mkdir()
     draft_path.write_text(manifest_path.read_text())
@@ -511,8 +540,9 @@ def test_stash_implementation_rejects_staged_matching_draft_modification_then_de
 
 def test_stash_implementation_rejects_staged_matching_draft_add_then_delete(
     tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
 ) -> None:
-    manifest_path = _write_tracked_project(tmp_path)
+    manifest_path = _write_tracked_project(tmp_path, git_project_template_factory)
     draft_path = tmp_path / "manifests" / "drafts" / "demo-task.manifest.yaml"
     draft_path.parent.mkdir()
     draft_path.write_text(manifest_path.read_text())
@@ -540,8 +570,9 @@ def test_stash_implementation_rejects_staged_matching_draft_add_then_delete(
 
 def test_stash_implementation_rejects_unrelated_draft_deletion(
     tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
 ) -> None:
-    manifest_path = _write_tracked_project(tmp_path)
+    manifest_path = _write_tracked_project(tmp_path, git_project_template_factory)
     draft_path = tmp_path / "manifests" / "drafts" / "other-task.manifest.yaml"
     draft_path.parent.mkdir()
     draft_path.write_text(manifest_path.read_text())
@@ -569,8 +600,9 @@ def test_stash_implementation_rejects_unrelated_draft_deletion(
 
 def test_stash_implementation_ignores_clean_missing_create_targets(
     tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
 ) -> None:
-    manifest_path = _write_tracked_project(tmp_path)
+    manifest_path = _write_tracked_project(tmp_path, git_project_template_factory)
     manifest_path.write_text(
         manifest_path.read_text().replace(
             "  read:\n",
@@ -604,8 +636,9 @@ def test_stash_implementation_ignores_clean_missing_create_targets(
 
 def test_stash_implementation_restores_original_when_validate_creates_new_stash(
     tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
 ) -> None:
-    manifest_path = _write_tracked_project(tmp_path)
+    manifest_path = _write_tracked_project(tmp_path, git_project_template_factory)
     (tmp_path / "scripts").mkdir()
     (tmp_path / "scripts" / "validate_creates_stash.py").write_text(
         "from pathlib import Path\n"
@@ -647,8 +680,9 @@ def test_stash_implementation_restores_original_when_validate_creates_new_stash(
 
 def test_stash_implementation_preserves_stash_when_validate_dirties_target(
     tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
 ) -> None:
-    manifest_path = _write_tracked_project(tmp_path)
+    manifest_path = _write_tracked_project(tmp_path, git_project_template_factory)
     (tmp_path / "scripts").mkdir()
     (tmp_path / "scripts" / "validate_dirties_target.py").write_text(
         "from pathlib import Path\n"
@@ -685,8 +719,9 @@ def test_stash_implementation_preserves_stash_when_validate_dirties_target(
 
 def test_stash_implementation_rejects_validate_mutated_behavioral_test(
     tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
 ) -> None:
-    manifest_path = _write_tracked_project(tmp_path)
+    manifest_path = _write_tracked_project(tmp_path, git_project_template_factory)
     (tmp_path / "scripts").mkdir()
     (tmp_path / "scripts" / "validate_mutates_test.py").write_text(
         "from pathlib import Path\n"
@@ -727,8 +762,9 @@ def test_stash_implementation_rejects_validate_mutated_behavioral_test(
 
 def test_stash_implementation_rejects_conflicting_revise_modes(
     tmp_path: Path,
+    git_project_template_factory: GitProjectTemplateFactory,
 ) -> None:
-    manifest_path = _write_tracked_project(tmp_path)
+    manifest_path = _write_tracked_project(tmp_path, git_project_template_factory)
     original_lock = default_plan_lock_path(tmp_path, "demo-task").read_bytes()
 
     no_run_exit = cmd_plan_revise(

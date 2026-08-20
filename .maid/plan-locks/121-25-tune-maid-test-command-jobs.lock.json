@@ -1,0 +1,120 @@
+{
+  "manifest_path": "manifests/121-25-tune-maid-test-command-jobs.manifest.yaml",
+  "manifest_hash": "sha256-contract:1c1a2a8e4ebca99bb46cf427399410d9eaa55d985f6a932b8ae57c3ccbf58e1e",
+  "test_hashes": {
+    "tests/core/test_repository_command_jobs.py": "sha256-pyast:v2:24a01e2d98b2e81fafd22935decdb385d7cf290e759306b3ecf4e12a3f596b61",
+    "tests/core/test_config.py": "sha256-pyast:v2:2d61fe5232fbf57b533be1f86b00cbd7c5502b1655d8333dfdcbfc24814cfc9f"
+  },
+  "created_at": "2026-08-13T09:55:15.881601+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:af14d1d4377a6074f4ed6236e3d85bf926b4dac95634aa0f0a9f8f55df89ec2d",
+      "prior_test_hashes": {
+        "tests/core/test_repository_command_jobs.py": "sha256-pyast:v2:24a01e2d98b2e81fafd22935decdb385d7cf290e759306b3ecf4e12a3f596b61",
+        "tests/core/test_config.py": "sha256-pyast:v2:d2c6b5368a87dedfe360f3a7b503f82427a9764e2802063fd5ed35108b23cb5f"
+      },
+      "revised_at": "2026-08-13T09:55:16.896474+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/121-25-tune-maid-test-command-jobs.manifest.yaml -> manifests/121-25-tune-maid-test-command-jobs.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:1c1a2a8e4ebca99bb46cf427399410d9eaa55d985f6a932b8ae57c3ccbf58e1e",
+      "prior_test_hashes": {
+        "tests/core/test_repository_command_jobs.py": "sha256-pyast:v2:24a01e2d98b2e81fafd22935decdb385d7cf290e759306b3ecf4e12a3f596b61",
+        "tests/core/test_config.py": "sha256-pyast:v2:d2c6b5368a87dedfe360f3a7b503f82427a9764e2802063fd5ed35108b23cb5f"
+      },
+      "revised_at": "2026-08-20T12:28:49.919987+00:00",
+      "reason": "accept approved shared config-policy test change for hosted pytest worker bound",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-13T09:55:17.713153+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_repository_command_jobs.py tests/core/test_config.py",
+        "exit_code": 1,
+        "output_tail": "F..............                                                          [100%]\n=================================== FAILURES ===================================\n__________ test_repository_command_jobs_use_remaining_process_budget ___________\n\n    def test_repository_command_jobs_use_remaining_process_budget() -> None:\n        execution = load_config(REPO_ROOT).test_execution\n>       assert execution.command_jobs == 2\nE       AssertionError: assert 1 == 2\nE        +  where 1 = TestExecutionConfig(pytest_workers=8, pytest_dist_mode='loadscope', accepted_pytest_worker_counts=(8,), parallel_threshold_seconds=30.0, parallel_without_history=True, command_jobs=1, max_processes=16).command_jobs\n\ntests/core/test_repository_command_jobs.py:17: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_repository_command_jobs.py::test_repository_command_jobs_use_remaining_process_budget\n1 failed, 14 passed in 0.17s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/121-25-tune-maid-test-command-jobs.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/test_repository_command_jobs.py:test_repository_command_jobs_use_remaining_process_budget",
+      "tests/core/test_repository_command_jobs.py:test_repository_command_jobs_use_remaining_process_budget:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_repository_command_jobs.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/core/config.py",
+        "manifests/121-07-integrate-duration-informed-pytest-workers.manifest.yaml"
+      ],
+      "scope": [
+        ".maidrc.yaml"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_repository_command_jobs.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_repository_command_jobs_use_remaining_process_budget"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/config.py",
+        "manifests/121-07-integrate-duration-informed-pytest-workers.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": ".maidrc.yaml",
+          "reason": "Set test_execution.command_jobs to 2 under the existing 16-process budget."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_config.py",
+      "tests/core/test_repository_command_jobs.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_repository_command_jobs.py tests/core/test_config.py",
+      "uv run maid validate manifests/121-25-tune-maid-test-command-jobs.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

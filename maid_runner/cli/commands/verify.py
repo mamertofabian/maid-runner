@@ -6,11 +6,15 @@ import argparse
 import json
 import subprocess
 import time
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from dataclasses import replace
 from pathlib import Path
-from typing import Union
+from typing import TYPE_CHECKING, Union
 
+from maid_runner.core._artifact_coverage_cache import (
+    _load_artifact_coverage_cache,
+    _store_artifact_coverage_cache,
+)
 from maid_runner.cli.commands._format import (
     format_verify_result,
     format_verify_summary,
@@ -24,6 +28,13 @@ from maid_runner.core.result import (
     VerificationResult,
     VerificationStageResult,
 )
+
+if TYPE_CHECKING:
+    from maid_runner.core.knockout import KnockoutReport
+    from maid_runner.core.runtime_evidence import (
+        RuntimeEvidenceBundle,
+        RuntimeEvidenceRun,
+    )
 
 
 _STRICT_WARNING_FAILURE_SINCE = "2026-05-17"
@@ -69,6 +80,19 @@ def cmd_verify(args: argparse.Namespace) -> int:
             or getattr(args, "fail_on_warnings", False)
             or strict_preview
         )
+        from maid_runner.core.config import load_config
+
+        execution_config = load_config(".").test_execution
+        jobs_explicit = getattr(args, "test_jobs_explicit", None)
+        test_jobs = (
+            execution_config.command_jobs
+            if jobs_explicit is False
+            else getattr(args, "test_jobs", 1)
+        )
+        workers_explicit = getattr(args, "pytest_workers_explicit", None)
+        pytest_workers = (
+            None if workers_explicit is False else getattr(args, "pytest_workers", None)
+        )
         result = _run_verify(
             manifest_dir=args.manifest_dir,
             project_root=".",
@@ -85,7 +109,8 @@ def cmd_verify(args: argparse.Namespace) -> int:
             file_tracking_scope=getattr(args, "file_tracking_scope", "repository"),
             fail_on_scope_only=getattr(args, "fail_on_scope_only", False),
             include_tests=getattr(args, "include_tests", False),
-            test_jobs=getattr(args, "test_jobs", 1),
+            test_jobs=test_jobs,
+            pytest_workers=pytest_workers,
             test_scope=getattr(args, "test_scope", "repository"),
             require_plan_lock=getattr(args, "require_plan_lock", False),
             require_red_evidence=getattr(args, "require_red_evidence", False),
@@ -95,6 +120,7 @@ def cmd_verify(args: argparse.Namespace) -> int:
             knockout=getattr(args, "knockout", False),
             knockout_limit=getattr(args, "knockout_limit", None),
             knockout_allow_dirty=getattr(args, "knockout_allow_dirty", False),
+            no_cache=getattr(args, "no_cache", False),
         )
         delivery_provenance = None
         delivered_ref = getattr(args, "delivered", None)
@@ -388,6 +414,7 @@ def _run_verify(
     fail_on_scope_only: bool = False,
     include_tests: bool = False,
     test_jobs: int = 1,
+    pytest_workers: Union[int, str, None] = None,
     test_scope: str = "repository",
     require_plan_lock: bool = False,
     require_red_evidence: bool = False,
@@ -396,6 +423,7 @@ def _run_verify(
     knockout: bool = False,
     knockout_limit: int | None = None,
     knockout_allow_dirty: bool = False,
+    no_cache: bool = False,
 ) -> VerificationResult:
     from maid_runner.core.chain import (
         _enter_manifest_chain_cache_scope,
@@ -421,6 +449,7 @@ def _run_verify(
             fail_on_scope_only=fail_on_scope_only,
             include_tests=include_tests,
             test_jobs=test_jobs,
+            pytest_workers=pytest_workers,
             test_scope=test_scope,
             require_plan_lock=require_plan_lock,
             require_red_evidence=require_red_evidence,
@@ -429,6 +458,7 @@ def _run_verify(
             knockout=knockout,
             knockout_limit=knockout_limit,
             knockout_allow_dirty=knockout_allow_dirty,
+            no_cache=no_cache,
         )
     finally:
         _exit_manifest_chain_cache_scope(chain_outermost)
@@ -452,6 +482,7 @@ def _run_verify_cached(
     fail_on_scope_only: bool = False,
     include_tests: bool = False,
     test_jobs: int = 1,
+    pytest_workers: int | str | None = None,
     test_scope: str = "repository",
     require_plan_lock: bool = False,
     require_red_evidence: bool = False,
@@ -460,6 +491,7 @@ def _run_verify_cached(
     knockout: bool = False,
     knockout_limit: int | None = None,
     knockout_allow_dirty: bool = False,
+    no_cache: bool = False,
 ) -> VerificationResult:
     from maid_runner.core.types import ValidationMode
     from maid_runner.core.validate import ValidationEngine
@@ -468,6 +500,8 @@ def _run_verify_cached(
     root = Path(project_root)
     engine = ValidationEngine(project_root=root)
     stages: list[VerificationStageResult] = []
+    evidence: RuntimeEvidenceBundle | None = None
+    evidence_run: RuntimeEvidenceRun | None = None
 
     with engine.validation_cache_scope():
         stages.append(
@@ -514,8 +548,72 @@ def _run_verify_cached(
         if not _should_continue(stages[-1], fail_fast):
             return _verification_result(stages, started)
 
+        test_manifest_paths = None
+        test_scope_widening: list[ValidationError] = []
+        if _should_scope_tests_to_task(
+            test_scope=test_scope,
+            file_tracking_scope=file_tracking_scope,
+            plan_lock_scope=plan_lock_scope,
+        ):
+            test_manifest_paths = _task_scoped_test_manifest_paths(
+                root,
+                manifest_dir,
+                since,
+                base_ref,
+                widening=test_scope_widening,
+            )
+
         if artifact_coverage:
-            stages.append(_artifact_coverage_stage(root, manifest_dir))
+            coverage_started = time.monotonic()
+            try:
+                cached_report = None
+                if not no_cache:
+                    cached_report = _load_artifact_coverage_cache(
+                        root,
+                        manifest_dir=manifest_dir,
+                        pytest_workers=pytest_workers,
+                        manifest_paths=test_manifest_paths,
+                    )
+                if cached_report is not None:
+                    coverage_stage = VerificationStageResult(
+                        name="artifact_coverage",
+                        success=cached_report.success,
+                        _duration_ms=_elapsed_ms(coverage_started),
+                        _errors=(cached_report,),
+                    )
+                else:
+                    evidence_run = _collect_artifact_coverage_evidence_run(
+                        root,
+                        manifest_dir,
+                        test_jobs=test_jobs,
+                        pytest_workers=pytest_workers,
+                        manifest_paths=test_manifest_paths,
+                    )
+                    evidence = None if evidence_run is None else evidence_run.evidence
+                    coverage_stage = _artifact_coverage_stage(
+                        root,
+                        manifest_dir,
+                        evidence=evidence,
+                        manifest_paths=test_manifest_paths,
+                    )
+                    coverage_stage = replace(
+                        coverage_stage,
+                        _duration_ms=_elapsed_ms(coverage_started),
+                    )
+                    live_report = _coverage_report_from_stage(coverage_stage)
+                    if live_report is not None and not no_cache:
+                        _store_artifact_coverage_cache(
+                            root,
+                            live_report,
+                            manifest_dir=manifest_dir,
+                            pytest_workers=pytest_workers,
+                            manifest_paths=test_manifest_paths,
+                        )
+            except Exception as exc:
+                coverage_stage = _error_stage(
+                    "artifact_coverage", coverage_started, exc
+                )
+            stages.append(coverage_stage)
             if not _should_continue(stages[-1], fail_fast):
                 return _verification_result(stages, started)
 
@@ -526,10 +624,21 @@ def _run_verify_cached(
                     manifest_dir,
                     limit=knockout_limit,
                     allow_dirty=knockout_allow_dirty,
+                    evidence=evidence,
+                    manifest_paths=test_manifest_paths,
+                    no_cache=no_cache,
                 )
             )
             if not _should_continue(stages[-1], fail_fast):
                 return _verification_result(stages, started)
+
+        reuse_ordinary_tests = _should_reuse_ordinary_tests(
+            evidence_run,
+            _knockout_report_from_stage(stages[-1]) if knockout else None,
+            root,
+            manifest_dir,
+            pytest_workers,
+        )
 
         if _allow_empty_without_active_manifests(root, manifest_dir, allow_empty):
             skip_message = "Skipped because --allow-empty found no active manifests"
@@ -602,27 +711,15 @@ def _run_verify_cached(
             if not _should_continue(stages[-1], fail_fast):
                 return _verification_result(stages, started)
 
-        test_manifest_paths = None
-        test_scope_widening: list[ValidationError] = []
-        if _should_scope_tests_to_task(
-            test_scope=test_scope,
-            file_tracking_scope=file_tracking_scope,
-            plan_lock_scope=plan_lock_scope,
-        ):
-            test_manifest_paths = _task_scoped_test_manifest_paths(
-                root,
-                manifest_dir,
-                since,
-                base_ref,
-                widening=test_scope_widening,
-            )
-
         tests_stage = _tests_stage(
             root,
             manifest_dir,
             fail_fast,
             test_jobs=test_jobs,
+            pytest_workers=pytest_workers,
             manifest_paths=test_manifest_paths,
+            evidence_run=evidence_run,
+            reuse_ordinary_tests=reuse_ordinary_tests,
         )
         if test_scope_widening:
             if tests_stage._tests is not None:
@@ -764,14 +861,131 @@ def _file_tracking_stage(
         return _error_stage("file_tracking", started, exc)
 
 
-def _artifact_coverage_stage(root: Path, manifest_dir: str) -> VerificationStageResult:
+def _coverage_report_from_stage(stage: VerificationStageResult):
+    for item in stage._errors:
+        if hasattr(item, "findings") and hasattr(item, "to_dict"):
+            return item
+    return None
+
+
+def _collect_artifact_coverage_evidence(
+    root: Path,
+    manifest_dir: str,
+    test_jobs: int = 1,
+    pytest_workers: Union[int, str, None] = None,
+    manifest_paths: Sequence[str] | None = None,
+) -> RuntimeEvidenceBundle | None:
+    """Collect grouped coverage evidence, or select the complete legacy path."""
+    run = _collect_artifact_coverage_evidence_run(
+        root,
+        manifest_dir,
+        test_jobs=test_jobs,
+        pytest_workers=pytest_workers,
+        manifest_paths=manifest_paths,
+    )
+    return None if run is None else run.evidence
+
+
+def _collect_artifact_coverage_evidence_run(
+    root: Path,
+    manifest_dir: str,
+    test_jobs: int = 1,
+    pytest_workers: Union[int, str, None] = None,
+    manifest_paths: Sequence[str] | None = None,
+) -> RuntimeEvidenceRun | None:
+    """Collect grouped coverage evidence, or select the complete legacy path."""
+    del test_jobs
+    try:
+        from maid_runner.core.artifact_coverage import _coverage_targets
+        from maid_runner.core.chain import get_cached_manifest_chain
+        from maid_runner.core.runtime_evidence import (
+            _content_digest,
+            collect_runtime_evidence,
+            grouped_evidence_preflight,
+        )
+        from maid_runner.core.config import load_config
+
+        evidence_mode = load_config(root).artifact_coverage.evidence_mode
+        if not grouped_evidence_preflight(root, evidence_mode):
+            return None
+        chain = get_cached_manifest_chain(_manifest_dir_path(root, manifest_dir), root)
+        active = chain.active_manifests()
+        if manifest_paths is not None:
+            wanted = {Path(path).as_posix() for path in manifest_paths}
+            active = tuple(
+                manifest
+                for manifest in active
+                if manifest.source_path in wanted
+                or Path(manifest.source_path).as_posix() in wanted
+            )
+        coverage_manifests = tuple(
+            manifest for manifest in active if _coverage_targets(manifest, root)
+        )
+        if not coverage_manifests:
+            return None
+        pre_execution_digest = _content_digest(root)
+    except Exception:
+        return None
+
+    try:
+        run = collect_runtime_evidence(
+            coverage_manifests,
+            root,
+            pytest_workers=pytest_workers,
+        )
+    except Exception as collection_error:
+        # Evidence is an optimization only. The exact legacy coverage stage is
+        # safe only when preparation left the project bytes unchanged.
+        try:
+            failed_collection_digest = _content_digest(root)
+        except Exception as digest_error:
+            raise RuntimeError(
+                "Artifact coverage evidence preparation failed and the current "
+                "project content identity could not be verified"
+            ) from digest_error
+        if failed_collection_digest != pre_execution_digest:
+            raise RuntimeError(
+                "Artifact coverage evidence preparation changed project content; "
+                "the pre-execution coverage baseline cannot be replayed safely"
+            ) from collection_error
+        return None
+
+    try:
+        post_execution_digest = _content_digest(root)
+    except Exception as exc:
+        raise RuntimeError(
+            "Artifact coverage evidence changed project state and its current "
+            "content identity could not be verified"
+        ) from exc
+    if post_execution_digest != pre_execution_digest:
+        raise RuntimeError(
+            "Artifact coverage evidence command changed project content; the "
+            "pre-execution coverage baseline cannot be replayed safely"
+        )
+    return run
+
+
+def _artifact_coverage_stage(
+    root: Path,
+    manifest_dir: str,
+    evidence: RuntimeEvidenceBundle | None = None,
+    manifest_paths: Sequence[str] | None = None,
+) -> VerificationStageResult:
     started = time.monotonic()
     try:
         from maid_runner.cli.commands.validate import (
-            _run_artifact_coverage_for_manifest_dir,
+            _merge_artifact_coverage_reports,
+            _run_artifact_coverage_by_manifest,
         )
 
-        report = _run_artifact_coverage_for_manifest_dir(manifest_dir, root)
+        report = _merge_artifact_coverage_reports(
+            _run_artifact_coverage_by_manifest(
+                manifest_dir,
+                root,
+                evidence=evidence,
+                manifest_paths=manifest_paths,
+            ).values()
+        )
         return VerificationStageResult(
             name="artifact_coverage",
             success=report.success,
@@ -788,29 +1002,45 @@ def _knockout_stage(
     *,
     limit: int | None,
     allow_dirty: bool,
+    evidence: RuntimeEvidenceBundle | None = None,
+    manifest_paths: Sequence[str] | None = None,
+    no_cache: bool = False,
 ) -> VerificationStageResult:
     started = time.monotonic()
     try:
         from maid_runner.core.chain import get_cached_manifest_chain
-        from maid_runner.core.knockout import KnockoutReport, run_knockout
+        from maid_runner.core.knockout import (
+            KnockoutReport,
+            run_knockout_batch,
+        )
+        from maid_runner.core.config import load_config
 
         chain = get_cached_manifest_chain(_manifest_dir_path(root, manifest_dir), root)
-        remaining = limit
+        config = load_config(root)
+        selected = chain.active_manifests()
+        if manifest_paths is not None:
+            wanted = {Path(path).as_posix() for path in manifest_paths}
+            selected = tuple(
+                manifest
+                for manifest in selected
+                if manifest.source_path in wanted
+                or Path(manifest.source_path).as_posix() in wanted
+            )
         results = []
         errors = []
-        for manifest in chain.active_manifests():
-            if remaining is not None and remaining <= 0:
-                break
-            report = run_knockout(
-                manifest,
-                root,
-                limit=remaining,
-                allow_dirty=allow_dirty,
-            )
+        reports = run_knockout_batch(
+            selected,
+            root,
+            evidence=evidence,
+            limit=limit,
+            allow_dirty=allow_dirty,
+            jobs=config.knockout_execution.jobs,
+            max_processes=config.test_execution.max_processes,
+            no_cache=no_cache,
+        )
+        for report in reports.values():
             results.extend(report.results)
             errors.extend(report.errors)
-            if remaining is not None:
-                remaining -= max(len(report.results), len(report.errors))
 
         report = KnockoutReport(results=tuple(results), errors=tuple(errors))
         return VerificationStageResult(
@@ -1077,12 +1307,129 @@ def _changed_scope_stage(
         return _error_stage("changed_scope", started, exc)
 
 
+def _knockout_report_from_stage(stage: VerificationStageResult):
+    from maid_runner.core.knockout import KnockoutReport
+
+    for item in stage._errors:
+        if isinstance(item, KnockoutReport):
+            return item
+    return None
+
+
+def _should_reuse_ordinary_tests(
+    evidence_run: RuntimeEvidenceRun | None,
+    knockout_report: KnockoutReport | None,
+    root: Path,
+    manifest_dir: str,
+    pytest_workers: int | str | None,
+) -> bool:
+    if evidence_run is None or knockout_report is None:
+        return False
+    if not knockout_report.results:
+        return False
+    if evidence_run.evidence.completeness.missing_worker_ids:
+        return False
+    from maid_runner.core.chain import get_cached_manifest_chain
+    from maid_runner.core.runtime_evidence import runtime_evidence_is_current
+
+    chain = get_cached_manifest_chain(_manifest_dir_path(root, manifest_dir), root)
+    wanted = {item.identity.manifest_path for item in evidence_run.evidence.commands}
+    manifests = tuple(
+        manifest
+        for manifest in chain.active_manifests()
+        if manifest.source_path in wanted
+    )
+    return runtime_evidence_is_current(
+        evidence_run.evidence,
+        manifests,
+        root,
+        pytest_workers,
+    )
+
+
+def _partition_reused_test_commands(active, evidence_run: RuntimeEvidenceRun):
+    from maid_runner.core.result import TestRunResult
+    from maid_runner.core.test_runner import _collect_test_command_streams
+
+    _, implementation_commands = _collect_test_command_streams(active)
+    by_key = {
+        (tuple(item.identity.command), item.identity.manifest_path): item
+        for item in evidence_run.evidence.commands
+    }
+    path_by_slug = {manifest.slug: manifest.source_path for manifest in active}
+    reused = []
+    residual = []
+    for command, slug in implementation_commands:
+        item = by_key.get((tuple(command), path_by_slug.get(slug, "")))
+        if item is None:
+            residual.append((command, slug))
+            continue
+        reused.append(
+            TestRunResult(
+                manifest_slug=slug,
+                command=tuple(command),
+                exit_code=item.result.returncode,
+                stdout=item.result.stdout,
+                stderr=item.result.stderr,
+                duration_ms=0.0,
+            )
+        )
+    return reused, residual
+
+
+def _tests_result_from_reused_evidence(
+    active,
+    evidence_run: RuntimeEvidenceRun,
+    root: Path,
+    fail_fast: bool,
+    test_jobs: int,
+    pytest_workers: int | str | None,
+    chain_errors,
+):
+    from maid_runner.core.result import BatchTestResult
+    from maid_runner.core.test_runner import _run_implementation_commands
+
+    reused, residual = _partition_reused_test_commands(active, evidence_run)
+    scheduling_notices = []
+    passed = sum(item.success for item in reused)
+    failed = len(reused) - passed
+    results = list(reused)
+    if residual:
+        extra, extra_passed, extra_failed, early = _run_implementation_commands(
+            residual,
+            root,
+            None,
+            fail_fast,
+            list(chain_errors),
+            results,
+            passed,
+            failed,
+            jobs=test_jobs,
+            pytest_workers=pytest_workers,
+            scheduling_notices=scheduling_notices,
+        )
+        if early is not None:
+            return early
+        results, passed, failed = extra, extra_passed, extra_failed
+    return BatchTestResult(
+        results=results,
+        total=len(results),
+        passed=passed,
+        failed=failed,
+        chain_errors=list(chain_errors),
+        scheduling_notices=tuple(scheduling_notices),
+    )
+
+
 def _tests_stage(
     root: Path,
     manifest_dir: str,
     fail_fast: bool,
     test_jobs: int = 1,
     manifest_paths: Iterable[str | Path] | None = None,
+    pytest_workers: int | str | None = None,
+    evidence_run: RuntimeEvidenceRun | None = None,
+    reuse_ordinary_tests: bool = False,
 ) -> VerificationStageResult:
     started = time.monotonic()
     try:
@@ -1109,12 +1456,29 @@ def _tests_stage(
                     _errors=tuple(integrity_errors),
                 )
 
-            result = run_tests(
-                manifest_dir=manifest_dir,
-                project_root=root,
-                fail_fast=fail_fast,
-                jobs=test_jobs,
-            )
+            if reuse_ordinary_tests and evidence_run is not None:
+                from maid_runner.core.chain import get_cached_manifest_chain
+
+                chain = get_cached_manifest_chain(
+                    _manifest_dir_path(root, manifest_dir), root
+                )
+                result = _tests_result_from_reused_evidence(
+                    chain.active_manifests(),
+                    evidence_run,
+                    root,
+                    fail_fast,
+                    test_jobs,
+                    pytest_workers,
+                    chain.diagnostics(),
+                )
+            else:
+                result = run_tests(
+                    manifest_dir=manifest_dir,
+                    project_root=root,
+                    fail_fast=fail_fast,
+                    jobs=test_jobs,
+                    pytest_workers=pytest_workers,
+                )
         else:
             from maid_runner.core.chain import get_cached_manifest_chain
             from maid_runner.core.result import BatchTestResult
@@ -1151,27 +1515,42 @@ def _tests_stage(
                     _duration_ms=_elapsed_ms(started),
                     _errors=tuple([*chain_errors, *integrity_errors]),
                 )
-            _, implementation_commands = _collect_test_command_streams(active)
-            results, passed, failed, early_result = _run_implementation_commands(
-                implementation_commands,
-                root,
-                None,
-                fail_fast,
-                list(chain_errors),
-                [],
-                0,
-                0,
-                jobs=test_jobs,
-            )
-            result = early_result
-            if result is None:
-                result = BatchTestResult(
-                    results=results,
-                    total=len(results),
-                    passed=passed,
-                    failed=failed,
-                    chain_errors=list(chain_errors),
+            if reuse_ordinary_tests and evidence_run is not None:
+                result = _tests_result_from_reused_evidence(
+                    active,
+                    evidence_run,
+                    root,
+                    fail_fast,
+                    test_jobs,
+                    pytest_workers,
+                    chain_errors,
                 )
+            else:
+                _, implementation_commands = _collect_test_command_streams(active)
+                scheduling_notices = []
+                results, passed, failed, early_result = _run_implementation_commands(
+                    implementation_commands,
+                    root,
+                    None,
+                    fail_fast,
+                    list(chain_errors),
+                    [],
+                    0,
+                    0,
+                    jobs=test_jobs,
+                    pytest_workers=pytest_workers,
+                    scheduling_notices=scheduling_notices,
+                )
+                result = early_result
+                if result is None:
+                    result = BatchTestResult(
+                        results=results,
+                        total=len(results),
+                        passed=passed,
+                        failed=failed,
+                        chain_errors=list(chain_errors),
+                        scheduling_notices=tuple(scheduling_notices),
+                    )
         return VerificationStageResult(
             name="tests",
             success=result.success,

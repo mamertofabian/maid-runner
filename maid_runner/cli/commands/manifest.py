@@ -308,21 +308,34 @@ def _migrate_promotion_lock(
     from maid_runner.core.manifest import ManifestLoadError, ManifestSchemaError
     from maid_runner.core.plan_lock import (
         capture_red_phase_evidence,
+        revision_preserves_red_evidence,
         revise_plan_lock,
         _load_locked_contract,
     )
 
     reason = f"Migrated by maid manifest promote: {old_rel} -> {new_rel}"
     try:
+        prior_contract = _load_locked_contract(lock_path)
+        preserve_red_evidence = (
+            lock.red_evidence is not None
+            and revision_preserves_red_evidence(
+                lock,
+                output_path,
+                project_root,
+                prior_contract,
+            )
+        )
         migrated = revise_plan_lock(
             lock,
             output_path,
             project_root,
             reason,
-            prior_contract=_load_locked_contract(lock_path),
+            prior_contract=prior_contract,
             preserve_legacy_baseline=no_run,
         )
-        if not no_run:
+        if preserve_red_evidence:
+            migrated = replace(migrated, red_evidence=lock.red_evidence)
+        elif not no_run:
             migrated = replace(
                 migrated,
                 red_evidence=capture_red_phase_evidence(

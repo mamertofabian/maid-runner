@@ -1,0 +1,169 @@
+{
+  "manifest_path": "manifests/fix-snapshot-created-utc-z.manifest.yaml",
+  "manifest_hash": "sha256-contract:96a9d344340754375731876e6f04c6d5ecd5a94ac7c7d775ecacea417cd422fd",
+  "test_hashes": {
+    "tests/core/test_snapshot.py": "sha256-pyast:v2:958d2124e474510fa0e549263200fd640dfa3657a2db0ef284f1464103060e43",
+    "tests/core/test_snapshot_created_timestamp.py": "sha256-pyast:v2:4231c147444fc43873baad4309b62d4461caba09d00dd1f0b764904b61aed4ea"
+  },
+  "created_at": "2026-08-17T02:14:22.367713+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:82d3eacf48c032b8f0442c530335ae1f2f34246f4b485e9e6a5054e9cdf4cf21",
+      "prior_test_hashes": {
+        "tests/core/test_snapshot.py": "sha256-pyast:v2:958d2124e474510fa0e549263200fd640dfa3657a2db0ef284f1464103060e43",
+        "tests/core/test_snapshot_created_timestamp.py": "sha256-pyast:v2:4231c147444fc43873baad4309b62d4461caba09d00dd1f0b764904b61aed4ea"
+      },
+      "revised_at": "2026-08-17T02:14:23.033599+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-snapshot-created-utc-z.manifest.yaml -> manifests/fix-snapshot-created-utc-z.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-17T02:14:22.738292+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_snapshot_created_timestamp.py tests/core/test_snapshot.py",
+        "exit_code": 1,
+        "output_tail": "            manifests, project_root=tmp_path\n        )\n        empty_system = generate_system_snapshot(\n            tmp_path / \"missing-manifests\", project_root=tmp_path\n        )\n        after = datetime.now(timezone.utc).replace(microsecond=0)\n    \n        assert single.created is not None\n        assert populated_system.created is not None\n        assert empty_system.created is not None\n>       assert _UTC_Z_TIMESTAMP.fullmatch(single.created)\nE       AssertionError: assert None\nE        +  where None = <built-in method fullmatch of re.Pattern object at 0x7594860fa500>('2026-08-17T02:14:22.610133+00:00')\nE        +    where <built-in method fullmatch of re.Pattern object at 0x7594860fa500> = re.compile('^\\\\d{4}-\\\\d{2}-\\\\d{2}T\\\\d{2}:\\\\d{2}:\\\\d{2}Z$').fullmatch\nE        +    and   '2026-08-17T02:14:22.610133+00:00' = Manifest(slug='snapshot-src-target', source_path='', goal='Snapshot of src/target.py', validate_commands=(('pytest', '...'2026-08-17T02:14:22.610133+00:00', metadata=None, acceptance=None, temptations=(), removed_artifacts=(), outcome=None).created\n\ntests/core/test_snapshot_created_timestamp.py:52: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_snapshot_created_timestamp.py::test_snapshot_generators_emit_canonical_utc_z_created_timestamps\n1 failed, 33 passed in 0.20s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/snapshot.py:function:generate_snapshot",
+      "maid_runner/core/snapshot.py:function:generate_snapshot:arg=file_path:type=Union[str, Path]:default=None",
+      "maid_runner/core/snapshot.py:function:generate_snapshot:arg=include_private:type=bool:default=False",
+      "maid_runner/core/snapshot.py:function:generate_snapshot:arg=project_root:type=Union[str, Path]:default=\".\"",
+      "maid_runner/core/snapshot.py:function:generate_snapshot:arg=registry:type=ValidatorRegistry | None:default=None",
+      "maid_runner/core/snapshot.py:function:generate_snapshot:kind=function",
+      "maid_runner/core/snapshot.py:function:generate_snapshot:returns=Manifest",
+      "maid_runner/core/snapshot.py:function:generate_system_snapshot",
+      "maid_runner/core/snapshot.py:function:generate_system_snapshot:arg=include_private:type=bool:default=False",
+      "maid_runner/core/snapshot.py:function:generate_system_snapshot:arg=manifest_dir:type=Union[str, Path]:default=\"manifests/\"",
+      "maid_runner/core/snapshot.py:function:generate_system_snapshot:arg=project_root:type=Union[str, Path]:default=\".\"",
+      "maid_runner/core/snapshot.py:function:generate_system_snapshot:arg=registry:type=ValidatorRegistry | None:default=None",
+      "maid_runner/core/snapshot.py:function:generate_system_snapshot:kind=function",
+      "maid_runner/core/snapshot.py:function:generate_system_snapshot:returns=Manifest",
+      "tests/core/test_snapshot_created_timestamp.py:test_snapshot_generators_emit_canonical_utc_z_created_timestamps",
+      "tests/core/test_snapshot_created_timestamp.py:test_snapshot_generators_emit_canonical_utc_z_created_timestamps:kind=test_function",
+      "tests/core/test_snapshot_created_timestamp.py:test_snapshot_generators_emit_canonical_utc_z_created_timestamps:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_snapshot_created_timestamp.py"
+      ],
+      "edit": [
+        "maid_runner/core/snapshot.py"
+      ],
+      "read": [
+        "maid_runner/core/chain.py",
+        "maid_runner/core/types.py",
+        "manifests/consolidate-core-snapshot-contract.manifest.yaml",
+        "tests/core/test_snapshot.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_snapshot_created_timestamp.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_snapshot_generators_emit_canonical_utc_z_created_timestamps",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/snapshot.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "generate_snapshot",
+              "args": [
+                {
+                  "name": "file_path",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]",
+                  "default": "\".\""
+                },
+                {
+                  "name": "include_private",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "registry",
+                  "type": "ValidatorRegistry | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "Manifest"
+            },
+            {
+              "kind": "function",
+              "name": "generate_system_snapshot",
+              "args": [
+                {
+                  "name": "manifest_dir",
+                  "type": "Union[str, Path]",
+                  "default": "\"manifests/\""
+                },
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]",
+                  "default": "\".\""
+                },
+                {
+                  "name": "include_private",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "registry",
+                  "type": "ValidatorRegistry | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "Manifest"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/chain.py",
+        "maid_runner/core/types.py",
+        "tests/core/test_snapshot.py",
+        "manifests/consolidate-core-snapshot-contract.manifest.yaml"
+      ]
+    },
+    "test_files": [
+      "tests/core/test_snapshot.py",
+      "tests/core/test_snapshot_created_timestamp.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_snapshot_created_timestamp.py tests/core/test_snapshot.py"
+    ]
+  }
+}

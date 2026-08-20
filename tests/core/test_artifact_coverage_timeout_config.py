@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import subprocess
 from pathlib import Path
 
 import pytest
@@ -65,48 +64,75 @@ def test_artifact_coverage_config_enforces_invariant_directly() -> None:
 
 def test_single_artifact_coverage_uses_configured_timeout(
     tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from maid_runner.core.artifact_coverage import run_artifact_coverage
 
     manifest = load_manifest(_write_project(tmp_path))
     _write_timeout(tmp_path, 901)
-    timeouts = _record_coverage_timeouts(monkeypatch)
+    executor = _timeout_recording_executor(tmp_path)
 
-    report = run_artifact_coverage(manifest, tmp_path)
+    report = run_artifact_coverage(manifest, tmp_path, executor=executor)
 
     assert report.success is True
-    assert timeouts == [901.0]
+    assert executor.timeouts == [901.0]
 
 
 def test_batched_artifact_coverage_uses_configured_timeout(
     tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from maid_runner.core.artifact_coverage import run_artifact_coverage_batch
 
     manifest = load_manifest(_write_project(tmp_path))
     _write_timeout(tmp_path, 902.5)
-    timeouts = _record_coverage_timeouts(monkeypatch)
+    executor = _timeout_recording_executor(tmp_path)
 
-    reports = run_artifact_coverage_batch([manifest], tmp_path)
+    reports = run_artifact_coverage_batch(
+        [manifest],
+        tmp_path,
+        executor=executor,
+    )
 
     assert reports[manifest.source_path].success is True
-    assert timeouts == [902.5]
+    assert executor.timeouts == [902.5]
 
 
-def _record_coverage_timeouts(monkeypatch: pytest.MonkeyPatch) -> list[float]:
-    real_run = subprocess.run
-    timeouts: list[float] = []
+class _TimeoutRecordingExecutor:
+    def __init__(self, record: object) -> None:
+        self.record = record
+        self.timeouts: list[float] = []
 
-    def recording_run(command, *args, **kwargs):
-        normalized = tuple(str(part) for part in command)
-        if "coverage" in normalized and "run" in normalized:
-            timeouts.append(kwargs["timeout"])
-        return real_run(command, *args, **kwargs)
+    def execute(
+        self,
+        command: tuple[str, ...],
+        target_files: set[str],
+        project_root: Path,
+        timeout_seconds: float,
+    ) -> object:
+        self.timeouts.append(timeout_seconds)
+        return self.record
 
-    monkeypatch.setattr(subprocess, "run", recording_run)
-    return timeouts
+
+def _timeout_recording_executor(root: Path) -> _TimeoutRecordingExecutor:
+    from maid_runner.core._runtime_command_executor import (
+        RuntimeCommandRecord,
+        RuntimeFileExecution,
+    )
+
+    return _TimeoutRecordingExecutor(
+        RuntimeCommandRecord(
+            command=("tests/test_target.py", "-q"),
+            returncode=0,
+            stdout="",
+            stderr="",
+            execution_data={
+                str((root / "src/target.py").resolve()): RuntimeFileExecution(
+                    executed_lines=frozenset({2}),
+                    called_qualnames=frozenset({"target"}),
+                )
+            },
+            report_errors=(),
+        )
+    )
 
 
 def _write_timeout(root: Path, value: float) -> None:
