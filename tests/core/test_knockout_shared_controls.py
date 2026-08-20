@@ -264,7 +264,6 @@ def test_dependency_drift_between_group_mutations_fails_closed(
     from maid_runner.core.knockout import run_knockout_batch
 
     manifest = _manifest(tmp_path, "dependency", ("alpha", "beta"))
-    (tmp_path / ".venv").mkdir()
     (tmp_path / ".venv/seed").write_text("stable\n", encoding="utf-8")
     executor = _DependencyDriftExecutor()
 
@@ -515,6 +514,8 @@ def _manifest(
     commands: tuple[str, ...] = ("shared-check",),
     git: bool = False,
 ):
+    # These control-sharing scenarios use injected executors and need no packages.
+    (root / ".venv").mkdir(parents=True, exist_ok=True)
     (root / "src").mkdir(parents=True, exist_ok=True)
     (root / "tests").mkdir(exist_ok=True)
     (root / "manifests").mkdir(exist_ok=True)
