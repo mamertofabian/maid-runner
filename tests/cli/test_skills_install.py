@@ -11,6 +11,8 @@ import json
 import os
 from pathlib import Path
 
+import pytest
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
@@ -143,6 +145,28 @@ def test_skills_install_command_installs_to_target_root(tmp_path: Path) -> None:
             "review",
         ):
             assert boundary in normalized_skill_text
+
+
+def test_skills_uninstall_classifies_validation_rejection_as_operational_failure(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture,
+) -> None:
+    from maid_runner.cli.commands import skills as skills_mod
+    from maid_runner.cli.commands._main import main
+
+    def reject_changed_ownership(*_args: object, **_kwargs: object) -> None:
+        raise ValueError("changed after uninstall planning")
+
+    monkeypatch.setattr(skills_mod, "uninstall_onboard_skill", reject_changed_ownership)
+
+    exit_code = main(["skills", "uninstall", "--target-root", str(tmp_path / "home")])
+
+    assert exit_code == 1
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert "changed after uninstall planning" in captured.err
+    assert "Internal error" not in captured.err
 
 
 def test_sync_user_skills_packages_onboard_skill(tmp_path: Path, monkeypatch) -> None:

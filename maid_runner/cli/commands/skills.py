@@ -65,7 +65,11 @@ def _cmd_skills_uninstall(args: argparse.Namespace) -> int:
     target_root = _resolve_target_root(args)
     payload_root = _packaged_user_skills_root()
     dry_run = bool(getattr(args, "dry_run", False))
-    report = uninstall_onboard_skill(target_root, payload_root, dry_run)
+    try:
+        report = uninstall_onboard_skill(target_root, payload_root, dry_run)
+    except (OSError, ValueError) as exc:
+        print_error(str(exc))
+        return 1
 
     if not report.removed and not report.preserved:
         print(f"No installed maid-onboard skills found under {target_root}")
