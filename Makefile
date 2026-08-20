@@ -1,11 +1,12 @@
 # MAID Runner Development Makefile
 # Convenience commands for development workflow
 
-.PHONY: help test validate watch dev install-dev sync-agent-payloads sync-claude build clean dead-code
+.PHONY: help test test-serial validate watch dev install-dev sync-agent-payloads sync-claude build clean dead-code
 
 help:
 	@echo "MAID Runner Development Commands:"
-	@echo "  make test          - Run all tests"
+	@echo "  make test          - Run all tests (parallel)"
+	@echo "  make test-serial   - Run all tests serially (debug xdist issues)"
 	@echo "  make validate      - Validate all manifests"
 	@echo "  make watch TASK=005 - Watch and test specific task"
 	@echo "  make dev TASK=005  - Run tests once for specific task"
@@ -20,9 +21,13 @@ help:
 	@echo "  make build         - Build package (includes sync-agent-payloads)"
 	@echo "  make clean         - Clean generated files"
 
-# Run all tests
+# Run all tests (parallel; -v on 4571 tests is pure I/O cost)
 test:
-	uv run python -m pytest tests/ -v
+	uv run python -m pytest tests/ -q -n auto
+
+# Run all tests serially (for debugging xdist-sensitive failures)
+test-serial:
+	uv run python -m pytest tests/ -q
 
 # Validate all manifests
 validate:

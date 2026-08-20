@@ -62,19 +62,51 @@ class TestCmdSnapshot:
 
 
 class TestCmdSnapshotSystem:
-    def test_snapshot_system_runs_successfully(self, capsys):
+    def test_snapshot_system_runs_successfully(self, tmp_path, monkeypatch, capsys):
         """snapshot-system command runs and produces output."""
         from maid_runner.cli.commands._main import main
+
+        _write_system_snapshot_project(tmp_path)
+        monkeypatch.chdir(tmp_path)
 
         exit_code = main(["snapshot-system"])
         assert exit_code == 0
         captured = capsys.readouterr()
         assert "snapshot" in captured.out.lower() or captured.out.strip() != ""
 
-    def test_snapshot_system_with_output(self, tmp_path):
+    def test_snapshot_system_with_output(self, tmp_path, monkeypatch):
         from maid_runner.cli.commands._main import main
+
+        _write_system_snapshot_project(tmp_path)
+        monkeypatch.chdir(tmp_path)
 
         output = tmp_path / "system.manifest.yaml"
         exit_code = main(["snapshot-system", "--output", str(output)])
         assert exit_code == 0
         assert output.exists()
+
+
+def _write_system_snapshot_project(root):
+    source = root / "src" / "greet.py"
+    source.parent.mkdir(parents=True)
+    source.write_text("def hello() -> str:\n    return 'hello'\n", encoding="utf-8")
+    manifests = root / "manifests"
+    manifests.mkdir()
+    (manifests / "greet.manifest.yaml").write_text(
+        """schema: "2"
+goal: "Track greet"
+type: feature
+created: "2026-08-20T00:00:00Z"
+files:
+  edit:
+    - path: src/greet.py
+      artifacts:
+        - kind: function
+          name: hello
+          args: []
+          returns: str
+validate:
+  - python -m pytest -q tests/test_greet.py
+""",
+        encoding="utf-8",
+    )

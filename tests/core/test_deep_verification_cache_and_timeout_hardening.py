@@ -194,7 +194,7 @@ def test_exact_coverage_timeout_reaps_detached_descendants(tmp_path: Path) -> No
             ("tests/test_timeout.py", "-q"),
             {str(source.resolve())},
             project,
-            timeout_seconds=1,
+            timeout_seconds=0.5,
         )
 
         assert record.returncode != 0

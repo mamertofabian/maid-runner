@@ -284,7 +284,7 @@ def test_disjoint_exact_fallbacks_overlap_within_process_budget(tmp_path):
 
     root = tmp_path / "project"
     identities = _identities(_write_project(root))
-    executor = _RecordingExecutor(root, delays={"alpha": 0.08, "beta": 0.08})
+    executor = _RecordingExecutor(root, delays={"alpha": 0.02, "beta": 0.02})
     run_isolated_artifact_coverage_fallbacks(
         identities,
         root,
@@ -327,7 +327,7 @@ def test_disjoint_exact_fallbacks_overlap_within_process_budget(tmp_path):
 
     class ExclusiveRecordingExecutor(_RecordingExecutor):
         def __init__(self, source_root):
-            super().__init__(source_root, delays={"alpha": 0.08, "beta": 0.08})
+            super().__init__(source_root, delays={"alpha": 0.02, "beta": 0.02})
             self.broad_active = False
             self.overlapped_broad = False
 
@@ -821,7 +821,7 @@ def test_pinned_xdist_workers_return_target_calls_and_lines(tmp_path):
         "        assert time.monotonic() < deadline\n"
         "        time.sleep(0.01)\n"
         "    append('start')\n"
-        "    time.sleep(0.2)\n"
+        "    time.sleep(0.05)\n"
         "    append('end')\n"
     )
     (root / "tests/test_alpha.py").write_text(
@@ -849,7 +849,7 @@ def test_pinned_xdist_workers_return_target_calls_and_lines(tmp_path):
         '        "p=Path(sys.argv[1]); n=sys.argv[2]; "\n'
         '        "fd=os.open(p, os.O_APPEND|os.O_CREAT|os.O_WRONLY, 0o600); "\n'
         "        \"os.write(fd, f'{n}:start:{time.monotonic_ns()}\\\\n'.encode()); os.close(fd); \"\n"
-        '        "time.sleep(0.2); "\n'
+        '        "time.sleep(0.05); "\n'
         '        "fd=os.open(p, os.O_APPEND|os.O_CREAT|os.O_WRONLY, 0o600); "\n'
         "        \"os.write(fd, f'{n}:end:{time.monotonic_ns()}\\\\n'.encode()); os.close(fd)\")\n"
         "    subprocess.run([sys.executable, '-c', code, "
@@ -1079,10 +1079,10 @@ def test_generated_xdist_child_process_permits_fail_closed_and_release(
     actual_pool = permit_pool_class(call_directory, permits=2)
     ActualPopen = wrapped_popen(subprocess.Popen, actual_pool)
     first_unobserved = ActualPopen(
-        (sys.executable, "-c", "import time; time.sleep(0.1)")
+        (sys.executable, "-c", "import time; time.sleep(0.03)")
     )
     second_unobserved = ActualPopen(
-        (sys.executable, "-c", "import time; time.sleep(0.1)")
+        (sys.executable, "-c", "import time; time.sleep(0.03)")
     )
     replacements_ready = threading.Barrier(3, timeout=2)
     replacement_sentinel = tmp_path / "release-replacements"

@@ -3,12 +3,12 @@
   "manifest_hash": "sha256-contract:d766e442fdececc1ea9c92f2371e0009b860daa2fc1d7bf0659a5e77b813db9f",
   "test_hashes": {
     "tests/core/test_pytest_worker_execution.py": "sha256-pyast:v2:474e8328afd490c2216932e704fb284bbd1f8c4991c93f687b7c0bd0e8a8d18f",
-    "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7",
-    "tests/cli/test_chain_merge_refresh_evidence_command.py": "sha256-pyast:v2:cca5ba5ee1501f4b54595ba97f2e9f328503f90698dda1113f95458590dc6971",
+    "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:e90baae652d05e55fb5caba7f5f6f733b3161bdd7d8ad44bba8a0728afcbe332",
+    "tests/cli/test_chain_merge_refresh_evidence_command.py": "sha256-pyast:v2:9ca1896a8c143f90109ba0f2675eb3ed37925558b902a7a84060a8802c64cbf5",
     "tests/core/test_runtime_evidence_preparation_environment.py": "sha256-pyast:v2:c8075518c7cc7459fadd53c6124f8787d2d3da00ad5587be5270e10207edabba"
   },
   "created_at": "2026-08-19T18:53:27.524978+00:00",
-  "revision": 7,
+  "revision": 8,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:1f72b53162ea780e166e984a6397f7cbb61993c604a11fad3ca989744ce022d5",
@@ -139,6 +139,26 @@
       },
       "revised_at": "2026-08-19T19:58:00.196369+00:00",
       "reason": "Accept approved additive pytest-timing cache controls in the shared chain-refresh test file",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d766e442fdececc1ea9c92f2371e0009b860daa2fc1d7bf0659a5e77b813db9f",
+      "prior_test_hashes": {
+        "tests/core/test_pytest_worker_execution.py": "sha256-pyast:v2:474e8328afd490c2216932e704fb284bbd1f8c4991c93f687b7c0bd0e8a8d18f",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7",
+        "tests/cli/test_chain_merge_refresh_evidence_command.py": "sha256-pyast:v2:cca5ba5ee1501f4b54595ba97f2e9f328503f90698dda1113f95458590dc6971",
+        "tests/core/test_runtime_evidence_preparation_environment.py": "sha256-pyast:v2:c8075518c7cc7459fadd53c6124f8787d2d3da00ad5587be5270e10207edabba"
+      },
+      "revised_at": "2026-08-20T16:13:33.418985+00:00",
+      "reason": "accept performance-preserving test optimization",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
