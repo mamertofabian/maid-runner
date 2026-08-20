@@ -345,14 +345,23 @@ def test_runtime_evidence_identity_probe_uses_executor_environment_policy(
     collection_probe_count = sum(
         record["argv"] == ["-c"] for record in collection_records
     )
+    evaluation_executor = SubprocessRuntimeCommandExecutor(
+        environment_overrides={
+            "PROBE_OBSERVATION_PATH": str(explicit_observations),
+            "PYTHONPATH": str(project),
+            "SNAPSHOT_BOUND": "evaluation",
+        },
+        environment_removals=("GIT_DIR",),
+    )
     evaluation = evaluate_artifact_coverage_from_evidence(
         [load_manifest(manifest_path)],
         project,
         run.evidence,
-        fallback_executor=executor,
+        fallback_executor=evaluation_executor,
     )
 
     records = _records(explicit_observations)
+    evaluation_records = records[len(collection_records) :]
     evaluation_probe_count = sum(record["argv"] == ["-c"] for record in records)
     assert run.test_result.failed == 0, run.test_result.results[0].stderr
     assert evaluation.complete is True
@@ -361,6 +370,10 @@ def test_runtime_evidence_identity_probe_uses_executor_environment_policy(
     assert evaluation_probe_count == collection_probe_count + 1
     assert all(
         record["snapshot_bound"] == "identity" and record["git_dir"] is None
-        for record in records
+        for record in collection_records
+    )
+    assert all(
+        record["snapshot_bound"] == "evaluation" and record["git_dir"] is None
+        for record in evaluation_records
     )
     assert not ambient_observations.exists()
