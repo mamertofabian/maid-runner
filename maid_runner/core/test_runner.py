@@ -48,6 +48,9 @@ from maid_runner.core.result import (
 from maid_runner.core.types import Manifest, TestStream
 
 
+_MANIFEST_TEST_COMMAND_TIMEOUT_SECONDS = 600
+
+
 def _is_python_command(cmd: str) -> bool:
     return _normalization_is_python_command(cmd)
 
@@ -504,6 +507,7 @@ def _run_prepared_test_command(
     return run_command(
         prepared.command,
         cwd=project_root,
+        timeout=_MANIFEST_TEST_COMMAND_TIMEOUT_SECONDS,
         manifest_slug=manifest_slug,
         environment_overrides=prepared.environment_overrides,
     )

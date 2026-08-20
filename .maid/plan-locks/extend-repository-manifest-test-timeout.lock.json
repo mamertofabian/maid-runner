@@ -1,0 +1,132 @@
+{
+  "manifest_path": "manifests/extend-repository-manifest-test-timeout.manifest.yaml",
+  "manifest_hash": "sha256-contract:d2a53d2cd3ca4568001fa9e611a4ad87e07779510fc32d11c3c829339cc1533c",
+  "test_hashes": {
+    "tests/core/test_test_runner.py": "sha256-pyast:v2:2a46dba2a774564ad767b932024b33dee078631aa5e13903fe70bd0736e38a0a",
+    "tests/core/test_manifest_test_command_timeout.py": "sha256-pyast:v2:907b03bfe4513c4856b5884012be5e93f61870acc25c022e49674ca32761ee3a"
+  },
+  "created_at": "2026-08-20T11:37:52.683182+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:757ac35ccc68d9f726ba84b2c21f6122db711f80e2b2b9c556862526dd79d5f1",
+      "prior_test_hashes": {
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:2a46dba2a774564ad767b932024b33dee078631aa5e13903fe70bd0736e38a0a",
+        "tests/core/test_manifest_test_command_timeout.py": "sha256-pyast:v2:907b03bfe4513c4856b5884012be5e93f61870acc25c022e49674ca32761ee3a"
+      },
+      "revised_at": "2026-08-20T11:37:53.335567+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/extend-repository-manifest-test-timeout.manifest.yaml -> manifests/extend-repository-manifest-test-timeout.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2a6eef7762ac2f68e3c8bb8cc59c9af931835a88d632652609eea0b6e06ce700",
+      "prior_test_hashes": {
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:2a46dba2a774564ad767b932024b33dee078631aa5e13903fe70bd0736e38a0a",
+        "tests/core/test_manifest_test_command_timeout.py": "sha256-pyast:v2:907b03bfe4513c4856b5884012be5e93f61870acc25c022e49674ca32761ee3a"
+      },
+      "revised_at": "2026-08-20T11:39:10.412473+00:00",
+      "reason": "execute every declared behavioral test file",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/core/test_manifest_test_command_timeout.py tests/core/test_test_runner.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/core/test_manifest_test_command_timeout.py"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-20T11:39:14.311088+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_manifest_test_command_timeout.py tests/core/test_test_runner.py",
+        "exit_code": 1,
+        "output_tail": "                stderr=\"\",\n                duration_ms=1.0,\n                stream=stream,\n            )\n    \n        monkeypatch.setattr(\"maid_runner.core.test_runner.run_command\", execute)\n    \n        result = run_tests(manifest_dir=\"manifests\", project_root=tmp_path, jobs=1)\n    \n        assert result.success is True\n>       assert observed_timeouts == [600]\nE       assert [300] == [600]\nE         \nE         At index 0 diff: 300 != 600\nE         Use -v to get more diff\n\ntests/core/test_manifest_test_command_timeout.py:99: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_manifest_test_command_timeout.py::test_manifest_test_commands_use_release_safe_bounded_timeout\n1 failed, 88 passed in 3.69s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/test_manifest_test_command_timeout.py:test_manifest_test_commands_use_release_safe_bounded_timeout",
+      "tests/core/test_manifest_test_command_timeout.py:test_manifest_test_commands_use_release_safe_bounded_timeout:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/core/test_manifest_test_command_timeout.py:test_manifest_test_commands_use_release_safe_bounded_timeout:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_manifest_test_command_timeout.py:test_manifest_test_commands_use_release_safe_bounded_timeout:kind=test_function",
+      "tests/core/test_manifest_test_command_timeout.py:test_manifest_test_commands_use_release_safe_bounded_timeout:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_manifest_test_command_timeout.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/core/_test_command_execution.py",
+        "tests/core/test_test_runner.py"
+      ],
+      "scope": [
+        "maid_runner/core/test_runner.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_manifest_test_command_timeout.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_manifest_test_commands_use_release_safe_bounded_timeout",
+              "description": "Public repository execution aggregates compatible manifest commands and passes a 600-second bound to the command executor while retaining the public 300-second default.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_test_command_execution.py",
+        "tests/core/test_test_runner.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/test_runner.py",
+          "reason": "The internal prepared-command composition owns the timeout passed to the unchanged command executor API."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_manifest_test_command_timeout.py",
+      "tests/core/test_test_runner.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_manifest_test_command_timeout.py tests/core/test_test_runner.py"
+    ]
+  }
+}
