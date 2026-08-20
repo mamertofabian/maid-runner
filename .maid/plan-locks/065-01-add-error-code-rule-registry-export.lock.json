@@ -3,10 +3,10 @@
   "manifest_hash": "sha256-contract:c7f3236ed66eed1ca345d712bcfdb3f963bbe7de3662c71fc31be30112d4351e",
   "test_hashes": {
     "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:d9428231f4f91827521a818c261dca44a3eaa08aaa343a14aa9ed13a48badb4b",
-    "tests/integration/test_library_api.py": "sha256-pyast:v2:2c5e85fe25a25a5c0cda8baa421c517543e81cb25d9b490a3997d8dde47793d4"
+    "tests/integration/test_library_api.py": "sha256-pyast:v2:d9eefe3746580f63a6372422081c5e861326533a972dd1a4c83ad4a9ff09667d"
   },
   "created_at": "2026-06-17T07:27:27.229629+00:00",
-  "revision": 29,
+  "revision": 32,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:20b2f891dfaf7ebf2f67da732733d904d18d9ec16e59c223d56f193f3869af75",
@@ -423,6 +423,60 @@
       },
       "revised_at": "2026-08-16T08:30:32.494110+00:00",
       "reason": "Accept the approved E715 diagnostics-registry test expansion from chain-merge child 5",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c7f3236ed66eed1ca345d712bcfdb3f963bbe7de3662c71fc31be30112d4351e",
+      "prior_test_hashes": {
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:d9428231f4f91827521a818c261dca44a3eaa08aaa343a14aa9ed13a48badb4b",
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:2c5e85fe25a25a5c0cda8baa421c517543e81cb25d9b490a3997d8dde47793d4"
+      },
+      "revised_at": "2026-08-20T05:28:15.944677+00:00",
+      "reason": "accept approved 2.27.0 shared release-metadata test change",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c7f3236ed66eed1ca345d712bcfdb3f963bbe7de3662c71fc31be30112d4351e",
+      "prior_test_hashes": {
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:d9428231f4f91827521a818c261dca44a3eaa08aaa343a14aa9ed13a48badb4b",
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:cb65fef1ad46dfb358f7f340fadc62b2f6e085d8c540b5885ecca86453b91658"
+      },
+      "revised_at": "2026-08-20T09:33:14.380719+00:00",
+      "reason": "accept approved 2.27.0 release-note assertion additions",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c7f3236ed66eed1ca345d712bcfdb3f963bbe7de3662c71fc31be30112d4351e",
+      "prior_test_hashes": {
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:d9428231f4f91827521a818c261dca44a3eaa08aaa343a14aa9ed13a48badb4b",
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:ae284959c04825595efe19e29fe22b1294e46872b3ee12893a98180b44fc2ac7"
+      },
+      "revised_at": "2026-08-20T10:00:48.926428+00:00",
+      "reason": "accept approved 2.27.0 release-metadata shared-test completeness contract",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

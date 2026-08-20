@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.27.0] - 2026-08-20
+
+### Added
+- **Manifest-chain consolidation** — Added `maid chain merge <file>` fragmentation reports, repository-wide `--all` sweeps, and refusal-based `--apply` materialization so mature repositories can flatten overlapping manifest ownership without dropping declared artifacts, unrelated multi-file contracts, or validation obligations.
+- **Differential knockout proof** — Strengthened deep verification to require mutation-caused test failures rather than accepting tests that merely execute an artifact. Knockouts run in isolated project snapshots with bounded workers and restored-control checks so verification cannot mutate the shared checkout or mistake ambient failures for detection.
+- **Recorded chain evidence** — Connected chain-merge reports and equivalence gates to fresh artifact-coverage and knockout evidence, including an explicit per-file refresh path. Consolidation remains read-only by default and reports blocked or unknown evidence instead of running hidden repository-wide mutations.
+
+### Changed
+- **Deep-verification performance** — Added duration-informed pytest workers, fixture-aware runtime evidence, focused knockout node selection, task-scoped assessment, bounded isolated lanes, and hermetic artifact-coverage and knockout caches. Cached or derived evidence remains content-, environment-, declaration-, and command-bound, with exact execution retained as the fail-closed fallback.
+- **Fast manifest test gate** — Reused equivalent ordinary pytest outcomes after isolated knockout proof and safely overlapped independent external commands with cached validation, while preserving deterministic result projection and fail-closed reruns when reuse evidence is incomplete.
+
+### Fixed
+- **Chain-merge contract preservation** — Preserved complete effective `ArtifactSpec` values, canonical artifact ordering, tracked paths, unrelated contracts from multi-file owners, and target equivalence during materialization; fixed dry-run mutation, formatter drift, protocol classification, and same-named evidence leakage.
+- **Artifact-coverage correctness** — Credited executed package re-exports and approved fixture execution, excluded explicit abstract contracts from runtime and knockout requirements, merged coverage by artifact identity, and closed remaining branch-introduced E710 gaps without weakening executable coverage.
+- **Plan-lock evidence integrity** — Rejected ordinary plan locks whose validation succeeds or is invalid instead of proving a genuine red phase, preserved valid red evidence during draft promotion, and retained auditable legacy-baseline migration behavior.
+- **Configurable plan-lock timeouts** — Added an explicit positive `maid plan lock --command-timeout` override for legitimately slow ordinary and legacy-baseline evidence commands while preserving the bounded 300-second default, timeout-as-invalid classification, command provenance, mutation guards, and atomic lock publication.
+- **Verdict-neutral implementation review** — Replaced fixed-round approval framing with issue-driven, coordinator-owned convergence and complete baseline-to-current reviewer packets. Fresh reviewers receive artifact definitions, changed-file inventory, factual validation, environment limits, and plan-revision signals without prior verdicts, fix lineage, or coordinator-owned advisory state.
+- **Python TypeAlias contracts** — Added exact Python 3.10-compatible `TypeAlias` collection and validation for nested generics, `Literal`, `Annotated`, unions, callable forms, forward references, ellipsis, and collision-safe structural comparison.
+- **Merge-aware worktree scope** — Used Git's `AUTO_MERGE` tree during conflict resolution so worktree-scope validation reports the edits made while resolving a merge rather than treating every incoming branch change as current uncommitted work.
+- **Portable release workflows** — Made owned payload uninstall safe on native Windows, reused open release pull requests when GitHub omits merge-commit data, and emitted canonical UTC `Z` snapshot timestamps from generated manifests.
+- **Deterministic evidence caches** — Prevented unrelated Git configuration, Git-ignored generated files, pytest timing output, package-payload synchronization, snapshot environment drift, and harmless shared-environment hardlink bookkeeping from invalidating or contaminating verification evidence.
+
 ## [2.26.0] - 2026-08-10
 
 ### Added
@@ -1270,6 +1292,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.27.0]: https://github.com/mamertofabian/maid-runner/compare/v2.26.0...v2.27.0
 [2.26.0]: https://github.com/mamertofabian/maid-runner/compare/v2.25.0...v2.26.0
 [2.25.0]: https://github.com/mamertofabian/maid-runner/compare/v2.24.0...v2.25.0
 [2.24.0]: https://github.com/mamertofabian/maid-runner/compare/v2.23.2...v2.24.0
