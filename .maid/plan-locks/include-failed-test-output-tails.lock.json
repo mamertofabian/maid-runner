@@ -1,0 +1,330 @@
+{
+  "manifest_path": "manifests/include-failed-test-output-tails.manifest.yaml",
+  "manifest_hash": "sha256-contract:5a3e9f6653415751cb9e2d208c2d217fb698113130af83b121c645a0f1f8a764",
+  "test_hashes": {
+    "tests/cli/test_failed_test_output_json.py": "sha256-pyast:v2:24b942ef7cd6313ed1f7b09659caf7d5cb43b95a4418ec4d62247a93b7a46db0",
+    "tests/cli/test_format.py": "sha256-pyast:v2:b3354c98ff05641cd214041fc6bc71a7ab87e9454134445747d275e0e2f0177b"
+  },
+  "created_at": "2026-08-20T13:06:08.630702+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:c344e1b446cc2a9691ec11400b51d21689d926f2d0204b6eaaf4dcce68659faf",
+      "prior_test_hashes": {
+        "tests/cli/test_failed_test_output_json.py": "sha256-pyast:v2:663c92b493c70e610e5d1770a66dac641a175b5f28a1802afedd3ced070f0d34",
+        "tests/cli/test_format.py": "sha256-pyast:v2:b3354c98ff05641cd214041fc6bc71a7ab87e9454134445747d275e0e2f0177b"
+      },
+      "revised_at": "2026-08-20T13:06:09.254465+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/include-failed-test-output-tails.manifest.yaml -> manifests/include-failed-test-output-tails.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:e712095c4ebf6010939a95513bb75061f359010916c02a16363e65c84b1ea8d3",
+      "prior_test_hashes": {
+        "tests/cli/test_failed_test_output_json.py": "sha256-pyast:v2:663c92b493c70e610e5d1770a66dac641a175b5f28a1802afedd3ced070f0d34",
+        "tests/cli/test_format.py": "sha256-pyast:v2:b3354c98ff05641cd214041fc6bc71a7ab87e9454134445747d275e0e2f0177b"
+      },
+      "revised_at": "2026-08-20T13:12:30.953476+00:00",
+      "reason": "keep validation JSON embedded test output private",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_failed_test_output_json.py:test_batch_validation_json_keeps_embedded_failed_test_output_private",
+          "tests/cli/test_failed_test_output_json.py:test_batch_validation_json_keeps_embedded_failed_test_output_private:kind=test_function",
+          "tests/cli/test_failed_test_output_json.py:test_batch_validation_json_keeps_embedded_failed_test_output_private:returns=None",
+          "tests/cli/test_failed_test_output_json.py:test_validation_json_keeps_embedded_failed_test_output_private",
+          "tests/cli/test_failed_test_output_json.py:test_validation_json_keeps_embedded_failed_test_output_private:kind=test_function",
+          "tests/cli/test_failed_test_output_json.py:test_validation_json_keeps_embedded_failed_test_output_private:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:7a2ec0b1b6ce63d067c05b335f1b5c38fbd9008604650b90da7a3f7924e8ccb0",
+      "prior_test_hashes": {
+        "tests/cli/test_failed_test_output_json.py": "sha256-pyast:v2:0d6608c6302967507ed08e5bb932d0fe508050c9e9f53a00674d3ee1a019fcde",
+        "tests/cli/test_format.py": "sha256-pyast:v2:b3354c98ff05641cd214041fc6bc71a7ab87e9454134445747d275e0e2f0177b"
+      },
+      "revised_at": "2026-08-20T13:14:43.748357+00:00",
+      "reason": "declare and fully constrain output-free validation JSON surfaces",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/cli/commands/_format.py:function:format_batch_result",
+          "maid_runner/cli/commands/_format.py:function:format_batch_result:arg=json_mode:type=bool:default=False",
+          "maid_runner/cli/commands/_format.py:function:format_batch_result:arg=quiet:type=bool:default=False",
+          "maid_runner/cli/commands/_format.py:function:format_batch_result:arg=result:type=BatchValidationResult:default=None",
+          "maid_runner/cli/commands/_format.py:function:format_batch_result:arg=test_result:type=BatchTestResult | None:default=None",
+          "maid_runner/cli/commands/_format.py:function:format_batch_result:arg=tests_requested:type=bool:default=False",
+          "maid_runner/cli/commands/_format.py:function:format_batch_result:kind=function",
+          "maid_runner/cli/commands/_format.py:function:format_batch_result:returns=str",
+          "maid_runner/cli/commands/_format.py:function:format_validation_result",
+          "maid_runner/cli/commands/_format.py:function:format_validation_result:arg=artifact_coverage_report:type=ArtifactCoverageReport | None:default=None",
+          "maid_runner/cli/commands/_format.py:function:format_validation_result:arg=json_mode:type=bool:default=False",
+          "maid_runner/cli/commands/_format.py:function:format_validation_result:arg=quiet:type=bool:default=False",
+          "maid_runner/cli/commands/_format.py:function:format_validation_result:arg=result:type=ValidationResult:default=None",
+          "maid_runner/cli/commands/_format.py:function:format_validation_result:arg=test_result:type=BatchTestResult | None:default=None",
+          "maid_runner/cli/commands/_format.py:function:format_validation_result:arg=tests_requested:type=bool:default=False",
+          "maid_runner/cli/commands/_format.py:function:format_validation_result:kind=function",
+          "maid_runner/cli/commands/_format.py:function:format_validation_result:returns=str"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-20T13:14:44.091019+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_failed_test_output_json.py tests/cli/test_format.py",
+        "exit_code": 1,
+        "output_tail": "            passed=1,\n            failed=1,\n        )\n        result = VerificationResult(\n            stages=(VerificationStageResult(name=\"tests\", success=False, _tests=tests),)\n        )\n    \n        payload = json.loads(format_verify_result(result, json_mode=True))\n        failed, passed = payload[\"stages\"][0][\"details\"][\"results\"]\n    \n>       assert failed[\"stdout_tail\"] == verify_stdout[-16_384:]\n               ^^^^^^^^^^^^^^^^^^^^^\nE       KeyError: 'stdout_tail'\n\ntests/cli/test_failed_test_output_json.py:219: KeyError\n=========================== short test summary info ============================\nFAILED tests/cli/test_failed_test_output_json.py::test_failed_json_result_includes_only_bounded_output_tails\nFAILED tests/cli/test_failed_test_output_json.py::test_failed_json_result_preserves_short_output_and_omits_empty_stream\nFAILED tests/cli/test_failed_test_output_json.py::test_verify_json_reuses_bounded_failed_test_output_tails\n3 failed, 43 passed in 0.16s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/_format.py:function:format_batch_result",
+      "maid_runner/cli/commands/_format.py:function:format_batch_result:arg=json_mode:type=bool:default=False",
+      "maid_runner/cli/commands/_format.py:function:format_batch_result:arg=quiet:type=bool:default=False",
+      "maid_runner/cli/commands/_format.py:function:format_batch_result:arg=result:type=BatchValidationResult:default=None",
+      "maid_runner/cli/commands/_format.py:function:format_batch_result:arg=test_result:type=BatchTestResult | None:default=None",
+      "maid_runner/cli/commands/_format.py:function:format_batch_result:arg=tests_requested:type=bool:default=False",
+      "maid_runner/cli/commands/_format.py:function:format_batch_result:kind=function",
+      "maid_runner/cli/commands/_format.py:function:format_batch_result:returns=str",
+      "maid_runner/cli/commands/_format.py:function:format_test_result",
+      "maid_runner/cli/commands/_format.py:function:format_test_result:arg=json_mode:type=bool:default=False",
+      "maid_runner/cli/commands/_format.py:function:format_test_result:arg=result:type=BatchTestResult:default=None",
+      "maid_runner/cli/commands/_format.py:function:format_test_result:arg=verbose:type=bool:default=False",
+      "maid_runner/cli/commands/_format.py:function:format_test_result:kind=function",
+      "maid_runner/cli/commands/_format.py:function:format_test_result:returns=str",
+      "maid_runner/cli/commands/_format.py:function:format_validation_result",
+      "maid_runner/cli/commands/_format.py:function:format_validation_result:arg=artifact_coverage_report:type=ArtifactCoverageReport | None:default=None",
+      "maid_runner/cli/commands/_format.py:function:format_validation_result:arg=json_mode:type=bool:default=False",
+      "maid_runner/cli/commands/_format.py:function:format_validation_result:arg=quiet:type=bool:default=False",
+      "maid_runner/cli/commands/_format.py:function:format_validation_result:arg=result:type=ValidationResult:default=None",
+      "maid_runner/cli/commands/_format.py:function:format_validation_result:arg=test_result:type=BatchTestResult | None:default=None",
+      "maid_runner/cli/commands/_format.py:function:format_validation_result:arg=tests_requested:type=bool:default=False",
+      "maid_runner/cli/commands/_format.py:function:format_validation_result:kind=function",
+      "maid_runner/cli/commands/_format.py:function:format_validation_result:returns=str",
+      "maid_runner/cli/commands/_format.py:function:format_verify_result",
+      "maid_runner/cli/commands/_format.py:function:format_verify_result:arg=json_mode:type=bool:default=False",
+      "maid_runner/cli/commands/_format.py:function:format_verify_result:arg=result:type=VerificationResult:default=None",
+      "maid_runner/cli/commands/_format.py:function:format_verify_result:kind=function",
+      "maid_runner/cli/commands/_format.py:function:format_verify_result:returns=str",
+      "tests/cli/test_failed_test_output_json.py:test_batch_validation_json_keeps_embedded_failed_test_output_private",
+      "tests/cli/test_failed_test_output_json.py:test_batch_validation_json_keeps_embedded_failed_test_output_private:kind=test_function",
+      "tests/cli/test_failed_test_output_json.py:test_batch_validation_json_keeps_embedded_failed_test_output_private:returns=None",
+      "tests/cli/test_failed_test_output_json.py:test_failed_json_result_includes_only_bounded_output_tails",
+      "tests/cli/test_failed_test_output_json.py:test_failed_json_result_includes_only_bounded_output_tails:kind=test_function",
+      "tests/cli/test_failed_test_output_json.py:test_failed_json_result_includes_only_bounded_output_tails:returns=None",
+      "tests/cli/test_failed_test_output_json.py:test_failed_json_result_preserves_short_output_and_omits_empty_stream",
+      "tests/cli/test_failed_test_output_json.py:test_failed_json_result_preserves_short_output_and_omits_empty_stream:kind=test_function",
+      "tests/cli/test_failed_test_output_json.py:test_failed_json_result_preserves_short_output_and_omits_empty_stream:returns=None",
+      "tests/cli/test_failed_test_output_json.py:test_validation_json_keeps_embedded_failed_test_output_private",
+      "tests/cli/test_failed_test_output_json.py:test_validation_json_keeps_embedded_failed_test_output_private:kind=test_function",
+      "tests/cli/test_failed_test_output_json.py:test_validation_json_keeps_embedded_failed_test_output_private:returns=None",
+      "tests/cli/test_failed_test_output_json.py:test_verify_json_reuses_bounded_failed_test_output_tails",
+      "tests/cli/test_failed_test_output_json.py:test_verify_json_reuses_bounded_failed_test_output_tails:kind=test_function",
+      "tests/cli/test_failed_test_output_json.py:test_verify_json_reuses_bounded_failed_test_output_tails:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_failed_test_output_json.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/_format.py"
+      ],
+      "read": [
+        "maid_runner/core/result.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_failed_test_output_json.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_failed_json_result_includes_only_bounded_output_tails",
+              "description": "A failed result exposes final bounded stdout and stderr tails while a successful result exposes neither field and all existing fields remain stable.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_failed_json_result_preserves_short_output_and_omits_empty_stream",
+              "description": "A short non-empty failed stream is preserved exactly and an empty failed stream is omitted.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_verify_json_reuses_bounded_failed_test_output_tails",
+              "description": "Verify tests-stage JSON exposes the same failure-only bounded tails and omits successful output.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_validation_json_keeps_embedded_failed_test_output_private",
+              "description": "Single-manifest validation JSON keeps embedded failed test stdout and stderr omitted.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_batch_validation_json_keeps_embedded_failed_test_output_private",
+              "description": "Batch validation JSON keeps embedded failed test stdout and stderr omitted.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/_format.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "format_test_result",
+              "description": "Preserves every existing batch and command field while JSON mode adds non-empty final 16,384-character stdout_tail and stderr_tail fields only to failed command entries.",
+              "args": [
+                {
+                  "name": "result",
+                  "type": "BatchTestResult"
+                },
+                {
+                  "name": "verbose",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "json_mode",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "str"
+            },
+            {
+              "kind": "function",
+              "name": "format_verify_result",
+              "description": "Public verify JSON formatting reuses the same bounded failed-command diagnostics in its tests-stage details.",
+              "args": [
+                {
+                  "name": "result",
+                  "type": "VerificationResult"
+                },
+                {
+                  "name": "json_mode",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "str"
+            },
+            {
+              "kind": "function",
+              "name": "format_validation_result",
+              "description": "Single-manifest validation JSON preserves its existing output-free embedded test result mapping.",
+              "args": [
+                {
+                  "name": "result",
+                  "type": "ValidationResult"
+                },
+                {
+                  "name": "json_mode",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "quiet",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "test_result",
+                  "type": "BatchTestResult | None",
+                  "default": "None"
+                },
+                {
+                  "name": "tests_requested",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "artifact_coverage_report",
+                  "type": "ArtifactCoverageReport | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "str"
+            },
+            {
+              "kind": "function",
+              "name": "format_batch_result",
+              "description": "Batch validation JSON preserves its existing output-free embedded test result mapping.",
+              "args": [
+                {
+                  "name": "result",
+                  "type": "BatchValidationResult"
+                },
+                {
+                  "name": "json_mode",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "quiet",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "test_result",
+                  "type": "BatchTestResult | None",
+                  "default": "None"
+                },
+                {
+                  "name": "tests_requested",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "str"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/result.py"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_failed_test_output_json.py",
+      "tests/cli/test_format.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_failed_test_output_json.py tests/cli/test_format.py"
+    ]
+  }
+}

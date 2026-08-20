@@ -211,7 +211,9 @@ def format_test_result(
     json_mode: bool = False,
 ) -> str:
     if json_mode:
-        return json.dumps(_test_result_to_dict(result), indent=2)
+        return json.dumps(
+            _test_result_to_dict(result, include_failure_output=True), indent=2
+        )
 
     acceptance = result.acceptance_results
     implementation = result.implementation_results
@@ -634,7 +636,7 @@ def _verify_stage_details(stage) -> dict:
 
     tests = getattr(stage, "_tests", None)
     if tests is not None:
-        return _test_result_to_dict(tests)
+        return _test_result_to_dict(tests, include_failure_output=True)
 
     errors = getattr(stage, "_errors", ())
     knockout_report = _knockout_report_from_errors(errors)
@@ -931,7 +933,9 @@ def _is_warning(error) -> bool:
     return getattr(severity, "value", severity) == "warning"
 
 
-def _test_result_to_dict(result: BatchTestResult) -> dict:
+def _test_result_to_dict(
+    result: BatchTestResult, *, include_failure_output: bool = False
+) -> dict:
     return {
         "success": result.success,
         "total": result.total,
@@ -956,6 +960,16 @@ def _test_result_to_dict(result: BatchTestResult) -> dict:
                 "success": r.success,
                 "duration_ms": r.duration_ms,
                 "stream": r.stream.value,
+                **(
+                    {"stdout_tail": r.stdout[-16_384:]}
+                    if include_failure_output and not r.success and r.stdout
+                    else {}
+                ),
+                **(
+                    {"stderr_tail": r.stderr[-16_384:]}
+                    if include_failure_output and not r.success and r.stderr
+                    else {}
+                ),
             }
             for r in result.results
         ],

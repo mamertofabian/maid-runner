@@ -1,0 +1,169 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: Include bounded failed test output tails in JSON reports
+type: fix
+created: "2026-08-20T13:06:09Z"
+metadata:
+  planning_state: behavioral-contract
+  promotion_ready: true
+  tests_status: created
+  status: implementation-ready
+  tags: [diagnostics, ci, json, test-runner]
+  priority: critical
+description: |
+  Add bounded stdout and stderr tails to failed command entries in `maid test
+  --json` and the verify tests stage so hosted CI artifacts identify the
+  failing pytest node. Successful entries omit output, and each failure stream
+  is capped to prevent unbounded machine reports. Validation and batch
+  validation JSON retain their existing output-free embedded test results
+  because those general validation artifacts have a broader persistence and
+  consumption surface than opt-in test and verify diagnostic reports.
+
+  This is an additive chain extension rather than a supersession: existing
+  JSON fields and exit semantics remain unchanged, while failed entries gain
+  optional diagnostic fields.
+temptations:
+- risk: Do not include unbounded command output or output from successful commands.
+  instead: Include only the final 16,384 characters of each non-empty failure stream.
+- risk: Do not retry failed commands to obtain diagnostics.
+  instead: Serialize the output already captured by the original command execution.
+- risk: Do not leak captured output into general validation or batch-validation JSON.
+  instead: Opt in only standalone test JSON and verify test-stage JSON, whose purpose is command diagnostics.
+files:
+  edit:
+  - path: maid_runner/cli/commands/_format.py
+    artifacts:
+    - kind: function
+      name: format_test_result
+      args:
+      - name: result
+        type: BatchTestResult
+      - name: verbose
+        type: bool
+        default: "False"
+      - name: json_mode
+        type: bool
+        default: "False"
+      returns: str
+      description: Preserves every existing batch and command field while JSON mode adds non-empty final 16,384-character stdout_tail and stderr_tail fields only to failed command entries.
+    - kind: function
+      name: format_verify_result
+      args:
+      - name: result
+        type: VerificationResult
+      - name: json_mode
+        type: bool
+        default: "False"
+      returns: str
+      description: Public verify JSON formatting reuses the same bounded failed-command diagnostics in its tests-stage details.
+    - kind: function
+      name: format_validation_result
+      args:
+      - name: result
+        type: ValidationResult
+      - name: json_mode
+        type: bool
+        default: "False"
+      - name: quiet
+        type: bool
+        default: "False"
+      - name: test_result
+        type: BatchTestResult | None
+        default: "None"
+      - name: tests_requested
+        type: bool
+        default: "False"
+      - name: artifact_coverage_report
+        type: ArtifactCoverageReport | None
+        default: "None"
+      returns: str
+      description: Single-manifest validation JSON preserves its existing output-free embedded test result mapping.
+    - kind: function
+      name: format_batch_result
+      args:
+      - name: result
+        type: BatchValidationResult
+      - name: json_mode
+        type: bool
+        default: "False"
+      - name: quiet
+        type: bool
+        default: "False"
+      - name: test_result
+        type: BatchTestResult | None
+        default: "None"
+      - name: tests_requested
+        type: bool
+        default: "False"
+      returns: str
+      description: Batch validation JSON preserves its existing output-free embedded test result mapping.
+  create:
+  - path: tests/cli/test_failed_test_output_json.py
+    artifacts:
+    - kind: test_function
+      name: test_failed_json_result_includes_only_bounded_output_tails
+      args: []
+      returns: None
+      description: A failed result exposes final bounded stdout and stderr tails while a successful result exposes neither field and all existing fields remain stable.
+    - kind: test_function
+      name: test_failed_json_result_preserves_short_output_and_omits_empty_stream
+      args: []
+      returns: None
+      description: A short non-empty failed stream is preserved exactly and an empty failed stream is omitted.
+    - kind: test_function
+      name: test_verify_json_reuses_bounded_failed_test_output_tails
+      args: []
+      returns: None
+      description: Verify tests-stage JSON exposes the same failure-only bounded tails and omits successful output.
+    - kind: test_function
+      name: test_validation_json_keeps_embedded_failed_test_output_private
+      args: []
+      returns: None
+      description: Single-manifest validation JSON keeps embedded failed test stdout and stderr omitted.
+    - kind: test_function
+      name: test_batch_validation_json_keeps_embedded_failed_test_output_private
+      args: []
+      returns: None
+      description: Batch validation JSON keeps embedded failed test stdout and stderr omitted.
+  read:
+  - maid_runner/core/result.py
+validate:
+- uv run python -m pytest -q tests/cli/test_failed_test_output_json.py tests/cli/test_format.py
+outcome:
+  status: completed
+  completed_at: "2026-08-20T21:17:51+08:00"
+  summary: "Standalone test JSON and verify test-stage JSON now include bounded failure-only output tails, while validation JSON surfaces remain output-free."
+  rationale: "Hosted release gates repeatedly returned exit 1 without identifying the failing pytest node because captured subprocess output was omitted from machine reports. Serializing only the final 16,384 characters of non-empty failed streams provides actionable diagnostics without reruns, unbounded artifacts, successful-output exposure, or broader validation-report leakage."
+  agent:
+    model: gpt-5
+    provider: openai
+    client: codex
+    source: "Self-known model family; exact runtime slug and reasoning effort unavailable."
+    skills: [maid-planner, maid-plan-review, maid-implementer, maid-implementation-review]
+  lessons:
+  - lesson_type: privacy
+    summary: "A shared serializer can silently broaden sensitive diagnostic output into unrelated persisted report surfaces; output-bearing serialization should require an explicit caller opt-in."
+    tags: [json, diagnostics, privacy, ci]
+    paths: [maid_runner/cli/commands/_format.py]
+  - lesson_type: test-design
+    summary: "Output-tail contracts need exact boundary assertions, successful and empty omission cases, and negative coverage for every public formatter that must remain output-free."
+    tags: [behavioral-contract, bounded-output, regression]
+    paths: [tests/cli/test_failed_test_output_json.py]
+  review_notes:
+  - source: independent-implementation-reviewer
+    severity: fixed
+    summary: "Initial review found the shared serializer leaked failure tails into validation and batch-validation JSON; revision 4 introduced explicit opt-in and exact privacy regressions."
+  - source: independent-implementation-reviewer
+    severity: ready
+    summary: "Final review found no blockers and confirmed bounded failure-only diagnostics, output-free validation surfaces, compatibility, behavioral coverage, and lock integrity."
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/cli/test_failed_test_output_json.py, tests/cli/test_format.py]
+    status: passed
+    summary: "All 46 focused formatter and diagnostic tests passed."
+  - command: [uv, run, maid, verify, --profile, deep, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, 7646ddf]
+    status: passed
+    summary: "All 11 deep stages passed, including artifact coverage, knockout, scope, lock, and test gates."
