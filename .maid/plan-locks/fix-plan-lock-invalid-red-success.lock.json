@@ -1,0 +1,402 @@
+{
+  "manifest_path": "manifests/fix-plan-lock-invalid-red-success.manifest.yaml",
+  "manifest_hash": "sha256-contract:d48f9dcf06fac65e39faef0b0ea5ef1349f9e05ab5e3bad945e9c3d71e92ff8e",
+  "test_hashes": {
+    "tests/cli/test_plan_lock_rejects_invalid_red.py": "sha256-pyast:v2:a453d8fff8887977a312ce0dedb16cf495a4ac0b8fa18d759e3a881ff5859b6a",
+    "tests/cli/test_plan_revise_auto_preserve.py": "sha256-pyast:v2:45894dba876eefb71610329bbbd70d07130b7a2c8abba8aa1b50b94d4a49f04a",
+    "tests/cli/test_plan_cmd.py": "sha256-pyast:v2:fb27ed0ce7df47e90eff63e761f3d9b25f5d941bff7472684b02141990b1d975",
+    "tests/cli/test_plan_cmd_red_evidence.py": "sha256-pyast:v2:2e334f1e345ad9a54960a1f0a580feabedaf0d197b7f166ff0bed00a65a700ca"
+  },
+  "created_at": "2026-08-19T23:55:05.850919+00:00",
+  "revision": 8,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:1a7cf43cfe72a104268a92dcd22f2fe745985badc86977c8fa88e464a0c3a2b6",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_red_evidence.py": "sha256-pyast:v2:086e427bec1a019407beda4a0a88bef23b5fb18cef6bc649176a78d3cf5143fd",
+        "tests/cli/test_plan_lock_rejects_invalid_red.py": "sha256-pyast:v2:a453d8fff8887977a312ce0dedb16cf495a4ac0b8fa18d759e3a881ff5859b6a"
+      },
+      "revised_at": "2026-08-19T23:55:25.735720+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-plan-lock-invalid-red-success.manifest.yaml -> manifests/fix-plan-lock-invalid-red-success.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c1bb777c1c498ce44f3b96366603037a18f1caec2b36bf186934fc4fd7e9d102",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_red_evidence.py": "sha256-pyast:v2:086e427bec1a019407beda4a0a88bef23b5fb18cef6bc649176a78d3cf5143fd",
+        "tests/cli/test_plan_lock_rejects_invalid_red.py": "sha256-pyast:v2:a453d8fff8887977a312ce0dedb16cf495a4ac0b8fa18d759e3a881ff5859b6a"
+      },
+      "revised_at": "2026-08-19T23:56:53.357414+00:00",
+      "reason": "Align existing plan-lock tests with the approved fail-closed lock behavior",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_plan_cmd_red_evidence.py:test_lock_records_collection_error_as_invalid_not_red",
+          "tests/cli/test_plan_cmd_red_evidence.py:test_lock_records_collection_error_as_invalid_not_red:arg=self:type=TestCmdPlanLockRedEvidence:default=None",
+          "tests/cli/test_plan_cmd_red_evidence.py:test_lock_records_collection_error_as_invalid_not_red:arg=tmp_path:type=Path:default=None",
+          "tests/cli/test_plan_cmd_red_evidence.py:test_lock_records_collection_error_as_invalid_not_red:kind=test_function",
+          "tests/cli/test_plan_cmd_red_evidence.py:test_lock_records_collection_error_as_invalid_not_red:of=TestCmdPlanLockRedEvidence",
+          "tests/cli/test_plan_cmd_red_evidence.py:test_lock_records_collection_error_as_invalid_not_red:returns=None",
+          "tests/cli/test_plan_cmd_red_evidence.py:test_revise_preserve_red_evidence_rejects_existing_non_red_evidence",
+          "tests/cli/test_plan_cmd_red_evidence.py:test_revise_preserve_red_evidence_rejects_existing_non_red_evidence:arg=self:type=TestCmdPlanReviseRedEvidence:default=None",
+          "tests/cli/test_plan_cmd_red_evidence.py:test_revise_preserve_red_evidence_rejects_existing_non_red_evidence:arg=tmp_path:type=Path:default=None",
+          "tests/cli/test_plan_cmd_red_evidence.py:test_revise_preserve_red_evidence_rejects_existing_non_red_evidence:kind=test_function",
+          "tests/cli/test_plan_cmd_red_evidence.py:test_revise_preserve_red_evidence_rejects_existing_non_red_evidence:of=TestCmdPlanReviseRedEvidence",
+          "tests/cli/test_plan_cmd_red_evidence.py:test_revise_preserve_red_evidence_rejects_existing_non_red_evidence:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:tests/cli/test_plan_cmd_red_evidence.py"
+        ],
+        "files_removed": [
+          "read:tests/cli/test_plan_cmd_red_evidence.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:487f348bc273ce001b7fbc08ed9d296570f01f289a2b28d46f2961d201ab1095",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_lock_rejects_invalid_red.py": "sha256-pyast:v2:a453d8fff8887977a312ce0dedb16cf495a4ac0b8fa18d759e3a881ff5859b6a",
+        "tests/cli/test_plan_cmd_red_evidence.py": "sha256-pyast:v2:2e334f1e345ad9a54960a1f0a580feabedaf0d197b7f166ff0bed00a65a700ca"
+      },
+      "revised_at": "2026-08-20T00:00:20.440133+00:00",
+      "reason": "Keep parser dispatch coverage explicit under the approved red-evidence gate",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_plan_cmd.py:test_main_dispatches_plan_lock",
+          "tests/cli/test_plan_cmd.py:test_main_dispatches_plan_lock:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/cli/test_plan_cmd.py:test_main_dispatches_plan_lock:arg=self:type=TestPlanParserRegistered:default=None",
+          "tests/cli/test_plan_cmd.py:test_main_dispatches_plan_lock:arg=tmp_path:type=Path:default=None",
+          "tests/cli/test_plan_cmd.py:test_main_dispatches_plan_lock:kind=test_function",
+          "tests/cli/test_plan_cmd.py:test_main_dispatches_plan_lock:of=TestPlanParserRegistered",
+          "tests/cli/test_plan_cmd.py:test_main_dispatches_plan_lock:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:tests/cli/test_plan_cmd.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2ea1c8a2628a0ecbda76f5c30ea86ba0be6703536369acf24efb5b8430fb0a9d",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_lock_rejects_invalid_red.py": "sha256-pyast:v2:a453d8fff8887977a312ce0dedb16cf495a4ac0b8fa18d759e3a881ff5859b6a",
+        "tests/cli/test_plan_cmd.py": "sha256-pyast:v2:fb27ed0ce7df47e90eff63e761f3d9b25f5d941bff7472684b02141990b1d975",
+        "tests/cli/test_plan_cmd_red_evidence.py": "sha256-pyast:v2:2e334f1e345ad9a54960a1f0a580feabedaf0d197b7f166ff0bed00a65a700ca"
+      },
+      "revised_at": "2026-08-20T00:01:41.227643+00:00",
+      "reason": "Run every declared plan-lock behavioral test in the contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/cli/test_plan_lock_rejects_invalid_red.py tests/cli/test_plan_cmd_red_evidence.py tests/cli/test_plan_cmd.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/cli/test_plan_lock_rejects_invalid_red.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:a4e6e2121bee7d9e0e5c98528ac78f6f059b21d1dc3033469e7cfe877265ac5d",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_lock_rejects_invalid_red.py": "sha256-pyast:v2:a453d8fff8887977a312ce0dedb16cf495a4ac0b8fa18d759e3a881ff5859b6a",
+        "tests/cli/test_plan_cmd.py": "sha256-pyast:v2:fb27ed0ce7df47e90eff63e761f3d9b25f5d941bff7472684b02141990b1d975",
+        "tests/cli/test_plan_cmd_red_evidence.py": "sha256-pyast:v2:2e334f1e345ad9a54960a1f0a580feabedaf0d197b7f166ff0bed00a65a700ca"
+      },
+      "revised_at": "2026-08-20T00:12:07.625098+00:00",
+      "reason": "Include adjacent revise recovery characterization exposed by full-suite validation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_plan_revise_auto_preserve.py:test_revise_with_invalid_existing_evidence_recaptures",
+          "tests/cli/test_plan_revise_auto_preserve.py:test_revise_with_invalid_existing_evidence_recaptures:arg=tmp_path:type=Path:default=None",
+          "tests/cli/test_plan_revise_auto_preserve.py:test_revise_with_invalid_existing_evidence_recaptures:kind=test_function",
+          "tests/cli/test_plan_revise_auto_preserve.py:test_revise_with_invalid_existing_evidence_recaptures:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:tests/cli/test_plan_revise_auto_preserve.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/cli/test_plan_lock_rejects_invalid_red.py tests/cli/test_plan_cmd_red_evidence.py tests/cli/test_plan_cmd.py tests/cli/test_plan_revise_auto_preserve.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/cli/test_plan_lock_rejects_invalid_red.py tests/cli/test_plan_cmd_red_evidence.py tests/cli/test_plan_cmd.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d48f9dcf06fac65e39faef0b0ea5ef1349f9e05ab5e3bad945e9c3d71e92ff8e",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_lock_rejects_invalid_red.py": "sha256-pyast:v2:a453d8fff8887977a312ce0dedb16cf495a4ac0b8fa18d759e3a881ff5859b6a",
+        "tests/cli/test_plan_revise_auto_preserve.py": "sha256-pyast:v2:2c3e8a569cc808fffb85a530c39c1c8806a4f789b2a619b313e5e8c2c0aec59d",
+        "tests/cli/test_plan_cmd.py": "sha256-pyast:v2:fb27ed0ce7df47e90eff63e761f3d9b25f5d941bff7472684b02141990b1d975",
+        "tests/cli/test_plan_cmd_red_evidence.py": "sha256-pyast:v2:2e334f1e345ad9a54960a1f0a580feabedaf0d197b7f166ff0bed00a65a700ca"
+      },
+      "revised_at": "2026-08-20T00:15:33.060200+00:00",
+      "reason": "Lock the adjacent revise recovery characterization after its approved test update",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d48f9dcf06fac65e39faef0b0ea5ef1349f9e05ab5e3bad945e9c3d71e92ff8e",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_lock_rejects_invalid_red.py": "sha256-pyast:v2:a453d8fff8887977a312ce0dedb16cf495a4ac0b8fa18d759e3a881ff5859b6a",
+        "tests/cli/test_plan_revise_auto_preserve.py": "sha256-pyast:v2:45894dba876eefb71610329bbbd70d07130b7a2c8abba8aa1b50b94d4a49f04a",
+        "tests/cli/test_plan_cmd.py": "sha256-pyast:v2:fb27ed0ce7df47e90eff63e761f3d9b25f5d941bff7472684b02141990b1d975",
+        "tests/cli/test_plan_cmd_red_evidence.py": "sha256-pyast:v2:2e334f1e345ad9a54960a1f0a580feabedaf0d197b7f166ff0bed00a65a700ca"
+      },
+      "revised_at": "2026-08-20T00:36:19.879531+00:00",
+      "reason": "Capture post-review Outcome evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-20T00:15:35.529307+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_plan_lock_rejects_invalid_red.py tests/cli/test_plan_cmd_red_evidence.py tests/cli/test_plan_cmd.py tests/cli/test_plan_revise_auto_preserve.py",
+        "exit_code": 1,
+        "output_tail": "tmp_path = PosixPath('/tmp/pytest-of-atomrem/pytest-904/test_lock_records_collection_e0')\n\n    def test_lock_records_collection_error_as_invalid_not_red(\n        self, tmp_path: Path\n    ) -> None:\n        manifest_path = _write_project(tmp_path, exit_code=2)\n    \n        exit_code = cmd_plan_lock(_lock_args(manifest_path, tmp_path))\n    \n>       assert exit_code == 1\nE       assert 0 == 1\n\ntests/cli/test_plan_cmd_red_evidence.py:155: AssertionError\n----------------------------- Captured stdout call -----------------------------\nLocked plan 'demo-task' at revision 1 (1 behavioral test file(s), /tmp/pytest-of-atomrem/pytest-904/test_lock_records_collection_e0/.maid/plan-locks/demo-task.lock.json)\n=========================== short test summary info ============================\nFAILED tests/cli/test_plan_lock_rejects_invalid_red.py::test_plan_lock_rejects_non_red_validation_without_writing_lock[0-not_red]\nFAILED tests/cli/test_plan_lock_rejects_invalid_red.py::test_plan_lock_rejects_non_red_validation_without_writing_lock[2-invalid]\nFAILED tests/cli/test_plan_cmd_red_evidence.py::TestCmdPlanLockRedEvidence::test_lock_records_collection_error_as_invalid_not_red\n3 failed, 38 passed in 1.31s",
+        "classification": "red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/add-python-type-alias-artifacts.lock.json",
+      ".maid/plan-locks/fix-merge-aware-worktree-scope.lock.json",
+      "maid_runner/core/_implementation_validation.py",
+      "maid_runner/core/worktree.py",
+      "maid_runner/validators/_python_implementation.py",
+      "manifests/add-python-type-alias-artifacts.manifest.yaml",
+      "manifests/fix-merge-aware-worktree-scope.manifest.yaml",
+      "tests/core/validation/test_merge_worktree_scope.py",
+      "tests/validators/test_python_type_alias.py"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/cli/test_plan_cmd.py:test_main_dispatches_plan_lock",
+      "tests/cli/test_plan_cmd.py:test_main_dispatches_plan_lock:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_plan_cmd.py:test_main_dispatches_plan_lock:arg=self:type=TestPlanParserRegistered:default=None",
+      "tests/cli/test_plan_cmd.py:test_main_dispatches_plan_lock:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_plan_cmd.py:test_main_dispatches_plan_lock:kind=test_function",
+      "tests/cli/test_plan_cmd.py:test_main_dispatches_plan_lock:of=TestPlanParserRegistered",
+      "tests/cli/test_plan_cmd.py:test_main_dispatches_plan_lock:returns=None",
+      "tests/cli/test_plan_cmd_red_evidence.py:test_lock_records_collection_error_as_invalid_not_red",
+      "tests/cli/test_plan_cmd_red_evidence.py:test_lock_records_collection_error_as_invalid_not_red:arg=self:type=TestCmdPlanLockRedEvidence:default=None",
+      "tests/cli/test_plan_cmd_red_evidence.py:test_lock_records_collection_error_as_invalid_not_red:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_plan_cmd_red_evidence.py:test_lock_records_collection_error_as_invalid_not_red:kind=test_function",
+      "tests/cli/test_plan_cmd_red_evidence.py:test_lock_records_collection_error_as_invalid_not_red:of=TestCmdPlanLockRedEvidence",
+      "tests/cli/test_plan_cmd_red_evidence.py:test_lock_records_collection_error_as_invalid_not_red:returns=None",
+      "tests/cli/test_plan_cmd_red_evidence.py:test_revise_preserve_red_evidence_rejects_existing_non_red_evidence",
+      "tests/cli/test_plan_cmd_red_evidence.py:test_revise_preserve_red_evidence_rejects_existing_non_red_evidence:arg=self:type=TestCmdPlanReviseRedEvidence:default=None",
+      "tests/cli/test_plan_cmd_red_evidence.py:test_revise_preserve_red_evidence_rejects_existing_non_red_evidence:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_plan_cmd_red_evidence.py:test_revise_preserve_red_evidence_rejects_existing_non_red_evidence:kind=test_function",
+      "tests/cli/test_plan_cmd_red_evidence.py:test_revise_preserve_red_evidence_rejects_existing_non_red_evidence:of=TestCmdPlanReviseRedEvidence",
+      "tests/cli/test_plan_cmd_red_evidence.py:test_revise_preserve_red_evidence_rejects_existing_non_red_evidence:returns=None",
+      "tests/cli/test_plan_lock_rejects_invalid_red.py:test_plan_lock_rejects_non_red_validation_without_writing_lock",
+      "tests/cli/test_plan_lock_rejects_invalid_red.py:test_plan_lock_rejects_non_red_validation_without_writing_lock:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/cli/test_plan_lock_rejects_invalid_red.py:test_plan_lock_rejects_non_red_validation_without_writing_lock:arg=classification:type=str:default=None",
+      "tests/cli/test_plan_lock_rejects_invalid_red.py:test_plan_lock_rejects_non_red_validation_without_writing_lock:arg=exit_code:type=int:default=None",
+      "tests/cli/test_plan_lock_rejects_invalid_red.py:test_plan_lock_rejects_non_red_validation_without_writing_lock:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_plan_lock_rejects_invalid_red.py:test_plan_lock_rejects_non_red_validation_without_writing_lock:kind=test_function",
+      "tests/cli/test_plan_lock_rejects_invalid_red.py:test_plan_lock_rejects_non_red_validation_without_writing_lock:returns=None",
+      "tests/cli/test_plan_revise_auto_preserve.py:test_revise_with_invalid_existing_evidence_recaptures",
+      "tests/cli/test_plan_revise_auto_preserve.py:test_revise_with_invalid_existing_evidence_recaptures:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_plan_revise_auto_preserve.py:test_revise_with_invalid_existing_evidence_recaptures:kind=test_function",
+      "tests/cli/test_plan_revise_auto_preserve.py:test_revise_with_invalid_existing_evidence_recaptures:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_plan_lock_rejects_invalid_red.py"
+      ],
+      "edit": [
+        "tests/cli/test_plan_cmd.py",
+        "tests/cli/test_plan_cmd_red_evidence.py",
+        "tests/cli/test_plan_revise_auto_preserve.py"
+      ],
+      "read": [
+        "maid_runner/core/plan_lock.py",
+        "manifests/067-02-capture-red-phase-evidence-on-lock.manifest.yaml"
+      ],
+      "scope": [
+        "maid_runner/cli/commands/plan.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_plan_lock_rejects_invalid_red.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_plan_lock_rejects_non_red_validation_without_writing_lock",
+              "description": "Green and invalid validation both make ordinary plan lock exit 1, explain the classification, and leave no lock file.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                },
+                {
+                  "name": "exit_code",
+                  "type": "int"
+                },
+                {
+                  "name": "classification",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "tests/cli/test_plan_revise_auto_preserve.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_revise_with_invalid_existing_evidence_recaptures",
+              "description": "Historical invalid evidence is seeded explicitly so revise recovery remains covered without asking ordinary plan lock to accept green validation.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_plan_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_main_dispatches_plan_lock",
+              "description": "Parser dispatch coverage uses the explicit no-run workflow instead of accepting an invalid collection failure as red evidence.",
+              "of": "TestPlanParserRegistered",
+              "args": [
+                {
+                  "name": "self",
+                  "type": "TestPlanParserRegistered"
+                },
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_plan_cmd_red_evidence.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_lock_records_collection_error_as_invalid_not_red",
+              "description": "Collection-invalid evidence makes ordinary plan lock fail without publishing a lock.",
+              "of": "TestCmdPlanLockRedEvidence",
+              "args": [
+                {
+                  "name": "self",
+                  "type": "TestCmdPlanLockRedEvidence"
+                },
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_revise_preserve_red_evidence_rejects_existing_non_red_evidence",
+              "description": "Preserve mode continues to reject a pre-existing non-red evidence payload after ordinary lock stops creating one.",
+              "of": "TestCmdPlanReviseRedEvidence",
+              "args": [
+                {
+                  "name": "self",
+                  "type": "TestCmdPlanReviseRedEvidence"
+                },
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/plan_lock.py",
+        "manifests/067-02-capture-red-phase-evidence-on-lock.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/plan.py",
+          "reason": "Refuse ordinary lock publication when captured red evidence is invalid or not red, without changing CLI signatures."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_plan_cmd.py",
+      "tests/cli/test_plan_cmd_red_evidence.py",
+      "tests/cli/test_plan_lock_rejects_invalid_red.py",
+      "tests/cli/test_plan_revise_auto_preserve.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_plan_lock_rejects_invalid_red.py tests/cli/test_plan_cmd_red_evidence.py tests/cli/test_plan_cmd.py tests/cli/test_plan_revise_auto_preserve.py"
+    ]
+  }
+}

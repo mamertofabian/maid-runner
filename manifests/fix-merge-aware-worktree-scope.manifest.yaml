@@ -1,0 +1,84 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Keep worktree scope focused on conflict-resolution edits during an in-progress Git merge"
+type: fix
+created: "2026-08-19T23:55:27Z"
+metadata:
+  planning_state: behavioral-contract
+  status: implementation-ready
+  promotion_ready: true
+  tests_status: created-red-confirmed
+  priority: high
+  tags: [git, merge, worktree-scope, validation-trust, bug-report]
+description: |
+  During an in-progress merge, ordinary porcelain status reports every staged
+  incoming file as worktree dirt. That makes MAID require the current task to
+  redeclare files that are byte-identical to the automatic merge result.
+  When both MERGE_HEAD and Git's AUTO_MERGE tree are available, compare the
+  current index/worktree against AUTO_MERGE so worktree scope evaluates only
+  conflict-resolution or post-merge edits plus untracked files.
+
+  Preserve fail-closed behavior when AUTO_MERGE is unavailable or invalid by
+  falling back to the existing porcelain scope. Changed-scope baseline
+  semantics remain separate and unchanged.
+temptations:
+  - risk: "Do not exempt every staged path merely because MERGE_HEAD exists."
+    instead: "Use the repository's AUTO_MERGE tree as the exact automatic-result baseline and keep resolution deltas visible."
+  - risk: "Do not guess an incoming branch or recompute merge policy in Python."
+    instead: "Consume Git's own merge tree and retain current behavior when Git cannot provide it."
+  - risk: "Do not hide untracked files or ordinary non-merge edits."
+    instead: "Union AUTO_MERGE-relative tracked paths with the existing untracked-path discovery and preserve the standard path filters."
+files:
+  scope:
+    - path: maid_runner/core/worktree.py
+      reason: "Select an exact merge-aware changed-file baseline without changing public worktree-scope signatures."
+  create:
+    - path: tests/core/validation/test_merge_worktree_scope.py
+      artifacts:
+        - kind: test_function
+          name: test_worktree_scope_ignores_unchanged_incoming_merge_files
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "An unchanged incoming source file is excluded while the declared conflict-resolution file remains the only worktree-scope path."
+        - kind: test_function
+          name: test_worktree_scope_fails_closed_when_auto_merge_baseline_is_missing
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "Deleting AUTO_MERGE during a merge restores the existing conservative behavior and reports undeclared incoming source paths."
+  read:
+    - maid_runner/core/diff_scope.py
+    - tests/core/validation/test_file_scope_gates.py
+    - manifests/030-09-add-worktree-scope-gate.manifest.yaml
+    - manifests/061-01-extract-diff-scope-artifact-collection.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_merge_worktree_scope.py tests/core/validation/test_file_scope_gates.py
+outcome:
+  status: completed
+  completed_at: "2026-08-20T00:35:29Z"
+  summary: "Worktree scope now compares unresolved merges against Git's AUTO_MERGE tree, excluding unchanged incoming files while retaining conflict resolutions, later edits, and untracked paths."
+  rationale: "Merge-aware behavior activates only when both MERGE_HEAD and AUTO_MERGE resolve. Any missing ref, Git failure, or timeout returns to the existing conservative porcelain scope, preserving fail-closed behavior outside the exact supported merge state."
+  lessons:
+    - lesson_type: vcs-scope
+      summary: "Git's AUTO_MERGE tree is the authoritative automatic-result baseline for separating incoming merge content from human conflict resolution."
+      tags: [git, merge, auto-merge, worktree-scope]
+      paths: [maid_runner/core/worktree.py]
+  review_notes:
+    - source: independent-implementation-review-final
+      severity: ready
+      summary: "Confirmed merge-aware scope behavior, conservative fallback, manifest alignment, and regression coverage with no findings."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/validation/test_merge_worktree_scope.py, tests/core/validation/test_file_scope_gates.py]
+      status: passed
+      summary: "Focused and adjacent worktree-scope tests passed."
+    - command: [uv, run, python, -m, pytest, tests/, -q, -n, "8", --dist, loadscope]
+      status: passed
+      summary: "Full repository suite passed 4539 tests with 14 skipped after final review fixes."
+    - command: [uv, run, maid, verify, --profile, deep, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, release/v2.next]
+      status: passed
+      summary: "All 11 deep verification gates passed; only pre-existing non-blocking E307 warnings remained."

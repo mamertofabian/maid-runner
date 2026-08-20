@@ -161,11 +161,18 @@ def cmd_plan_lock(args: argparse.Namespace) -> int:
                 ).to_payload(),
             )
         elif not getattr(args, "no_run", False):
+            captured = capture_red_phase_evidence(ctx.manifest_path, ctx.project_root)
+            evidence = captured.to_payload()
+            if not _red_evidence_payload_is_valid(evidence):
+                print_error(
+                    "maid plan lock did not capture valid red evidence.\n"
+                    + _format_red_evidence_capture_details(evidence),
+                    json_mode=ctx.json_mode,
+                )
+                return 1
             lock = replace(
                 lock,
-                red_evidence=capture_red_phase_evidence(
-                    ctx.manifest_path, ctx.project_root
-                ).to_payload(),
+                red_evidence=evidence,
             )
         temporary_lock_path = ctx.lock_path.with_name(
             f".{ctx.lock_path.name}.{uuid.uuid4().hex}.tmp"

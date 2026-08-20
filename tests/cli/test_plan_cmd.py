@@ -111,7 +111,9 @@ class TestPlanParserRegistered:
         _write_project(tmp_path)
         monkeypatch.chdir(tmp_path)
 
-        exit_code = main(["plan", "lock", "manifests/demo-task.manifest.yaml"])
+        exit_code = main(
+            ["plan", "lock", "manifests/demo-task.manifest.yaml", "--no-run"]
+        )
 
         assert exit_code == 0
         assert default_plan_lock_path(Path("."), "demo-task").exists()

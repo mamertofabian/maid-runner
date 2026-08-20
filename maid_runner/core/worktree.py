@@ -75,6 +75,9 @@ class _ChangedScopeBaselineError(RuntimeError):
 def changed_files(project_root: Union[str, Path]) -> "tuple[str, ...]":
     """Return git-reported changed file paths relative to the project root."""
     root = Path(project_root)
+    merge_resolution_paths = _merge_resolution_changed_files(root)
+    if merge_resolution_paths is not None:
+        return merge_resolution_paths
     prefix = _git_prefix(root)
     try:
         result = subprocess.run(
@@ -109,6 +112,55 @@ def changed_files(project_root: Union[str, Path]) -> "tuple[str, ...]":
         raise RuntimeError(message)
 
     return _to_project_relative_paths(_parse_porcelain_z(result.stdout), prefix)
+
+
+def _merge_resolution_changed_files(root: Path) -> tuple[str, ...] | None:
+    """Return edits relative to Git's automatic merge result when available."""
+    if not _git_object_exists(root, "MERGE_HEAD") or not _git_object_exists(
+        root, "AUTO_MERGE^{tree}"
+    ):
+        return None
+    try:
+        result = subprocess.run(
+            [
+                "git",
+                "diff",
+                "--name-status",
+                "-z",
+                "--relative",
+                "AUTO_MERGE",
+                "--",
+                ".",
+            ],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return None
+    if result.returncode != 0:
+        return None
+    tracked = _parse_name_status_z(result.stdout)
+    try:
+        untracked = _untracked_paths(root)
+    except RuntimeError:
+        return None
+    return tuple(dict.fromkeys((*tracked, *untracked)))
+
+
+def _git_object_exists(root: Path, revision: str) -> bool:
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--verify", "--quiet", revision],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return False
+    return result.returncode == 0
 
 
 def resolve_changed_scope_baseline(

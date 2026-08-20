@@ -5,6 +5,9 @@ Ported from validators/_type_normalization.py with a cleaner API.
 
 from __future__ import annotations
 
+import ast
+import io
+import tokenize
 from typing import Optional
 
 # PEP 585 equivalences: lowercase builtin -> typing.X
@@ -37,6 +40,7 @@ def normalize_type(type_str: Optional[str]) -> Optional[str]:
     if not s:
         return s
 
+    s = _normalize_quoted_values(s)
     s = s.replace(" ", "")
     s = _convert_pipe_union(s)
     s = _convert_optional(s)
@@ -44,6 +48,33 @@ def normalize_type(type_str: Optional[str]) -> Optional[str]:
     s = _normalize_comma_spacing(s)
 
     return s
+
+
+def _normalize_quoted_values(type_str: str) -> str:
+    """Replace quoted values with stable semantic tokens before comparison."""
+    try:
+        tokens = list(tokenize.generate_tokens(io.StringIO(type_str).readline))
+    except (IndentationError, tokenize.TokenError):
+        return type_str
+
+    normalized: list[tokenize.TokenInfo] = []
+    for token in tokens:
+        if token.type == tokenize.STRING:
+            try:
+                value = ast.literal_eval(token.string)
+            except (SyntaxError, ValueError):
+                pass
+            else:
+                semantic_value = repr(value).encode("utf-8").hex()
+                token = tokenize.TokenInfo(
+                    token.type,
+                    f"\x00maid_quoted_{semantic_value}\x00",
+                    token.start,
+                    token.end,
+                    token.line,
+                )
+        normalized.append(token)
+    return tokenize.untokenize(normalized)
 
 
 def types_match(manifest_type: Optional[str], impl_type: Optional[str]) -> bool:
