@@ -72,20 +72,18 @@ def test_missing_knockout_command_identity_still_forces_exact_fallback(
 
 
 def _write_project(root: Path):
+    # Grouped-command behavior uses an injected executor and needs no packages.
+    (root / ".venv").mkdir()
     (root / "src").mkdir()
     (root / "tests").mkdir()
     (root / "manifests").mkdir()
     (root / "src/alpha.py").write_text(ORIGINAL_A)
     (root / "src/beta.py").write_text(ORIGINAL_B)
     (root / "tests/test_alpha.py").write_text(
-        "from src.alpha import alpha\n\n"
-        "def test_alpha():\n"
-        "    assert alpha() == 'a'\n"
+        "from src.alpha import alpha\n\ndef test_alpha():\n    assert alpha() == 'a'\n"
     )
     (root / "tests/test_beta.py").write_text(
-        "from src.beta import beta\n\n"
-        "def test_beta():\n"
-        "    assert beta() == 'b'\n"
+        "from src.beta import beta\n\ndef test_beta():\n    assert beta() == 'b'\n"
     )
     return (
         _write_manifest(root, "alpha", "src/alpha.py", "alpha", "tests/test_alpha.py"),
