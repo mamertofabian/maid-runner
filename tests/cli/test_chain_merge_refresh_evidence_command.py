@@ -439,6 +439,7 @@ def _initialize_project(
 ) -> Path:
     project = tmp_path / "project"
     project.mkdir()
+    (project / ".venv").mkdir()
     if requested_suffix == "b":
         _write_owner(project, "a", "A", failing=True)
         _write_owner(project, "b", "B", failing=False)
@@ -465,6 +466,7 @@ def _initialize_class_only_project(
 ) -> Path:
     project = tmp_path / "project"
     project.mkdir()
+    (project / ".venv").mkdir()
     (project / "src").mkdir()
     (project / "tests").mkdir()
     (project / "manifests").mkdir()
@@ -517,6 +519,7 @@ def _initialize_structural_write_project(
 ) -> Path:
     project = tmp_path / "project"
     project.mkdir()
+    (project / ".venv").mkdir()
     (project / "src").mkdir()
     (project / "tests").mkdir()
     (project / "manifests").mkdir()
