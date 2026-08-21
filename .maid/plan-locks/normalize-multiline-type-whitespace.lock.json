@@ -1,0 +1,687 @@
+{
+  "manifest_path": "manifests/normalize-multiline-type-whitespace.manifest.yaml",
+  "manifest_hash": "sha256-contract:ded94c9f8d130f87d13b77b8fbdfc700ed07286103c4d77f02d75bbbd716563b",
+  "test_hashes": {
+    "tests/validators/test_type_comparison_hook.py": "sha256-pyast:v2:6780ac514e1260e50dbc7258266ecd4c787110479b71f4afd2961ecfe2816a7c"
+  },
+  "created_at": "2026-08-21T08:14:58.285061+00:00",
+  "revision": 21,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:190314c99c5893b5543232e4714499c4e2cd04e7f7dfc86e28d85bd6ffdba10d",
+      "prior_test_hashes": {
+        "tests/core/test_type_compare.py": "sha256-pyast:v2:f92dafd76218c95db67fa995ca16883f614bd2d422bdd71c2410157a6fce9f39"
+      },
+      "revised_at": "2026-08-21T08:15:03.385275+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/normalize-multiline-type-whitespace.manifest.yaml -> manifests/normalize-multiline-type-whitespace.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:00845fdcad13b578040e9c7db43c89aee15620f69e46a72da089251ff60c9e86",
+      "prior_test_hashes": {
+        "tests/core/test_type_compare.py": "sha256-pyast:v2:f92dafd76218c95db67fa995ca16883f614bd2d422bdd71c2410157a6fce9f39"
+      },
+      "revised_at": "2026-08-21T08:40:54.292627+00:00",
+      "reason": "Add nested formatter-expanded object regression case pinning trailing-separator removal at more than one nesting level",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:00845fdcad13b578040e9c7db43c89aee15620f69e46a72da089251ff60c9e86",
+      "prior_test_hashes": {
+        "tests/core/test_type_compare.py": "sha256-pyast:v2:d0f9c722be98d083bec98d922c5c0279de282502e3a3f2f0045137522f9b80b9"
+      },
+      "revised_at": "2026-08-21T11:33:23.815681+00:00",
+      "reason": "Replace unsafe shared regex normalization with parser-backed TypeScript comparison after independent review",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/validators/typescript.py:function:_flatten_type_members",
+          "maid_runner/validators/typescript.py:function:_flatten_type_members:arg=node:type=Node:default=None",
+          "maid_runner/validators/typescript.py:function:_flatten_type_members:arg=node_type:type=str:default=None",
+          "maid_runner/validators/typescript.py:function:_flatten_type_members:kind=function",
+          "maid_runner/validators/typescript.py:function:_flatten_type_members:returns=list[Node]",
+          "maid_runner/validators/typescript.py:function:_typescript_type_fingerprint",
+          "maid_runner/validators/typescript.py:function:_typescript_type_fingerprint:arg=node:type=Node:default=None",
+          "maid_runner/validators/typescript.py:function:_typescript_type_fingerprint:arg=source:type=bytes:default=None",
+          "maid_runner/validators/typescript.py:function:_typescript_type_fingerprint:kind=function",
+          "maid_runner/validators/typescript.py:function:_typescript_type_fingerprint:returns=tuple[object, ...]",
+          "maid_runner/validators/typescript.py:method:TypeScriptValidator.__init__",
+          "maid_runner/validators/typescript.py:method:TypeScriptValidator.__init__:kind=method",
+          "maid_runner/validators/typescript.py:method:TypeScriptValidator.__init__:of=TypeScriptValidator",
+          "maid_runner/validators/typescript.py:method:TypeScriptValidator._type_fingerprint",
+          "maid_runner/validators/typescript.py:method:TypeScriptValidator._type_fingerprint:arg=fragment:type=str:default=None",
+          "maid_runner/validators/typescript.py:method:TypeScriptValidator._type_fingerprint:kind=method",
+          "maid_runner/validators/typescript.py:method:TypeScriptValidator._type_fingerprint:of=TypeScriptValidator",
+          "maid_runner/validators/typescript.py:method:TypeScriptValidator._type_fingerprint:returns=tuple[object, ...] | None",
+          "maid_runner/validators/typescript.py:method:TypeScriptValidator.types_match",
+          "maid_runner/validators/typescript.py:method:TypeScriptValidator.types_match:arg=implementation_type:type=str | None:default=None",
+          "maid_runner/validators/typescript.py:method:TypeScriptValidator.types_match:arg=manifest_type:type=str | None:default=None",
+          "maid_runner/validators/typescript.py:method:TypeScriptValidator.types_match:kind=method",
+          "maid_runner/validators/typescript.py:method:TypeScriptValidator.types_match:of=TypeScriptValidator",
+          "maid_runner/validators/typescript.py:method:TypeScriptValidator.types_match:returns=bool"
+        ],
+        "artifacts_removed": [
+          "maid_runner/core/_type_compare.py:function:normalize_type",
+          "maid_runner/core/_type_compare.py:function:normalize_type:arg=type_str:type=Optional[str]:default=None",
+          "maid_runner/core/_type_compare.py:function:normalize_type:kind=function",
+          "maid_runner/core/_type_compare.py:function:normalize_type:returns=Optional[str]"
+        ],
+        "files_added": [
+          "edit:maid_runner/validators/typescript.py",
+          "read:maid_runner/core/_type_compare.py",
+          "read:maid_runner/validators/_typescript_implementation.py",
+          "read:maid_runner/validators/base.py",
+          "scope:tests/validators/test_type_comparison_hook.py"
+        ],
+        "files_removed": [
+          "edit:maid_runner/core/_type_compare.py",
+          "read:manifests/add-python-type-alias-artifacts.manifest.yaml",
+          "scope:tests/core/test_type_compare.py"
+        ],
+        "validate_commands_added": [
+          "uv run pytest tests/validators/test_type_comparison_hook.py -q"
+        ],
+        "validate_commands_removed": [
+          "uv run pytest tests/core/test_type_compare.py -q"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:add3ce52f89f73d979d3b8e0d70c5eb437b502c90494b3e2b4d7ecc0e86f55c1",
+      "prior_test_hashes": {
+        "tests/validators/test_type_comparison_hook.py": "sha256-pyast:v2:e4deed14a3ed1c3d6e0a98160ff39955fb1250120086693383e1962c47e3060e"
+      },
+      "revised_at": "2026-08-21T11:33:59.333235+00:00",
+      "reason": "Align declared return annotations with collector-normalized Ellipsis and Union spellings",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/validators/typescript.py:function:_typescript_type_fingerprint:returns=tuple[object, Ellipsis]",
+          "maid_runner/validators/typescript.py:method:TypeScriptValidator._type_fingerprint:returns=Union[tuple[object, Ellipsis], None]"
+        ],
+        "artifacts_removed": [
+          "maid_runner/validators/typescript.py:function:_typescript_type_fingerprint:returns=tuple[object, ...]",
+          "maid_runner/validators/typescript.py:method:TypeScriptValidator._type_fingerprint:returns=tuple[object, ...] | None"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ac8dec66912e88090234eb7d10aff863e657b2b1e07a685e88656fd24c3e89bd",
+      "prior_test_hashes": {
+        "tests/validators/test_type_comparison_hook.py": "sha256-pyast:v2:e4deed14a3ed1c3d6e0a98160ff39955fb1250120086693383e1962c47e3060e"
+      },
+      "revised_at": "2026-08-21T11:45:44.386097+00:00",
+      "reason": "Add reviewer regressions for declaration injection and empty composite formatting; bound fingerprint cache",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ac8dec66912e88090234eb7d10aff863e657b2b1e07a685e88656fd24c3e89bd",
+      "prior_test_hashes": {
+        "tests/validators/test_type_comparison_hook.py": "sha256-pyast:v2:eb51584f85834f42357bc86c7d429c02fa8b64425d66d340e646c01f0a97cc49"
+      },
+      "revised_at": "2026-08-21T11:54:17.648818+00:00",
+      "reason": "Canonicalize parenthesized union and intersection members and exclude comments from flattened members",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/validators/typescript.py:function:_unwrap_parenthesized_type",
+          "maid_runner/validators/typescript.py:function:_unwrap_parenthesized_type:arg=node:type=Node:default=None",
+          "maid_runner/validators/typescript.py:function:_unwrap_parenthesized_type:kind=function",
+          "maid_runner/validators/typescript.py:function:_unwrap_parenthesized_type:returns=Node"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:85350fbf3dd55e05b830076181278eed8ab114cbde60562fbcc4f6ca169eb8a7",
+      "prior_test_hashes": {
+        "tests/validators/test_type_comparison_hook.py": "sha256-pyast:v2:4db8d3033dc86393ade84dbe6bdce6ea0a1515d02889869ad2a454cfd71779a7"
+      },
+      "revised_at": "2026-08-21T12:01:50.724918+00:00",
+      "reason": "Fail closed on excessively deep TypeScript type trees before recursive fingerprinting",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/validators/typescript.py:function:_type_tree_within_depth",
+          "maid_runner/validators/typescript.py:function:_type_tree_within_depth:arg=node:type=Node:default=None",
+          "maid_runner/validators/typescript.py:function:_type_tree_within_depth:kind=function",
+          "maid_runner/validators/typescript.py:function:_type_tree_within_depth:returns=bool"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6a127177a093165fd79fb247586772191f863ebfe0ac5b697a4008db96aceade",
+      "prior_test_hashes": {
+        "tests/validators/test_type_comparison_hook.py": "sha256-pyast:v2:1b3d371ccba015ab02f16d9b64e12fd519152912acdeb1212d355bdfb34a5da1"
+      },
+      "revised_at": "2026-08-21T12:11:23.114479+00:00",
+      "reason": "Make parsed TypeScript fingerprints authoritative and lock malformed/template/cache boundaries",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:da1b8376d334b84b217709da210fda2ce9b80cbb55d66f6c194c16fcba6c5034",
+      "prior_test_hashes": {
+        "tests/validators/test_type_comparison_hook.py": "sha256-pyast:v2:825499bb4e3ecdeee069e8c43c081c5e0ba0c76affccac5cf5cd33521e50f72e"
+      },
+      "revised_at": "2026-08-21T12:20:26.382376+00:00",
+      "reason": "Terminate synthetic aliases on a new line so trailing line comments remain valid",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:da1b8376d334b84b217709da210fda2ce9b80cbb55d66f6c194c16fcba6c5034",
+      "prior_test_hashes": {
+        "tests/validators/test_type_comparison_hook.py": "sha256-pyast:v2:0fd7832be68c32d9f35ef74a28661dc75bbd94dd9da00d176604bc8763b08ebd"
+      },
+      "revised_at": "2026-08-21T12:31:53.082363+00:00",
+      "reason": "Preserve exact JSDoc spellings while requiring parser-backed comparison for differing TypeScript fragments",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:1364f3cad4bad756d09388870f36d06f59859b6b570725786b0c8235f3ed2cbe",
+      "prior_test_hashes": {
+        "tests/validators/test_type_comparison_hook.py": "sha256-pyast:v2:be69082944fa8b31189ab114faf34baccf1db596a706ca34918bba464d2eaca5"
+      },
+      "revised_at": "2026-08-21T12:41:19.106701+00:00",
+      "reason": "Canonicalize ordinary TypeScript string literal escapes while preserving template contents",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/validators/typescript.py:function:_decode_typescript_string_literal",
+          "maid_runner/validators/typescript.py:function:_decode_typescript_string_literal:arg=text:type=str:default=None",
+          "maid_runner/validators/typescript.py:function:_decode_typescript_string_literal:kind=function",
+          "maid_runner/validators/typescript.py:function:_decode_typescript_string_literal:returns=Union[str, None]"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:7c790c0cf89180d9fb7b5ebf5de2108cdceb505e5ac83256fa4453036155e5f3",
+      "prior_test_hashes": {
+        "tests/validators/test_type_comparison_hook.py": "sha256-pyast:v2:18bb2b846c14cba8703cfec92c2c2aa7d5db230cf275e26373998a0874f8675b"
+      },
+      "revised_at": "2026-08-21T12:51:24.782847+00:00",
+      "reason": "Fail closed on surrogate input and reject invalid decimal escapes while decoding Unicode line continuations",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:7c790c0cf89180d9fb7b5ebf5de2108cdceb505e5ac83256fa4453036155e5f3",
+      "prior_test_hashes": {
+        "tests/validators/test_type_comparison_hook.py": "sha256-pyast:v2:8816fe47ac7d501f69cd337d647bd02b52a68dbaa3ec3e615adc3b51f19482be"
+      },
+      "revised_at": "2026-08-21T12:59:49.059466+00:00",
+      "reason": "Bound TypeScript fingerprints by bytes and nodes and align ECMAScript digit/surrogate decoding",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/validators/typescript.py:function:_type_tree_within_limits",
+          "maid_runner/validators/typescript.py:function:_type_tree_within_limits:arg=node:type=Node:default=None",
+          "maid_runner/validators/typescript.py:function:_type_tree_within_limits:kind=function",
+          "maid_runner/validators/typescript.py:function:_type_tree_within_limits:returns=bool",
+          "maid_runner/validators/typescript.py:method:TypeScriptValidator._store_type_fingerprint",
+          "maid_runner/validators/typescript.py:method:TypeScriptValidator._store_type_fingerprint:arg=fingerprint:type=Union[tuple[object, Ellipsis], None]:default=None",
+          "maid_runner/validators/typescript.py:method:TypeScriptValidator._store_type_fingerprint:arg=fragment:type=str:default=None",
+          "maid_runner/validators/typescript.py:method:TypeScriptValidator._store_type_fingerprint:kind=method",
+          "maid_runner/validators/typescript.py:method:TypeScriptValidator._store_type_fingerprint:of=TypeScriptValidator",
+          "maid_runner/validators/typescript.py:method:TypeScriptValidator._store_type_fingerprint:returns=Union[tuple[object, Ellipsis], None]"
+        ],
+        "artifacts_removed": [
+          "maid_runner/validators/typescript.py:function:_type_tree_within_depth",
+          "maid_runner/validators/typescript.py:function:_type_tree_within_depth:arg=node:type=Node:default=None",
+          "maid_runner/validators/typescript.py:function:_type_tree_within_depth:kind=function",
+          "maid_runner/validators/typescript.py:function:_type_tree_within_depth:returns=bool"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:1d025cae6ee9ea3893c143245ac37dca2c8186307ba169c16f8c3253b7059699",
+      "prior_test_hashes": {
+        "tests/validators/test_type_comparison_hook.py": "sha256-pyast:v2:ab955a1a60b5c5412f2bee2f8bd7944323c542119a83ca0a6fa8ff2cecebcc19"
+      },
+      "revised_at": "2026-08-21T13:08:32.993068+00:00",
+      "reason": "Reject invalid string nodes before fingerprinting and fail closed on parser service exceptions",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/validators/typescript.py:function:_type_tree_strings_are_valid",
+          "maid_runner/validators/typescript.py:function:_type_tree_strings_are_valid:arg=node:type=Node:default=None",
+          "maid_runner/validators/typescript.py:function:_type_tree_strings_are_valid:arg=source:type=bytes:default=None",
+          "maid_runner/validators/typescript.py:function:_type_tree_strings_are_valid:kind=function",
+          "maid_runner/validators/typescript.py:function:_type_tree_strings_are_valid:returns=bool"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:e086acc74e64eda43579111a721f79b4b882cc2656df89a0b9bcde78428de35b",
+      "prior_test_hashes": {
+        "tests/validators/test_type_comparison_hook.py": "sha256-pyast:v2:f878f5072d6ba23494b71a79ea9d0c6a821a02101ee8fd810d7843286cabffae"
+      },
+      "revised_at": "2026-08-21T13:16:30.190295+00:00",
+      "reason": "Count all Tree-sitter nodes when enforcing the type fingerprint resource budget",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:e086acc74e64eda43579111a721f79b4b882cc2656df89a0b9bcde78428de35b",
+      "prior_test_hashes": {
+        "tests/validators/test_type_comparison_hook.py": "sha256-pyast:v2:c08a906eb784877f49cb79991d84b665d66993309d1be3393568d7e0b9d67ee6"
+      },
+      "revised_at": "2026-08-21T13:23:14.296542+00:00",
+      "reason": "Enforce budgets on the complete alias tree and declare baseline JSDoc spacing compatibility",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:87b89f481a23b44191126357c705c31a5bbb03746aea035f6cb3d42130f61699",
+      "prior_test_hashes": {
+        "tests/validators/test_type_comparison_hook.py": "sha256-pyast:v2:ba4bc84e07d94dd770b41ac62e83ba9e21a920d32b2426e46cfad090a3a35e92"
+      },
+      "revised_at": "2026-08-21T13:34:13.636095+00:00",
+      "reason": "Preserve Closure JSDoc spacing equivalence and avoid caching oversized fragment keys",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/validators/typescript.py:function:_is_jsdoc_only_type",
+          "maid_runner/validators/typescript.py:function:_is_jsdoc_only_type:arg=fragment:type=str:default=None",
+          "maid_runner/validators/typescript.py:function:_is_jsdoc_only_type:kind=function",
+          "maid_runner/validators/typescript.py:function:_is_jsdoc_only_type:returns=bool"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:a02ec4b8915137856db2ffd9b900019e5daa8d9a470f9e41b04f308de3b6ff30",
+      "prior_test_hashes": {
+        "tests/validators/test_type_comparison_hook.py": "sha256-pyast:v2:eb714b722a9628ea63d5304836fac824ce9cf767e298889c207749c74cdd3a7c"
+      },
+      "revised_at": "2026-08-21T13:42:59.765301+00:00",
+      "reason": "Constrain JSDoc classification to top-level Closure forms and never cache unencodable or oversized keys",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:a02ec4b8915137856db2ffd9b900019e5daa8d9a470f9e41b04f308de3b6ff30",
+      "prior_test_hashes": {
+        "tests/validators/test_type_comparison_hook.py": "sha256-pyast:v2:9c763c861493504b1f7aad4a6497e871b58cc491d373a514283b930d18f5ec8b"
+      },
+      "revised_at": "2026-08-21T13:52:41.601056+00:00",
+      "reason": "Use released comparison as fallback when parser-backed comparison cannot apply",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [
+          "maid_runner/validators/typescript.py:function:_is_jsdoc_only_type",
+          "maid_runner/validators/typescript.py:function:_is_jsdoc_only_type:arg=fragment:type=str:default=None",
+          "maid_runner/validators/typescript.py:function:_is_jsdoc_only_type:kind=function",
+          "maid_runner/validators/typescript.py:function:_is_jsdoc_only_type:returns=bool"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ded94c9f8d130f87d13b77b8fbdfc700ed07286103c4d77f02d75bbbd716563b",
+      "prior_test_hashes": {
+        "tests/validators/test_type_comparison_hook.py": "sha256-pyast:v2:469959926ac229e533c3a9018d49e5714f8dd339ded85a10accd9d9b852e59c5"
+      },
+      "revised_at": "2026-08-21T14:01:55.820532+00:00",
+      "reason": "Cache only successful type fingerprints so transient failures and over-budget inputs remain retryable and non-retained",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-21T14:01:56.305049+00:00",
+    "commands": [
+      {
+        "command": "uv run pytest tests/validators/test_type_comparison_hook.py -q",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/validators/test_type_comparison_hook.py::test_typescript_formatter_expanded_type_targets_match[{ id: string; active: boolean }-{\\n  id: string;\\n  active: boolean;\\n}]\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_formatter_expanded_type_targets_match[(from: number, to: number) => PromiseLike<{ data: T[] | null }>-(\\n  from: number,\\n  to: number,\\n) => PromiseLike<{\\n  data: T[] | null;\\n}>]\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_formatter_expanded_type_targets_match[{ allowed: true; reason: 'ready now' } | { allowed: false; reason: 'not ready' }-\\n  | { allowed: false; reason: \"not ready\" }\\n  | { allowed: true; reason: \"ready now\" }]\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_formatter_expanded_type_targets_match[{}-{\\n}]\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_formatter_expanded_type_targets_match[[]-[\\n]]\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_formatter_expanded_type_targets_match[A | B-B | A /* formatter note */]\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_formatter_expanded_type_targets_match[string-string\\n// formatter note]\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_formatter_expanded_type_targets_match[A | (B | C)-C | B | A]\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_formatter_expanded_type_targets_match[A & (B & C)-C & B & A]\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_semantically_distinct_type_targets_do_not_match[`a b`-`ab`]\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_semantically_distinct_type_targets_do_not_match[`a .< b`-`a.<b`]\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_semantically_distinct_type_targets_do_not_match[{ value: `a b` }-{ value: `ab` }]\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_semantically_distinct_type_targets_do_not_match[keyof T /* .< */-keyofT /* .< */]\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_excessive_type_depth_fails_closed\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_string_edge_cases_are_bounded_and_semantic\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_wide_type_tree_preserves_baseline_comparison\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_parser_failure_preserves_baseline_comparison\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_type_fingerprint_cache_is_bounded\nFAILED tests/validators/test_type_comparison_hook.py::test_formatted_typescript_alias_passes_implementation_validation\n19 failed, 21 passed in 0.27s",
+        "classification": "red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/snapshot-cli-commands--main-2.lock.json"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/validators/typescript.py:function:_decode_typescript_string_literal",
+      "maid_runner/validators/typescript.py:function:_decode_typescript_string_literal:arg=text:type=str:default=None",
+      "maid_runner/validators/typescript.py:function:_decode_typescript_string_literal:kind=function",
+      "maid_runner/validators/typescript.py:function:_decode_typescript_string_literal:returns=Union[str, None]",
+      "maid_runner/validators/typescript.py:function:_flatten_type_members",
+      "maid_runner/validators/typescript.py:function:_flatten_type_members:arg=node:type=Node:default=None",
+      "maid_runner/validators/typescript.py:function:_flatten_type_members:arg=node_type:type=str:default=None",
+      "maid_runner/validators/typescript.py:function:_flatten_type_members:kind=function",
+      "maid_runner/validators/typescript.py:function:_flatten_type_members:returns=list[Node]",
+      "maid_runner/validators/typescript.py:function:_type_tree_strings_are_valid",
+      "maid_runner/validators/typescript.py:function:_type_tree_strings_are_valid:arg=node:type=Node:default=None",
+      "maid_runner/validators/typescript.py:function:_type_tree_strings_are_valid:arg=source:type=bytes:default=None",
+      "maid_runner/validators/typescript.py:function:_type_tree_strings_are_valid:kind=function",
+      "maid_runner/validators/typescript.py:function:_type_tree_strings_are_valid:returns=bool",
+      "maid_runner/validators/typescript.py:function:_type_tree_within_limits",
+      "maid_runner/validators/typescript.py:function:_type_tree_within_limits:arg=node:type=Node:default=None",
+      "maid_runner/validators/typescript.py:function:_type_tree_within_limits:kind=function",
+      "maid_runner/validators/typescript.py:function:_type_tree_within_limits:returns=bool",
+      "maid_runner/validators/typescript.py:function:_typescript_type_fingerprint",
+      "maid_runner/validators/typescript.py:function:_typescript_type_fingerprint:arg=node:type=Node:default=None",
+      "maid_runner/validators/typescript.py:function:_typescript_type_fingerprint:arg=source:type=bytes:default=None",
+      "maid_runner/validators/typescript.py:function:_typescript_type_fingerprint:kind=function",
+      "maid_runner/validators/typescript.py:function:_typescript_type_fingerprint:returns=tuple[object, Ellipsis]",
+      "maid_runner/validators/typescript.py:function:_unwrap_parenthesized_type",
+      "maid_runner/validators/typescript.py:function:_unwrap_parenthesized_type:arg=node:type=Node:default=None",
+      "maid_runner/validators/typescript.py:function:_unwrap_parenthesized_type:kind=function",
+      "maid_runner/validators/typescript.py:function:_unwrap_parenthesized_type:returns=Node",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator.__init__",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator.__init__:kind=method",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator.__init__:of=TypeScriptValidator",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator._store_type_fingerprint",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator._store_type_fingerprint:arg=fingerprint:type=Union[tuple[object, Ellipsis], None]:default=None",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator._store_type_fingerprint:arg=fragment:type=str:default=None",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator._store_type_fingerprint:kind=method",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator._store_type_fingerprint:of=TypeScriptValidator",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator._store_type_fingerprint:returns=Union[tuple[object, Ellipsis], None]",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator._type_fingerprint",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator._type_fingerprint:arg=fragment:type=str:default=None",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator._type_fingerprint:kind=method",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator._type_fingerprint:of=TypeScriptValidator",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator._type_fingerprint:returns=Union[tuple[object, Ellipsis], None]",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator.types_match",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator.types_match:arg=implementation_type:type=str | None:default=None",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator.types_match:arg=manifest_type:type=str | None:default=None",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator.types_match:kind=method",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator.types_match:of=TypeScriptValidator",
+      "maid_runner/validators/typescript.py:method:TypeScriptValidator.types_match:returns=bool"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "maid_runner/validators/typescript.py"
+      ],
+      "read": [
+        "maid_runner/core/_type_compare.py",
+        "maid_runner/validators/_typescript_implementation.py",
+        "maid_runner/validators/base.py",
+        "manifests/093-02-add-validator-type-comparison-hook.manifest.yaml"
+      ],
+      "scope": [
+        "tests/validators/test_type_comparison_hook.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "maid_runner/validators/typescript.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "_typescript_type_fingerprint",
+              "args": [
+                {
+                  "name": "node",
+                  "type": "Node"
+                },
+                {
+                  "name": "source",
+                  "type": "bytes"
+                }
+              ],
+              "returns": "tuple[object, Ellipsis]"
+            },
+            {
+              "kind": "function",
+              "name": "_flatten_type_members",
+              "args": [
+                {
+                  "name": "node",
+                  "type": "Node"
+                },
+                {
+                  "name": "node_type",
+                  "type": "str"
+                }
+              ],
+              "returns": "list[Node]"
+            },
+            {
+              "kind": "function",
+              "name": "_unwrap_parenthesized_type",
+              "args": [
+                {
+                  "name": "node",
+                  "type": "Node"
+                }
+              ],
+              "returns": "Node"
+            },
+            {
+              "kind": "function",
+              "name": "_type_tree_within_limits",
+              "args": [
+                {
+                  "name": "node",
+                  "type": "Node"
+                }
+              ],
+              "returns": "bool"
+            },
+            {
+              "kind": "function",
+              "name": "_type_tree_strings_are_valid",
+              "args": [
+                {
+                  "name": "node",
+                  "type": "Node"
+                },
+                {
+                  "name": "source",
+                  "type": "bytes"
+                }
+              ],
+              "returns": "bool"
+            },
+            {
+              "kind": "function",
+              "name": "_decode_typescript_string_literal",
+              "args": [
+                {
+                  "name": "text",
+                  "type": "str"
+                }
+              ],
+              "returns": "Union[str, None]"
+            },
+            {
+              "kind": "method",
+              "name": "__init__",
+              "of": "TypeScriptValidator"
+            },
+            {
+              "kind": "method",
+              "name": "types_match",
+              "of": "TypeScriptValidator",
+              "args": [
+                {
+                  "name": "manifest_type",
+                  "type": "str | None"
+                },
+                {
+                  "name": "implementation_type",
+                  "type": "str | None"
+                }
+              ],
+              "returns": "bool"
+            },
+            {
+              "kind": "method",
+              "name": "_type_fingerprint",
+              "of": "TypeScriptValidator",
+              "args": [
+                {
+                  "name": "fragment",
+                  "type": "str"
+                }
+              ],
+              "returns": "Union[tuple[object, Ellipsis], None]"
+            },
+            {
+              "kind": "method",
+              "name": "_store_type_fingerprint",
+              "of": "TypeScriptValidator",
+              "args": [
+                {
+                  "name": "fragment",
+                  "type": "str"
+                },
+                {
+                  "name": "fingerprint",
+                  "type": "Union[tuple[object, Ellipsis], None]"
+                }
+              ],
+              "returns": "Union[tuple[object, Ellipsis], None]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_type_compare.py",
+        "maid_runner/validators/base.py",
+        "maid_runner/validators/_typescript_implementation.py",
+        "manifests/093-02-add-validator-type-comparison-hook.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "tests/validators/test_type_comparison_hook.py",
+          "reason": "Cover TypeScript formatter equivalence, semantic mismatch guards, shared comparator isolation, and end-to-end E302 behavior."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/validators/test_type_comparison_hook.py"
+    ],
+    "validate_commands": [
+      "uv run pytest tests/validators/test_type_comparison_hook.py -q"
+    ]
+  }
+}
