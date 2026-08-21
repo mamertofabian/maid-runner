@@ -89,6 +89,44 @@ def test_failed_json_result_includes_only_bounded_output_tails() -> None:
     assert "stderr_tail" not in passed
 
 
+def test_failed_text_result_includes_only_bounded_output_tails() -> None:
+    stdout_marker = "stdout-failure-at-the-end"
+    stderr_marker = "stderr-failure-at-the-end"
+    stdout_prefix = "stdout-prefix-should-be-truncated"
+    stderr_prefix = "stderr-prefix-should-be-truncated"
+    results = BatchTestResult(
+        results=[
+            TestRunResult(
+                manifest_slug="failed",
+                command=("pytest", "tests/test_failure.py"),
+                exit_code=1,
+                stdout=f"{stdout_prefix}\n" + "x" * 20_000 + stdout_marker,
+                stderr=f"{stderr_prefix}\n" + "y" * 20_000 + stderr_marker,
+                duration_ms=10.0,
+            ),
+            TestRunResult(
+                manifest_slug="passed",
+                command=("pytest", "tests/test_success.py"),
+                exit_code=0,
+                stdout="successful output stays private",
+                stderr="",
+                duration_ms=5.0,
+            ),
+        ],
+        total=2,
+        passed=1,
+        failed=1,
+    )
+
+    rendered = format_test_result(results)
+
+    assert stdout_marker in rendered
+    assert stderr_marker in rendered
+    assert stdout_prefix not in rendered
+    assert stderr_prefix not in rendered
+    assert "successful output stays private" not in rendered
+
+
 def _failed_test_batch() -> BatchTestResult:
     return BatchTestResult(
         results=[

@@ -1,0 +1,112 @@
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: Expose publish matrix failures before release tagging
+type: fix
+created: "2026-08-21T22:56:39Z"
+metadata:
+  planning_state: behavioral-contract
+  promotion_ready: true
+  tests_status: created
+  status: implementation-ready
+  tags: [release, ci, diagnostics, python-matrix]
+  priority: critical
+description: |
+  Run the publish Python matrix on release branches before a tag is pushed,
+  bind uv to the interpreter selected by setup-python, and keep every matrix
+  lane running when one fails. Show bounded stdout and stderr tails for failed
+  MAID commands in ordinary text output so pytest tracebacks are visible in
+  hosted job logs without enabling unbounded verbose output.
+
+  This is an additive chain extension. Existing JSON diagnostics, successful
+  output privacy, supported Python versions, and release gates remain intact.
+temptations:
+- risk: Do not retry or hide a failing release test behind a guessed concurrency workaround.
+  instead: Exercise the same matrix on release branches and expose the original bounded failure output.
+- risk: Do not trust setup-python alone while uv can honor the repository Python pin.
+  instead: Pass the setup-python pythonLocation explicitly to uv sync.
+- risk: Do not print successful or unbounded command output in normal logs.
+  instead: Print only the final 16,384 characters of each failed output stream.
+files:
+  edit:
+  - path: .github/workflows/publish.yml
+    artifacts:
+    - kind: attribute
+      name: _publish_release_branch_python_diagnostics
+      of: github_actions
+      type: workflow command wiring
+      description: Release branch pushes run the non-fail-fast Python matrix and uv sync uses the setup-python interpreter executable selected for each lane.
+  - path: maid_runner/cli/commands/_format.py
+    artifacts:
+    - kind: function
+      name: _append_test_command_output
+      args:
+      - name: lines
+        type: list[str]
+      - name: result
+        type: TestRunResult
+      - name: verbose
+        type: bool
+      returns: None
+      description: Appends full verbose output or bounded failure-only stdout and stderr tails to normal MAID test output.
+  - path: tests/ci/test_publish_workflow.py
+    artifacts:
+    - kind: function
+      name: _workflow_triggers
+      args:
+      - name: workflow_path
+        type: Path
+      returns: dict[str, object]
+      description: Reads GitHub workflow triggers across PyYAML on-key parsing behavior.
+    - kind: test_function
+      name: test_publish_workflow_exercises_release_branches_with_matrix_python
+      args: []
+      returns: None
+      description: Release branch pushes retain every matrix lane, disable fail-fast, and sync with the selected setup-python interpreter.
+  - path: tests/cli/test_failed_test_output_json.py
+    artifacts:
+    - kind: test_function
+      name: test_failed_text_result_includes_only_bounded_output_tails
+      args: []
+      returns: None
+      description: Normal text output exposes bounded failed stdout and stderr tails while successful output remains private.
+  read:
+  - .python-version
+  - .github/workflows/maid-test.yml
+  - manifests/fix-publish-python-311-maid-tests.manifest.yaml
+  - manifests/include-failed-test-output-tails.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/ci/test_publish_workflow.py tests/cli/test_failed_test_output_json.py tests/cli/test_format.py
+outcome:
+  status: completed
+  completed_at: "2026-08-21T23:02:07Z"
+  summary: Release branches now exercise the real Python matrix and failed MAID command tails are visible in hosted text logs.
+  rationale: The release-only failure could not be reproduced reliably outside GitHub, while the publish matrix silently reused the repository-pinned Python and suppressed pytest's stdout failure report. Earlier branch execution, explicit interpreter binding, and bounded failure output make the hosted run both representative and diagnosable.
+  agent:
+    model: gpt-5
+    provider: openai
+    client: codex
+    source: Self-known model family; exact runtime slug and reasoning effort unavailable.
+    skills: [maid-evolver, maid-implementation-review]
+  lessons:
+  - lesson_type: reliability
+    summary: setup-python does not override uv's repository pin unless uv receives the selected interpreter executable explicitly.
+    tags: [github-actions, uv, python-matrix]
+    paths: [.github/workflows/publish.yml]
+  - lesson_type: diagnostics
+    summary: Pytest failure details captured on stdout must be included in bounded normal output; printing only stderr leaves hosted failures opaque.
+    tags: [pytest, ci, bounded-output]
+    paths: [maid_runner/cli/commands/_format.py]
+  review_notes:
+  - source: independent-implementation-reviewer
+    severity: ready
+    summary: No blocking or advisory findings; workflow interpreter binding, matrix behavior, bounded diagnostics, privacy, and contract scope are consistent.
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/ci/test_publish_workflow.py, tests/cli/test_failed_test_output_json.py, tests/cli/test_format.py]
+    status: passed
+    summary: All 54 focused workflow and formatter tests passed.
+  - command: [uv, run, maid, verify, --profile, deep, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, HEAD]
+    status: passed
+    summary: All 11 deep stages passed, including artifact coverage, knockout, plan lock, changed scope, and tests.
