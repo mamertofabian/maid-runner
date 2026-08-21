@@ -3,11 +3,11 @@
   "manifest_hash": "sha256-contract:690f516cb4310bd4264a11eebeb89b5f617f0af658c121a2a0d9e29a7033ca54",
   "test_hashes": {
     "tests/core/test_artifact_coverage_abstract_contracts.py": "sha256-pyast:v2:57a2299e30453da7e0ccfd69f2cadd09867ee0f1e9eaac81e6136368499b691b",
-    "tests/core/test_knockout.py": "sha256-pyast:v2:bc2dcd6af0522601981640536e0bf3ac3ae81b7d1a9653b5c28c2b24ddca4997",
+    "tests/core/test_knockout.py": "sha256-pyast:v2:6b2a754f65c5673e97ea8d54f83344add201114e7551dd99bb994bde4ac98fc1",
     "tests/core/test_knockout_abstract_contracts.py": "sha256-pyast:v2:051ed8e61596eba1242323ab7a426402b4f0793d260b19cd7d65264278ca9be6"
   },
   "created_at": "2026-08-19T20:12:39.995866+00:00",
-  "revision": 3,
+  "revision": 4,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:b3299ae6d8f3b678fdb6d17b985aefee2fef51743a6d54228a083eded857a51e",
@@ -37,6 +37,25 @@
       },
       "revised_at": "2026-08-20T16:13:35.193151+00:00",
       "reason": "accept performance-preserving test optimization",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:690f516cb4310bd4264a11eebeb89b5f617f0af658c121a2a0d9e29a7033ca54",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_abstract_contracts.py": "sha256-pyast:v2:57a2299e30453da7e0ccfd69f2cadd09867ee0f1e9eaac81e6136368499b691b",
+        "tests/core/test_knockout.py": "sha256-pyast:v2:bc2dcd6af0522601981640536e0bf3ac3ae81b7d1a9653b5c28c2b24ddca4997",
+        "tests/core/test_knockout_abstract_contracts.py": "sha256-pyast:v2:051ed8e61596eba1242323ab7a426402b4f0793d260b19cd7d65264278ca9be6"
+      },
+      "revised_at": "2026-08-21T00:10:07.156767+00:00",
+      "reason": "accept tiny core knockout dependency fixtures",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

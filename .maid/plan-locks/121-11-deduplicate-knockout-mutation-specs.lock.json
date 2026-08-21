@@ -2,12 +2,12 @@
   "manifest_path": "manifests/121-11-deduplicate-knockout-mutation-specs.manifest.yaml",
   "manifest_hash": "sha256-contract:deaf8615625a78d77964baa3767485c297b66e81ffb8b41691c2b6b7056102a5",
   "test_hashes": {
-    "tests/core/test_knockout.py": "sha256-pyast:v2:bc2dcd6af0522601981640536e0bf3ac3ae81b7d1a9653b5c28c2b24ddca4997",
+    "tests/core/test_knockout.py": "sha256-pyast:v2:6b2a754f65c5673e97ea8d54f83344add201114e7551dd99bb994bde4ac98fc1",
     "tests/cli/test_verify_knockout_cmd.py": "sha256-pyast:v2:63bbd125c02ca1d1ce9546075c5a75effd2f8ecb21603c39d34ae8a1c2e487e4",
     "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32"
   },
   "created_at": "2026-08-11T21:58:23.097945+00:00",
-  "revision": 8,
+  "revision": 9,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:3e8a3f1e8d1d934e11d4ba12c4baea96e1b29c6b8e56cc9de40d5b873e03e3f2",
@@ -136,6 +136,25 @@
       },
       "revised_at": "2026-08-20T23:36:54.548008+00:00",
       "reason": "accept tiny verify-knockout dependency fixture",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:deaf8615625a78d77964baa3767485c297b66e81ffb8b41691c2b6b7056102a5",
+      "prior_test_hashes": {
+        "tests/core/test_knockout.py": "sha256-pyast:v2:bc2dcd6af0522601981640536e0bf3ac3ae81b7d1a9653b5c28c2b24ddca4997",
+        "tests/cli/test_verify_knockout_cmd.py": "sha256-pyast:v2:63bbd125c02ca1d1ce9546075c5a75effd2f8ecb21603c39d34ae8a1c2e487e4",
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:df62f411aaa31c46eaef56aff6fb6f01ace06ca4e746307dfd00635320807d32"
+      },
+      "revised_at": "2026-08-21T00:09:57.121801+00:00",
+      "reason": "accept tiny core knockout dependency fixtures",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
