@@ -1,0 +1,90 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: Stabilize MAID tests in the publish matrix
+type: fix
+created: "2026-08-21T09:07:32Z"
+metadata:
+  planning_state: behavioral-contract
+  promotion_ready: true
+  tests_status: created
+  status: implementation-ready
+  tags: [release, ci, pytest, python-311, reliability]
+  priority: critical
+description: |
+  Bound each publish-matrix MAID test lane to one command job and four pytest
+  workers, matching the hosted-runner policy already proven by the dedicated
+  MAID workflows. Keep the repository's eight-worker local default unchanged.
+
+  This is an additive chain extension: prior workflow ordering and hosted
+  worker contracts remain active while this contract covers the publish lane
+  and the release-lane concurrency behavior exposed by the failed tag run.
+temptations:
+- risk: Do not remove Python 3.11 from the release matrix or retry failed tests.
+  instead: Preserve the compatibility lane and bound its concurrent MAID execution.
+- risk: Do not lower the repository-local eight-worker default.
+  instead: Pass the established one-job/four-worker boundary only in publish.yml.
+files:
+  edit:
+  - path: .github/workflows/publish.yml
+    artifacts:
+    - kind: attribute
+      name: _publish_maid_test_worker_boundary
+      of: github_actions
+      type: workflow command wiring
+      description: An exact workflow marker identifies the enabled Run MAID tests step, which uses one command job and four pytest workers while retaining the Python 3.10, 3.11, and 3.12 lanes.
+  - path: tests/ci/test_publish_workflow.py
+    artifacts:
+    - kind: test_function
+      name: test_publish_workflow_installs_npm_dependencies_before_maid_tests
+      args: []
+      returns: None
+      description: Release prerequisites remain ordered before the explicitly bounded MAID test command and full pytest suite.
+    - kind: test_function
+      name: test_publish_workflow_bounds_maid_test_workers_on_hosted_matrix
+      args: []
+      returns: None
+      description: The named, enabled publish MAID step invokes exactly one command job and four pytest workers, retains all supported Python lanes, and references the declared workflow marker.
+  read:
+  - .maidrc.yaml
+  - .github/workflows/maid-test.yml
+  - .github/workflows/maid-validation.yml
+validate:
+- uv run python -m pytest -q tests/ci/test_publish_workflow.py
+outcome:
+  status: completed
+  completed_at: "2026-08-21T17:24:45+08:00"
+  summary: Publish-matrix MAID tests now run with one command job and four pytest workers, eliminating the hosted concurrency pattern that failed the release tag run.
+  rationale: The failed lane combined the repository defaults of two MAID command jobs and eight pytest workers. Matching the dedicated hosted workflows' one-job/four-worker boundary fixes the observed race without reducing local parallelism or removing supported matrix lanes.
+  agent:
+    model: gpt-5
+    provider: openai
+    client: codex
+    source: Self-known model family; exact runtime slug and reasoning effort unavailable.
+    skills: [maid-evolver, maid-plan-review, maid-implementation-review]
+  lessons:
+  - lesson_type: reliability
+    summary: Hosted worker limits must bound both MAID command jobs and pytest workers; limiting only pytest workers still permits overlapping test batches.
+    tags: [github-actions, release, pytest, concurrency]
+    paths: [.github/workflows/publish.yml, tests/ci/test_publish_workflow.py]
+  - lesson_type: compatibility
+    summary: actions/setup-python does not control uv when a repository Python pin takes precedence; matrix interpreter selection requires a separate explicit fix.
+    tags: [github-actions, uv, python-matrix]
+    paths: [.github/workflows/publish.yml, .python-version]
+  review_notes:
+  - source: independent-implementation-reviewer
+    severity: ready
+    summary: No blocking findings; the one-job/four-worker release boundary, behavioral tests, plan locks, and deep verification are consistent. The pre-existing matrix-interpreter mismatch is a separate advisory.
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/ci/test_publish_workflow.py]
+    status: passed
+    summary: All 6 focused publish-workflow tests passed.
+  - command: [uv, run, maid, test, --jobs, "1", --pytest-workers, "4", --json]
+    status: passed
+    summary: All 295 MAID commands passed with the exact publish-workflow concurrency boundary.
+  - command: [uv, run, maid, verify, --profile, deep, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, db0ec8b21909a947cb2847576c6e9e40e236d485]
+    status: passed
+    summary: All 11 deep verification stages passed, including artifact coverage, knockout, plan lock, red evidence, worktree scope, and tests.

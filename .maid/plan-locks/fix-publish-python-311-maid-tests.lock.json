@@ -1,0 +1,170 @@
+{
+  "manifest_path": "manifests/fix-publish-python-311-maid-tests.manifest.yaml",
+  "manifest_hash": "sha256-contract:b04509f8eb4c067528852fcd90fc0d55ffea0bf2c8477d213c610313029dc43a",
+  "test_hashes": {
+    "tests/ci/test_publish_workflow.py": "sha256-pyast:v2:afc1dc683708ea6d511cf660a618cacd95ace5f5bcfb648316bce64b347286f6"
+  },
+  "created_at": "2026-08-21T09:07:08.906654+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:b6f6a6ec5e88bb492043b39c2e6b6c55bd955751843ab299e5eb397c282415bd",
+      "prior_test_hashes": {
+        "tests/ci/test_publish_workflow.py": "sha256-pyast:v2:afc1dc683708ea6d511cf660a618cacd95ace5f5bcfb648316bce64b347286f6",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:2c3473b800642a86d4e1cd1e42e73065e0f0c32c61eba33fb40342abbfb430a0"
+      },
+      "revised_at": "2026-08-21T09:07:32.751210+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-publish-python-311-maid-tests.manifest.yaml -> manifests/fix-publish-python-311-maid-tests.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:974816632cdedf1a300a05b0c60e355c140b193989f4d22410dff0deea7093d7",
+      "prior_test_hashes": {
+        "tests/ci/test_publish_workflow.py": "sha256-pyast:v2:afc1dc683708ea6d511cf660a618cacd95ace5f5bcfb648316bce64b347286f6",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:2c3473b800642a86d4e1cd1e42e73065e0f0c32c61eba33fb40342abbfb430a0"
+      },
+      "revised_at": "2026-08-21T09:14:43.727122+00:00",
+      "reason": "narrow release fix after shared-test lock audit",
+      "agent": {
+        "model": "gpt-5",
+        "provider": "openai",
+        "client": "codex",
+        "skills": [
+          "maid-evolver"
+        ],
+        "source": "flags"
+      },
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [
+          "tests/core/test_runtime_evidence.py:test_monitoring_ownership_failure_falls_back_and_restores_prior_profile",
+          "tests/core/test_runtime_evidence.py:test_monitoring_ownership_failure_falls_back_and_restores_prior_profile:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/core/test_runtime_evidence.py:test_monitoring_ownership_failure_falls_back_and_restores_prior_profile:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_runtime_evidence.py:test_monitoring_ownership_failure_falls_back_and_restores_prior_profile:kind=test_function",
+          "tests/core/test_runtime_evidence.py:test_monitoring_ownership_failure_falls_back_and_restores_prior_profile:returns=None",
+          "tests/core/test_runtime_evidence.py:test_monitoring_success_and_post_claim_failure_preserve_tool_ownership",
+          "tests/core/test_runtime_evidence.py:test_monitoring_success_and_post_claim_failure_preserve_tool_ownership:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/core/test_runtime_evidence.py:test_monitoring_success_and_post_claim_failure_preserve_tool_ownership:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_runtime_evidence.py:test_monitoring_success_and_post_claim_failure_preserve_tool_ownership:kind=test_function",
+          "tests/core/test_runtime_evidence.py:test_monitoring_success_and_post_claim_failure_preserve_tool_ownership:returns=None"
+        ],
+        "files_added": [],
+        "files_removed": [
+          "edit:tests/core/test_runtime_evidence.py",
+          "read:maid_runner/core/_runtime_evidence_pytest_plugin.py"
+        ],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/ci/test_publish_workflow.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/ci/test_publish_workflow.py tests/core/test_runtime_evidence.py"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-21T09:14:43.959279+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/ci/test_publish_workflow.py",
+        "exit_code": 1,
+        "output_tail": "tests/ci/test_publish_workflow.py:33: ValueError\n_______ test_publish_workflow_bounds_maid_test_workers_on_hosted_matrix ________\n\n    def test_publish_workflow_bounds_maid_test_workers_on_hosted_matrix() -> None:\n        workflow_path = Path(\".github/workflows/publish.yml\")\n        workflow = yaml.safe_load(workflow_path.read_text())\n        test_job = workflow[\"jobs\"][\"test\"]\n        maid_test_step = _named_step_for_job(workflow_path, \"test\", \"Run MAID tests\")\n    \n>       assert maid_test_step[\"run\"] == \"uv run maid test --jobs 1 --pytest-workers 4\"\nE       AssertionError: assert 'uv run maid test' == 'uv run maid ...est-workers 4'\nE         \nE         - uv run maid test --jobs 1 --pytest-workers 4\nE         + uv run maid test\n\ntests/ci/test_publish_workflow.py:46: AssertionError\n=========================== short test summary info ============================\nFAILED tests/ci/test_publish_workflow.py::test_publish_workflow_installs_npm_dependencies_before_maid_tests\nFAILED tests/ci/test_publish_workflow.py::test_publish_workflow_bounds_maid_test_workers_on_hosted_matrix\n2 failed, 4 passed in 0.05s",
+        "classification": "red"
+      }
+    ],
+    "sibling_dirty_paths": []
+  },
+  "legacy_baseline": null,
+  "agent": {
+    "model": "gpt-5",
+    "provider": "openai",
+    "client": "codex",
+    "skills": [
+      "maid-planner",
+      "maid-evolver"
+    ],
+    "source": "flags"
+  },
+  "_manifest_contract": {
+    "artifacts": [
+      ".github/workflows/publish.yml:attribute:github_actions._publish_maid_test_worker_boundary",
+      ".github/workflows/publish.yml:attribute:github_actions._publish_maid_test_worker_boundary:kind=attribute",
+      ".github/workflows/publish.yml:attribute:github_actions._publish_maid_test_worker_boundary:of=github_actions",
+      ".github/workflows/publish.yml:attribute:github_actions._publish_maid_test_worker_boundary:type=workflow command wiring",
+      "tests/ci/test_publish_workflow.py:test_publish_workflow_bounds_maid_test_workers_on_hosted_matrix",
+      "tests/ci/test_publish_workflow.py:test_publish_workflow_bounds_maid_test_workers_on_hosted_matrix:kind=test_function",
+      "tests/ci/test_publish_workflow.py:test_publish_workflow_bounds_maid_test_workers_on_hosted_matrix:returns=None",
+      "tests/ci/test_publish_workflow.py:test_publish_workflow_installs_npm_dependencies_before_maid_tests",
+      "tests/ci/test_publish_workflow.py:test_publish_workflow_installs_npm_dependencies_before_maid_tests:kind=test_function",
+      "tests/ci/test_publish_workflow.py:test_publish_workflow_installs_npm_dependencies_before_maid_tests:returns=None"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        ".github/workflows/publish.yml",
+        "tests/ci/test_publish_workflow.py"
+      ],
+      "read": [
+        ".github/workflows/maid-test.yml",
+        ".github/workflows/maid-validation.yml",
+        ".maidrc.yaml"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": ".github/workflows/publish.yml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_publish_maid_test_worker_boundary",
+              "description": "An exact workflow marker identifies the enabled Run MAID tests step, which uses one command job and four pytest workers while retaining the Python 3.10, 3.11, and 3.12 lanes.",
+              "of": "github_actions",
+              "type": "workflow command wiring"
+            }
+          ]
+        },
+        {
+          "path": "tests/ci/test_publish_workflow.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_publish_workflow_installs_npm_dependencies_before_maid_tests",
+              "description": "Release prerequisites remain ordered before the explicitly bounded MAID test command and full pytest suite.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_publish_workflow_bounds_maid_test_workers_on_hosted_matrix",
+              "description": "The named, enabled publish MAID step invokes exactly one command job and four pytest workers, retains all supported Python lanes, and references the declared workflow marker.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        ".maidrc.yaml",
+        ".github/workflows/maid-test.yml",
+        ".github/workflows/maid-validation.yml"
+      ]
+    },
+    "test_files": [
+      "tests/ci/test_publish_workflow.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/ci/test_publish_workflow.py"
+    ]
+  }
+}

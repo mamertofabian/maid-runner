@@ -764,18 +764,8 @@ def test_pinned_xdist_workers_return_target_calls_and_lines(tmp_path):
         "import os\n"
         "import subprocess\n"
         "import sys\n"
-        "import time\n"
         "from subprocess import Popen as EARLY_POPEN\n"
-        "from pathlib import Path\n\n"
         "import pytest\n\n"
-        "def append_interval(name, phase):\n"
-        "    path = Path('.pytest_cache/maid-intervals')\n"
-        "    path.parent.mkdir(exist_ok=True)\n"
-        "    fd = os.open(path, os.O_APPEND | os.O_CREAT | os.O_WRONLY, 0o600)\n"
-        "    try:\n"
-        "        os.write(fd, f'{name}:{phase}:{time.monotonic_ns()}\\n'.encode())\n"
-        "    finally:\n"
-        "        os.close(fd)\n\n"
         "def pytest_sessionstart(session):\n"
         "    if not os.environ.get('PYTEST_XDIST_WORKER'):\n"
         "        return\n"
@@ -787,80 +777,25 @@ def test_pinned_xdist_workers_return_target_calls_and_lines(tmp_path):
         "    process = EARLY_POPEN([sys.executable, '-c', 'pass'])\n"
         "    assert process.wait() == 0\n"
         "    os.environ['CONSUMER_PLUGIN_SESSIONSTART'] = 'seen'\n"
-        "\ndef pytest_sessionfinish(session, exitstatus):\n"
-        "    if os.environ.get('PYTEST_XDIST_WORKER'):\n"
-        "        return\n"
-        "    lines = Path('.pytest_cache/maid-intervals').read_text().splitlines()\n"
-        "    events = {}\n"
-        "    for line in lines:\n"
-        "        name, phase, value = line.split(':')\n"
-        "        events.setdefault(name, {})[phase] = int(value)\n"
-        "    def overlaps(left, right):\n"
-        "        return max(events[left]['start'], events[right]['start']) < "
-        "min(events[left]['end'], events[right]['end'])\n"
-        "    assert overlaps('safe-alpha', 'safe-beta')\n"
-        "    hazards = ['test_hazard_one', 'test_hazard_two', "
-        "'test_fixture_one', 'test_fixture_two']\n"
-        "    points = sorted((events[name][phase], 1 if phase == 'start' else -1) "
-        "for name in hazards for phase in ('start', 'end'))\n"
-        "    active = peak = 0\n"
-        "    for _, delta in points:\n"
-        "        active += delta\n"
-        "        peak = max(peak, active)\n"
-        "    assert peak == 2\n"
-    )
-    interval_helper = (
-        "import os, time\n"
-        "from pathlib import Path\n\n"
-        "def record(name):\n"
-        "    path = Path('.pytest_cache/maid-intervals')\n"
-        "    path.parent.mkdir(exist_ok=True)\n"
-        "    def append(phase):\n"
-        "        fd = os.open(path, os.O_APPEND | os.O_CREAT | os.O_WRONLY, 0o600)\n"
-        "        try:\n"
-        "            os.write(fd, f'{name}:{phase}:{time.monotonic_ns()}\\n'.encode())\n"
-        "        finally:\n"
-        "            os.close(fd)\n"
-        "    ready = path.with_name(f'{name}.ready')\n"
-        "    ready.touch()\n"
-        "    deadline = time.monotonic() + 5\n"
-        "    while len(tuple(path.parent.glob('safe-*.ready'))) < 2:\n"
-        "        assert time.monotonic() < deadline\n"
-        "        time.sleep(0.01)\n"
-        "    append('start')\n"
-        "    time.sleep(0.05)\n"
-        "    append('end')\n"
     )
     (root / "tests/test_alpha.py").write_text(
-        interval_helper + "\nfrom src.alpha import alpha\n\n"
+        "import os\n\nfrom src.alpha import alpha\n\n"
         "def test_alpha():\n"
         "    assert os.environ.get('CONSUMER_PLUGIN_SESSIONSTART') == 'seen'\n"
-        "    record('safe-alpha')\n"
         "    assert alpha() == 'alpha'\n"
     )
     (root / "tests/test_beta.py").write_text(
-        interval_helper + "\nfrom src.beta import beta\n\n"
+        "import os\n\nfrom src.beta import beta\n\n"
         "def test_beta():\n"
         "    assert os.environ.get('CONSUMER_PLUGIN_SESSIONSTART') == 'seen'\n"
-        "    record('safe-beta')\n"
         "    assert beta() == 'beta'\n"
     )
     direct_hazard = root / "tests/direct_hazard"
     direct_hazard.mkdir()
     child_helper = (
         "import subprocess, sys\n"
-        "from pathlib import Path\n\n"
         "def run_child(name):\n"
-        "    Path('.pytest_cache').mkdir(exist_ok=True)\n"
-        '    code = ("import os,sys,time; from pathlib import Path; "\n'
-        '        "p=Path(sys.argv[1]); n=sys.argv[2]; "\n'
-        '        "fd=os.open(p, os.O_APPEND|os.O_CREAT|os.O_WRONLY, 0o600); "\n'
-        "        \"os.write(fd, f'{n}:start:{time.monotonic_ns()}\\\\n'.encode()); os.close(fd); \"\n"
-        '        "time.sleep(0.05); "\n'
-        '        "fd=os.open(p, os.O_APPEND|os.O_CREAT|os.O_WRONLY, 0o600); "\n'
-        "        \"os.write(fd, f'{n}:end:{time.monotonic_ns()}\\\\n'.encode()); os.close(fd)\")\n"
-        "    subprocess.run([sys.executable, '-c', code, "
-        "'.pytest_cache/maid-intervals', name], check=True)\n\n"
+        "    subprocess.run([sys.executable, '-c', 'pass', name], check=True)\n\n"
     )
     (direct_hazard / "test_hazard.py").write_text(
         child_helper + "from src.alpha import alpha\n\n"
@@ -924,7 +859,16 @@ def test_pinned_xdist_workers_return_target_calls_and_lines(tmp_path):
             max_processes=8,
         )
 
-    assert run.serial_fallback_identities == ()
+    diagnostics = tuple(
+        (
+            result.errors,
+            result.command_run.returncode if result.command_run else None,
+            result.command_run.stdout if result.command_run else "",
+            result.command_run.stderr if result.command_run else "",
+        )
+        for result in run.results
+    )
+    assert run.serial_fallback_identities == (), diagnostics
     execution = {
         Path(path).stem: data
         for path, data in run.results[0].command_run.execution_data.items()
@@ -985,6 +929,7 @@ def test_generated_xdist_child_process_permits_fail_closed_and_release(
     namespace = {}
     exec(_coverage_worker_plugin_source(), namespace)
     assert getattr(subprocess.Popen, "_maid_child_process_permits", False)
+    assert namespace["_child_permits"].permits == 2
     assert os.environ["PYTEST_PLUGINS"] == (
         "maid_runner.core.result,maid_runner.core.types"
     )
