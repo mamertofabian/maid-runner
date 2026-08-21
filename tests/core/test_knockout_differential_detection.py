@@ -184,6 +184,8 @@ def _evidence(
 def _run(manifest, root: Path, executor, evidence=None, *, grouped: bool = False):
     from maid_runner.core.knockout import run_knockout_batch
 
+    if grouped:
+        (root / ".venv").mkdir(exist_ok=True)
     reports = run_knockout_batch(
         (manifest,),
         root,
