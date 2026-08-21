@@ -1,0 +1,168 @@
+{
+  "manifest_path": "manifests/bump-version-2.27.1.manifest.yaml",
+  "manifest_hash": "sha256-contract:0b9f99e45dba5695b19566a766f56ee814382d45c80dc50f8382da80d583aa8b",
+  "test_hashes": {
+    "tests/validators/test_type_comparison_hook.py": "sha256-pyast:v2:730ca36c79a7a3a779bdccf6452c8a2350d76fdd205c53faf184df357830c5f9",
+    "tests/integration/test_library_api.py": "sha256-pyast:v2:640e0fc6c45146c2a656ea0ce49e1000f060ac04235975044e1362d53de2512f"
+  },
+  "created_at": "2026-08-21T14:29:24.017203+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:d1f4ca7f93c56ecfb8049b51ceaf137eebc4e807d8f8d2eafdcfc3c562dae810",
+      "prior_test_hashes": {
+        "tests/validators/test_type_comparison_hook.py": "sha256-pyast:v2:6780ac514e1260e50dbc7258266ecd4c787110479b71f4afd2961ecfe2816a7c",
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:640e0fc6c45146c2a656ea0ce49e1000f060ac04235975044e1362d53de2512f"
+      },
+      "revised_at": "2026-08-21T14:29:24.696372+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/bump-version-2.27.1.manifest.yaml -> manifests/bump-version-2.27.1.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:cdf3153e95c25752d951c1f9cfb49c08e132865f7fad960393bf021a836e5494",
+      "prior_test_hashes": {
+        "tests/validators/test_type_comparison_hook.py": "sha256-pyast:v2:6780ac514e1260e50dbc7258266ecd4c787110479b71f4afd2961ecfe2816a7c",
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:640e0fc6c45146c2a656ea0ce49e1000f060ac04235975044e1362d53de2512f"
+      },
+      "revised_at": "2026-08-21T14:31:51.241637+00:00",
+      "reason": "Run every behavioral test file declared by the release contract so maid test can prove both metadata synchronization and the shipped TypeScript regression fix",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/integration/test_library_api.py tests/validators/test_type_comparison_hook.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/integration/test_library_api.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:0b9f99e45dba5695b19566a766f56ee814382d45c80dc50f8382da80d583aa8b",
+      "prior_test_hashes": {
+        "tests/validators/test_type_comparison_hook.py": "sha256-pyast:v2:6780ac514e1260e50dbc7258266ecd4c787110479b71f4afd2961ecfe2816a7c",
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:640e0fc6c45146c2a656ea0ce49e1000f060ac04235975044e1362d53de2512f"
+      },
+      "revised_at": "2026-08-21T14:47:01.828636+00:00",
+      "reason": "Accept the reviewed TypeScript overload-intersection and comparator-error regressions included in 2.27.1",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-21T14:31:52.282213+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/integration/test_library_api.py tests/validators/test_type_comparison_hook.py",
+        "exit_code": 1,
+        "output_tail": "        roadmap = root / \"docs\" / \"ROADMAP.md\"\n    \n>       assert __version__ == \"2.27.1\"\nE       AssertionError: assert '2.27.0' == '2.27.1'\nE         \nE         - 2.27.1\nE         ?      ^\nE         + 2.27.0\nE         ?      ^\n\ntests/integration/test_library_api.py:44: AssertionError\n=========================== short test summary info ============================\nFAILED tests/integration/test_library_api.py::TestPublicAPIImports::test_release_metadata_is_current_version\nFAILED tests/integration/test_library_api.py::TestPublicAPIImports::test_release_metadata_is_2_21_0\n2 failed, 67 passed in 0.32s\n\n   Building maid-runner @ file:///home/atomrem/projects/codefrost-dev/maid-runner\n      Built maid-runner @ file:///home/atomrem/projects/codefrost-dev/maid-runner\nUninstalled 1 package in 0.44ms\nInstalled 1 package in 0.67ms",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version",
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version:arg=self:type=TestPublicAPIImports:default=None",
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version:kind=test_function",
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version:of=TestPublicAPIImports",
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version:returns=None"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "tests/integration/test_library_api.py"
+      ],
+      "read": [
+        "maid_runner/__version__.py",
+        "maid_runner/validators/typescript.py",
+        "manifests/bump-version-2.27.0.manifest.yaml",
+        "manifests/normalize-multiline-type-whitespace.manifest.yaml",
+        "tests/validators/test_type_comparison_hook.py"
+      ],
+      "scope": [
+        "CHANGELOG.md",
+        "docs/ROADMAP.md",
+        "pyproject.toml",
+        "uv.lock"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "tests/integration/test_library_api.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_release_metadata_is_current_version",
+              "description": "Runtime version, package metadata, editable lock metadata, changelog heading and compare link, and roadmap all report 2.27.1 and identify the TypeScript formatting fix.",
+              "of": "TestPublicAPIImports",
+              "args": [
+                {
+                  "name": "self",
+                  "type": "TestPublicAPIImports"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/__version__.py",
+        "manifests/bump-version-2.27.0.manifest.yaml",
+        "manifests/normalize-multiline-type-whitespace.manifest.yaml",
+        "maid_runner/validators/typescript.py",
+        "tests/validators/test_type_comparison_hook.py"
+      ],
+      "scope": [
+        {
+          "path": "pyproject.toml",
+          "reason": "Package version metadata has no analyzer-visible public artifact."
+        },
+        {
+          "path": "uv.lock",
+          "reason": "Editable package lock metadata must mirror pyproject and be regenerated through uv."
+        },
+        {
+          "path": "CHANGELOG.md",
+          "reason": "Release notes document the 2.27.1 fix, date, boundaries, and comparison link."
+        },
+        {
+          "path": "docs/ROADMAP.md",
+          "reason": "Roadmap current-version references mirror the prepared CLI release."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/integration/test_library_api.py",
+      "tests/validators/test_type_comparison_hook.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/integration/test_library_api.py tests/validators/test_type_comparison_hook.py"
+    ]
+  }
+}

@@ -1,0 +1,136 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Prepare maid-runner 2.27.1 release metadata and changelog
+type: fix
+created: '2026-08-21T14:29:24Z'
+supersedes:
+- bump-version-2.27.0
+metadata:
+  planning_state: behavioral-contract
+  promotion_ready: true
+  tests_status: created-red-confirmed
+  status: implementation-ready
+  tags:
+  - release
+  - version
+  - changelog
+  priority: high
+description: |
+  Bump maid-runner from the published 2.27.0 release to patch release 2.27.1
+  and synchronize package metadata, editable lock metadata, changelog,
+  roadmap version/date references, and the shared release-metadata test.
+
+  The release contains the post-v2.27.0 TypeScript validator fix. Equivalent
+  formatter-expanded object, function, intersection, and union type aliases
+  compare structurally, while semantic changes and malformed or unsupported
+  syntax remain fail-closed through the released comparison fallback.
+
+  This task prepares local release metadata only. Tagging, publishing, pushing,
+  merging to main, and creating a GitHub release remain separate actions.
+temptations:
+- risk: Do not include test-concurrency commits that already shipped in v2.27.0.
+  instead: Derive the release inventory from the v2.27.0 tag boundary and describe only the TypeScript validator fix.
+- risk: Do not update only pyproject.toml while leaving other release mirrors stale.
+  instead: Update pyproject.toml, uv.lock, changelog, roadmap, and runtime assertions together.
+- risk: Do not claim that structurally different TypeScript declarations now compare equal.
+  instead: Describe formatting equivalence and retain explicit fail-closed semantic boundaries.
+- risk: Do not tag, publish, push, merge to main, or create a GitHub release because local preparation passes.
+  instead: Stop after build, validation, independent review, Outcome capture, and handoff.
+files:
+  scope:
+  - path: pyproject.toml
+    reason: Package version metadata has no analyzer-visible public artifact.
+  - path: uv.lock
+    reason: Editable package lock metadata must mirror pyproject and be regenerated through uv.
+  - path: CHANGELOG.md
+    reason: Release notes document the 2.27.1 fix, date, boundaries, and comparison link.
+  - path: docs/ROADMAP.md
+    reason: Roadmap current-version references mirror the prepared CLI release.
+  edit:
+  - path: tests/integration/test_library_api.py
+    artifacts:
+    - kind: test_function
+      name: test_release_metadata_is_current_version
+      of: TestPublicAPIImports
+      args:
+      - name: self
+        type: TestPublicAPIImports
+      returns: None
+      description: Runtime version, package metadata, editable lock metadata, changelog heading and compare link, and roadmap all report 2.27.1 and identify the TypeScript formatting fix.
+  read:
+  - maid_runner/__version__.py
+  - manifests/bump-version-2.27.0.manifest.yaml
+  - manifests/normalize-multiline-type-whitespace.manifest.yaml
+  - maid_runner/validators/typescript.py
+  - tests/validators/test_type_comparison_hook.py
+validate:
+- uv run python -m pytest -q tests/integration/test_library_api.py tests/validators/test_type_comparison_hook.py
+outcome:
+  status: completed
+  completed_at: '2026-08-21T23:18:01+08:00'
+  summary: Prepared maid-runner 2.27.1 by synchronizing package, lockfile,
+    changelog, roadmap, runtime assertions, and built artifacts for the
+    TypeScript formatter-equivalence fix.
+  rationale: This patch release resolves the post-v2.27.0 false E302 reports
+    without including concurrency work already present in the v2.27.0 tag.
+    Independent review caught an unsafe assumption that all intersections were
+    commutative; the corrected implementation canonicalizes unions but preserves
+    intersection member order for overload resolution and propagates unexpected
+    baseline comparator failures. Release mirrors, tests, package artifacts,
+    plan locks, and deep verification now agree on the corrected behavior.
+  lessons:
+  - lesson_type: release-boundary
+    summary: Release inventory must be derived from the published tag tree, not
+      merely commits visible on the standing integration branch.
+    tags: [release, changelog, git-history]
+    paths: [CHANGELOG.md, pyproject.toml]
+  - lesson_type: type-semantics
+    summary: Parser-backed normalization must distinguish syntactic operators
+      whose apparent algebraic properties do not preserve language-level
+      overload behavior.
+    tags: [typescript, intersections, overloads, e302]
+    paths:
+    - maid_runner/validators/typescript.py
+    - tests/validators/test_type_comparison_hook.py
+  - lesson_type: environment-isolation
+    summary: Concurrent downstream MAID runs can invalidate local release
+      evidence when a shared virtual environment is mutated; repair and rerun
+      the workflow in an uncontended dev-plus-docs environment before handoff.
+    tags: [release, testing, environment]
+    paths: [pyproject.toml, uv.lock]
+  review_notes:
+  - source: independent-release-implementation-review
+    severity: blocking
+    summary: Initial review found that reordered intersection call signatures
+      compared equal and that arbitrary baseline comparator errors were hidden.
+  - source: independent-release-implementation-review-refresh
+    severity: ready
+    summary: Fresh read-only review returned Ready to merge with no blockers,
+      should-fix findings, or nitpicks after the semantic correction and complete
+      validation rerun.
+  validation:
+  - command: [uv, run, pytest, tests/integration/test_library_api.py, tests/validators/test_type_comparison_hook.py, -q]
+    status: passed
+    summary: All 71 focused release and TypeScript comparison tests passed.
+  - command: [uv, run, maid, validate]
+    status: passed
+    summary: All 286 active manifests passed; 360 superseded manifests were skipped.
+  - command: [uv, run, maid, test, --jobs, '1', --pytest-workers, '4']
+    status: passed
+    summary: All 295 manifest command groups passed.
+  - command: [uv, run, python, -m, pytest, tests/, -q]
+    status: passed
+    summary: Publish-equivalent serial suite passed 4604 tests with 14 skipped.
+  - command: [make, build]
+    status: passed
+    summary: Built maid_runner-2.27.1 source and wheel distributions.
+  - command: [uv, run, twine, check, dist/maid_runner-2.27.1.tar.gz, dist/maid_runner-2.27.1-py3-none-any.whl]
+    status: passed
+    summary: Twine accepted both release artifacts; isolated wheel smoke reported maid 2.27.1.
+  - command: [uv, run, maid, verify, --profile, deep, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, v2.27.0]
+    status: passed
+    summary: All 11 deep gates passed; only the existing nonblocking CJS E307 warning remained.

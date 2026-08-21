@@ -1,0 +1,175 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Compare formatter-expanded TypeScript types without weakening other languages"
+type: fix
+created: "2026-08-21T08:15:03Z"
+description: |
+  Prevent false E302 diagnostics when a TypeScript collector preserves
+  formatter-expanded type syntax while a manifest declares the equivalent type
+  on one line. Keep the shared language-neutral comparator unchanged.
+  TypeScriptValidator preserves the released comparison behavior for
+  JavaScript/JSDoc and unparseable or over-budget spellings. When both differing
+  fragments parse as bounded TypeScript aliases, it compares syntax fingerprints
+  that ignore formatter punctuation, canonicalize union member order, preserve
+  intersection member order for overload resolution, and retain semantic tokens
+  such as optional markers and literal contents. Baseline comparator failures
+  propagate instead of being converted into parser-backed acceptance.
+
+  Template literal whitespace, object member order, and optional markers must not
+  be erased when parser-backed comparison applies. Cache at most 256 parsed
+  fragment fingerprints per validator instance; do not cache fragments over
+  64 KiB so long-running daemon validation remains bounded.
+temptations:
+  - risk: "Do not remove all whitespace or trailing punctuation with a shared regular expression."
+    instead: "Use the existing TypeScript Tree-sitter parser as the authoritative comparison for differing specified TypeScript types."
+  - risk: "Do not tighten unrelated JavaScript/JSDoc or malformed-type behavior."
+    instead: "When parser-backed comparison cannot apply to both fragments, retain the released comparator result."
+  - risk: "Do not erase literal contents, optional markers, or object member order."
+    instead: "Ignore only structural formatting tokens and retain ordered semantic child fingerprints."
+  - risk: "Do not sort intersection members as if every intersection were commutative."
+    instead: "Preserve intersection source order because intersected call signatures resolve overloads in order."
+files:
+  edit:
+    - path: maid_runner/validators/typescript.py
+      artifacts:
+        - kind: function
+          name: _typescript_type_fingerprint
+          args:
+            - name: node
+              type: Node
+            - name: source
+              type: bytes
+          returns: tuple[object, Ellipsis]
+        - kind: function
+          name: _flatten_type_members
+          args:
+            - name: node
+              type: Node
+            - name: node_type
+              type: str
+          returns: list[Node]
+        - kind: function
+          name: _unwrap_parenthesized_type
+          args:
+            - name: node
+              type: Node
+          returns: Node
+        - kind: function
+          name: _type_tree_within_limits
+          args:
+            - name: node
+              type: Node
+          returns: bool
+        - kind: function
+          name: _type_tree_strings_are_valid
+          args:
+            - name: node
+              type: Node
+            - name: source
+              type: bytes
+          returns: bool
+        - kind: function
+          name: _decode_typescript_string_literal
+          args:
+            - name: text
+              type: str
+          returns: Union[str, None]
+        - kind: method
+          name: __init__
+          of: TypeScriptValidator
+        - kind: method
+          name: types_match
+          of: TypeScriptValidator
+          args:
+            - name: manifest_type
+              type: str | None
+            - name: implementation_type
+              type: str | None
+          returns: bool
+        - kind: method
+          name: _type_fingerprint
+          of: TypeScriptValidator
+          args:
+            - name: fragment
+              type: str
+          returns: Union[tuple[object, Ellipsis], None]
+        - kind: method
+          name: _store_type_fingerprint
+          of: TypeScriptValidator
+          args:
+            - name: fragment
+              type: str
+            - name: fingerprint
+              type: Union[tuple[object, Ellipsis], None]
+          returns: Union[tuple[object, Ellipsis], None]
+  scope:
+    - path: tests/validators/test_type_comparison_hook.py
+      reason: "Cover TypeScript formatter equivalence, semantic mismatch guards, shared comparator isolation, and end-to-end E302 behavior."
+  read:
+    - maid_runner/core/_type_compare.py
+    - maid_runner/validators/base.py
+    - maid_runner/validators/_typescript_implementation.py
+    - manifests/093-02-add-validator-type-comparison-hook.manifest.yaml
+validate:
+  - ["uv", "run", "pytest", "tests/validators/test_type_comparison_hook.py", "-q"]
+outcome:
+  status: completed
+  summary: "TypeScriptValidator uses bounded Tree-sitter fingerprints to eliminate formatter-only E302 mismatches while preserving intersection order for overload resolution, propagating unexpected comparator failures, and retaining released fallback behavior for JSDoc, malformed, parser-failure, unencodable, and over-budget inputs."
+  rationale: "Parser-backed comparison belongs at the TypeScript boundary: it can ignore layout, comments, quote style, trailing separators, and union grouping without weakening other languages. Union members are canonicalized, but intersection members retain source order because intersected call signatures can resolve differently when reordered. Fingerprinting remains bounded by bytes, complete-tree nodes, depth, and successful-only cache retention; only the known UnicodeEncodeError from unencodable surrogate input is converted to fail-closed baseline mismatch."
+  completed_at: "2026-08-21T23:18:01+08:00"
+  lessons:
+    - lesson_type: type-comparison
+      summary: "Language-neutral string normalization is too weak for formatter-expanded TypeScript and too permissive for template literals; parser-backed comparison belongs at the TypeScript validator boundary."
+      tags:
+        - typescript
+        - tree-sitter
+        - e302
+      paths:
+        - maid_runner/validators/typescript.py
+        - tests/validators/test_type_comparison_hook.py
+    - lesson_type: compatibility
+      summary: "A validator shared by TypeScript and JavaScript must retain released comparator behavior whenever parser-backed TypeScript comparison cannot apply, especially for Closure/JSDoc spellings."
+      tags:
+        - javascript
+        - jsdoc
+        - backward-compatibility
+      paths:
+        - maid_runner/validators/typescript.py
+    - lesson_type: resource-bounds
+      summary: "Parser-derived caches need byte, complete-tree node, depth, and entry limits, and transient or rejected parses must not be retained."
+      tags:
+        - cache
+        - daemon
+        - parser
+      paths:
+        - maid_runner/validators/typescript.py
+  review_notes:
+    - source: independent-read-only-review
+      severity: info
+      summary: "Final review found no P0, P1, or P2 issues and returned Ready to merge after checking the full diff, parser and decoder semantics, cache budgets, JSDoc fallback, tests, scope, and locks."
+    - source: independent-release-implementation-review
+      severity: blocking
+      summary: "Release review proved that sorting intersection members accepted an observable overload-resolution change and that blanket comparator exception suppression hid defects; revision 22 added red regressions for both boundaries."
+    - source: independent-release-implementation-review-refresh
+      severity: ready
+      summary: "Fresh verdict-neutral review found no blockers, should-fix items, or nitpicks after intersection order was preserved, unexpected comparator errors propagated, focused and full tests passed, artifacts rebuilt, and deep verification passed all 11 stages."
+  validation:
+    - command: ["uv", "run", "pytest", "tests/validators/test_type_comparison_hook.py", "-q"]
+      status: passed
+      summary: "42 focused comparator-hook tests passed; revision-22 red evidence captures formatter regressions plus ordered-intersection and comparator-error boundaries."
+    - command: ["uv", "run", "python", "-m", "pytest", "tests/", "-q", "-n", "auto"]
+      status: passed
+      summary: "Publish-equivalent serial full suite passed with 4604 passed and 14 skipped after the shared environment was repaired and dev plus docs groups were installed."
+    - command: ["uv", "run", "maid", "validate"]
+      status: passed
+      summary: "646 manifests checked: 286 active passed, 0 failed, and 360 superseded skipped."
+    - command: ["uv", "run", "maid", "test", "--jobs", "1", "--pytest-workers", "4"]
+      status: passed
+      summary: "Workflow-equivalent MAID test run passed all 295 commands."
+    - command: ["uv", "run", "maid", "verify", "--profile", "deep", "--test-scope", "task", "--require-plan-lock", "--require-red-evidence", "--since", "v2.27.0"]
+      status: passed
+      summary: "Deep verification passed all 11 gates with no blockers; only the existing non-blocking E307 CJS-validator warning remained."

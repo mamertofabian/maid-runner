@@ -3,10 +3,10 @@
   "manifest_hash": "sha256-contract:c7f3236ed66eed1ca345d712bcfdb3f963bbe7de3662c71fc31be30112d4351e",
   "test_hashes": {
     "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:d9428231f4f91827521a818c261dca44a3eaa08aaa343a14aa9ed13a48badb4b",
-    "tests/integration/test_library_api.py": "sha256-pyast:v2:d9eefe3746580f63a6372422081c5e861326533a972dd1a4c83ad4a9ff09667d"
+    "tests/integration/test_library_api.py": "sha256-pyast:v2:640e0fc6c45146c2a656ea0ce49e1000f060ac04235975044e1362d53de2512f"
   },
   "created_at": "2026-06-17T07:27:27.229629+00:00",
-  "revision": 32,
+  "revision": 33,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:20b2f891dfaf7ebf2f67da732733d904d18d9ec16e59c223d56f193f3869af75",
@@ -477,6 +477,24 @@
       },
       "revised_at": "2026-08-20T10:00:48.926428+00:00",
       "reason": "accept approved 2.27.0 release-metadata shared-test completeness contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c7f3236ed66eed1ca345d712bcfdb3f963bbe7de3662c71fc31be30112d4351e",
+      "prior_test_hashes": {
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:d9428231f4f91827521a818c261dca44a3eaa08aaa343a14aa9ed13a48badb4b",
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:d9eefe3746580f63a6372422081c5e861326533a972dd1a4c83ad4a9ff09667d"
+      },
+      "revised_at": "2026-08-21T14:37:22.659849+00:00",
+      "reason": "Accept the approved 2.27.1 release-metadata assertion update in the shared public API test",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
