@@ -259,6 +259,9 @@ def _project(
     )
     if editable:
         _write_editable_environment(root)
+    else:
+        # Synthetic template scenarios need no installed dependency packages.
+        (root / ".venv").mkdir()
     if git:
         _git(root, "init")
         _git(root, "add", ".")
