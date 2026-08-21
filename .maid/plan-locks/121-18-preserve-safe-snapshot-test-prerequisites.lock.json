@@ -3,10 +3,10 @@
   "manifest_hash": "sha256-contract:0c19614a4bb98b81983e1449716907a1f86665f819372791a86cb57a624b0441",
   "test_hashes": {
     "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:235da5154eb612bdd088aee7a4dfeb9df1ff32dca5352ce6c486e7e66e5d0aa6",
-    "tests/core/test_knockout_workers.py": "sha256-pyast:v2:ba8f652a0b6061d0934c584767dadc7b1be3cdc9c7fae6c9eb9bc91dd1fa32c3"
+    "tests/core/test_knockout_workers.py": "sha256-pyast:v2:a22d37578f38d976895a21dfe971474fae8c1dba9d2dea17716124bbb02d0ff7"
   },
   "created_at": "2026-08-12T14:54:31.272001+00:00",
-  "revision": 10,
+  "revision": 11,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:afbd6c82d0336f02926fd852b81fe72ffa887b7282c869f9baa626c88fe18be6",
@@ -164,6 +164,24 @@
       },
       "revised_at": "2026-08-20T23:17:20.330783+00:00",
       "reason": "accept shared snapshot-test dependency optimization",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:0c19614a4bb98b81983e1449716907a1f86665f819372791a86cb57a624b0441",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:235da5154eb612bdd088aee7a4dfeb9df1ff32dca5352ce6c486e7e66e5d0aa6",
+        "tests/core/test_knockout_workers.py": "sha256-pyast:v2:ba8f652a0b6061d0934c584767dadc7b1be3cdc9c7fae6c9eb9bc91dd1fa32c3"
+      },
+      "revised_at": "2026-08-21T00:04:46.457206+00:00",
+      "reason": "accept tiny knockout worker dependency fixtures",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
