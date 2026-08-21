@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from maid_runner.core.manifest import load_manifest
-from maid_runner.core.result import ErrorCode
+from maid_runner.core.result import ErrorCode, TestRunResult
 
 
 def test_import_only_behavioral_test_reports_unexecuted_artifact(tmp_path: Path):
@@ -594,17 +594,29 @@ def test_real_runtime_executor_preserves_timeout_exception(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    from maid_runner.core import _runtime_command_executor as executor_module
     from maid_runner.core._runtime_command_executor import (
         SubprocessRuntimeCommandExecutor,
     )
 
     (tmp_path / "src").mkdir()
-    (tmp_path / "tests").mkdir()
     source = tmp_path / "src" / "target.py"
     source.write_text("def target():\n    return True\n")
-    (tmp_path / "tests" / "test_target.py").write_text(
-        "import time\n\n" "def test_target():\n" "    time.sleep(60)\n"
-    )
+
+    observed: dict[str, object] = {}
+
+    def timeout_result(command: tuple[str, ...], **kwargs: object) -> TestRunResult:
+        observed.update(kwargs)
+        return TestRunResult(
+            manifest_slug="",
+            command=command,
+            exit_code=-1,
+            stdout="",
+            stderr="Command timed out after 0.1s",
+            duration_ms=100.0,
+        )
+
+    monkeypatch.setattr(executor_module, "_run_test_command", timeout_result)
 
     record = SubprocessRuntimeCommandExecutor().execute(
         ("-q", "tests/test_target.py"),
@@ -613,12 +625,11 @@ def test_real_runtime_executor_preserves_timeout_exception(
         0.1,
     )
 
-    assert record.returncode < 0
+    assert record.returncode == -1
     assert record.execution_data == {}
-    assert any(
-        message in record.stderr.lower()
-        for message in ("timed out", "descendant ownership")
-    )
+    assert record.stderr == "Command timed out after 0.1s"
+    assert observed["timeout"] == 0.1
+    assert observed["require_descendant_ownership"] is True
 
 
 def _runtime_executor(

@@ -4,13 +4,13 @@
   "test_hashes": {
     "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3",
     "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:0bfcbeae6328eb1bda7ba15e14e5961d06a0be5e328c153788852292842c8a4a",
-    "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c6adf63404255225ba4db9f92341fffc0cf9b1c8f6ac9e2fbc6b9edc7c257114",
+    "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c34dfe965fa753658878c05966d0283f4abc97820a972e531ddc6fe2e1cf66de",
     "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:40d689b52b549e7b852da3dec2b2316bc87e7f4a38badb90ac173fb31ad68ccb",
     "tests/core/validation/test_test_command_execution.py": "sha256-pyast:v2:ee67eef82160778a6404e3a9316673fc70f491b829a132cada8f88ecffc9bdc3",
     "tests/core/test_deep_verification_cache_and_timeout_hardening.py": "sha256-pyast:v2:a41d26158a04b7a715f8b175cc7fbe6452edf951fa2ed399268c1a4f3d56f57f"
   },
   "created_at": "2026-08-14T10:14:24.236316+00:00",
-  "revision": 8,
+  "revision": 10,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:e37c02bb026f55a50dc9adc4ffae3c6b39c823f59e20788940001fe816cfd4b0",
@@ -167,6 +167,50 @@
       },
       "revised_at": "2026-08-21T07:36:44.330944+00:00",
       "reason": "replace hosted timing races with deterministic synchronization",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:7d8946067ca5c108ca79a1aebc9924a04d261ddf689601e3beceab91455c7968",
+      "prior_test_hashes": {
+        "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:0bfcbeae6328eb1bda7ba15e14e5961d06a0be5e328c153788852292842c8a4a",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c6adf63404255225ba4db9f92341fffc0cf9b1c8f6ac9e2fbc6b9edc7c257114",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:40d689b52b549e7b852da3dec2b2316bc87e7f4a38badb90ac173fb31ad68ccb",
+        "tests/core/validation/test_test_command_execution.py": "sha256-pyast:v2:ee67eef82160778a6404e3a9316673fc70f491b829a132cada8f88ecffc9bdc3",
+        "tests/core/test_deep_verification_cache_and_timeout_hardening.py": "sha256-pyast:v2:a41d26158a04b7a715f8b175cc7fbe6452edf951fa2ed399268c1a4f3d56f57f"
+      },
+      "revised_at": "2026-08-21T23:25:12.100086+00:00",
+      "reason": "Accept deterministic timeout-adapter test replacing hosted wall-clock race",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:7d8946067ca5c108ca79a1aebc9924a04d261ddf689601e3beceab91455c7968",
+      "prior_test_hashes": {
+        "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:0bfcbeae6328eb1bda7ba15e14e5961d06a0be5e328c153788852292842c8a4a",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:f9319e5169e39960cfb1459a2186e6a8be77ee610914431d8c5bfb6dae3019c6",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:40d689b52b549e7b852da3dec2b2316bc87e7f4a38badb90ac173fb31ad68ccb",
+        "tests/core/validation/test_test_command_execution.py": "sha256-pyast:v2:ee67eef82160778a6404e3a9316673fc70f491b829a132cada8f88ecffc9bdc3",
+        "tests/core/test_deep_verification_cache_and_timeout_hardening.py": "sha256-pyast:v2:a41d26158a04b7a715f8b175cc7fbe6452edf951fa2ed399268c1a4f3d56f57f"
+      },
+      "revised_at": "2026-08-21T23:28:27.383622+00:00",
+      "reason": "Accept exact timeout-code assertion from implementation review",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

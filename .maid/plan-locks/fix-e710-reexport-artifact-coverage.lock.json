@@ -2,12 +2,12 @@
   "manifest_path": "manifests/fix-e710-reexport-artifact-coverage.manifest.yaml",
   "manifest_hash": "sha256-contract:51ff21f408f04ad4859ae9d4e0daef41201d178abeeecc15e56d5d8f65716fb1",
   "test_hashes": {
-    "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c6adf63404255225ba4db9f92341fffc0cf9b1c8f6ac9e2fbc6b9edc7c257114",
+    "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c34dfe965fa753658878c05966d0283f4abc97820a972e531ddc6fe2e1cf66de",
     "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
     "tests/core/test_artifact_coverage_reexports.py": "sha256-pyast:v2:8a89f93faece8abde68660380390ae6202e5f4e410d1fa1be02d47c3bf648d45"
   },
   "created_at": "2026-08-16T13:38:43.735209+00:00",
-  "revision": 5,
+  "revision": 7,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:1b33d0b3fe9b16cc6f9054225f688ca84110ad10c61aca56cb9e55f24892cd0c",
@@ -83,6 +83,44 @@
       },
       "revised_at": "2026-08-16T14:02:16.263656+00:00",
       "reason": "Relock the approved E210 assertion-bearing negative tests against their final AST after the revision-4 pre-edit hash exposed E701",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:51ff21f408f04ad4859ae9d4e0daef41201d178abeeecc15e56d5d8f65716fb1",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c6adf63404255225ba4db9f92341fffc0cf9b1c8f6ac9e2fbc6b9edc7c257114",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage_reexports.py": "sha256-pyast:v2:8a89f93faece8abde68660380390ae6202e5f4e410d1fa1be02d47c3bf648d45"
+      },
+      "revised_at": "2026-08-21T23:25:12.674898+00:00",
+      "reason": "Accept deterministic timeout-adapter test replacing hosted wall-clock race",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:51ff21f408f04ad4859ae9d4e0daef41201d178abeeecc15e56d5d8f65716fb1",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:f9319e5169e39960cfb1459a2186e6a8be77ee610914431d8c5bfb6dae3019c6",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage_reexports.py": "sha256-pyast:v2:8a89f93faece8abde68660380390ae6202e5f4e410d1fa1be02d47c3bf648d45"
+      },
+      "revised_at": "2026-08-21T23:28:27.990368+00:00",
+      "reason": "Accept exact timeout-code assertion from implementation review",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
