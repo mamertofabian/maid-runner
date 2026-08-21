@@ -106,9 +106,58 @@ def _evidence(
     complete: bool = True,
     include_context: bool = True,
 ) -> RuntimeEvidenceBundle:
+    from maid_runner.core._runtime_command_executor import (
+        RuntimeCommandRecord,
+        RuntimeFileExecution,
+    )
     from maid_runner.core.runtime_evidence import collect_runtime_evidence
+    from maid_runner.core.runtime_evidence import (
+        RuntimeContextEvidence,
+        RuntimeGroupEvidence,
+    )
 
-    bundle = collect_runtime_evidence((manifest,), root).evidence
+    nodeid = "tests/test_target.py::test_target"
+    target = str((root / "src/target.py").resolve())
+    execution = {
+        target: RuntimeFileExecution(
+            executed_lines=frozenset({2}),
+            called_qualnames=frozenset({"target"}),
+        )
+    }
+
+    class GroupExecutor:
+        def execute_with_contexts(
+            self,
+            command,
+            target_files,
+            project_root,
+            timeout_seconds,
+            pytest_workers=None,
+            logical_selectors=None,
+        ):
+            return RuntimeGroupEvidence(
+                command=tuple(command),
+                selected_nodeids=(nodeid,),
+                selector_nodeids={
+                    selector: (nodeid,) for selector in logical_selectors or ()
+                },
+                contexts=(
+                    RuntimeContextEvidence(
+                        context_id=nodeid,
+                        kind="node",
+                        consuming_nodeids=(nodeid,),
+                        execution_data=execution,
+                        lifecycle_equivalent=True,
+                    ),
+                ),
+                result=RuntimeCommandRecord(tuple(command), 0, "", "", execution, ()),
+                worker_ids=("main",),
+                completeness=RuntimeEvidenceCompleteness(complete=True),
+            )
+
+    bundle = collect_runtime_evidence(
+        (manifest,), root, executor=GroupExecutor()
+    ).evidence
     command_evidence = bundle.commands[0]
     contexts = command_evidence.contexts if include_context else ()
     if kind != "node":

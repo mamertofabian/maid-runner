@@ -2,11 +2,11 @@
   "manifest_path": "manifests/121-31-focused-knockout-with-collection-incompleteness.manifest.yaml",
   "manifest_hash": "sha256-contract:9216de071e48bedc5aca90892b6f1959d1e1c2fe09aec83cd48f55a059f6c5cc",
   "test_hashes": {
-    "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:057ed465cbd108867a59d55c8e74f0b471c7b9acbff704d1044bffa91d7aec8b",
+    "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:cf792624807767755f997311690e70450f938d33255e33141dd98a9f5d33c325",
     "tests/core/test_focused_knockout_with_collection_incompleteness.py": "sha256-pyast:v2:41b16aafab033cbcfdc1a1ab27eeb787f01b19a86366f7c67c0f7f30e7fe5e57"
   },
   "created_at": "2026-08-13T10:17:52.029807+00:00",
-  "revision": 3,
+  "revision": 4,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:aea5d26d049e5de4fc105fa4fa5822054b037d5445a4e323c82b44486001a78d",
@@ -38,6 +38,24 @@
       },
       "revised_at": "2026-08-20T23:00:35.245904+00:00",
       "reason": "accept shared test-harness performance optimization",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9216de071e48bedc5aca90892b6f1959d1e1c2fe09aec83cd48f55a059f6c5cc",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_differential_detection.py": "sha256-pyast:v2:057ed465cbd108867a59d55c8e74f0b471c7b9acbff704d1044bffa91d7aec8b",
+        "tests/core/test_focused_knockout_with_collection_incompleteness.py": "sha256-pyast:v2:41b16aafab033cbcfdc1a1ab27eeb787f01b19a86366f7c67c0f7f30e7fe5e57"
+      },
+      "revised_at": "2026-08-21T05:33:25.752616+00:00",
+      "reason": "accept approved shared-test optimization",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
