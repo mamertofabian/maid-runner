@@ -189,16 +189,33 @@ def test_exact_coverage_timeout_reaps_detached_descendants(tmp_path: Path) -> No
         encoding="utf-8",
     )
 
+    executor = SubprocessRuntimeCommandExecutor()
     try:
-        record = SubprocessRuntimeCommandExecutor().execute(
-            ("tests/test_timeout.py", "-q"),
-            {str(source.resolve())},
-            project,
-            timeout_seconds=0.5,
-        )
+        # Interpreter and coverage startup, not the inner test body, dominates a
+        # sub-second budget, so a fixed timeout races the descendant spawn and
+        # reaps an inner command that never got far enough to detach a child.
+        # Escalate the budget until the descendant exists so the reap assertion
+        # observes real detached ownership instead of a startup kill.
+        budgets = (0.5, 1.0, 2.0, 4.0, 8.0)
+        for timeout_seconds in budgets:
+            pid_file.unlink(missing_ok=True)
+            record = executor.execute(
+                ("tests/test_timeout.py", "-q"),
+                {str(source.resolve())},
+                project,
+                timeout_seconds=timeout_seconds,
+            )
 
-        assert record.returncode != 0
-        assert "timed out" in record.stderr.lower()
+            assert record.returncode != 0
+            assert "timed out" in record.stderr.lower()
+            if pid_file.exists():
+                break
+        else:
+            pytest.fail(
+                "the inner command never spawned a detached descendant within "
+                f"{budgets[-1]} seconds"
+            )
+
         descendant_pid = int(pid_file.read_text(encoding="utf-8"))
         assert _wait_until_process_gone(descendant_pid)
     finally:

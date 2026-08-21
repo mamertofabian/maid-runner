@@ -131,6 +131,11 @@ outcome:
       tags: [process-ownership, timeout, runtime-evidence]
       paths:
         - maid_runner/core/_runtime_command_executor.py
+    - lesson_type: testing
+      summary: "A timeout test must not budget only for the behavior it asserts: interpreter and coverage startup consumed most of a fixed 0.5s budget, so on a loaded GitHub runner the inner command was reaped before it ever spawned the detached descendant and the test failed on a missing pid file rather than on leaked ownership. Escalating the budget until the descendant exists keeps the reap assertion meaningful on slow hosts while staying fast on idle ones."
+      tags: [timeout, ci-stability, flaky-tests, process-ownership]
+      paths:
+        - tests/core/test_deep_verification_cache_and_timeout_hardening.py
   review_notes:
     - source: merge_readiness_review
       severity: warning
@@ -141,6 +146,9 @@ outcome:
     - source: cache_timeout_impl_review
       severity: ready
       summary: "Re-review found no blocking issues and confirmed full-chain and manifest_paths selection parity, duplicate declaration handling, and E710 multiset consistency."
+    - source: ci_startup_race_fix
+      severity: warning
+      summary: "MAID Test and MAID Validation failed on release/v2.27.0 because test_exact_coverage_timeout_reaps_detached_descendants raced interpreter and coverage startup against its fixed 0.5s timeout. Reproduced locally under CPU contention and under a 4-CPU emulation of the GitHub runner, then fixed by escalating the timeout until the detached descendant exists."
   validation:
     - command: [uv, run, python, -m, pytest, -q, tests/core/test_deep_verification_cache_and_timeout_hardening.py, tests/cli/test_artifact_coverage_evidence_cache.py, tests/cli/test_verify_deep_evidence_reuse.py, tests/core/test_artifact_coverage.py, tests/core/test_artifact_coverage_batch.py, tests/core/validation/test_test_command_execution.py]
       status: passed
@@ -160,3 +168,9 @@ outcome:
     - command: [uv, run, ruff, check, .]
       status: passed
       summary: "Repository Ruff, Black check, and git diff check passed before Outcome capture."
+    - command: [uv, run, maid, verify, --summary, --require-plan-lock, --require-red-evidence, --no-changed-scope]
+      status: passed
+      summary: "After the CI startup-race fix and the two --preserve-red-evidence plan-lock revisions, all eight stages passed with only the pre-existing non-blocking E307 warnings."
+    - command: [taskset, -c, "0-3", uv, run, pytest, "<ci-batch>", -n, "4", --dist, loadscope]
+      status: passed
+      summary: "The exact GitHub batch command replayed on four pinned CPUs under added load, emulating the slower hosted runner at 207s against CI's 205s, reported 4551 passed and 9 skipped with no failures; the same replay before the fix reproduced the CI failure exactly."
