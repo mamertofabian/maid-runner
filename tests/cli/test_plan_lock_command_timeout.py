@@ -14,6 +14,8 @@ from maid_runner.core.plan_lock import (
     default_plan_lock_path,
     PlanLock,
 )
+from maid_runner.core.result import TestRunResult
+from maid_runner.core.types import TestStream
 
 
 def _git(project_root: Path, *args: str) -> None:
@@ -40,7 +42,7 @@ def _write_project(project_root: Path, *, exit_code: int, commit: bool) -> Path:
         encoding="utf-8",
     )
     (project_root / "scripts" / "validate.py").write_text(
-        "import sys\nimport time\ntime.sleep(2)\nsys.exit(" + str(exit_code) + ")\n",
+        "import sys\nsys.exit(" + str(exit_code) + ")\n",
         encoding="utf-8",
     )
     manifest_path = project_root / "manifests" / "timeout.manifest.yaml"
@@ -73,6 +75,30 @@ validate:
     return manifest_path
 
 
+def _install_validation_command_clock(
+    monkeypatch: pytest.MonkeyPatch, *, exit_code: int
+) -> list[int]:
+    from maid_runner.core import plan_lock
+
+    observed_timeouts: list[int] = []
+
+    def run(command, *, timeout, manifest_slug, **_kwargs):
+        observed_timeouts.append(timeout)
+        timed_out = timeout == 1
+        return TestRunResult(
+            manifest_slug=manifest_slug,
+            command=tuple(command),
+            exit_code=-1 if timed_out else exit_code,
+            stdout="",
+            stderr=f"Command timed out after {timeout}s" if timed_out else "",
+            duration_ms=1.0,
+            stream=TestStream.IMPLEMENTATION,
+        )
+
+    monkeypatch.setattr(plan_lock, "_run_test_command", run)
+    return observed_timeouts
+
+
 def test_plan_lock_parser_exposes_positive_command_timeout() -> None:
     parser = build_parser()
     default_args = parser.parse_args(["plan", "lock", "manifests/task.manifest.yaml"])
@@ -101,8 +127,11 @@ def test_plan_lock_parser_exposes_positive_command_timeout() -> None:
             )
 
 
-def test_red_capture_uses_explicit_command_timeout(tmp_path: Path) -> None:
+def test_red_capture_uses_explicit_command_timeout(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     manifest_path = _write_project(tmp_path, exit_code=1, commit=False)
+    observed_timeouts = _install_validation_command_clock(monkeypatch, exit_code=1)
 
     with pytest.raises(ValueError, match="positive"):
         capture_red_phase_evidence(manifest_path, tmp_path, command_timeout_seconds=0)
@@ -121,11 +150,15 @@ def test_red_capture_uses_explicit_command_timeout(tmp_path: Path) -> None:
     assert completed.red is True
     assert completed.commands[0].exit_code == 1
     assert completed.commands[0].classification == "red"
+    assert observed_timeouts == [1, 4]
 
 
-def test_legacy_capture_uses_explicit_command_timeout(tmp_path: Path) -> None:
+def test_legacy_capture_uses_explicit_command_timeout(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     manifest_path = _write_project(tmp_path, exit_code=0, commit=True)
-    reason = "Adopt a completed long-running manifest"
+    observed_timeouts = _install_validation_command_clock(monkeypatch, exit_code=0)
+    reason = "Adopt a completed timeout-controlled manifest"
 
     with pytest.raises(ValueError, match="positive"):
         capture_legacy_baseline_evidence(
@@ -152,12 +185,14 @@ def test_legacy_capture_uses_explicit_command_timeout(tmp_path: Path) -> None:
 
     assert evidence.commands[0].exit_code == 0
     assert evidence.commands[0].classification == "not_red"
+    assert observed_timeouts == [1, 4]
 
 
 def test_plan_lock_cli_forwards_command_timeout_to_legacy_capture(
-    tmp_path: Path,
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     manifest_path = _write_project(tmp_path, exit_code=0, commit=True)
+    observed_timeouts = _install_validation_command_clock(monkeypatch, exit_code=0)
     lock_path = default_plan_lock_path(tmp_path, "timeout")
     common_args = [
         "plan",
@@ -167,7 +202,7 @@ def test_plan_lock_cli_forwards_command_timeout_to_legacy_capture(
         str(tmp_path),
         "--legacy-baseline",
         "--reason",
-        "Adopt a completed long-running manifest",
+        "Adopt a completed timeout-controlled manifest",
     ]
 
     assert main([*common_args, "--command-timeout", "1"]) == 2
@@ -178,12 +213,14 @@ def test_plan_lock_cli_forwards_command_timeout_to_legacy_capture(
     assert lock.red_evidence is None
     assert lock.legacy_baseline is not None
     assert lock.legacy_baseline["commands"][0]["classification"] == "not_red"
+    assert observed_timeouts == [1, 4]
 
 
 def test_plan_lock_cli_forwards_command_timeout_to_red_capture(
-    tmp_path: Path,
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     manifest_path = _write_project(tmp_path, exit_code=1, commit=False)
+    observed_timeouts = _install_validation_command_clock(monkeypatch, exit_code=1)
     lock_path = default_plan_lock_path(tmp_path, "timeout")
     common_args = [
         "plan",
@@ -201,3 +238,4 @@ def test_plan_lock_cli_forwards_command_timeout_to_red_capture(
     assert lock.legacy_baseline is None
     assert lock.red_evidence is not None
     assert lock.red_evidence["commands"][0]["classification"] == "red"
+    assert observed_timeouts == [1, 4]

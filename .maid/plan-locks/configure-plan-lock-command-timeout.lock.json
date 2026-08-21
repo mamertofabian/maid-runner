@@ -4,10 +4,10 @@
   "test_hashes": {
     "tests/core/test_plan_lock_red_evidence.py": "sha256-pyast:v2:474ceed3005a7923f0eebf12ed685760a257bead2ebf606b00b08d162881ee57",
     "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:63d776c7c667178c5cc136c3945cc4b8c5a651523763b34f08330408e4528054",
-    "tests/cli/test_plan_lock_command_timeout.py": "sha256-pyast:v2:025f9e2e3b9ddc19b2099c2a07d1f3776393f0b6b82e2f3d33dae2df5d065887"
+    "tests/cli/test_plan_lock_command_timeout.py": "sha256-pyast:v2:babf84a81c75517e0b187841e561efa47e89a3297dcce633901a67de9d32cfc8"
   },
   "created_at": "2026-08-20T08:41:37.336146+00:00",
-  "revision": 3,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:0964ddaf119d41dca350b41a8eb790ed6b07aa364b5594fe8404168e45e62be0",
@@ -49,6 +49,44 @@
         "validate_commands_removed": [
           "uv run python -m pytest -q tests/cli/test_plan_lock_command_timeout.py"
         ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6fd016592a665b1b69806bad86ba9815fe1b608d999bb30e57dacfddbd3b6091",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_red_evidence.py": "sha256-pyast:v2:474ceed3005a7923f0eebf12ed685760a257bead2ebf606b00b08d162881ee57",
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:63d776c7c667178c5cc136c3945cc4b8c5a651523763b34f08330408e4528054",
+        "tests/cli/test_plan_lock_command_timeout.py": "sha256-pyast:v2:025f9e2e3b9ddc19b2099c2a07d1f3776393f0b6b82e2f3d33dae2df5d065887"
+      },
+      "revised_at": "2026-08-21T00:43:46.437897+00:00",
+      "reason": "replace real timeout waits with controlled command results",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6fd016592a665b1b69806bad86ba9815fe1b608d999bb30e57dacfddbd3b6091",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_red_evidence.py": "sha256-pyast:v2:474ceed3005a7923f0eebf12ed685760a257bead2ebf606b00b08d162881ee57",
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:63d776c7c667178c5cc136c3945cc4b8c5a651523763b34f08330408e4528054",
+        "tests/cli/test_plan_lock_command_timeout.py": "sha256-pyast:v2:a7acc402cff9bb1321f842f7b9322ab8043d5dd02bcb96ddaf705287ad0fb8ff"
+      },
+      "revised_at": "2026-08-21T00:47:51.527178+00:00",
+      "reason": "align timeout fixture wording with controlled runner",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
       }
     }
   ],
