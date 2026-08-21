@@ -35,7 +35,8 @@ jobs:
     - name: Run MAID validation
       run: uv run maid validate
     - name: Run MAID tests
-      run: uv run maid test
+      # _publish_maid_test_worker_boundary
+      run: uv run maid test --jobs 1 --pytest-workers 4
     - name: Run full test suite
       run: uv run python -m pytest tests/ -v
 

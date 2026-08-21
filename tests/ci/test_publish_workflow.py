@@ -18,15 +18,39 @@ def _run_steps_for_job(workflow_path: Path, job_name: str) -> list[str]:
     return [step["run"] for step in steps if "run" in step]
 
 
+def _named_step_for_job(
+    workflow_path: Path, job_name: str, step_name: str
+) -> dict[str, object]:
+    workflow = yaml.safe_load(workflow_path.read_text())
+    steps = workflow["jobs"][job_name]["steps"]
+    return next(step for step in steps if step.get("name") == step_name)
+
+
 def test_publish_workflow_installs_npm_dependencies_before_maid_tests() -> None:
     runs = _run_steps_for_job(Path(".github/workflows/publish.yml"), "test")
 
     npm_install_index = runs.index("npm ci")
-    maid_test_index = runs.index("uv run maid test")
+    maid_test_index = runs.index("uv run maid test --jobs 1 --pytest-workers 4")
     full_pytest_index = runs.index("uv run python -m pytest tests/ -v")
 
     assert npm_install_index < maid_test_index
     assert npm_install_index < full_pytest_index
+
+
+def test_publish_workflow_bounds_maid_test_workers_on_hosted_matrix() -> None:
+    workflow_path = Path(".github/workflows/publish.yml")
+    workflow = yaml.safe_load(workflow_path.read_text())
+    test_job = workflow["jobs"]["test"]
+    maid_test_step = _named_step_for_job(workflow_path, "test", "Run MAID tests")
+
+    assert maid_test_step["run"] == "uv run maid test --jobs 1 --pytest-workers 4"
+    assert "if" not in maid_test_step
+    assert test_job["strategy"]["matrix"]["python-version"] == [
+        "3.10",
+        "3.11",
+        "3.12",
+    ]
+    assert "_publish_maid_test_worker_boundary" in workflow_path.read_text()
 
 
 def test_package_data_includes_claude_skills() -> None:
