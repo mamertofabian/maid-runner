@@ -2,11 +2,11 @@
   "manifest_path": "manifests/121-20-escalate-only-affected-coverage-identities.manifest.yaml",
   "manifest_hash": "sha256-contract:6b1f5bdaaeeae392f21e7bd57002eb5210af0638de368e5eef7229a27fc37ea3",
   "test_hashes": {
-    "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:67e366986fc0b7a69be0ebdfe6bbac4dd288ba7d54575bb6ea82bf9943682562",
+    "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:9ad3e13b896ca49118dc4bb7d65e9366a91ba753fffeb5eaade3027cac8d1bef",
     "tests/core/test_artifact_coverage_partial_escalation.py": "sha256-pyast:v2:67f7c6e1c47bfdae1c8416bd237e42a1d21598c28d360f48bfd73b66cc1f8ae9"
   },
   "created_at": "2026-08-13T07:11:22.445403+00:00",
-  "revision": 4,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:c30577e157a7c378919a125812ae5ceaa233d316211732a6a83864175045a563",
@@ -56,6 +56,24 @@
       },
       "revised_at": "2026-08-20T16:13:33.668885+00:00",
       "reason": "accept performance-preserving test optimization",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6b1f5bdaaeeae392f21e7bd57002eb5210af0638de368e5eef7229a27fc37ea3",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:67e366986fc0b7a69be0ebdfe6bbac4dd288ba7d54575bb6ea82bf9943682562",
+        "tests/core/test_artifact_coverage_partial_escalation.py": "sha256-pyast:v2:67f7c6e1c47bfdae1c8416bd237e42a1d21598c28d360f48bfd73b66cc1f8ae9"
+      },
+      "revised_at": "2026-08-21T05:21:39.074178+00:00",
+      "reason": "accept approved shared-test optimization",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

@@ -277,9 +277,17 @@ def test_isolated_parallel_and_legacy_serial_reports_match_in_manifest_order(tmp
     assert list(cli_reports) == [manifest.source_path for manifest in manifests]
 
 
-def test_disjoint_exact_fallbacks_overlap_within_process_budget(tmp_path):
+def test_disjoint_exact_fallbacks_overlap_within_process_budget(tmp_path, monkeypatch):
+    from maid_runner.core import _artifact_coverage_fallback_worker as worker_module
     from maid_runner.core._artifact_coverage_fallback_worker import (
         run_isolated_artifact_coverage_fallbacks,
+    )
+    from maid_runner.core._pytest_worker_execution import PytestRunnerCapabilities
+
+    monkeypatch.setattr(
+        worker_module,
+        "probe_pytest_runner_capabilities",
+        lambda command, root: PytestRunnerCapabilities(True, "3.8.0", None),
     )
 
     root = tmp_path / "project"

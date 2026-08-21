@@ -2,13 +2,13 @@
   "manifest_path": "manifests/121-23-default-derived-coverage-evidence.manifest.yaml",
   "manifest_hash": "sha256-contract:21402c0218054759a375aabaa398635e0e9e36d34a4132ffe8b72f097e1a2999",
   "test_hashes": {
-    "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:67e366986fc0b7a69be0ebdfe6bbac4dd288ba7d54575bb6ea82bf9943682562",
+    "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:9ad3e13b896ca49118dc4bb7d65e9366a91ba753fffeb5eaade3027cac8d1bef",
     "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:0bfcbeae6328eb1bda7ba15e14e5961d06a0be5e328c153788852292842c8a4a",
     "tests/core/test_config.py": "sha256-pyast:v2:2d61fe5232fbf57b533be1f86b00cbd7c5502b1655d8333dfdcbfc24814cfc9f",
     "tests/core/test_derived_coverage_evidence.py": "sha256-pyast:v2:cf23dc423e019351f616e4cd470cfe1b4d327fde35071aa12ec36a57276ba024"
   },
   "created_at": "2026-08-13T09:17:42.442467+00:00",
-  "revision": 7,
+  "revision": 8,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:3c1b173295b8c06a4d871c73a81741f7bcae86188d73b7b7df714d49ecc5cab9",
@@ -130,6 +130,26 @@
       },
       "revised_at": "2026-08-20T16:13:33.937257+00:00",
       "reason": "accept performance-preserving test optimization",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:21402c0218054759a375aabaa398635e0e9e36d34a4132ffe8b72f097e1a2999",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:67e366986fc0b7a69be0ebdfe6bbac4dd288ba7d54575bb6ea82bf9943682562",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:0bfcbeae6328eb1bda7ba15e14e5961d06a0be5e328c153788852292842c8a4a",
+        "tests/core/test_config.py": "sha256-pyast:v2:2d61fe5232fbf57b533be1f86b00cbd7c5502b1655d8333dfdcbfc24814cfc9f",
+        "tests/core/test_derived_coverage_evidence.py": "sha256-pyast:v2:cf23dc423e019351f616e4cd470cfe1b4d327fde35071aa12ec36a57276ba024"
+      },
+      "revised_at": "2026-08-21T05:21:39.497621+00:00",
+      "reason": "accept approved shared-test optimization",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
