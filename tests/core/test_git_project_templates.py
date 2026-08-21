@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import builtins
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -30,7 +31,14 @@ _PYTEST_TERMINAL_ELAPSED = re.compile(
 
 def _git(project_root: Path, *args: str) -> str:
     return subprocess.run(
-        ["git", *args],
+        [
+            "git",
+            "-c",
+            "user.name=MAID Test",
+            "-c",
+            "user.email=maid-test@example.com",
+            *args,
+        ],
         cwd=project_root,
         check=True,
         capture_output=True,
@@ -246,6 +254,46 @@ def test_session_fixture_executes_factory_body(tmp_path_factory) -> None:
     assert factory.root.name.startswith("git-project-templates")
     with pytest.raises(StopIteration):
         next(fixture_body)
+
+
+def test_session_fixture_isolates_and_restores_ambient_git_config(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from tests.conftest import (
+        _GIT_CONFIG_ISOLATION,
+        _GIT_REPOSITORY_POINTERS,
+        _isolate_git_repository_environment,
+    )
+
+    inherited = {name: f"/ambient/{name.lower()}" for name in _GIT_REPOSITORY_POINTERS}
+    inherited.update(
+        {
+            "GIT_CONFIG_GLOBAL": "/ambient/global.gitconfig",
+            "GIT_CONFIG_NOSYSTEM": "0",
+        }
+    )
+    for name, value in inherited.items():
+        monkeypatch.setenv(name, value)
+    fixture_body = _isolate_git_repository_environment.__wrapped__()
+
+    next(fixture_body)
+
+    assert all(name not in os.environ for name in _GIT_REPOSITORY_POINTERS)
+    assert {
+        name: os.environ[name] for name in _GIT_CONFIG_ISOLATION
+    } == _GIT_CONFIG_ISOLATION
+
+    with pytest.raises(StopIteration):
+        next(fixture_body)
+    assert {name: os.environ[name] for name in inherited} == inherited
+
+    for name in inherited:
+        monkeypatch.delenv(name)
+    absent_body = _isolate_git_repository_environment.__wrapped__()
+    next(absent_body)
+    with pytest.raises(StopIteration):
+        next(absent_body)
+    assert all(name not in os.environ for name in inherited)
 
 
 def test_fixture_loader_reraises_transitive_module_import_failure(

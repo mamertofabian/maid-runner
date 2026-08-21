@@ -4,12 +4,12 @@
   "test_hashes": {
     "tests/coherence/test_coherence_v2.py": "sha256-pyast:v2:3719c46f04bfb051d8944205f586bd1fe8a7de88087f7cf1f7151069b8d7a78f",
     "tests/core/validation/test_assertion_checking.py": "sha256-pyast:v2:d0b78c9c92d13414a0c45de0c0599f19095334afe41252ed3a48ce0c7708ee9f",
-    "tests/core/test_git_project_templates.py": "sha256-pyast:v2:4884dee280b762b39ba8f41ba06be82c7f4db02ecea632ccc980b0f56f2825c2",
+    "tests/core/test_git_project_templates.py": "sha256-pyast:v2:9792c849c1b9f2db5e868755081a72f7599df92b9a157b8dadbde2c702dcfba8",
     "tests/ci/test_claude_maid_loop.py": "sha256-pyast:v2:eb3fa0d8a9ee063c3707909c8e68e1104cfd2b3402c4956b351917bee6406493",
     "tests/ci/test_codex_maid_loop.py": "sha256-pyast:v2:70e948d7c2b2c4a9e5bf4600dfb0c18064d25c9f69a59d5555cb22dcc858f232"
   },
   "created_at": "2026-08-17T06:34:59.686759+00:00",
-  "revision": 2,
+  "revision": 4,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:510a044fc7c26033ba0af3561ec08040e6d692f23540154af63cea24b3867075",
@@ -22,6 +22,48 @@
       },
       "revised_at": "2026-08-17T06:35:13.772817+00:00",
       "reason": "Migrated by maid manifest promote: manifests/drafts/cover-remaining-deep-artifacts.manifest.yaml -> manifests/cover-remaining-deep-artifacts.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:1c5c96bf7dc8bfec6b48805b81f252b5ebb79e696f59ced9b302e0276ffb9bd8",
+      "prior_test_hashes": {
+        "tests/coherence/test_coherence_v2.py": "sha256-pyast:v2:3719c46f04bfb051d8944205f586bd1fe8a7de88087f7cf1f7151069b8d7a78f",
+        "tests/core/validation/test_assertion_checking.py": "sha256-pyast:v2:d0b78c9c92d13414a0c45de0c0599f19095334afe41252ed3a48ce0c7708ee9f",
+        "tests/core/test_git_project_templates.py": "sha256-pyast:v2:4884dee280b762b39ba8f41ba06be82c7f4db02ecea632ccc980b0f56f2825c2",
+        "tests/ci/test_claude_maid_loop.py": "sha256-pyast:v2:eb3fa0d8a9ee063c3707909c8e68e1104cfd2b3402c4956b351917bee6406493",
+        "tests/ci/test_codex_maid_loop.py": "sha256-pyast:v2:70e948d7c2b2c4a9e5bf4600dfb0c18064d25c9f69a59d5555cb22dcc858f232"
+      },
+      "revised_at": "2026-08-21T03:30:27.271423+00:00",
+      "reason": "isolate test Git config from ambient hooks",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:1c5c96bf7dc8bfec6b48805b81f252b5ebb79e696f59ced9b302e0276ffb9bd8",
+      "prior_test_hashes": {
+        "tests/coherence/test_coherence_v2.py": "sha256-pyast:v2:3719c46f04bfb051d8944205f586bd1fe8a7de88087f7cf1f7151069b8d7a78f",
+        "tests/core/validation/test_assertion_checking.py": "sha256-pyast:v2:d0b78c9c92d13414a0c45de0c0599f19095334afe41252ed3a48ce0c7708ee9f",
+        "tests/core/test_git_project_templates.py": "sha256-pyast:v2:68ad8f5cfb6f7ae913c7f7f62808b7a0afd40cd2677b1e019443cf93a4dfbda9",
+        "tests/ci/test_claude_maid_loop.py": "sha256-pyast:v2:eb3fa0d8a9ee063c3707909c8e68e1104cfd2b3402c4956b351917bee6406493",
+        "tests/ci/test_codex_maid_loop.py": "sha256-pyast:v2:70e948d7c2b2c4a9e5bf4600dfb0c18064d25c9f69a59d5555cb22dcc858f232"
+      },
+      "revised_at": "2026-08-21T03:38:31.416131+00:00",
+      "reason": "cover exact Git environment restoration",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

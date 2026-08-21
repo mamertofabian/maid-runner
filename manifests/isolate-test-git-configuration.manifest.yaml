@@ -1,0 +1,91 @@
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Isolate pytest Git subprocesses from ambient hooks and configuration"
+type: fix
+created: "2026-08-21T03:30:00Z"
+supersedes:
+  - fix-test-git-environment-isolation
+metadata:
+  planning_state: behavioral-contract
+  promotion_ready: true
+  tests_status: implementation-first-retroactive-red
+  tags: [git, pytest, test-isolation, performance]
+  priority: high
+description: |
+  Preserve the existing session-wide removal of inherited Git repository pointers
+  and additionally replace ambient global and system Git configuration for the
+  duration of pytest. This prevents developer-installed hooks, aliases, credentials,
+  and other machine-local policy from affecting temporary test repositories.
+
+  The fixture restores every inherited managed value after an embedded pytest
+  session and leaves values that were originally absent unset. Tests that exercise
+  custom Git configuration may explicitly override the isolated defaults. Git
+  identity is supplied by the individual test repositories or command helpers.
+temptations:
+  - risk: "Do not clear every GIT_* variable and erase identity or scenario-specific controls."
+    instead: "Remove only repository pointers and replace only global/system configuration inputs."
+  - risk: "Do not depend on the developer's global identity after disabling their Git configuration."
+    instead: "Pass deterministic test identity in helpers that create commits."
+  - risk: "Do not weaken the original caller-worktree protection while optimizing hooks."
+    instead: "Retain all six repository-pointer removals and verify exact teardown restoration."
+files:
+  edit:
+    - path: tests/test_git_environment_isolation.py
+      artifacts:
+        - kind: test_function
+          name: test_git_repository_pointers_are_removed_from_test_environment
+          args: []
+          returns: None
+          description: "Hook-exported repository pointers are absent inside the pytest session."
+    - path: tests/core/test_git_project_templates.py
+      artifacts:
+        - kind: test_function
+          name: test_session_fixture_isolates_and_restores_ambient_git_config
+          args:
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+          returns: None
+          description: "All managed Git inputs are isolated and exact inherited/absent state is restored."
+  scope:
+    - path: tests/conftest.py
+      reason: "Evolve the root autouse fixture without defining a production API."
+  read:
+    - tests/cli/test_plan_legacy_baseline_first_commit.py
+    - tests/core/test_changed_scope_dotnet_files.py
+    - tests/core/test_plan_lock_git_subdirectory.py
+validate:
+  - env GIT_DIR=/tmp/maid-test-ambient.git GIT_WORK_TREE=/tmp/maid-test-ambient-worktree GIT_INDEX_FILE=/tmp/maid-test-ambient.index GIT_COMMON_DIR=/tmp/maid-test-ambient-common GIT_PREFIX=maid-test-ambient-prefix GIT_OBJECT_DIRECTORY=/tmp/maid-test-ambient-objects GIT_CONFIG_GLOBAL=/tmp/maid-test-global.gitconfig GIT_CONFIG_NOSYSTEM=0 uv run python -m pytest -q tests/test_git_environment_isolation.py tests/core/test_git_project_templates.py tests/cli/test_plan_legacy_baseline_first_commit.py tests/core/test_changed_scope_dotnet_files.py tests/core/test_plan_lock_git_subdirectory.py
+outcome:
+  status: completed
+  completed_at: "2026-08-21T03:43:21Z"
+  summary: "Pytest Git-heavy tests no longer execute developer-installed global hooks or consume ambient system configuration."
+  rationale: "The root session fixture now isolates global and system Git configuration while retaining repository-pointer safety, explicit scenario overrides, deterministic test identity, and exact environment restoration."
+  lessons:
+    - lesson_type: test-performance
+      summary: "Ambient core.hooksPath caused every temporary-repository commit to run the developer's security hook; isolating Git config removed that repeated external cost and improved test determinism."
+      tags: [git-hooks, pytest, performance, isolation]
+      paths: [tests/conftest.py, tests/core/test_git_project_templates.py]
+    - lesson_type: workflow-integrity
+      summary: "A green implementation gate did not expose an older prose promise that unrelated Git configuration remained available; independent review correctly required explicit supersession."
+      tags: [maid, contract-evolution, implementation-review]
+      paths: [manifests/fix-test-git-environment-isolation.manifest.yaml, manifests/isolate-test-git-configuration.manifest.yaml]
+  review_notes:
+    - source: independent-read-only-implementation-review
+      severity: ready
+      summary: "No scope, supersession, restoration, xdist, custom-config, identity, or evidence defects remained after contract evolution and broader teardown characterization."
+    - source: independent-read-only-implementation-review
+      severity: residual-risk
+      summary: "Session fixtures do not isolate collection-time plugin Git subprocesses; the repository has no such path and it is outside this temporary-repository contract."
+  validation:
+    - command: [uv, run, python, -m, pytest, tests/, -q, -n, auto, --tb=short]
+      status: passed
+      summary: "4567 tests passed with 14 skipped in 54.98 seconds wall time."
+    - command: [env, GIT_DIR=/tmp/maid-test-ambient.git, GIT_CONFIG_GLOBAL=/tmp/maid-test-global.gitconfig, GIT_CONFIG_NOSYSTEM=0, uv, run, python, -m, pytest, -q, tests/test_git_environment_isolation.py, tests/core/test_git_project_templates.py, tests/cli/test_plan_legacy_baseline_first_commit.py, tests/core/test_changed_scope_dotnet_files.py, tests/core/test_plan_lock_git_subdirectory.py]
+      status: passed
+      summary: "The hostile Git environment scope passed 27 tests."
+    - command: [uv, run, maid, verify, --profile, handoff, --summary, --require-plan-lock, --require-red-evidence, --test-scope, task, --no-changed-scope]
+      status: passed
+      summary: "All eight handoff stages passed with zero blockers."

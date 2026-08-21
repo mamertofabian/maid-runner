@@ -27,6 +27,11 @@ _GIT_REPOSITORY_POINTERS = (
     "GIT_OBJECT_DIRECTORY",
 )
 
+_GIT_CONFIG_ISOLATION = {
+    "GIT_CONFIG_GLOBAL": os.devnull,
+    "GIT_CONFIG_NOSYSTEM": "1",
+}
+
 
 def load_git_project_template_factory() -> type[GitProjectTemplateFactory] | None:
     """Load optional template support without masking broken dependencies."""
@@ -60,18 +65,19 @@ def git_project_template_factory(
 
 @pytest.fixture(scope="session", autouse=True)
 def _isolate_git_repository_environment():
-    """Keep test Git subprocesses independent from a hook's repository."""
-    inherited_pointers = {
+    """Keep test Git subprocesses independent from ambient Git state."""
+    inherited_environment = {
         name: os.environ.pop(name)
-        for name in _GIT_REPOSITORY_POINTERS
+        for name in (*_GIT_REPOSITORY_POINTERS, *_GIT_CONFIG_ISOLATION)
         if name in os.environ
     }
+    os.environ.update(_GIT_CONFIG_ISOLATION)
 
     yield
 
-    for name in _GIT_REPOSITORY_POINTERS:
+    for name in (*_GIT_REPOSITORY_POINTERS, *_GIT_CONFIG_ISOLATION):
         os.environ.pop(name, None)
-    os.environ.update(inherited_pointers)
+    os.environ.update(inherited_environment)
 
 
 @pytest.fixture(scope="session", autouse=True)
