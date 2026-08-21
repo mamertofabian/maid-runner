@@ -349,23 +349,22 @@ def test_verify_knockout_text_and_json_include_same_e711_result_shape(
     from maid_runner.cli.commands._main import main
 
     assert callable(format_verify_result)
-    for root in (tmp_path / "text", tmp_path / "json"):
-        _write_knockout_project(
-            root,
-            source="""
+    _write_knockout_project(
+        tmp_path,
+        source="""
 def target() -> str:
     return "hardcoded"
 """,
-            test="""
+        test="""
 from src.target import target
 
 
 def test_mentions_target_without_calling_it():
     assert target is not None
 """,
-        )
+    )
 
-    monkeypatch.chdir(tmp_path / "text")
+    monkeypatch.chdir(tmp_path)
     text_exit = main(
         [
             "verify",
@@ -377,7 +376,6 @@ def test_mentions_target_without_calling_it():
     )
     text_output = capsys.readouterr().out
 
-    monkeypatch.chdir(tmp_path / "json")
     json_exit = main(
         [
             "verify",
@@ -389,7 +387,8 @@ def test_mentions_target_without_calling_it():
         ]
     )
     payload = json.loads(capsys.readouterr().out)
-    error = _stage(payload, "knockout")["details"]["errors"][0]
+    details = _stage(payload, "knockout")["details"]
+    error = details["errors"][0]
 
     assert text_exit == json_exit == 1
     assert "FAIL knockout" in text_output
@@ -399,6 +398,7 @@ def test_mentions_target_without_calling_it():
     assert error["code"] == "E711"
     assert "target" in error["message"]
     assert "src/target.py" in error["message"]
+    assert details["results"][0]["cache_hit"] is True
 
 
 def test_configured_knockout_workers_preserve_text_and_json_results(
@@ -406,11 +406,9 @@ def test_configured_knockout_workers_preserve_text_and_json_results(
 ) -> None:
     from maid_runner.cli.commands._main import main
 
-    for mode in ("text", "json"):
-        root = tmp_path / mode
-        _write_knockout_project(
-            root,
-            source="""
+    _write_knockout_project(
+        tmp_path,
+        source="""
 def alpha() -> str:
     value = "alpha"
     return value
@@ -419,23 +417,22 @@ def beta() -> str:
     value = "beta"
     return value
 """,
-            test="""
+        test="""
 from src.target import alpha, beta
 
 def test_targets():
     assert alpha() == "alpha"
     assert beta() == "beta"
 """,
-            artifacts=("alpha", "beta"),
-        )
-        (root / ".maidrc.yaml").write_text(
-            "test_execution:\n  max_processes: 2\n" "knockout_execution:\n  jobs: 2\n"
-        )
+        artifacts=("alpha", "beta"),
+    )
+    (tmp_path / ".maidrc.yaml").write_text(
+        "test_execution:\n  max_processes: 2\n" "knockout_execution:\n  jobs: 2\n"
+    )
 
-    monkeypatch.chdir(tmp_path / "text")
+    monkeypatch.chdir(tmp_path)
     text_exit = main(["verify", "--knockout", "--no-changed-scope"])
     text_output = capsys.readouterr().out
-    monkeypatch.chdir(tmp_path / "json")
     json_exit = main(["verify", "--knockout", "--no-changed-scope", "--json"])
     payload = json.loads(capsys.readouterr().out)
     results = _stage(payload, "knockout")["details"]["results"]
@@ -443,6 +440,7 @@ def test_targets():
     assert text_exit == json_exit == 0
     assert text_output.index("detected: alpha") < text_output.index("detected: beta")
     assert [result["artifact_name"] for result in results] == ["alpha", "beta"]
+    assert all(result["cache_hit"] is True for result in results)
 
 
 def _write_knockout_project(

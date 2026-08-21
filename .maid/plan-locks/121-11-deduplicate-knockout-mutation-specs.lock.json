@@ -3,11 +3,11 @@
   "manifest_hash": "sha256-contract:deaf8615625a78d77964baa3767485c297b66e81ffb8b41691c2b6b7056102a5",
   "test_hashes": {
     "tests/core/test_knockout.py": "sha256-pyast:v2:6b2a754f65c5673e97ea8d54f83344add201114e7551dd99bb994bde4ac98fc1",
-    "tests/cli/test_verify_knockout_cmd.py": "sha256-pyast:v2:63bbd125c02ca1d1ce9546075c5a75effd2f8ecb21603c39d34ae8a1c2e487e4",
+    "tests/cli/test_verify_knockout_cmd.py": "sha256-pyast:v2:c3cdc721793a26370d194175527575928e5f8d4db2650632bdf29f971ab10f78",
     "tests/core/test_knockout_batch.py": "sha256-pyast:v2:fec53a2d16e70cbb54382d20117ab3ba524cc14ba7a4a5dc480e28c7d9fbb60b"
   },
   "created_at": "2026-08-11T21:58:23.097945+00:00",
-  "revision": 10,
+  "revision": 12,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:3e8a3f1e8d1d934e11d4ba12c4baea96e1b29c6b8e56cc9de40d5b873e03e3f2",
@@ -174,6 +174,44 @@
       },
       "revised_at": "2026-08-21T00:28:00.905506+00:00",
       "reason": "accept tiny batch-test dependency fixture",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:deaf8615625a78d77964baa3767485c297b66e81ffb8b41691c2b6b7056102a5",
+      "prior_test_hashes": {
+        "tests/core/test_knockout.py": "sha256-pyast:v2:6b2a754f65c5673e97ea8d54f83344add201114e7551dd99bb994bde4ac98fc1",
+        "tests/cli/test_verify_knockout_cmd.py": "sha256-pyast:v2:63bbd125c02ca1d1ce9546075c5a75effd2f8ecb21603c39d34ae8a1c2e487e4",
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:fec53a2d16e70cbb54382d20117ab3ba524cc14ba7a4a5dc480e28c7d9fbb60b"
+      },
+      "revised_at": "2026-08-21T05:43:42.244061+00:00",
+      "reason": "accept approved shared-test optimization",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:deaf8615625a78d77964baa3767485c297b66e81ffb8b41691c2b6b7056102a5",
+      "prior_test_hashes": {
+        "tests/core/test_knockout.py": "sha256-pyast:v2:6b2a754f65c5673e97ea8d54f83344add201114e7551dd99bb994bde4ac98fc1",
+        "tests/cli/test_verify_knockout_cmd.py": "sha256-pyast:v2:84b3d0b4885198cc6c37e4fc84ef7b45ea33d7ca586767e1ef11317dd5a46c42",
+        "tests/core/test_knockout_batch.py": "sha256-pyast:v2:fec53a2d16e70cbb54382d20117ab3ba524cc14ba7a4a5dc480e28c7d9fbb60b"
+      },
+      "revised_at": "2026-08-21T05:49:16.122467+00:00",
+      "reason": "accept reviewer-requested cache-hit assertion",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
