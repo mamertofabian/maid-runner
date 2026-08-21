@@ -3,10 +3,10 @@
   "manifest_hash": "sha256-contract:7006187f5775216452717cef0a5c4c56d6157cdf08faa2650b70704172a12e67",
   "test_hashes": {
     "tests/cli/test_chain_merge_refresh_evidence_command.py": "sha256-pyast:v2:4ff01d72e11bd524048c97e68501c59d1b56dde8950b7e2c9c825d3f417dcd92",
-    "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:9ad3e13b896ca49118dc4bb7d65e9366a91ba753fffeb5eaade3027cac8d1bef"
+    "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:40f99a34e79d499dee67eb9108201d27110268cdf53a70d45a5827123390ef99"
   },
   "created_at": "2026-08-19T19:53:41.132682+00:00",
-  "revision": 6,
+  "revision": 7,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:7b8b4ee14db1f0b83ce5d8677d7294d5a9c1ca959650c49b1601a5d3d9cff352",
@@ -88,6 +88,24 @@
       },
       "revised_at": "2026-08-21T05:21:49.248040+00:00",
       "reason": "accept approved shared-test optimization",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:7006187f5775216452717cef0a5c4c56d6157cdf08faa2650b70704172a12e67",
+      "prior_test_hashes": {
+        "tests/cli/test_chain_merge_refresh_evidence_command.py": "sha256-pyast:v2:4ff01d72e11bd524048c97e68501c59d1b56dde8950b7e2c9c825d3f417dcd92",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:9ad3e13b896ca49118dc4bb7d65e9366a91ba753fffeb5eaade3027cac8d1bef"
+      },
+      "revised_at": "2026-08-21T07:36:46.018356+00:00",
+      "reason": "replace hosted timing races with deterministic synchronization",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

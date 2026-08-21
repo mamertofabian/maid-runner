@@ -268,8 +268,7 @@ def test_isolated_parallel_and_legacy_serial_reports_match_in_manifest_order(tmp
     from maid_runner.cli.commands.validate import _run_artifact_coverage_by_manifest
 
     (root / ".maidrc.yaml").write_text(
-        "test_execution:\n  max_processes: 2\n"
-        "artifact_coverage:\n  fallback_jobs: 2\n"
+        "test_execution:\n  max_processes: 2\nartifact_coverage:\n  fallback_jobs: 2\n"
     )
     cli_reports = _run_artifact_coverage_by_manifest(
         "manifests", root, evidence=evidence
@@ -943,7 +942,6 @@ def test_generated_xdist_child_process_permits_fail_closed_and_release(
     import subprocess
     import sys
     import threading
-    import time
     from contextlib import contextmanager
 
     from maid_runner.core._runtime_command_executor import (
@@ -995,37 +993,80 @@ def test_generated_xdist_child_process_permits_fail_closed_and_release(
     permit_pool_class = namespace["_ChildProcessPermitPool"]
     wrapped_popen = namespace["_permit_wrapped_popen"]
 
+    class RetryGate:
+        def __init__(self):
+            self.attempts = 0
+            self.condition = threading.Condition()
+            self.released = threading.Event()
+
+        def sleep(self, _seconds):
+            with self.condition:
+                self.attempts += 1
+                self.condition.notify_all()
+            if not self.released.wait(2):
+                raise TimeoutError("permit retry was not released")
+
+        def wait_for_attempts(self, count):
+            with self.condition:
+                return self.condition.wait_for(
+                    lambda: self.attempts >= count, timeout=2
+                )
+
+    third_retry = RetryGate()
+    namespace["time"] = SimpleNamespace(sleep=third_retry.sleep)
     pool = permit_pool_class(call_directory, permits=2)
     first = pool.acquire()
     second = pool.acquire()
-    first.__enter__()
-    second.__enter__()
+    first_entered = False
+    second_entered = False
     acquired_third = threading.Event()
 
     def acquire_third():
         with pool.acquire():
             acquired_third.set()
 
-    thread = threading.Thread(target=acquire_third)
-    thread.start()
-    time.sleep(0.05)
-    assert acquired_third.is_set() is False
-    first.__exit__(None, None, None)
-    assert acquired_third.wait(1)
-    second.__exit__(None, None, None)
-    thread.join()
+    thread = threading.Thread(target=acquire_third, daemon=True)
+    try:
+        first.__enter__()
+        first_entered = True
+        second.__enter__()
+        second_entered = True
+        thread.start()
+        assert third_retry.wait_for_attempts(1)
+        assert acquired_third.is_set() is False
+        first.__exit__(None, None, None)
+        first_entered = False
+        third_retry.released.set()
+        assert acquired_third.wait(1)
+        second.__exit__(None, None, None)
+        second_entered = False
+        thread.join(2)
+        assert thread.is_alive() is False
+    finally:
+        third_retry.released.set()
+        if first_entered:
+            first.__exit__(None, None, None)
+        if second_entered:
+            second.__exit__(None, None, None)
+        if thread.ident is not None:
+            thread.join(2)
 
     class RecordingPool:
         def __init__(self):
             self.active = 0
+            self.inactive = threading.Event()
+            self.inactive.set()
 
         @contextmanager
         def acquire(self):
             self.active += 1
+            self.inactive.clear()
             try:
                 yield
             finally:
                 self.active -= 1
+                if self.active == 0:
+                    self.inactive.set()
 
     class FakePopen:
         def __init__(self, *, fail=False):
@@ -1035,7 +1076,7 @@ def test_generated_xdist_child_process_permits_fail_closed_and_release(
             self.done = threading.Event()
 
         def wait(self, *args, **kwargs):
-            self.done.wait(1)
+            self.done.wait()
             self.returncode = 0
             return 0
 
@@ -1063,10 +1104,7 @@ def test_generated_xdist_child_process_permits_fail_closed_and_release(
     assert recording.active == 1
     process.done.set()
     assert process.poll() == 0
-    deadline = time.monotonic() + 1
-    while recording.active:
-        assert time.monotonic() < deadline
-        time.sleep(0.01)
+    assert recording.inactive.wait(1)
     process.wait()
     assert recording.active == 0
     process.communicate()
@@ -1086,15 +1124,14 @@ def test_generated_xdist_child_process_permits_fail_closed_and_release(
 
     actual_pool = permit_pool_class(call_directory, permits=2)
     ActualPopen = wrapped_popen(subprocess.Popen, actual_pool)
-    first_unobserved = ActualPopen(
-        (sys.executable, "-c", "import time; time.sleep(0.03)")
-    )
-    second_unobserved = ActualPopen(
-        (sys.executable, "-c", "import time; time.sleep(0.03)")
-    )
+    blocking_child = "import os,sys; os.read(int(sys.argv[1]), 1)"
+    replacement_retry = RetryGate()
+    namespace["time"] = SimpleNamespace(sleep=replacement_retry.sleep)
     replacements_ready = threading.Barrier(3, timeout=2)
-    replacement_sentinel = tmp_path / "release-replacements"
     replacement_errors = []
+    spawned_processes = []
+    launch_threads = []
+    descriptors = []
 
     def launch_after_unobserved_exit():
         try:
@@ -1102,30 +1139,69 @@ def test_generated_xdist_child_process_permits_fail_closed_and_release(
                 (
                     sys.executable,
                     "-c",
-                    "import pathlib,sys,time; p=pathlib.Path(sys.argv[1]); "
-                    "deadline=time.monotonic()+5; "
-                    'exec("while not p.exists():\\n assert time.monotonic() < deadline\\n time.sleep(0.01)")',
-                    str(replacement_sentinel),
-                )
+                    blocking_child,
+                    str(replacement_read),
+                ),
+                pass_fds=(replacement_read,),
             )
+            spawned_processes.append(process)
             replacements_ready.wait()
             process.wait()
         except BaseException as exc:
             replacement_errors.append(exc)
 
-    launch_threads = [
-        threading.Thread(target=launch_after_unobserved_exit) for _ in range(2)
-    ]
-    for launch_thread in launch_threads:
-        launch_thread.start()
-    replacements_ready.wait()
-    replacement_sentinel.touch()
-    for launch_thread in launch_threads:
-        launch_thread.join(2)
-        assert launch_thread.is_alive() is False
-    assert replacement_errors == []
-    assert first_unobserved.returncode == 0
-    assert second_unobserved.returncode == 0
+    try:
+        unobserved_read, unobserved_write = os.pipe()
+        descriptors.extend((unobserved_read, unobserved_write))
+        replacement_read, replacement_write = os.pipe()
+        descriptors.extend((replacement_read, replacement_write))
+        first_unobserved = ActualPopen(
+            (sys.executable, "-c", blocking_child, str(unobserved_read)),
+            pass_fds=(unobserved_read,),
+        )
+        spawned_processes.append(first_unobserved)
+        second_unobserved = ActualPopen(
+            (sys.executable, "-c", blocking_child, str(unobserved_read)),
+            pass_fds=(unobserved_read,),
+        )
+        spawned_processes.append(second_unobserved)
+        launch_threads = [
+            threading.Thread(target=launch_after_unobserved_exit, daemon=True)
+            for _ in range(2)
+        ]
+        for launch_thread in launch_threads:
+            launch_thread.start()
+        assert replacement_retry.wait_for_attempts(2)
+        os.write(unobserved_write, b"12")
+        replacement_retry.released.set()
+        replacements_ready.wait()
+        os.write(replacement_write, b"12")
+        for launch_thread in launch_threads:
+            launch_thread.join(2)
+            assert launch_thread.is_alive() is False
+        assert replacement_errors == []
+        assert first_unobserved.returncode == 0
+        assert second_unobserved.returncode == 0
+    finally:
+        replacement_retry.released.set()
+        replacements_ready.abort()
+        for descriptor in descriptors:
+            try:
+                os.close(descriptor)
+            except OSError:
+                pass
+        for launch_thread in launch_threads:
+            launch_thread.join(2)
+        for process in tuple(spawned_processes):
+            if process.poll() is None:
+                process.terminate()
+            try:
+                process.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait(timeout=2)
+        for launch_thread in launch_threads:
+            launch_thread.join(2)
 
     from maid_runner.core._artifact_coverage_fallback_worker import (
         run_isolated_artifact_coverage_fallbacks,
@@ -1139,6 +1215,7 @@ def test_generated_xdist_child_process_permits_fail_closed_and_release(
 
     import_root = tmp_path / "import-time-conftest-project"
     import_manifests = _write_project(import_root, ("alpha",))
+    (import_root / ".venv").mkdir()
     (import_root / "tests/conftest.py").write_text(
         "import subprocess, sys\n"
         'code = ("import os; "\n'
