@@ -2,11 +2,11 @@
   "manifest_path": "manifests/121-20-escalate-only-affected-coverage-identities.manifest.yaml",
   "manifest_hash": "sha256-contract:6b1f5bdaaeeae392f21e7bd57002eb5210af0638de368e5eef7229a27fc37ea3",
   "test_hashes": {
-    "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:40f99a34e79d499dee67eb9108201d27110268cdf53a70d45a5827123390ef99",
+    "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:58209da5bac256e1da44871ab1a283a0fea3560f2403a95a490481e8eb89b6b8",
     "tests/core/test_artifact_coverage_partial_escalation.py": "sha256-pyast:v2:67f7c6e1c47bfdae1c8416bd237e42a1d21598c28d360f48bfd73b66cc1f8ae9"
   },
   "created_at": "2026-08-13T07:11:22.445403+00:00",
-  "revision": 6,
+  "revision": 8,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:c30577e157a7c378919a125812ae5ceaa233d316211732a6a83864175045a563",
@@ -92,6 +92,42 @@
       },
       "revised_at": "2026-08-21T07:36:45.103505+00:00",
       "reason": "replace hosted timing races with deterministic synchronization",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6b1f5bdaaeeae392f21e7bd57002eb5210af0638de368e5eef7229a27fc37ea3",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:40f99a34e79d499dee67eb9108201d27110268cdf53a70d45a5827123390ef99",
+        "tests/core/test_artifact_coverage_partial_escalation.py": "sha256-pyast:v2:67f7c6e1c47bfdae1c8416bd237e42a1d21598c28d360f48bfd73b66cc1f8ae9"
+      },
+      "revised_at": "2026-08-21T09:50:51.123844+00:00",
+      "reason": "replace hosted-runner timing assertions with deterministic subprocess coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6b1f5bdaaeeae392f21e7bd57002eb5210af0638de368e5eef7229a27fc37ea3",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:f7f06f6977abc5c26929b442f06ede7e76b48e43cc772eb6237d9c1174666e13",
+        "tests/core/test_artifact_coverage_partial_escalation.py": "sha256-pyast:v2:67f7c6e1c47bfdae1c8416bd237e42a1d21598c28d360f48bfd73b66cc1f8ae9"
+      },
+      "revised_at": "2026-08-21T10:05:01.621660+00:00",
+      "reason": "bind deterministic permit coverage to the production two-permit instance",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

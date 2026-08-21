@@ -2,13 +2,13 @@
   "manifest_path": "manifests/121-23-default-derived-coverage-evidence.manifest.yaml",
   "manifest_hash": "sha256-contract:21402c0218054759a375aabaa398635e0e9e36d34a4132ffe8b72f097e1a2999",
   "test_hashes": {
-    "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:40f99a34e79d499dee67eb9108201d27110268cdf53a70d45a5827123390ef99",
+    "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:58209da5bac256e1da44871ab1a283a0fea3560f2403a95a490481e8eb89b6b8",
     "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:0bfcbeae6328eb1bda7ba15e14e5961d06a0be5e328c153788852292842c8a4a",
     "tests/core/test_config.py": "sha256-pyast:v2:2d61fe5232fbf57b533be1f86b00cbd7c5502b1655d8333dfdcbfc24814cfc9f",
     "tests/core/test_derived_coverage_evidence.py": "sha256-pyast:v2:cf23dc423e019351f616e4cd470cfe1b4d327fde35071aa12ec36a57276ba024"
   },
   "created_at": "2026-08-13T09:17:42.442467+00:00",
-  "revision": 9,
+  "revision": 11,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:3c1b173295b8c06a4d871c73a81741f7bcae86188d73b7b7df714d49ecc5cab9",
@@ -170,6 +170,46 @@
       },
       "revised_at": "2026-08-21T07:36:45.423711+00:00",
       "reason": "replace hosted timing races with deterministic synchronization",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:21402c0218054759a375aabaa398635e0e9e36d34a4132ffe8b72f097e1a2999",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:40f99a34e79d499dee67eb9108201d27110268cdf53a70d45a5827123390ef99",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:0bfcbeae6328eb1bda7ba15e14e5961d06a0be5e328c153788852292842c8a4a",
+        "tests/core/test_config.py": "sha256-pyast:v2:2d61fe5232fbf57b533be1f86b00cbd7c5502b1655d8333dfdcbfc24814cfc9f",
+        "tests/core/test_derived_coverage_evidence.py": "sha256-pyast:v2:cf23dc423e019351f616e4cd470cfe1b4d327fde35071aa12ec36a57276ba024"
+      },
+      "revised_at": "2026-08-21T09:50:51.411740+00:00",
+      "reason": "replace hosted-runner timing assertions with deterministic subprocess coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:21402c0218054759a375aabaa398635e0e9e36d34a4132ffe8b72f097e1a2999",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:f7f06f6977abc5c26929b442f06ede7e76b48e43cc772eb6237d9c1174666e13",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:0bfcbeae6328eb1bda7ba15e14e5961d06a0be5e328c153788852292842c8a4a",
+        "tests/core/test_config.py": "sha256-pyast:v2:2d61fe5232fbf57b533be1f86b00cbd7c5502b1655d8333dfdcbfc24814cfc9f",
+        "tests/core/test_derived_coverage_evidence.py": "sha256-pyast:v2:cf23dc423e019351f616e4cd470cfe1b4d327fde35071aa12ec36a57276ba024"
+      },
+      "revised_at": "2026-08-21T10:05:01.920468+00:00",
+      "reason": "bind deterministic permit coverage to the production two-permit instance",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
