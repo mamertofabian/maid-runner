@@ -1,11 +1,11 @@
 {
   "manifest_path": "manifests/normalize-multiline-type-whitespace.manifest.yaml",
-  "manifest_hash": "sha256-contract:ded94c9f8d130f87d13b77b8fbdfc700ed07286103c4d77f02d75bbbd716563b",
+  "manifest_hash": "sha256-contract:c1a679ea5e2a92898d1bec13e5ad8f52e901971b0b0d7e837112cf42376ba92f",
   "test_hashes": {
-    "tests/validators/test_type_comparison_hook.py": "sha256-pyast:v2:6780ac514e1260e50dbc7258266ecd4c787110479b71f4afd2961ecfe2816a7c"
+    "tests/validators/test_type_comparison_hook.py": "sha256-pyast:v2:730ca36c79a7a3a779bdccf6452c8a2350d76fdd205c53faf184df357830c5f9"
   },
   "created_at": "2026-08-21T08:14:58.285061+00:00",
-  "revision": 21,
+  "revision": 22,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:190314c99c5893b5543232e4714499c4e2cd04e7f7dfc86e28d85bd6ffdba10d",
@@ -443,21 +443,35 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ded94c9f8d130f87d13b77b8fbdfc700ed07286103c4d77f02d75bbbd716563b",
+      "prior_test_hashes": {
+        "tests/validators/test_type_comparison_hook.py": "sha256-pyast:v2:6780ac514e1260e50dbc7258266ecd4c787110479b71f4afd2961ecfe2816a7c"
+      },
+      "revised_at": "2026-08-21T14:45:58.755991+00:00",
+      "reason": "Preserve TypeScript intersection member order because intersected call signatures use order for overload resolution, and propagate baseline comparator failures",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
     "red": true,
-    "captured_at": "2026-08-21T14:01:56.305049+00:00",
+    "captured_at": "2026-08-21T14:45:59.415844+00:00",
     "commands": [
       {
         "command": "uv run pytest tests/validators/test_type_comparison_hook.py -q",
         "exit_code": 1,
-        "output_tail": "FAILED tests/validators/test_type_comparison_hook.py::test_typescript_formatter_expanded_type_targets_match[{ id: string; active: boolean }-{\\n  id: string;\\n  active: boolean;\\n}]\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_formatter_expanded_type_targets_match[(from: number, to: number) => PromiseLike<{ data: T[] | null }>-(\\n  from: number,\\n  to: number,\\n) => PromiseLike<{\\n  data: T[] | null;\\n}>]\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_formatter_expanded_type_targets_match[{ allowed: true; reason: 'ready now' } | { allowed: false; reason: 'not ready' }-\\n  | { allowed: false; reason: \"not ready\" }\\n  | { allowed: true; reason: \"ready now\" }]\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_formatter_expanded_type_targets_match[{}-{\\n}]\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_formatter_expanded_type_targets_match[[]-[\\n]]\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_formatter_expanded_type_targets_match[A | B-B | A /* formatter note */]\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_formatter_expanded_type_targets_match[string-string\\n// formatter note]\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_formatter_expanded_type_targets_match[A | (B | C)-C | B | A]\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_formatter_expanded_type_targets_match[A & (B & C)-C & B & A]\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_semantically_distinct_type_targets_do_not_match[`a b`-`ab`]\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_semantically_distinct_type_targets_do_not_match[`a .< b`-`a.<b`]\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_semantically_distinct_type_targets_do_not_match[{ value: `a b` }-{ value: `ab` }]\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_semantically_distinct_type_targets_do_not_match[keyof T /* .< */-keyofT /* .< */]\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_excessive_type_depth_fails_closed\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_string_edge_cases_are_bounded_and_semantic\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_wide_type_tree_preserves_baseline_comparison\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_parser_failure_preserves_baseline_comparison\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_type_fingerprint_cache_is_bounded\nFAILED tests/validators/test_type_comparison_hook.py::test_formatted_typescript_alias_passes_implementation_validation\n19 failed, 21 passed in 0.27s",
+        "output_tail": "_____________ test_typescript_baseline_comparator_errors_propagate _____________\n\nmonkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7cd62879b3e0>\n\n    def test_typescript_baseline_comparator_errors_propagate(monkeypatch) -> None:\n        def raise_comparator_error(self, manifest_type, implementation_type):\n            raise RuntimeError(\"baseline comparator failed\")\n    \n        monkeypatch.setattr(BaseValidator, \"types_match\", raise_comparator_error)\n    \n>       with pytest.raises(RuntimeError, match=\"baseline comparator failed\"):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'RuntimeError'>\n\ntests/validators/test_type_comparison_hook.py:245: Failed\n=========================== short test summary info ============================\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_semantically_distinct_type_targets_do_not_match[A & (B & C)-C & B & A]\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_semantically_distinct_type_targets_do_not_match[((x: string) => \"first\") & ((x: string) => \"second\")-((x: string) => \"second\") & ((x: string) => \"first\")]\nFAILED tests/validators/test_type_comparison_hook.py::test_typescript_baseline_comparator_errors_propagate\n3 failed, 39 passed in 0.32s",
         "classification": "red"
       }
-    ],
-    "sibling_dirty_paths": [
-      ".maid/plan-locks/snapshot-cli-commands--main-2.lock.json"
     ]
   },
   "legacy_baseline": null,

@@ -41,40 +41,24 @@ class TestPublicAPIImports:
         changelog = root / "CHANGELOG.md"
         roadmap = root / "docs" / "ROADMAP.md"
 
-        assert __version__ == "2.27.0"
-        assert re.search(r'^version = "2\.27\.0"$', pyproject.read_text(), re.M)
+        assert __version__ == "2.27.1"
+        assert re.search(r'^version = "2\.27\.1"$', pyproject.read_text(), re.M)
         assert re.search(
-            r'\[\[package\]\]\nname = "maid-runner"\nversion = "2\.27\.0"',
+            r'\[\[package\]\]\nname = "maid-runner"\nversion = "2\.27\.1"',
             lockfile.read_text(),
         )
         changelog_text = changelog.read_text()
-        assert "## [2.27.0] - 2026-08-20" in changelog_text
+        assert "## [2.27.1] - 2026-08-21" in changelog_text
         assert (
-            "[2.27.0]: https://github.com/mamertofabian/maid-runner/compare/v2.26.0...v2.27.0"
+            "[2.27.1]: https://github.com/mamertofabian/maid-runner/compare/v2.27.0...v2.27.1"
             in changelog_text
         )
-        for release_note in (
-            "Manifest-chain consolidation",
-            "Differential knockout proof",
-            "Recorded chain evidence",
-            "Deep-verification performance",
-            "Fast manifest test gate",
-            "Chain-merge contract preservation",
-            "Artifact-coverage correctness",
-            "Plan-lock evidence integrity",
-            "Configurable plan-lock timeouts",
-            "Verdict-neutral implementation review",
-            "Python TypeAlias contracts",
-            "Merge-aware worktree scope",
-            "Portable release workflows",
-            "Deterministic evidence caches",
-        ):
-            assert release_note in changelog_text
+        assert "TypeScript type formatting" in changelog_text
 
         roadmap_text = roadmap.read_text()
-        assert "**Current Version:** 2.27.0" in roadmap_text
-        assert "**Last Updated:** 2026-08-20" in roadmap_text
-        assert "The local CLI reports `maid 2.27.0`." in roadmap_text
+        assert "**Current Version:** 2.27.1" in roadmap_text
+        assert "**Last Updated:** 2026-08-21" in roadmap_text
+        assert "The local CLI reports `maid 2.27.1`." in roadmap_text
         assert "`maid chain merge`" in roadmap_text
         help_result = subprocess.run(
             ["maid", "--help"],

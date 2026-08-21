@@ -14,9 +14,10 @@ description: |
   TypeScriptValidator preserves the released comparison behavior for
   JavaScript/JSDoc and unparseable or over-budget spellings. When both differing
   fragments parse as bounded TypeScript aliases, it compares syntax fingerprints
-  that ignore formatter punctuation,
-  canonicalize union and intersection member order, and preserve semantic
-  tokens such as optional markers and literal contents.
+  that ignore formatter punctuation, canonicalize union member order, preserve
+  intersection member order for overload resolution, and retain semantic tokens
+  such as optional markers and literal contents. Baseline comparator failures
+  propagate instead of being converted into parser-backed acceptance.
 
   Template literal whitespace, object member order, and optional markers must not
   be erased when parser-backed comparison applies. Cache at most 256 parsed
@@ -29,6 +30,8 @@ temptations:
     instead: "When parser-backed comparison cannot apply to both fragments, retain the released comparator result."
   - risk: "Do not erase literal contents, optional markers, or object member order."
     instead: "Ignore only structural formatting tokens and retain ordered semantic child fingerprints."
+  - risk: "Do not sort intersection members as if every intersection were commutative."
+    instead: "Preserve intersection source order because intersected call signatures resolve overloads in order."
 files:
   edit:
     - path: maid_runner/validators/typescript.py
@@ -115,9 +118,9 @@ validate:
   - ["uv", "run", "pytest", "tests/validators/test_type_comparison_hook.py", "-q"]
 outcome:
   status: completed
-  summary: "TypeScriptValidator now uses bounded Tree-sitter fingerprints when both differing type spellings parse successfully, eliminating formatter-only E302 mismatches while preserving released fallback behavior for JSDoc, malformed, parser-failure, and over-budget inputs."
-  rationale: "The rejected shared-regex approach erased semantic syntax across languages. Keeping comparison validator-owned lets TypeScript structural syntax ignore layout, comments, quote style, trailing separators, and union/intersection grouping without changing Python tuple semantics or JavaScript/JSDoc compatibility. Fingerprint parsing is bounded by fragment bytes, complete-tree node count, depth, and successful-only cache retention."
-  completed_at: "2026-08-21T22:13:07+08:00"
+  summary: "TypeScriptValidator uses bounded Tree-sitter fingerprints to eliminate formatter-only E302 mismatches while preserving intersection order for overload resolution, propagating unexpected comparator failures, and retaining released fallback behavior for JSDoc, malformed, parser-failure, unencodable, and over-budget inputs."
+  rationale: "Parser-backed comparison belongs at the TypeScript boundary: it can ignore layout, comments, quote style, trailing separators, and union grouping without weakening other languages. Union members are canonicalized, but intersection members retain source order because intersected call signatures can resolve differently when reordered. Fingerprinting remains bounded by bytes, complete-tree nodes, depth, and successful-only cache retention; only the known UnicodeEncodeError from unencodable surrogate input is converted to fail-closed baseline mismatch."
+  completed_at: "2026-08-21T23:18:01+08:00"
   lessons:
     - lesson_type: type-comparison
       summary: "Language-neutral string normalization is too weak for formatter-expanded TypeScript and too permissive for template literals; parser-backed comparison belongs at the TypeScript validator boundary."
@@ -148,19 +151,25 @@ outcome:
     - source: independent-read-only-review
       severity: info
       summary: "Final review found no P0, P1, or P2 issues and returned Ready to merge after checking the full diff, parser and decoder semantics, cache budgets, JSDoc fallback, tests, scope, and locks."
+    - source: independent-release-implementation-review
+      severity: blocking
+      summary: "Release review proved that sorting intersection members accepted an observable overload-resolution change and that blanket comparator exception suppression hid defects; revision 22 added red regressions for both boundaries."
+    - source: independent-release-implementation-review-refresh
+      severity: ready
+      summary: "Fresh verdict-neutral review found no blockers, should-fix items, or nitpicks after intersection order was preserved, unexpected comparator errors propagated, focused and full tests passed, artifacts rebuilt, and deep verification passed all 11 stages."
   validation:
     - command: ["uv", "run", "pytest", "tests/validators/test_type_comparison_hook.py", "-q"]
       status: passed
-      summary: "40 focused comparator-hook tests passed; revision-21 red evidence captures the intended pre-implementation failures."
+      summary: "42 focused comparator-hook tests passed; revision-22 red evidence captures formatter regressions plus ordered-intersection and comparator-error boundaries."
     - command: ["uv", "run", "python", "-m", "pytest", "tests/", "-q", "-n", "auto"]
       status: passed
-      summary: "Full suite passed with 4602 passed and 14 skipped."
+      summary: "Publish-equivalent serial full suite passed with 4604 passed and 14 skipped after the shared environment was repaired and dev plus docs groups were installed."
     - command: ["uv", "run", "maid", "validate"]
       status: passed
-      summary: "645 manifests checked: 286 active passed, 0 failed, and 359 superseded skipped."
+      summary: "646 manifests checked: 286 active passed, 0 failed, and 360 superseded skipped."
     - command: ["uv", "run", "maid", "test", "--jobs", "1", "--pytest-workers", "4"]
       status: passed
       summary: "Workflow-equivalent MAID test run passed all 295 commands."
-    - command: ["uv", "run", "maid", "verify", "--profile", "deep", "--test-scope", "task", "--require-plan-lock", "--require-red-evidence", "--since", "adcd6d7"]
+    - command: ["uv", "run", "maid", "verify", "--profile", "deep", "--test-scope", "task", "--require-plan-lock", "--require-red-evidence", "--since", "v2.27.0"]
       status: passed
       summary: "Deep verification passed all 11 gates with no blockers; only the existing non-blocking E307 CJS-validator warning remained."

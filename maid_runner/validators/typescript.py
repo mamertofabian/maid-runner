@@ -85,7 +85,9 @@ def _typescript_type_fingerprint(
         fingerprints = [
             _typescript_type_fingerprint(member, source) for member in members
         ]
-        return (node.type, tuple(sorted(fingerprints, key=repr)))
+        if node.type == "union_type":
+            fingerprints.sort(key=repr)
+        return (node.type, tuple(fingerprints))
 
     children: list[tuple[object, ...]] = []
     for child in node.children:
@@ -302,7 +304,7 @@ class TypeScriptValidator(BaseValidator):
 
         try:
             baseline_match = super().types_match(manifest_type, implementation_type)
-        except Exception:
+        except UnicodeEncodeError:
             baseline_match = False
         manifest_fingerprint = self._type_fingerprint(manifest_type)
         implementation_fingerprint = self._type_fingerprint(implementation_type)

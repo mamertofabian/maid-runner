@@ -194,7 +194,6 @@ def test_base_validator_type_match_hook_preserves_default_comparison() -> None:
         ("A | B", "B | A /* formatter note */"),
         ("string", "string\n// formatter note"),
         ("A | (B | C)", "C | B | A"),
-        ("A & (B & C)", "C & B & A"),
     ],
 )
 def test_typescript_formatter_expanded_type_targets_match(
@@ -221,6 +220,11 @@ def test_typescript_formatter_expanded_type_targets_match(
         (r"'\u{110000}'", r'"\u{110000}"'),
         ("string", "string; type Escaped = number"),
         ("string", "string; const escaped = 1"),
+        ("A & (B & C)", "C & B & A"),
+        (
+            '((x: string) => "first") & ((x: string) => "second")',
+            '((x: string) => "second") & ((x: string) => "first")',
+        ),
     ],
 )
 def test_typescript_semantically_distinct_type_targets_do_not_match(
@@ -230,6 +234,16 @@ def test_typescript_semantically_distinct_type_targets_do_not_match(
     validator = TypeScriptValidator()
 
     assert validator.types_match(manifest_type, implementation_type) is False
+
+
+def test_typescript_baseline_comparator_errors_propagate(monkeypatch) -> None:
+    def raise_comparator_error(self, manifest_type, implementation_type):
+        raise RuntimeError("baseline comparator failed")
+
+    monkeypatch.setattr(BaseValidator, "types_match", raise_comparator_error)
+
+    with pytest.raises(RuntimeError, match="baseline comparator failed"):
+        TypeScriptValidator().types_match("string", "number")
 
 
 def test_typescript_excessive_type_depth_fails_closed() -> None:
