@@ -2,13 +2,13 @@
   "manifest_path": "manifests/121-05-reuse-fast-real-git-test-projects.manifest.yaml",
   "manifest_hash": "sha256-contract:35ec02d2fc0e58a21d111aaaf8fb27a3389738b223e184a91edf3b6df4a9c020",
   "test_hashes": {
-    "tests/core/test_git_project_templates.py": "sha256-pyast:v2:4884dee280b762b39ba8f41ba06be82c7f4db02ecea632ccc980b0f56f2825c2",
+    "tests/core/test_git_project_templates.py": "sha256-pyast:v2:9792c849c1b9f2db5e868755081a72f7599df92b9a157b8dadbde2c702dcfba8",
     "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:63d776c7c667178c5cc136c3945cc4b8c5a651523763b34f08330408e4528054",
     "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:v2:fbd34d55589b10dad67730fadb341f3932bbf3bfcf08bd429de88028e5b7b403",
     "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:5b2ce9458cfaec7a9eb2eabebb103be617604185ba7fbe7bca4d88a869289820"
   },
   "created_at": "2026-08-11T00:12:44.993729+00:00",
-  "revision": 10,
+  "revision": 12,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:589331d922c5249a3b3071253f985f45846bdc6431d4da9bb96fb5624c06459a",
@@ -243,6 +243,46 @@
       },
       "revised_at": "2026-08-17T10:03:52.327895+00:00",
       "reason": "accept approved shared-test coverage for remaining E710 owners",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:35ec02d2fc0e58a21d111aaaf8fb27a3389738b223e184a91edf3b6df4a9c020",
+      "prior_test_hashes": {
+        "tests/core/test_git_project_templates.py": "sha256-pyast:v2:4884dee280b762b39ba8f41ba06be82c7f4db02ecea632ccc980b0f56f2825c2",
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:63d776c7c667178c5cc136c3945cc4b8c5a651523763b34f08330408e4528054",
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:v2:fbd34d55589b10dad67730fadb341f3932bbf3bfcf08bd429de88028e5b7b403",
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:5b2ce9458cfaec7a9eb2eabebb103be617604185ba7fbe7bca4d88a869289820"
+      },
+      "revised_at": "2026-08-21T03:30:18.520925+00:00",
+      "reason": "isolate test Git config from ambient hooks",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:35ec02d2fc0e58a21d111aaaf8fb27a3389738b223e184a91edf3b6df4a9c020",
+      "prior_test_hashes": {
+        "tests/core/test_git_project_templates.py": "sha256-pyast:v2:68ad8f5cfb6f7ae913c7f7f62808b7a0afd40cd2677b1e019443cf93a4dfbda9",
+        "tests/cli/test_plan_legacy_baseline_cmd.py": "sha256-pyast:v2:63d776c7c667178c5cc136c3945cc4b8c5a651523763b34f08330408e4528054",
+        "tests/cli/test_plan_cmd_stash_implementation.py": "sha256-pyast:v2:fbd34d55589b10dad67730fadb341f3932bbf3bfcf08bd429de88028e5b7b403",
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:5b2ce9458cfaec7a9eb2eabebb103be617604185ba7fbe7bca4d88a869289820"
+      },
+      "revised_at": "2026-08-21T03:38:22.656076+00:00",
+      "reason": "cover exact Git environment restoration",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import json
 import os
+import select
 import signal
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -168,6 +170,7 @@ def test_exact_coverage_timeout_reaps_detached_descendants(tmp_path: Path) -> No
     from maid_runner.core._runtime_command_executor import (
         SubprocessRuntimeCommandExecutor,
     )
+    from maid_runner.core._test_command_execution import _terminate_process_tree
 
     project = tmp_path / "project"
     source = project / "src" / "target.py"
@@ -175,35 +178,68 @@ def test_exact_coverage_timeout_reaps_detached_descendants(tmp_path: Path) -> No
     pid_file = project / "descendant.pid"
     source.parent.mkdir(parents=True)
     test_file.parent.mkdir(parents=True)
+    os.mkfifo(pid_file)
+    pid_channel = os.open(pid_file, os.O_RDWR | os.O_NONBLOCK)
     source.write_text("def target():\n    return True\n", encoding="utf-8")
-    child_code = "import time; time.sleep(60)"
+    child_code = "import signal; signal.pause()"
     test_file.write_text(
+        "import signal\n"
         "import subprocess\n"
         "import sys\n"
-        "import time\n"
         "from pathlib import Path\n\n"
         "def test_timeout():\n"
         f"    child = subprocess.Popen([sys.executable, '-c', {child_code!r}], start_new_session=True)\n"
         f"    Path({str(pid_file)!r}).write_text(str(child.pid))\n"
-        "    time.sleep(60)\n",
+        "    signal.pause()\n",
         encoding="utf-8",
     )
 
-    try:
-        record = SubprocessRuntimeCommandExecutor().execute(
-            ("tests/test_timeout.py", "-q"),
-            {str(source.resolve())},
-            project,
-            timeout_seconds=1,
-        )
+    original_communicate = subprocess.Popen.communicate
+    timeout_forced = False
+    descendant_pid: int | None = None
+    observed_timeout: float | None = None
 
+    def force_timeout_after_descendant_starts(process, *args, **kwargs):
+        nonlocal descendant_pid, observed_timeout, timeout_forced
+        if not timeout_forced:
+            observed_timeout = kwargs.get("timeout", args[0] if args else None)
+            readable, _, _ = select.select((pid_channel,), (), (), 5)
+            if readable:
+                try:
+                    published_pid = int(os.read(pid_channel, 64))
+                except ValueError:
+                    published_pid = 0
+                if published_pid > 0:
+                    descendant_pid = published_pid
+            if descendant_pid is None:
+                timeout_forced = True
+                _terminate_process_tree(process)
+                raise AssertionError("detached descendant did not publish its PID")
+            timeout_forced = True
+            raise subprocess.TimeoutExpired(process.args, observed_timeout)
+        return original_communicate(process, *args, **kwargs)
+
+    try:
+        with pytest.MonkeyPatch.context() as monkeypatch:
+            monkeypatch.setattr(
+                subprocess.Popen, "communicate", force_timeout_after_descendant_starts
+            )
+            record = SubprocessRuntimeCommandExecutor().execute(
+                ("tests/test_timeout.py", "-q"),
+                {str(source.resolve())},
+                project,
+                timeout_seconds=300,
+            )
+
+        assert descendant_pid is not None
+        assert observed_timeout == 300
         assert record.returncode != 0
         assert "timed out" in record.stderr.lower()
-        descendant_pid = int(pid_file.read_text(encoding="utf-8"))
         assert _wait_until_process_gone(descendant_pid)
     finally:
-        if pid_file.exists():
-            _kill_process_group(int(pid_file.read_text(encoding="utf-8")))
+        os.close(pid_channel)
+        if descendant_pid is not None:
+            _kill_process_group(descendant_pid)
 
 
 def test_exact_coverage_fails_closed_without_descendant_ownership(

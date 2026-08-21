@@ -7,6 +7,9 @@ from pathlib import Path
 
 import pytest
 
+from maid_runner.core._knockout_snapshot import (
+    SharedEnvironmentProjectSnapshotBackend,
+)
 from maid_runner.core.manifest import load_manifest
 from maid_runner.core.result import ErrorCode, TestRunResult
 from maid_runner.core.runtime_evidence import (
@@ -103,9 +106,58 @@ def _evidence(
     complete: bool = True,
     include_context: bool = True,
 ) -> RuntimeEvidenceBundle:
+    from maid_runner.core._runtime_command_executor import (
+        RuntimeCommandRecord,
+        RuntimeFileExecution,
+    )
     from maid_runner.core.runtime_evidence import collect_runtime_evidence
+    from maid_runner.core.runtime_evidence import (
+        RuntimeContextEvidence,
+        RuntimeGroupEvidence,
+    )
 
-    bundle = collect_runtime_evidence((manifest,), root).evidence
+    nodeid = "tests/test_target.py::test_target"
+    target = str((root / "src/target.py").resolve())
+    execution = {
+        target: RuntimeFileExecution(
+            executed_lines=frozenset({2}),
+            called_qualnames=frozenset({"target"}),
+        )
+    }
+
+    class GroupExecutor:
+        def execute_with_contexts(
+            self,
+            command,
+            target_files,
+            project_root,
+            timeout_seconds,
+            pytest_workers=None,
+            logical_selectors=None,
+        ):
+            return RuntimeGroupEvidence(
+                command=tuple(command),
+                selected_nodeids=(nodeid,),
+                selector_nodeids={
+                    selector: (nodeid,) for selector in logical_selectors or ()
+                },
+                contexts=(
+                    RuntimeContextEvidence(
+                        context_id=nodeid,
+                        kind="node",
+                        consuming_nodeids=(nodeid,),
+                        execution_data=execution,
+                        lifecycle_equivalent=True,
+                    ),
+                ),
+                result=RuntimeCommandRecord(tuple(command), 0, "", "", execution, ()),
+                worker_ids=("main",),
+                completeness=RuntimeEvidenceCompleteness(complete=True),
+            )
+
+    bundle = collect_runtime_evidence(
+        (manifest,), root, executor=GroupExecutor()
+    ).evidence
     command_evidence = bundle.commands[0]
     contexts = command_evidence.contexts if include_context else ()
     if kind != "node":
@@ -129,15 +181,21 @@ def _evidence(
     )
 
 
-def _run(manifest, root: Path, executor, evidence=None):
+def _run(manifest, root: Path, executor, evidence=None, *, grouped: bool = False):
     from maid_runner.core.knockout import run_knockout_batch
 
+    if grouped:
+        (root / ".venv").mkdir(exist_ok=True)
     reports = run_knockout_batch(
         (manifest,),
         root,
         evidence=evidence,
         allow_dirty=True,
         executor=executor,
+        snapshot_backend=(
+            None if grouped else SharedEnvironmentProjectSnapshotBackend()
+        ),
+        no_cache=True,
     )
     return reports[manifest.source_path]
 
@@ -150,7 +208,13 @@ def test_executing_node_green_red_green_is_positive_detection_proof(tmp_path):
 
     assert callable(KnockoutCommandExecutor().execute)
 
-    report = _run(manifest, tmp_path, executor, _evidence(manifest, tmp_path))
+    report = _run(
+        manifest,
+        tmp_path,
+        executor,
+        _evidence(manifest, tmp_path),
+        grouped=True,
+    )
 
     result = report.results[0]
     assert report.success is True
@@ -177,7 +241,13 @@ def test_focused_candidate_that_stays_green_runs_original_command(tmp_path):
     original = tuple(manifest.validate_commands[0])
     executor = _RecordingExecutor((0, 0, 0, 1, 0))
 
-    report = _run(manifest, tmp_path, executor, _evidence(manifest, tmp_path))
+    report = _run(
+        manifest,
+        tmp_path,
+        executor,
+        _evidence(manifest, tmp_path),
+        grouped=True,
+    )
 
     assert report.success is True
     assert report.results[0].proof.used_exact_fallback is True
@@ -416,7 +486,13 @@ def test_mutant_red_without_restored_green_is_inconclusive_and_falls_back(tmp_pa
     manifest = _write_project(tmp_path)
     executor = _RecordingExecutor((0, 1, 1, 0, 1, 0))
 
-    report = _run(manifest, tmp_path, executor, _evidence(manifest, tmp_path))
+    report = _run(
+        manifest,
+        tmp_path,
+        executor,
+        _evidence(manifest, tmp_path),
+        grouped=True,
+    )
 
     assert report.success is True
     assert report.results[0].proof.used_exact_fallback is True
@@ -431,7 +507,13 @@ def test_proven_focused_detector_avoids_broad_original_command(tmp_path):
     original = tuple(manifest.validate_commands[0])
     executor = _RecordingExecutor((0, 1, 0))
 
-    report = _run(manifest, tmp_path, executor, _evidence(manifest, tmp_path))
+    report = _run(
+        manifest,
+        tmp_path,
+        executor,
+        _evidence(manifest, tmp_path),
+        grouped=True,
+    )
 
     assert report.success is True
     assert original not in [call[0] for call in executor.calls]
@@ -452,12 +534,14 @@ def test_differential_and_legacy_honest_fixture_gate_quality_is_monotonic(tmp_pa
         honest_root,
         allow_dirty=True,
         executor=_RecordingExecutor((0, 1, 0)),
+        snapshot_backend=SharedEnvironmentProjectSnapshotBackend(),
     )
     unrelated_report = run_knockout(
         unrelated,
         unrelated_root,
         allow_dirty=True,
         executor=_RecordingExecutor((1,)),
+        snapshot_backend=SharedEnvironmentProjectSnapshotBackend(),
     )
 
     assert honest_report.success is True
@@ -483,6 +567,8 @@ def test_duplicate_spec_declarations_restore_target_before_next_legacy_side_effe
         tmp_path,
         allow_dirty=True,
         executor=executor,
+        snapshot_backend=SharedEnvironmentProjectSnapshotBackend(),
+        no_cache=True,
     )
 
     assert list(reports) == [first.source_path, second.source_path]

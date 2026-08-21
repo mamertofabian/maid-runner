@@ -168,6 +168,8 @@ def test_harness_failure_without_result_is_not_checkpointed(tmp_path: Path) -> N
 
 
 def _write_project(root: Path, artifacts=("target",)):
+    # Cache behavior uses injected executors and needs no installed packages.
+    (root / ".venv").mkdir()
     (root / "src").mkdir()
     (root / "tests").mkdir()
     (root / "manifests").mkdir()

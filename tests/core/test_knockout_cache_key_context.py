@@ -177,6 +177,8 @@ def _write_project(
     *,
     names: tuple[str, ...] = ("alpha", "beta", "gamma"),
 ):
+    # Cache-context behavior uses an injected executor and needs no packages.
+    (root / ".venv").mkdir()
     (root / "src").mkdir()
     (root / "tests").mkdir()
     (root / "manifests").mkdir()

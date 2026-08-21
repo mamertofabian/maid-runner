@@ -486,6 +486,8 @@ def _write_manifest_with_commands(
 
 
 def _commit_fixture(root: Path) -> None:
+    # Commands use an absolute interpreter and need no copied package environment.
+    (root / ".venv").mkdir(exist_ok=True)
     subprocess.run(("git", "init"), cwd=root, check=True, capture_output=True)
     subprocess.run(("git", "add", "."), cwd=root, check=True, capture_output=True)
     subprocess.run(

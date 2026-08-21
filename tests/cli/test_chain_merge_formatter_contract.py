@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import subprocess
 from pathlib import Path
 
 
@@ -82,10 +81,12 @@ def test_chain_merge_formatters_are_accepted_by_all_active_contracts():
         format_chain_merge_report,
         format_chain_merge_summary,
     )
+    from maid_runner.core.types import ValidationMode
+    from maid_runner.core.validate import ValidationEngine
 
     # Exact symbol references keep the additive formatter contract visible to
-    # behavioral validation; the subprocess proves every active file contract
-    # accepts those public names once this manifest is promoted.
+    # behavioral validation; chain-aware implementation validation proves every
+    # active file contract accepts those public names.
     assert all(
         callable(formatter)
         for formatter in (
@@ -95,12 +96,11 @@ def test_chain_merge_formatters_are_accepted_by_all_active_contracts():
         )
     )
 
-    completed = subprocess.run(
-        ["uv", "run", "maid", "validate"],
-        cwd=REPO_ROOT,
-        capture_output=True,
-        text=True,
-        check=False,
+    result = ValidationEngine(project_root=REPO_ROOT).validate(
+        REPO_ROOT / "manifests/fix-chain-merge-formatter-contract.manifest.yaml",
+        mode=ValidationMode.IMPLEMENTATION,
+        use_chain=True,
+        manifest_dir="manifests",
     )
 
-    assert completed.returncode == 0, completed.stdout + completed.stderr
+    assert result.success, [error.to_dict() for error in result.errors]

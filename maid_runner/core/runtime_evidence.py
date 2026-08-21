@@ -42,6 +42,11 @@ from maid_runner.core.test_runner import _resolve_command
 from maid_runner.core.types import Manifest
 
 
+_RESOLVED_VERSION_CACHE: dict[
+    tuple[tuple[str, ...], str, str], dict[str, str | None]
+] = {}
+
+
 @dataclass(frozen=True)
 class RuntimeCommandIdentity:
     """Stable declaring-manifest and command-index identity."""
@@ -807,6 +812,11 @@ def _probe_resolved_versions(
     *,
     child_environment: Mapping[str, str] | None = None,
 ) -> dict[str, str | None]:
+    environment = dict(child_environment or _test_command_environment())
+    cache_key = (prefix, str(root.resolve()), _mapping_digest(environment))
+    cached = _RESOLVED_VERSION_CACHE.get(cache_key)
+    if cached is not None:
+        return dict(cached)
     script = (
         "import importlib.metadata,json,sys;"
         "v=lambda n: importlib.metadata.version(n) "
@@ -820,11 +830,12 @@ def _probe_resolved_versions(
     )
     command = _resolved_python_probe_command(prefix, script)
     returncode = -1
+    probe_succeeded = False
     try:
         completed = subprocess.run(
             command,
             cwd=str(root),
-            env=dict(child_environment or _test_command_environment()),
+            env=environment,
             capture_output=True,
             text=True,
             timeout=30,
@@ -832,11 +843,12 @@ def _probe_resolved_versions(
         )
         returncode = completed.returncode
         payload = json.loads(completed.stdout.strip())
+        probe_succeeded = returncode == 0
     except (OSError, subprocess.SubprocessError, json.JSONDecodeError):
         payload = {}
     if returncode != 0:
         payload = {}
-    return {
+    result = {
         "python": str(payload.get("python") or "unavailable"),
         "pytest": str(payload.get("pytest") or "unavailable"),
         "coverage": str(payload.get("coverage") or "unavailable"),
@@ -844,6 +856,9 @@ def _probe_resolved_versions(
             str(payload["xdist"]) if isinstance(payload.get("xdist"), str) else None
         ),
     }
+    if probe_succeeded:
+        _RESOLVED_VERSION_CACHE[cache_key] = result
+    return dict(result)
 
 
 def _resolved_python_probe_command(

@@ -460,6 +460,8 @@ class _StateWritingExecutor(_OverlapExecutor):
 
 
 def _project_manifest(root: Path, slug: str, artifacts: tuple[str, ...]):
+    # Worker scheduling uses injected executors and needs no installed packages.
+    (root / ".venv").mkdir(exist_ok=True)
     (root / "src").mkdir(exist_ok=True)
     (root / "src/__init__.py").write_text("")
     (root / "src/target.py").write_text(
@@ -506,6 +508,7 @@ def _spec(root: Path, name: str, commands):
         KnockoutMutationSpec,
     )
 
+    (root / ".venv").mkdir(exist_ok=True)
     source = root / "target.py"
     source.write_text("def target():\n    return 1\n")
     return KnockoutMutationSpec(

@@ -3,10 +3,10 @@
   "manifest_hash": "sha256-contract:a2c617bd4d9e2a09060d5a20e4036afcdd5292053e572e031e279d70945d55d2",
   "test_hashes": {
     "tests/core/test_focused_knockout_despite_sibling_unproven_lifecycles.py": "sha256-pyast:v2:8c5da449abb79098fc9dc7a91552cd13a24a806bb3c5065d844c5402095443f1",
-    "tests/core/test_knockout_trusts_grouped_command_order.py": "sha256-pyast:v2:afbdcfcddef8d9cff308bef7f9c5401587e87bcef5f8452971c6b1500ead9073"
+    "tests/core/test_knockout_trusts_grouped_command_order.py": "sha256-pyast:v2:b3ba7b433cce43741892b13200a03768ffca174dabc1931a6c5822f2819b9c2b"
   },
   "created_at": "2026-08-13T10:40:09.198224+00:00",
-  "revision": 2,
+  "revision": 3,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:0790858af3d84a4cfeb3f444a5fff387e1eb2e8fec9bd8c90038942b4bc5d1db",
@@ -28,6 +28,24 @@
         "validate_commands_removed": [
           "uv run maid validate manifests/drafts/121-34-trust-grouped-knockout-command-order.manifest.yaml --mode schema --quiet"
         ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:a2c617bd4d9e2a09060d5a20e4036afcdd5292053e572e031e279d70945d55d2",
+      "prior_test_hashes": {
+        "tests/core/test_focused_knockout_despite_sibling_unproven_lifecycles.py": "sha256-pyast:v2:8c5da449abb79098fc9dc7a91552cd13a24a806bb3c5065d844c5402095443f1",
+        "tests/core/test_knockout_trusts_grouped_command_order.py": "sha256-pyast:v2:afbdcfcddef8d9cff308bef7f9c5401587e87bcef5f8452971c6b1500ead9073"
+      },
+      "revised_at": "2026-08-21T00:32:10.162036+00:00",
+      "reason": "accept tiny grouped-command dependency fixture",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
       }
     }
   ],

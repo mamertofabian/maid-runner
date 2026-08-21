@@ -13,6 +13,8 @@ from maid_runner.core.types import TestStream
 
 
 def _write_source(root: Path) -> str:
+    # Batch behavior uses injected command execution and needs no packages.
+    (root / ".venv").mkdir()
     (root / "src").mkdir(parents=True, exist_ok=True)
     source = (
         "def alpha() -> str:\n"

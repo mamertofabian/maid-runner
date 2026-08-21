@@ -5,12 +5,12 @@
     "tests/core/test_chain_merge.py": "sha256-pyast:v2:4ecfb16d489d06abe016fdfc2dde560afd99c855cd68b9a1ce8a4dab9ef03587",
     "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:641178a55898e0e20dd432a33b21ab5f6c2eb410b3842773d50c398bbdf62e05",
     "tests/cli/test_chain_merge_equivalence_command.py": "sha256-pyast:v2:f451681605abd2b20138ccf6c1e12999f6f53c0ff720f268035548a49fdebc2e",
-    "tests/cli/test_chain_merge_formatter_contract.py": "sha256-pyast:v2:ff0851868649e8586974bcb09cfeb33c1921383552a1e1c549c24f7d32936fa4",
+    "tests/cli/test_chain_merge_formatter_contract.py": "sha256-pyast:v2:7d51f506c4b61eb93e7f63bb65dd4f63251593d798a82dfac268a3fece482704",
     "tests/core/test_chain_merge_non_knockout_detection.py": "sha256-pyast:v2:449dba59a7e89fc94bc8cb6ee074a8ee12b8331604ac8b6eb81e6f8615ff38db",
     "tests/core/test_chain_merge_deep_detection_roundtrip.py": "sha256-pyast:v2:178a53e1c066e639aa1d56f562a5d202c50eafbac95e600203624bd320109c22"
   },
   "created_at": "2026-08-19T14:25:44.380880+00:00",
-  "revision": 3,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:3272c2008f7735e68fd8159de2c069ac391ed0065038ba0ed16fd2ce8c5f2502",
@@ -53,6 +53,50 @@
           "tests/core/test_chain_merge_non_knockout_detection.py:test_equivalence_does_not_require_detection_source_without_eligible_artifacts:kind=test_function",
           "tests/core/test_chain_merge_non_knockout_detection.py:test_equivalence_does_not_require_detection_source_without_eligible_artifacts:returns=None"
         ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b04d47a4e3f49e8af744c19bdca9009b7dad2a4fcf1ebc55633e31bd604ca448",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge.py": "sha256-pyast:v2:4ecfb16d489d06abe016fdfc2dde560afd99c855cd68b9a1ce8a4dab9ef03587",
+        "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:641178a55898e0e20dd432a33b21ab5f6c2eb410b3842773d50c398bbdf62e05",
+        "tests/cli/test_chain_merge_equivalence_command.py": "sha256-pyast:v2:f451681605abd2b20138ccf6c1e12999f6f53c0ff720f268035548a49fdebc2e",
+        "tests/cli/test_chain_merge_formatter_contract.py": "sha256-pyast:v2:ff0851868649e8586974bcb09cfeb33c1921383552a1e1c549c24f7d32936fa4",
+        "tests/core/test_chain_merge_non_knockout_detection.py": "sha256-pyast:v2:449dba59a7e89fc94bc8cb6ee074a8ee12b8331604ac8b6eb81e6f8615ff38db",
+        "tests/core/test_chain_merge_deep_detection_roundtrip.py": "sha256-pyast:v2:178a53e1c066e639aa1d56f562a5d202c50eafbac95e600203624bd320109c22"
+      },
+      "revised_at": "2026-08-21T04:20:42.872102+00:00",
+      "reason": "scope formatter contract validation to its merged manifest chain",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b04d47a4e3f49e8af744c19bdca9009b7dad2a4fcf1ebc55633e31bd604ca448",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge.py": "sha256-pyast:v2:4ecfb16d489d06abe016fdfc2dde560afd99c855cd68b9a1ce8a4dab9ef03587",
+        "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:641178a55898e0e20dd432a33b21ab5f6c2eb410b3842773d50c398bbdf62e05",
+        "tests/cli/test_chain_merge_equivalence_command.py": "sha256-pyast:v2:f451681605abd2b20138ccf6c1e12999f6f53c0ff720f268035548a49fdebc2e",
+        "tests/cli/test_chain_merge_formatter_contract.py": "sha256-pyast:v2:7d51f506c4b61eb93e7f63bb65dd4f63251593d798a82dfac268a3fece482704",
+        "tests/core/test_chain_merge_non_knockout_detection.py": "sha256-pyast:v2:449dba59a7e89fc94bc8cb6ee074a8ee12b8331604ac8b6eb81e6f8615ff38db",
+        "tests/core/test_chain_merge_deep_detection_roundtrip.py": "sha256-pyast:v2:178a53e1c066e639aa1d56f562a5d202c50eafbac95e600203624bd320109c22"
+      },
+      "revised_at": "2026-08-21T04:24:34.716669+00:00",
+      "reason": "align formatter validation comment with direct engine call",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
         "artifacts_removed": [],
         "files_added": [],
         "files_removed": [],

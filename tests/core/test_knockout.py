@@ -554,6 +554,8 @@ def _write_project(
     artifacts: list[dict],
     manifest_file_path: str = "src/target.py",
 ) -> Path:
+    # Core mutation behavior uses fake command execution and needs no packages.
+    (root / ".venv").mkdir()
     src_dir = root / "src"
     tests_dir = root / "tests"
     manifests_dir = root / "manifests"
@@ -577,6 +579,7 @@ def test_target():
 
 
 def _write_two_file_project(root: Path) -> Path:
+    (root / ".venv").mkdir()
     src_dir = root / "src"
     tests_dir = root / "tests"
     manifests_dir = root / "manifests"

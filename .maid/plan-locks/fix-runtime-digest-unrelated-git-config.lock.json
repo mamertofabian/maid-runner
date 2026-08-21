@@ -5,10 +5,10 @@
     "tests/cli/test_verify_git_ignored_runtime_content.py": "sha256-pyast:v2:6c8010c82d16a0cc28a3df7cbb119d19b5b6bd02cd6140d1d6aee88a124731cd",
     "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:0bfcbeae6328eb1bda7ba15e14e5961d06a0be5e328c153788852292842c8a4a",
     "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3",
-    "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7"
+    "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:e90baae652d05e55fb5caba7f5f6f733b3161bdd7d8ad44bba8a0728afcbe332"
   },
   "created_at": "2026-08-19T08:16:06.401558+00:00",
-  "revision": 4,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:54a4581448d017e967b9f7be8b21c1d89d9f14ddc1701d68bba0d3fa5c11b5aa",
@@ -64,6 +64,26 @@
       },
       "revised_at": "2026-08-19T23:14:09.824020+00:00",
       "reason": "Accept approved shared-test environment-forwarding repair.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8d0aec66494acbca22580a7c4b53ae76a76c72a00e637303339096111232129b",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_git_ignored_runtime_content.py": "sha256-pyast:v2:6c8010c82d16a0cc28a3df7cbb119d19b5b6bd02cd6140d1d6aee88a124731cd",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:0bfcbeae6328eb1bda7ba15e14e5961d06a0be5e328c153788852292842c8a4a",
+        "tests/cli/test_artifact_coverage_evidence_cache.py": "sha256-pyast:v2:72a79e016b163edbea0e4d208d8a9e13ded2b816745fe5bf451073edc9a219d3",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:b427e084c209d20acd6e172f9f905d146036e369a5a053608d2783f031b608d7"
+      },
+      "revised_at": "2026-08-20T16:13:33.136304+00:00",
+      "reason": "accept performance-preserving test optimization",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

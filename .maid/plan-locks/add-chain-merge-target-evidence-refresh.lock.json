@@ -4,12 +4,12 @@
   "test_hashes": {
     "tests/core/test_chain_merge_deep_detection_roundtrip.py": "sha256-pyast:v2:178a53e1c066e639aa1d56f562a5d202c50eafbac95e600203624bd320109c22",
     "tests/cli/test_chain_merge_equivalence_command.py": "sha256-pyast:v2:f451681605abd2b20138ccf6c1e12999f6f53c0ff720f268035548a49fdebc2e",
-    "tests/cli/test_chain_merge_refresh_evidence_command.py": "sha256-pyast:v2:cca5ba5ee1501f4b54595ba97f2e9f328503f90698dda1113f95458590dc6971",
+    "tests/cli/test_chain_merge_refresh_evidence_command.py": "sha256-pyast:v2:4ff01d72e11bd524048c97e68501c59d1b56dde8950b7e2c9c825d3f417dcd92",
     "tests/core/test_chain_merge_evidence.py": "sha256-pyast:v2:cc1a86d9af1b8f5cea8ba7f0d97cdbbc5de230b1c764996395b855d5a338431e",
     "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:641178a55898e0e20dd432a33b21ab5f6c2eb410b3842773d50c398bbdf62e05"
   },
   "created_at": "2026-08-19T15:15:51.858164+00:00",
-  "revision": 8,
+  "revision": 11,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:0cf9f6988ddb08df6fd98e53f3c84a9b73dd1c0724612b1927b6a6c075428ca1",
@@ -167,6 +167,69 @@
       },
       "revised_at": "2026-08-19T19:57:59.914374+00:00",
       "reason": "Accept approved additive pytest-timing cache controls in the shared chain-refresh test file",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:a492ba87c671fd04fe476ebe873916d7d26083c4d4d73a553b112737ba08fd27",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_deep_detection_roundtrip.py": "sha256-pyast:v2:178a53e1c066e639aa1d56f562a5d202c50eafbac95e600203624bd320109c22",
+        "tests/cli/test_chain_merge_equivalence_command.py": "sha256-pyast:v2:f451681605abd2b20138ccf6c1e12999f6f53c0ff720f268035548a49fdebc2e",
+        "tests/cli/test_chain_merge_refresh_evidence_command.py": "sha256-pyast:v2:cca5ba5ee1501f4b54595ba97f2e9f328503f90698dda1113f95458590dc6971",
+        "tests/core/test_chain_merge_evidence.py": "sha256-pyast:v2:cc1a86d9af1b8f5cea8ba7f0d97cdbbc5de230b1c764996395b855d5a338431e",
+        "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:641178a55898e0e20dd432a33b21ab5f6c2eb410b3842773d50c398bbdf62e05"
+      },
+      "revised_at": "2026-08-20T16:13:35.441387+00:00",
+      "reason": "accept performance-preserving test optimization",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:a492ba87c671fd04fe476ebe873916d7d26083c4d4d73a553b112737ba08fd27",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_deep_detection_roundtrip.py": "sha256-pyast:v2:178a53e1c066e639aa1d56f562a5d202c50eafbac95e600203624bd320109c22",
+        "tests/cli/test_chain_merge_equivalence_command.py": "sha256-pyast:v2:f451681605abd2b20138ccf6c1e12999f6f53c0ff720f268035548a49fdebc2e",
+        "tests/cli/test_chain_merge_refresh_evidence_command.py": "sha256-pyast:v2:9ca1896a8c143f90109ba0f2675eb3ed37925558b902a7a84060a8802c64cbf5",
+        "tests/core/test_chain_merge_evidence.py": "sha256-pyast:v2:cc1a86d9af1b8f5cea8ba7f0d97cdbbc5de230b1c764996395b855d5a338431e",
+        "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:641178a55898e0e20dd432a33b21ab5f6c2eb410b3842773d50c398bbdf62e05"
+      },
+      "revised_at": "2026-08-21T04:58:34.479521+00:00",
+      "reason": "avoid inherited chain-refresh dependencies and redundant policy integrations",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:a492ba87c671fd04fe476ebe873916d7d26083c4d4d73a553b112737ba08fd27",
+      "prior_test_hashes": {
+        "tests/core/test_chain_merge_deep_detection_roundtrip.py": "sha256-pyast:v2:178a53e1c066e639aa1d56f562a5d202c50eafbac95e600203624bd320109c22",
+        "tests/cli/test_chain_merge_equivalence_command.py": "sha256-pyast:v2:f451681605abd2b20138ccf6c1e12999f6f53c0ff720f268035548a49fdebc2e",
+        "tests/cli/test_chain_merge_refresh_evidence_command.py": "sha256-pyast:v2:f5811fbfeea10c90eea76007c804517e1e84627379f75ef856ddefb3ece5bd33",
+        "tests/core/test_chain_merge_evidence.py": "sha256-pyast:v2:cc1a86d9af1b8f5cea8ba7f0d97cdbbc5de230b1c764996395b855d5a338431e",
+        "tests/core/test_chain_merge_equivalence.py": "sha256-pyast:v2:641178a55898e0e20dd432a33b21ab5f6c2eb410b3842773d50c398bbdf62e05"
+      },
+      "revised_at": "2026-08-21T05:03:15.841981+00:00",
+      "reason": "restore contracted chain-refresh path scenarios",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

@@ -5,13 +5,22 @@ from __future__ import annotations
 from pathlib import Path
 from textwrap import dedent, indent
 
+from maid_runner.core._runtime_command_executor import (
+    RuntimeCommandRecord,
+    RuntimeFileExecution,
+)
 from maid_runner.core.artifact_coverage import (
     evaluate_artifact_coverage_from_evidence,
     run_artifact_coverage,
     run_artifact_coverage_batch,
 )
 from maid_runner.core.manifest import load_manifest
-from maid_runner.core.runtime_evidence import collect_runtime_evidence
+from maid_runner.core.runtime_evidence import (
+    collect_runtime_evidence,
+    RuntimeContextEvidence,
+    RuntimeEvidenceCompleteness,
+    RuntimeGroupEvidence,
+)
 
 
 def test_abstract_protocol_contracts_are_not_runtime_coverage_targets(
@@ -60,7 +69,11 @@ def test_abstract_protocol_contracts_are_not_runtime_coverage_targets(
         """,
     )
 
-    reports = _coverage_reports(manifest, tmp_path)
+    reports = _coverage_reports(
+        manifest,
+        tmp_path,
+        executed_qualnames=("ConcreteReader", "ConcreteReader.read"),
+    )
 
     assert all(report.success for report in reports)
     for report in reports:
@@ -484,14 +497,110 @@ def test_direct_abc_attribute_mutation_does_not_bypass_runtime_coverage(
         ]
 
 
-def _coverage_reports(manifest, root: Path):
-    exact = run_artifact_coverage(manifest, root)
-    batch = run_artifact_coverage_batch((manifest,), root, jobs=1)[manifest.source_path]
-    evidence = collect_runtime_evidence((manifest,), root, pytest_workers=1).evidence
+def _coverage_reports(
+    manifest,
+    root: Path,
+    *,
+    executed_qualnames: tuple[str, ...] = (),
+):
+    executor = _FakeRuntimeCommandExecutor(
+        root,
+        executed_qualnames=executed_qualnames,
+    )
+    exact = run_artifact_coverage(manifest, root, executor=executor)
+    batch = run_artifact_coverage_batch((manifest,), root, executor=executor, jobs=1)[
+        manifest.source_path
+    ]
+    evidence = collect_runtime_evidence(
+        (manifest,),
+        root,
+        executor=executor,
+        pytest_workers=1,
+    ).evidence
     derived = evaluate_artifact_coverage_from_evidence(
         (manifest,), root, evidence, evidence_mode="derived"
     ).reports[manifest.source_path]
     return exact, batch, derived
+
+
+class _FakeRuntimeCommandExecutor:
+    def __init__(
+        self,
+        root: Path,
+        *,
+        executed_qualnames: tuple[str, ...],
+    ) -> None:
+        self._root = root
+        self._executed_qualnames = frozenset(executed_qualnames)
+
+    def execute(
+        self,
+        command: tuple[str, ...],
+        target_files: set[str],
+        project_root: Path,
+        timeout_seconds: float,
+        **_kwargs,
+    ) -> RuntimeCommandRecord:
+        return self._record(command, target_files)
+
+    def execute_with_contexts(
+        self,
+        command: tuple[str, ...],
+        target_files: set[str],
+        project_root: Path,
+        timeout_seconds: float,
+        pytest_workers=None,
+        logical_selectors: tuple[str, ...] | None = None,
+    ) -> RuntimeGroupEvidence:
+        nodeid = "tests/test_contracts.py::test_contract"
+        context = RuntimeContextEvidence(
+            context_id=nodeid,
+            kind="node",
+            consuming_nodeids=(nodeid,),
+            execution_data=self._execution_data(target_files),
+        )
+        selectors = tuple(logical_selectors or ("tests/test_contracts.py",))
+        return RuntimeGroupEvidence(
+            command=command,
+            selected_nodeids=(nodeid,),
+            selector_nodeids={selector: (nodeid,) for selector in selectors},
+            contexts=(context,),
+            result=self._record(command, target_files),
+            worker_ids=(),
+            completeness=RuntimeEvidenceCompleteness(complete=True),
+        )
+
+    def _record(
+        self,
+        command: tuple[str, ...],
+        target_files: set[str],
+    ) -> RuntimeCommandRecord:
+        return RuntimeCommandRecord(
+            command=command,
+            returncode=0,
+            stdout="",
+            stderr="",
+            execution_data=self._execution_data(target_files),
+            report_errors=(),
+        )
+
+    def _execution_data(
+        self,
+        target_files: set[str],
+    ) -> dict[str, RuntimeFileExecution]:
+        contract_path = str((self._root / "contracts.py").resolve())
+        selected_files = target_files or {contract_path}
+        return {
+            path: RuntimeFileExecution(
+                executed_lines=frozenset(),
+                called_qualnames=(
+                    self._executed_qualnames
+                    if Path(path) == Path(contract_path)
+                    else frozenset()
+                ),
+            )
+            for path in selected_files
+        }
 
 
 def _write_project(

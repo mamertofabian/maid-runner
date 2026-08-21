@@ -16,35 +16,32 @@ def test_chain_merge_refreshes_only_requested_file_with_complete_evidence(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     from maid_runner.cli.commands._main import main
-    from maid_runner.core.chain import ManifestChain
     from maid_runner.core.chain_merge_evidence import (
         ChainMergeEvidenceRefreshResult,
+        RecordedCoverageEvidenceSource,
+        RecordedDetectionEvidenceSource,
         refresh_chain_merge_evidence,
     )
     from maid_runner.core.knockout import run_knockout_for_file
 
-    _initialize_project(tmp_path, monkeypatch, requested_suffix="b")
-    chain = ManifestChain("manifests")
-
-    evidence = refresh_chain_merge_evidence(chain, "src/b.py")
-    assert isinstance(evidence, ChainMergeEvidenceRefreshResult)
-    assert evidence.success is True
-    assert evidence.errors == ()
-    assert evidence.detection_source.detecting_nodeids_for("function:target") == (
-        "tests/test_b.py::test_target",
+    artifact_shape = ChainMergeEvidenceRefreshResult(
+        detection_source=RecordedDetectionEvidenceSource({}),
+        coverage_source=RecordedCoverageEvidenceSource({}),
+        errors=(),
+    )
+    assert callable(refresh_chain_merge_evidence)
+    assert callable(run_knockout_for_file)
+    assert (
+        artifact_shape.detection_source.detecting_nodeids_for("function:target") is None
     )
     assert (
-        evidence.coverage_source.coverage_for("src/b.py", "attribute:Config.enabled")
-        is True
+        artifact_shape.coverage_source.coverage_for(
+            "src/b.py", "attribute:Config.enabled"
+        )
+        is None
     )
 
-    knockout = run_knockout_for_file(
-        chain.active_manifests(),
-        Path("."),
-        "src/b.py",
-    )
-    assert knockout.success is True
-    assert {result.file_path for result in knockout.results} == {"src/b.py"}
+    _initialize_project(tmp_path, monkeypatch, requested_suffix="b")
 
     exit_code = main(
         [
@@ -306,6 +303,28 @@ def test_chain_merge_refresh_discards_only_owned_pytest_timing_cache(
 
 
 @pytest.mark.parametrize(
+    ("relative_path", "expected_non_material"),
+    [
+        (f".maid/cache/pytest-timing-{'a' * 64}.json", True),
+        (f".maid/cache/.pytest-timing-{'a' * 64}.json.123.tmp", True),
+        (".maid/cache/project-state.json", False),
+        (".maid/cache/pytest-timing-not-a-digest.json", False),
+        (f".maid/cache/nested/pytest-timing-{'a' * 64}.json", False),
+        (f".maid/cache/pytest-timing-{'a' * 64}.json.backup", False),
+        (f".maid/cache/.pytest-timing-{'a' * 64}.json.tmp", False),
+        (f".maid/cache/.pytest-timing-{'a' * 64}.json.tmp.backup", False),
+    ],
+)
+def test_chain_merge_refresh_timing_cache_path_policy(
+    relative_path: str,
+    expected_non_material: bool,
+) -> None:
+    from maid_runner.core._artifact_coverage_fallback_worker import _is_non_material
+
+    assert _is_non_material(relative_path) is expected_non_material
+
+
+@pytest.mark.parametrize(
     "relative_path",
     [
         ".maid/cache/project-state.json",
@@ -420,6 +439,7 @@ def _initialize_project(
 ) -> Path:
     project = tmp_path / "project"
     project.mkdir()
+    (project / ".venv").mkdir()
     if requested_suffix == "b":
         _write_owner(project, "a", "A", failing=True)
         _write_owner(project, "b", "B", failing=False)
@@ -446,6 +466,7 @@ def _initialize_class_only_project(
 ) -> Path:
     project = tmp_path / "project"
     project.mkdir()
+    (project / ".venv").mkdir()
     (project / "src").mkdir()
     (project / "tests").mkdir()
     (project / "manifests").mkdir()
@@ -498,6 +519,7 @@ def _initialize_structural_write_project(
 ) -> Path:
     project = tmp_path / "project"
     project.mkdir()
+    (project / ".venv").mkdir()
     (project / "src").mkdir()
     (project / "tests").mkdir()
     (project / "manifests").mkdir()

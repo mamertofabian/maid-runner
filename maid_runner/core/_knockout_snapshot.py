@@ -1067,6 +1067,44 @@ def _source_dependency_identity(sources: Mapping[str, Path]) -> dict[str, str]:
     return {name: _directory_stat_identity(path) for name, path in sources.items()}
 
 
+_CONTENT_DIGEST_CACHE: dict[tuple[int, int, int, int, int, int], bytes] = {}
+
+
+def _hardlink_content_digest(path: str, metadata: os.stat_result) -> bytes:
+    """Content digest for a hardlinked file, cached on tamper-evident identity.
+
+    On POSIX, hardlinks share an inode and a write through any link updates the
+    shared st_mtime_ns and st_ctime_ns. Userspace can forge mtime but not ctime,
+    so the stat tuple is a sound cache key there. On platforms where ctime is
+    creation time, keep the same identity by re-reading the file every time.
+    """
+    if os.name != "posix":
+        content = hashlib.sha256()
+        with open(path, "rb") as stream:
+            for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                content.update(chunk)
+        return content.digest()
+
+    key = (
+        metadata.st_dev,
+        metadata.st_ino,
+        metadata.st_size,
+        metadata.st_mtime_ns,
+        metadata.st_ctime_ns,
+        metadata.st_nlink,
+    )
+    cached = _CONTENT_DIGEST_CACHE.get(key)
+    if cached is not None:
+        return cached
+    content = hashlib.sha256()
+    with open(path, "rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            content.update(chunk)
+    computed = content.digest()
+    _CONTENT_DIGEST_CACHE[key] = computed
+    return computed
+
+
 def _directory_stat_identity(root: Path) -> str:
     digest = hashlib.sha256()
     root_text = os.fspath(root)
@@ -1075,20 +1113,19 @@ def _directory_stat_identity(root: Path) -> str:
         f".:{root_metadata.st_mode}:{root_metadata.st_size}:"
         f"{root_metadata.st_mtime_ns}:{root_metadata.st_ctime_ns}\0".encode()
     )
+    root_prefix = root_text.rstrip(os.sep) + os.sep
     for directory, directory_names, file_names in os.walk(root_text, followlinks=False):
         for name in sorted((*directory_names, *file_names)):
             path = os.path.join(directory, name)
             metadata = os.lstat(path)
-            relative = os.path.relpath(path, root_text).replace(os.sep, "/")
+            relative = path[len(root_prefix) :].replace(os.sep, "/")
             digest.update(relative.encode())
             if stat.S_ISREG(metadata.st_mode) and metadata.st_nlink > 1:
                 digest.update(
                     f":{metadata.st_mode}:{metadata.st_size}:"
                     f"{metadata.st_mtime_ns}:{metadata.st_nlink}:content:".encode()
                 )
-                with open(path, "rb") as stream:
-                    for chunk in iter(lambda: stream.read(1024 * 1024), b""):
-                        digest.update(chunk)
+                digest.update(_hardlink_content_digest(path, metadata))
             else:
                 digest.update(
                     f":{metadata.st_mode}:{metadata.st_size}:"

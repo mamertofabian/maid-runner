@@ -2,12 +2,12 @@
   "manifest_path": "manifests/fix-artifact-coverage-resolver-permit-starvation.manifest.yaml",
   "manifest_hash": "sha256-contract:dd8f4d59635ceeed50d8c16af7ffa96d9c9a68fe5c60d8374e2e9bb50839b655",
   "test_hashes": {
-    "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:94227dba7ee9ad6772a5f18dfec913d3d4d858368923f8f81f44a1bfa4e98a08",
+    "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:40f99a34e79d499dee67eb9108201d27110268cdf53a70d45a5827123390ef99",
     "tests/core/test_ts_compiler_resolver_session.py": "sha256-pyast:v2:65c05be74689dab96f94f7f3e65c4b77e09c5d0f22844b7d7a46248a6510af85",
     "tests/core/test_artifact_coverage_resolver_permits.py": "sha256-pyast:v2:161b34f922883e437a9fc8edab824565accba15205b85c37725a6cd1ee9a4d31"
   },
   "created_at": "2026-08-14T06:52:23.479487+00:00",
-  "revision": 3,
+  "revision": 6,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:549ade75028be574cb39c72579e8d39bd170a814d926cd837d37433b53674057",
@@ -37,6 +37,63 @@
       },
       "revised_at": "2026-08-14T07:00:04.364564+00:00",
       "reason": "Apply Black formatting to the locked behavioral regression without changing its scenario or assertions",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:dd8f4d59635ceeed50d8c16af7ffa96d9c9a68fe5c60d8374e2e9bb50839b655",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:94227dba7ee9ad6772a5f18dfec913d3d4d858368923f8f81f44a1bfa4e98a08",
+        "tests/core/test_ts_compiler_resolver_session.py": "sha256-pyast:v2:65c05be74689dab96f94f7f3e65c4b77e09c5d0f22844b7d7a46248a6510af85",
+        "tests/core/test_artifact_coverage_resolver_permits.py": "sha256-pyast:v2:161b34f922883e437a9fc8edab824565accba15205b85c37725a6cd1ee9a4d31"
+      },
+      "revised_at": "2026-08-20T16:13:34.198739+00:00",
+      "reason": "accept performance-preserving test optimization",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:dd8f4d59635ceeed50d8c16af7ffa96d9c9a68fe5c60d8374e2e9bb50839b655",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:67e366986fc0b7a69be0ebdfe6bbac4dd288ba7d54575bb6ea82bf9943682562",
+        "tests/core/test_ts_compiler_resolver_session.py": "sha256-pyast:v2:65c05be74689dab96f94f7f3e65c4b77e09c5d0f22844b7d7a46248a6510af85",
+        "tests/core/test_artifact_coverage_resolver_permits.py": "sha256-pyast:v2:161b34f922883e437a9fc8edab824565accba15205b85c37725a6cd1ee9a4d31"
+      },
+      "revised_at": "2026-08-21T05:21:39.939040+00:00",
+      "reason": "accept approved shared-test optimization",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:dd8f4d59635ceeed50d8c16af7ffa96d9c9a68fe5c60d8374e2e9bb50839b655",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:9ad3e13b896ca49118dc4bb7d65e9366a91ba753fffeb5eaade3027cac8d1bef",
+        "tests/core/test_ts_compiler_resolver_session.py": "sha256-pyast:v2:65c05be74689dab96f94f7f3e65c4b77e09c5d0f22844b7d7a46248a6510af85",
+        "tests/core/test_artifact_coverage_resolver_permits.py": "sha256-pyast:v2:161b34f922883e437a9fc8edab824565accba15205b85c37725a6cd1ee9a4d31"
+      },
+      "revised_at": "2026-08-21T07:36:45.728499+00:00",
+      "reason": "replace hosted timing races with deterministic synchronization",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

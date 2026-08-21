@@ -5,10 +5,10 @@
     "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c6adf63404255225ba4db9f92341fffc0cf9b1c8f6ac9e2fbc6b9edc7c257114",
     "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
     "tests/core/test_artifact_coverage_reexports.py": "sha256-pyast:v2:8a89f93faece8abde68660380390ae6202e5f4e410d1fa1be02d47c3bf648d45",
-    "tests/core/test_artifact_coverage_abstract_contracts.py": "sha256-pyast:v2:fe774dba9089a3c45e121f58fc68811d9e59a34a62eac322de4f48a7853a555c"
+    "tests/core/test_artifact_coverage_abstract_contracts.py": "sha256-pyast:v2:57a2299e30453da7e0ccfd69f2cadd09867ee0f1e9eaac81e6136368499b691b"
   },
   "created_at": "2026-08-16T23:22:39.005338+00:00",
-  "revision": 5,
+  "revision": 6,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:50ccc9ff9dd082ffe5ba4956d1e8002d67c5d27305e3ce1a8cd06699d141674e",
@@ -110,6 +110,26 @@
           "tests/core/test_artifact_coverage_abstract_contracts.py:test_direct_abc_attribute_mutation_does_not_bypass_runtime_coverage:kind=test_function",
           "tests/core/test_artifact_coverage_abstract_contracts.py:test_direct_abc_attribute_mutation_does_not_bypass_runtime_coverage:returns=None"
         ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:0ff7a5dca8edc754a4b33115589fbfe129ff7bd4597b0f0c888cfb4eb7f57eb5",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c6adf63404255225ba4db9f92341fffc0cf9b1c8f6ac9e2fbc6b9edc7c257114",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_artifact_coverage_reexports.py": "sha256-pyast:v2:8a89f93faece8abde68660380390ae6202e5f4e410d1fa1be02d47c3bf648d45",
+        "tests/core/test_artifact_coverage_abstract_contracts.py": "sha256-pyast:v2:fe774dba9089a3c45e121f58fc68811d9e59a34a62eac322de4f48a7853a555c"
+      },
+      "revised_at": "2026-08-20T16:13:34.955640+00:00",
+      "reason": "accept performance-preserving test optimization",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
         "artifacts_removed": [],
         "files_added": [],
         "files_removed": [],

@@ -1080,6 +1080,52 @@ def test_environment_identity_stores_digests_without_raw_secret_values(
     assert identity.xdist_version is None or isinstance(identity.xdist_version, str)
 
 
+def test_resolved_version_probe_retries_failures_before_caching(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    from maid_runner.core import runtime_evidence
+
+    calls = []
+
+    def fake_run(*args, **kwargs):
+        calls.append((args, kwargs))
+        if len(calls) == 1:
+            return SimpleNamespace(returncode=1, stdout="")
+        return SimpleNamespace(
+            returncode=0,
+            stdout=json.dumps(
+                {
+                    "python": "python-ok",
+                    "pytest": "pytest-ok",
+                    "coverage": "coverage-ok",
+                    "xdist": None,
+                }
+            ),
+        )
+
+    runtime_evidence._RESOLVED_VERSION_CACHE.clear()
+    monkeypatch.setattr(runtime_evidence.subprocess, "run", fake_run)
+
+    first = runtime_evidence._probe_resolved_versions(
+        ("python", "-m", "pytest"),
+        tmp_path,
+    )
+    second = runtime_evidence._probe_resolved_versions(
+        ("python", "-m", "pytest"),
+        tmp_path,
+    )
+    third = runtime_evidence._probe_resolved_versions(
+        ("python", "-m", "pytest"),
+        tmp_path,
+    )
+
+    assert first["python"] == "unavailable"
+    assert second["python"] == "python-ok"
+    assert third["python"] == "python-ok"
+    assert len(calls) == 2
+
+
 def test_runtime_collection_result_matches_ordinary_group_result(tmp_path):
     from maid_runner.core._runtime_command_executor import (
         RuntimeCommandExecutor,
