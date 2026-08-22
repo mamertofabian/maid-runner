@@ -1,0 +1,253 @@
+{
+  "manifest_path": "manifests/fix-publish-matrix-diagnostics.manifest.yaml",
+  "manifest_hash": "sha256-contract:751efa8263d121d8afb5aba9600b214eecc49277f410b20d7e23f4ba163db921",
+  "test_hashes": {
+    "tests/ci/test_publish_workflow.py": "sha256-pyast:v2:e72eaa4c090180769681e1b187c59da8cc18cc713d25790e56b92f4e85f69324",
+    "tests/cli/test_failed_test_output_json.py": "sha256-pyast:v2:3a4d9cc67d4144bb479b361c5b082d12dd90f869ac3243f2a1f2c101732f9578",
+    "tests/cli/test_format.py": "sha256-pyast:v2:b3354c98ff05641cd214041fc6bc71a7ab87e9454134445747d275e0e2f0177b"
+  },
+  "created_at": "2026-08-21T22:56:33.741370+00:00",
+  "revision": 6,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:3cdd8323c9aac76638db82ce91c461431ea5ba9f7430c4cf0ef85c20565fc45f",
+      "prior_test_hashes": {
+        "tests/ci/test_publish_workflow.py": "sha256-pyast:v2:a54a8ad7fccb8de35a4ee9b06b3ea7b3efca7fbfe1e4874768b401b302dd65c2",
+        "tests/cli/test_failed_test_output_json.py": "sha256-pyast:v2:68895bff2745acc5e69f5b503330c79a107b276c156e94211840b7e09e419e31",
+        "tests/cli/test_format.py": "sha256-pyast:v2:b3354c98ff05641cd214041fc6bc71a7ab87e9454134445747d275e0e2f0177b"
+      },
+      "revised_at": "2026-08-21T22:56:34.024739+00:00",
+      "reason": "Capture the implementation-first red phase requested for release diagnostics",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:3cdd8323c9aac76638db82ce91c461431ea5ba9f7430c4cf0ef85c20565fc45f",
+      "prior_test_hashes": {
+        "tests/ci/test_publish_workflow.py": "sha256-pyast:v2:a54a8ad7fccb8de35a4ee9b06b3ea7b3efca7fbfe1e4874768b401b302dd65c2",
+        "tests/cli/test_failed_test_output_json.py": "sha256-pyast:v2:68895bff2745acc5e69f5b503330c79a107b276c156e94211840b7e09e419e31",
+        "tests/cli/test_format.py": "sha256-pyast:v2:b3354c98ff05641cd214041fc6bc71a7ab87e9454134445747d275e0e2f0177b"
+      },
+      "revised_at": "2026-08-21T22:56:47.500692+00:00",
+      "reason": "Normalize the manifest creation timestamp",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:04a36e12658e3e001bb6429483a465ebf22085774006281211ce25cd25dc6c9a",
+      "prior_test_hashes": {
+        "tests/ci/test_publish_workflow.py": "sha256-pyast:v2:a54a8ad7fccb8de35a4ee9b06b3ea7b3efca7fbfe1e4874768b401b302dd65c2",
+        "tests/cli/test_failed_test_output_json.py": "sha256-pyast:v2:68895bff2745acc5e69f5b503330c79a107b276c156e94211840b7e09e419e31",
+        "tests/cli/test_format.py": "sha256-pyast:v2:b3354c98ff05641cd214041fc6bc71a7ab87e9454134445747d275e0e2f0177b"
+      },
+      "revised_at": "2026-08-21T22:57:14.964882+00:00",
+      "reason": "Strengthen behavioral coverage to distinguish failed stdout from stderr",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:04a36e12658e3e001bb6429483a465ebf22085774006281211ce25cd25dc6c9a",
+      "prior_test_hashes": {
+        "tests/ci/test_publish_workflow.py": "sha256-pyast:v2:a54a8ad7fccb8de35a4ee9b06b3ea7b3efca7fbfe1e4874768b401b302dd65c2",
+        "tests/cli/test_failed_test_output_json.py": "sha256-pyast:v2:3a4d9cc67d4144bb479b361c5b082d12dd90f869ac3243f2a1f2c101732f9578",
+        "tests/cli/test_format.py": "sha256-pyast:v2:b3354c98ff05641cd214041fc6bc71a7ab87e9454134445747d275e0e2f0177b"
+      },
+      "revised_at": "2026-08-21T23:00:49.880100+00:00",
+      "reason": "Bind uv to the setup-python interpreter executable",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:751efa8263d121d8afb5aba9600b214eecc49277f410b20d7e23f4ba163db921",
+      "prior_test_hashes": {
+        "tests/ci/test_publish_workflow.py": "sha256-pyast:v2:e72eaa4c090180769681e1b187c59da8cc18cc713d25790e56b92f4e85f69324",
+        "tests/cli/test_failed_test_output_json.py": "sha256-pyast:v2:3a4d9cc67d4144bb479b361c5b082d12dd90f869ac3243f2a1f2c101732f9578",
+        "tests/cli/test_format.py": "sha256-pyast:v2:b3354c98ff05641cd214041fc6bc71a7ab87e9454134445747d275e0e2f0177b"
+      },
+      "revised_at": "2026-08-21T23:02:27.404193+00:00",
+      "reason": "Capture validated implementation and independent review outcome",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-21T22:56:34.392433+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/ci/test_publish_workflow.py tests/cli/test_failed_test_output_json.py tests/cli/test_format.py",
+        "exit_code": 1,
+        "output_tail": "    \n        rendered = format_test_result(results)\n    \n        assert marker in rendered\n        assert stdout_prefix not in rendered\n>       assert stderr_prefix not in rendered\nE       AssertionError: assert 'stderr-pref...be-truncated' not in 'Test Result...t_success.py'\nE         \nE         'stderr-prefix-should-be-truncated' is contained here:\nE           it 1)\nE               stderr-prefix-should-be-truncated\nE               yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy...\nE         \nE         ...Full output truncated (2 lines hidden), use '-vv' to show\n\ntests/cli/test_failed_test_output_json.py:124: AssertionError\n=========================== short test summary info ============================\nFAILED tests/ci/test_publish_workflow.py::test_publish_workflow_exercises_release_branches_with_matrix_python\nFAILED tests/cli/test_failed_test_output_json.py::test_failed_text_result_includes_only_bounded_output_tails\n2 failed, 52 passed in 0.18s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      ".github/workflows/publish.yml:attribute:github_actions._publish_release_branch_python_diagnostics",
+      ".github/workflows/publish.yml:attribute:github_actions._publish_release_branch_python_diagnostics:kind=attribute",
+      ".github/workflows/publish.yml:attribute:github_actions._publish_release_branch_python_diagnostics:of=github_actions",
+      ".github/workflows/publish.yml:attribute:github_actions._publish_release_branch_python_diagnostics:type=workflow command wiring",
+      "maid_runner/cli/commands/_format.py:function:_append_test_command_output",
+      "maid_runner/cli/commands/_format.py:function:_append_test_command_output:arg=lines:type=list[str]:default=None",
+      "maid_runner/cli/commands/_format.py:function:_append_test_command_output:arg=result:type=TestRunResult:default=None",
+      "maid_runner/cli/commands/_format.py:function:_append_test_command_output:arg=verbose:type=bool:default=None",
+      "maid_runner/cli/commands/_format.py:function:_append_test_command_output:kind=function",
+      "maid_runner/cli/commands/_format.py:function:_append_test_command_output:returns=None",
+      "tests/ci/test_publish_workflow.py:function:_workflow_triggers",
+      "tests/ci/test_publish_workflow.py:function:_workflow_triggers:arg=workflow_path:type=Path:default=None",
+      "tests/ci/test_publish_workflow.py:function:_workflow_triggers:kind=function",
+      "tests/ci/test_publish_workflow.py:function:_workflow_triggers:returns=dict[str, object]",
+      "tests/ci/test_publish_workflow.py:test_publish_workflow_exercises_release_branches_with_matrix_python",
+      "tests/ci/test_publish_workflow.py:test_publish_workflow_exercises_release_branches_with_matrix_python:kind=test_function",
+      "tests/ci/test_publish_workflow.py:test_publish_workflow_exercises_release_branches_with_matrix_python:returns=None",
+      "tests/cli/test_failed_test_output_json.py:test_failed_text_result_includes_only_bounded_output_tails",
+      "tests/cli/test_failed_test_output_json.py:test_failed_text_result_includes_only_bounded_output_tails:kind=test_function",
+      "tests/cli/test_failed_test_output_json.py:test_failed_text_result_includes_only_bounded_output_tails:returns=None"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        ".github/workflows/publish.yml",
+        "maid_runner/cli/commands/_format.py",
+        "tests/ci/test_publish_workflow.py",
+        "tests/cli/test_failed_test_output_json.py"
+      ],
+      "read": [
+        ".github/workflows/maid-test.yml",
+        ".python-version",
+        "manifests/fix-publish-python-311-maid-tests.manifest.yaml",
+        "manifests/include-failed-test-output-tails.manifest.yaml"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": ".github/workflows/publish.yml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_publish_release_branch_python_diagnostics",
+              "description": "Release branch pushes run the non-fail-fast Python matrix and uv sync uses the setup-python interpreter executable selected for each lane.",
+              "of": "github_actions",
+              "type": "workflow command wiring"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/_format.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "_append_test_command_output",
+              "description": "Appends full verbose output or bounded failure-only stdout and stderr tails to normal MAID test output.",
+              "args": [
+                {
+                  "name": "lines",
+                  "type": "list[str]"
+                },
+                {
+                  "name": "result",
+                  "type": "TestRunResult"
+                },
+                {
+                  "name": "verbose",
+                  "type": "bool"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/ci/test_publish_workflow.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "_workflow_triggers",
+              "description": "Reads GitHub workflow triggers across PyYAML on-key parsing behavior.",
+              "args": [
+                {
+                  "name": "workflow_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "dict[str, object]"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_publish_workflow_exercises_release_branches_with_matrix_python",
+              "description": "Release branch pushes retain every matrix lane, disable fail-fast, and sync with the selected setup-python interpreter.",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_failed_test_output_json.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_failed_text_result_includes_only_bounded_output_tails",
+              "description": "Normal text output exposes bounded failed stdout and stderr tails while successful output remains private.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        ".python-version",
+        ".github/workflows/maid-test.yml",
+        "manifests/fix-publish-python-311-maid-tests.manifest.yaml",
+        "manifests/include-failed-test-output-tails.manifest.yaml"
+      ]
+    },
+    "test_files": [
+      "tests/ci/test_publish_workflow.py",
+      "tests/cli/test_failed_test_output_json.py",
+      "tests/cli/test_format.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/ci/test_publish_workflow.py tests/cli/test_failed_test_output_json.py tests/cli/test_format.py"
+    ]
+  }
+}

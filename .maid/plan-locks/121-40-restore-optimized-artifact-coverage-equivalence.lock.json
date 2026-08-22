@@ -5,11 +5,11 @@
     "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:40d689b52b549e7b852da3dec2b2316bc87e7f4a38badb90ac173fb31ad68ccb",
     "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:8da6d872f0b7139de99a33b66621e4fd2229982b643bb199e7fe3d7eb1727485",
     "tests/core/test_optimized_artifact_coverage_equivalence.py": "sha256-pyast:v2:83a8f8429261570ea4738794f6baaf9f738384b4f22873938355f7ad08e57f34",
-    "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c6adf63404255225ba4db9f92341fffc0cf9b1c8f6ac9e2fbc6b9edc7c257114",
+    "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c34dfe965fa753658878c05966d0283f4abc97820a972e531ddc6fe2e1cf66de",
     "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:0bfcbeae6328eb1bda7ba15e14e5961d06a0be5e328c153788852292842c8a4a"
   },
   "created_at": "2026-08-13T12:33:06.850068+00:00",
-  "revision": 7,
+  "revision": 9,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:7f2157eaca6879b74a9be23c4259d6e546865627c6f96d9b27afecc85804f4bc",
@@ -147,6 +147,48 @@
       },
       "revised_at": "2026-08-19T23:14:08.847406+00:00",
       "reason": "Accept approved shared-test environment-forwarding repair.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:995f822747306490c62558ec11ed01a9311bfcdf5dbda4c0b8b895c2a8c15cf7",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:40d689b52b549e7b852da3dec2b2316bc87e7f4a38badb90ac173fb31ad68ccb",
+        "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:8da6d872f0b7139de99a33b66621e4fd2229982b643bb199e7fe3d7eb1727485",
+        "tests/core/test_optimized_artifact_coverage_equivalence.py": "sha256-pyast:v2:83a8f8429261570ea4738794f6baaf9f738384b4f22873938355f7ad08e57f34",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c6adf63404255225ba4db9f92341fffc0cf9b1c8f6ac9e2fbc6b9edc7c257114",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:0bfcbeae6328eb1bda7ba15e14e5961d06a0be5e328c153788852292842c8a4a"
+      },
+      "revised_at": "2026-08-21T23:25:11.829055+00:00",
+      "reason": "Accept deterministic timeout-adapter test replacing hosted wall-clock race",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:995f822747306490c62558ec11ed01a9311bfcdf5dbda4c0b8b895c2a8c15cf7",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:40d689b52b549e7b852da3dec2b2316bc87e7f4a38badb90ac173fb31ad68ccb",
+        "tests/core/test_artifact_coverage_failure_determinism.py": "sha256-pyast:v2:8da6d872f0b7139de99a33b66621e4fd2229982b643bb199e7fe3d7eb1727485",
+        "tests/core/test_optimized_artifact_coverage_equivalence.py": "sha256-pyast:v2:83a8f8429261570ea4738794f6baaf9f738384b4f22873938355f7ad08e57f34",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:f9319e5169e39960cfb1459a2186e6a8be77ee610914431d8c5bfb6dae3019c6",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:0bfcbeae6328eb1bda7ba15e14e5961d06a0be5e328c153788852292842c8a4a"
+      },
+      "revised_at": "2026-08-21T23:28:27.090310+00:00",
+      "reason": "Accept exact timeout-code assertion from implementation review",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

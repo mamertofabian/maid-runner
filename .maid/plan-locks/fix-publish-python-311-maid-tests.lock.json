@@ -2,10 +2,10 @@
   "manifest_path": "manifests/fix-publish-python-311-maid-tests.manifest.yaml",
   "manifest_hash": "sha256-contract:b04509f8eb4c067528852fcd90fc0d55ffea0bf2c8477d213c610313029dc43a",
   "test_hashes": {
-    "tests/ci/test_publish_workflow.py": "sha256-pyast:v2:afc1dc683708ea6d511cf660a618cacd95ace5f5bcfb648316bce64b347286f6"
+    "tests/ci/test_publish_workflow.py": "sha256-pyast:v2:e72eaa4c090180769681e1b187c59da8cc18cc713d25790e56b92f4e85f69324"
   },
   "created_at": "2026-08-21T09:07:08.906654+00:00",
-  "revision": 3,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:b6f6a6ec5e88bb492043b39c2e6b6c55bd955751843ab299e5eb397c282415bd",
@@ -67,6 +67,40 @@
         "validate_commands_removed": [
           "uv run python -m pytest -q tests/ci/test_publish_workflow.py tests/core/test_runtime_evidence.py"
         ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b04509f8eb4c067528852fcd90fc0d55ffea0bf2c8477d213c610313029dc43a",
+      "prior_test_hashes": {
+        "tests/ci/test_publish_workflow.py": "sha256-pyast:v2:afc1dc683708ea6d511cf660a618cacd95ace5f5bcfb648316bce64b347286f6"
+      },
+      "revised_at": "2026-08-21T22:59:06.783876+00:00",
+      "reason": "Accept the approved release-matrix regression test addition",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b04509f8eb4c067528852fcd90fc0d55ffea0bf2c8477d213c610313029dc43a",
+      "prior_test_hashes": {
+        "tests/ci/test_publish_workflow.py": "sha256-pyast:v2:a54a8ad7fccb8de35a4ee9b06b3ea7b3efca7fbfe1e4874768b401b302dd65c2"
+      },
+      "revised_at": "2026-08-21T23:00:58.641329+00:00",
+      "reason": "Accept the corrected publish interpreter regression assertion",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
       }
     }
   ],

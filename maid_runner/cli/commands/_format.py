@@ -10,10 +10,13 @@ from maid_runner.core.result import (
     BatchTestResult,
     BatchValidationResult,
     FileTrackingReport,
+    TestRunResult,
     ValidationResult,
     VerificationResult,
 )
 from maid_runner.coherence.result import CoherenceResult
+
+_FAILED_OUTPUT_TAIL_CHARS = 16_384
 
 if TYPE_CHECKING:
     from maid_runner.core.artifact_coverage import ArtifactCoverageReport
@@ -234,12 +237,7 @@ def format_test_result(
 
         for r in result.results:
             lines.append(_format_test_command_line(r))
-            if verbose and r.stdout:
-                for line in r.stdout.strip().splitlines():
-                    lines.append(f"    {line}")
-            if not r.success and r.stderr:
-                for line in r.stderr.strip().splitlines():
-                    lines.append(f"    {line}")
+            _append_test_command_output(lines, r, verbose=verbose)
 
         return "\n".join(lines)
 
@@ -265,12 +263,7 @@ def format_test_result(
     lines.append(f"  Failed: {acc_failed}")
     for r in acceptance:
         lines.append(_format_test_command_line(r))
-        if verbose and r.stdout:
-            for line in r.stdout.strip().splitlines():
-                lines.append(f"    {line}")
-        if not r.success and r.stderr:
-            for line in r.stderr.strip().splitlines():
-                lines.append(f"    {line}")
+        _append_test_command_output(lines, r, verbose=verbose)
 
     lines.append("")
 
@@ -281,14 +274,27 @@ def format_test_result(
     lines.append(f"  Failed: {imp_failed}")
     for r in implementation:
         lines.append(_format_test_command_line(r))
-        if verbose and r.stdout:
-            for line in r.stdout.strip().splitlines():
-                lines.append(f"    {line}")
-        if not r.success and r.stderr:
-            for line in r.stderr.strip().splitlines():
-                lines.append(f"    {line}")
+        _append_test_command_output(lines, r, verbose=verbose)
 
     return "\n".join(lines)
+
+
+def _append_test_command_output(
+    lines: list[str], result: TestRunResult, *, verbose: bool
+) -> None:
+    stdout = ""
+    stderr = ""
+    if verbose:
+        stdout = result.stdout
+        if not result.success:
+            stderr = result.stderr
+    elif not result.success:
+        stdout = result.stdout[-_FAILED_OUTPUT_TAIL_CHARS:]
+        stderr = result.stderr[-_FAILED_OUTPUT_TAIL_CHARS:]
+
+    for output in (stdout, stderr):
+        for line in output.strip().splitlines():
+            lines.append(f"    {line}")
 
 
 def format_verify_result(
@@ -961,12 +967,12 @@ def _test_result_to_dict(
                 "duration_ms": r.duration_ms,
                 "stream": r.stream.value,
                 **(
-                    {"stdout_tail": r.stdout[-16_384:]}
+                    {"stdout_tail": r.stdout[-_FAILED_OUTPUT_TAIL_CHARS:]}
                     if include_failure_output and not r.success and r.stdout
                     else {}
                 ),
                 **(
-                    {"stderr_tail": r.stderr[-16_384:]}
+                    {"stderr_tail": r.stderr[-_FAILED_OUTPUT_TAIL_CHARS:]}
                     if include_failure_output and not r.success and r.stderr
                     else {}
                 ),

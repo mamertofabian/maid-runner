@@ -2,11 +2,11 @@
   "manifest_path": "manifests/include-failed-test-output-tails.manifest.yaml",
   "manifest_hash": "sha256-contract:5a3e9f6653415751cb9e2d208c2d217fb698113130af83b121c645a0f1f8a764",
   "test_hashes": {
-    "tests/cli/test_failed_test_output_json.py": "sha256-pyast:v2:24b942ef7cd6313ed1f7b09659caf7d5cb43b95a4418ec4d62247a93b7a46db0",
+    "tests/cli/test_failed_test_output_json.py": "sha256-pyast:v2:3a4d9cc67d4144bb479b361c5b082d12dd90f869ac3243f2a1f2c101732f9578",
     "tests/cli/test_format.py": "sha256-pyast:v2:b3354c98ff05641cd214041fc6bc71a7ab87e9454134445747d275e0e2f0177b"
   },
   "created_at": "2026-08-20T13:06:08.630702+00:00",
-  "revision": 4,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:c344e1b446cc2a9691ec11400b51d21689d926f2d0204b6eaaf4dcce68659faf",
@@ -80,6 +80,24 @@
           "maid_runner/cli/commands/_format.py:function:format_validation_result:kind=function",
           "maid_runner/cli/commands/_format.py:function:format_validation_result:returns=str"
         ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:5a3e9f6653415751cb9e2d208c2d217fb698113130af83b121c645a0f1f8a764",
+      "prior_test_hashes": {
+        "tests/cli/test_failed_test_output_json.py": "sha256-pyast:v2:24b942ef7cd6313ed1f7b09659caf7d5cb43b95a4418ec4d62247a93b7a46db0",
+        "tests/cli/test_format.py": "sha256-pyast:v2:b3354c98ff05641cd214041fc6bc71a7ab87e9454134445747d275e0e2f0177b"
+      },
+      "revised_at": "2026-08-21T22:59:07.008570+00:00",
+      "reason": "Accept the approved text-output diagnostics regression test addition",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
         "artifacts_removed": [],
         "files_added": [],
         "files_removed": [],

@@ -26,6 +26,11 @@ def _named_step_for_job(
     return next(step for step in steps if step.get("name") == step_name)
 
 
+def _workflow_triggers(workflow_path: Path) -> dict[str, object]:
+    workflow = yaml.safe_load(workflow_path.read_text())
+    return workflow.get("on", workflow.get(True))
+
+
 def test_publish_workflow_installs_npm_dependencies_before_maid_tests() -> None:
     runs = _run_steps_for_job(Path(".github/workflows/publish.yml"), "test")
 
@@ -51,6 +56,18 @@ def test_publish_workflow_bounds_maid_test_workers_on_hosted_matrix() -> None:
         "3.12",
     ]
     assert "_publish_maid_test_worker_boundary" in workflow_path.read_text()
+
+
+def test_publish_workflow_exercises_release_branches_with_matrix_python() -> None:
+    workflow_path = Path(".github/workflows/publish.yml")
+    workflow = yaml.safe_load(workflow_path.read_text())
+    test_job = workflow["jobs"]["test"]
+    install_step = _named_step_for_job(workflow_path, "test", "Install dependencies")
+    triggers = _workflow_triggers(workflow_path)
+
+    assert "release/**" in triggers["push"]["branches"]
+    assert test_job["strategy"]["fail-fast"] is False
+    assert install_step["run"] == 'uv sync --python "$pythonLocation/bin/python"'
 
 
 def test_package_data_includes_claude_skills() -> None:
