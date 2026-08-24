@@ -1067,8 +1067,9 @@ def _extract_func_signature(
                 if arg:
                     args.append(arg)
 
-    # Return type annotation
-    ret_node = _child_by_type(node, "type_annotation")
+    # Tree-sitter gives ordinary types, predicates, and assertion signatures
+    # different node kinds behind the same return_type field.
+    ret_node = node.child_by_field_name("return_type")
     if ret_node:
         returns = _extract_type_text(ret_node, source)
 
