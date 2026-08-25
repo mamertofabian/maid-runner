@@ -1,0 +1,174 @@
+{
+  "manifest_path": "manifests/fix-assess-changed-manifest-directory.manifest.yaml",
+  "manifest_hash": "sha256-contract:24bc43b25c750fbd830286d58d2166eab33e4f806f2536e1a79bc95f32ff3b1e",
+  "test_hashes": {
+    "tests/cli/test_assess_cmd.py": "sha256-pyast:v2:0d8a18fef974a4f0e37cceaed09e2d554c0411aec371e055c783c0f3e561bf3a",
+    "tests/cli/test_assess_manifest_directory.py": "sha256-pyast:v2:98359f7e3669f4c32730809a9682721e44db298ec4e2f31cd7b497fb035df794"
+  },
+  "created_at": "2026-08-25T00:22:38.823181+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:af7d3025fa11a421d8fcef93c55e3a8fb2d43ee79bf0a952668f4c147a5cfc4d",
+      "prior_test_hashes": {
+        "tests/cli/test_assess_cmd.py": "sha256-pyast:v2:0d8a18fef974a4f0e37cceaed09e2d554c0411aec371e055c783c0f3e561bf3a",
+        "tests/cli/test_assess_manifest_directory.py": "sha256-pyast:v2:98359f7e3669f4c32730809a9682721e44db298ec4e2f31cd7b497fb035df794"
+      },
+      "revised_at": "2026-08-25T00:22:40.482764+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-assess-changed-manifest-directory.manifest.yaml -> manifests/fix-assess-changed-manifest-directory.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-25T00:22:40.212900+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_assess_manifest_directory.py tests/cli/test_assess_cmd.py",
+        "exit_code": 1,
+        "output_tail": "status = 2\nmessage = 'maid: error: unrecognized arguments: --manifest-dir apps/example/manifests\\n'\n\n    def exit(self, status=0, message=None):\n        if message:\n            self._print_message(message, _sys.stderr)\n>       _sys.exit(status)\nE       SystemExit: 2\n\n../../../.local/share/uv/python/cpython-3.12.8-linux-x86_64-gnu/lib/python3.12/argparse.py:2637: SystemExit\n----------------------------- Captured stderr call -----------------------------\nusage: maid [-h] [--version] <command> ...\nmaid: error: unrecognized arguments: --manifest-dir apps/example/manifests\n=========================== short test summary info ============================\nFAILED tests/cli/test_assess_manifest_directory.py::test_assess_selects_changed_nondefault_manifest_directory\nFAILED tests/cli/test_assess_manifest_directory.py::test_assess_explicit_manifest_directory_overrides_changed_candidate\nFAILED tests/cli/test_assess_manifest_directory.py::test_assess_rejects_multiple_changed_manifest_directories\nFAILED tests/cli/test_assess_manifest_directory.py::test_assess_falls_back_to_config_when_no_manifest_changed\nFAILED tests/cli/test_assess_manifest_directory.py::test_assess_parser_accepts_manifest_directory_override\n5 failed, 15 passed in 0.86s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-assess-changed-manifest-directory.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 1,
+        "output_tail": "  E001 Failed to load manifest manifests/fix-assess-changed-manifest-directory.manifest.yaml: File not found",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/assess.py:function:cmd_assess",
+      "maid_runner/cli/commands/assess.py:function:cmd_assess:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/assess.py:function:cmd_assess:kind=function",
+      "maid_runner/cli/commands/assess.py:function:cmd_assess:returns=int",
+      "tests/cli/test_assess_manifest_directory.py:test_assess_explicit_manifest_directory_overrides_changed_candidate",
+      "tests/cli/test_assess_manifest_directory.py:test_assess_explicit_manifest_directory_overrides_changed_candidate:kind=test_function",
+      "tests/cli/test_assess_manifest_directory.py:test_assess_explicit_manifest_directory_overrides_changed_candidate:returns=None",
+      "tests/cli/test_assess_manifest_directory.py:test_assess_falls_back_to_config_when_no_manifest_changed",
+      "tests/cli/test_assess_manifest_directory.py:test_assess_falls_back_to_config_when_no_manifest_changed:kind=test_function",
+      "tests/cli/test_assess_manifest_directory.py:test_assess_falls_back_to_config_when_no_manifest_changed:returns=None",
+      "tests/cli/test_assess_manifest_directory.py:test_assess_parser_accepts_manifest_directory_override",
+      "tests/cli/test_assess_manifest_directory.py:test_assess_parser_accepts_manifest_directory_override:kind=test_function",
+      "tests/cli/test_assess_manifest_directory.py:test_assess_parser_accepts_manifest_directory_override:returns=None",
+      "tests/cli/test_assess_manifest_directory.py:test_assess_rejects_multiple_changed_manifest_directories",
+      "tests/cli/test_assess_manifest_directory.py:test_assess_rejects_multiple_changed_manifest_directories:kind=test_function",
+      "tests/cli/test_assess_manifest_directory.py:test_assess_rejects_multiple_changed_manifest_directories:returns=None",
+      "tests/cli/test_assess_manifest_directory.py:test_assess_selects_changed_nondefault_manifest_directory",
+      "tests/cli/test_assess_manifest_directory.py:test_assess_selects_changed_nondefault_manifest_directory:kind=test_function",
+      "tests/cli/test_assess_manifest_directory.py:test_assess_selects_changed_nondefault_manifest_directory:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_assess_manifest_directory.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/assess.py"
+      ],
+      "read": [
+        "maid_runner/core/chain.py",
+        "maid_runner/core/change_assessment.py",
+        "maid_runner/core/config.py",
+        "maid_runner/core/diff_scope.py",
+        "manifests/121-45-scope-assessed-deep-to-task.manifest.yaml",
+        "tests/cli/test_assess_cmd.py"
+      ],
+      "scope": [
+        "maid_runner/cli/commands/_main.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_assess_manifest_directory.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_assess_selects_changed_nondefault_manifest_directory",
+              "description": "A baseline changing one non-default app manifest emits and records that app's manifest directory instead of the configured default.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_assess_explicit_manifest_directory_overrides_changed_candidate",
+              "description": "Explicit --manifest-dir is authoritative and appears in emitted verify argv and JSON evidence.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_assess_rejects_multiple_changed_manifest_directories",
+              "description": "Multiple changed active-manifest parents exit 2 with explicit override guidance rather than selecting one silently.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_assess_falls_back_to_config_when_no_manifest_changed",
+              "description": "A code-only change continues using the configured chain without redundantly adding a manifest-dir flag.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_assess_parser_accepts_manifest_directory_override",
+              "description": "Public argument parsing accepts --manifest-dir and preserves omission as None.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/assess.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_assess",
+              "description": "Assessment resolves explicit, single-changed, or configured-fallback manifest directories; uses the selection for signals; emits selected directory evidence and argv; and rejects ambiguous changed chains.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/change_assessment.py",
+        "maid_runner/core/diff_scope.py",
+        "maid_runner/core/config.py",
+        "maid_runner/core/chain.py",
+        "manifests/121-45-scope-assessed-deep-to-task.manifest.yaml",
+        "tests/cli/test_assess_cmd.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "reason": "Register the optional assess --manifest-dir override without changing public parser APIs."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_assess_cmd.py",
+      "tests/cli/test_assess_manifest_directory.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_assess_manifest_directory.py tests/cli/test_assess_cmd.py",
+      "uv run maid validate manifests/fix-assess-changed-manifest-directory.manifest.yaml --mode behavioral --quiet"
+    ]
+  }
+}

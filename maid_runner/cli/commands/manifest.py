@@ -174,7 +174,18 @@ def _cmd_promote(args: argparse.Namespace) -> int:
         )
         return 2
 
-    output_dir = Path(getattr(args, "output_dir", "manifests/"))
+    output_dir_arg = getattr(args, "output_dir", None)
+    if output_dir_arg is None:
+        if manifest_path.parent.name != "drafts":
+            print_error(
+                "Cannot infer the promotion destination because the source "
+                "manifest is not directly inside a drafts directory. Pass "
+                "--output-dir explicitly."
+            )
+            return 2
+        output_dir = manifest_path.parent.parent
+    else:
+        output_dir = Path(output_dir_arg)
     output_path = output_dir / manifest_path.name
     if output_path.exists():
         print_error(f"Manifest already exists: {output_path}")

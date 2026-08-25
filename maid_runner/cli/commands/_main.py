@@ -685,6 +685,15 @@ def _register_assess_parser(sub: argparse._SubParsersAction) -> None:
         help="Assess changes since the merge base with this explicit ref",
     )
     p.add_argument(
+        "--manifest-dir",
+        default=None,
+        dest="manifest_dir",
+        help=(
+            "Manifest directory for assessment and the emitted verify command "
+            "(default: infer one changed active-manifest directory, then use config)"
+        ),
+    )
+    p.add_argument(
         "--json",
         action="store_true",
         help="Print one machine-readable assessment document",
@@ -1547,8 +1556,11 @@ def _register_manifest_parser(sub: argparse._SubParsersAction) -> None:
     pp.add_argument("manifest_path")
     pp.add_argument(
         "--output-dir",
-        default="manifests/",
-        help="Directory where the promoted manifest will be written",
+        default=None,
+        help=(
+            "Directory where the promoted manifest will be written "
+            "(default: infer from the source drafts directory)"
+        ),
     )
     pp.add_argument(
         "--no-run",

@@ -1,0 +1,145 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Preserve the assessed task manifest directory in emitted verify commands for brownfield monorepos with a different configured default chain
+type: fix
+created: '2026-08-25T00:22:40Z'
+metadata:
+  bug_report: ~/.maid/bug-report/20260824-142023-codefrost-studyfinder-assess-manifest-dir.md
+  tags:
+  - assess
+  - monorepo
+  - manifest-directory
+  - verification
+  priority: high
+description: |
+  `maid assess` currently always gathers risk evidence from `.maidrc.yaml`'s
+  configured manifest directory and emits a verify command without
+  `--manifest-dir`. In a monorepo where the assessed Git window changes one
+  non-default app's active manifests, the printed command therefore verifies an
+  unrelated app. Add an explicit assess `--manifest-dir` override and otherwise
+  discover the single changed active-manifest directory from the same baseline.
+  Include explicit or diff-selected directories in the emitted verify argv and
+  JSON evidence. Fall back to configuration only when no active manifest path
+  changed, and fail visibly when multiple changed directories are ambiguous.
+
+  Rationale: a changed active manifest is baseline-bound evidence of task
+  ownership and is stronger than a repository-wide default. Restricting
+  discovery to existing active manifest files avoids drafts, archives, and
+  deleted paths; refusing multiple candidates prevents assessment from silently
+  choosing the wrong app. The command still executes from the repository root,
+  so manifest declarations remain repository-root-relative.
+temptations:
+- risk: Always append the configured default directory even when a changed manifest identifies another app.
+  instead: Resolve explicit input first, then a single changed active-manifest parent, and use configuration only as the no-signal fallback.
+- risk: Guess among multiple changed manifest directories.
+  instead: Return exit 2 with guidance to pass --manifest-dir explicitly and do not emit a misleading verify command.
+- risk: Treat drafts, v1 archives, or deleted manifest paths as active ownership evidence.
+  instead: Consider only existing created/edited *.manifest.yaml or *.manifest.yml files outside MAID inactive directory names.
+- risk: Change the deep profile or duplicate task-scoping logic already delivered by 121-45.
+  instead: Preserve the existing --test-scope task and handoff gates; add only manifest-directory selection and propagation.
+files:
+  edit:
+  - path: maid_runner/cli/commands/assess.py
+    artifacts:
+    - kind: function
+      name: cmd_assess
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Assessment resolves explicit, single-changed, or configured-fallback manifest directories; uses the selection for signals; emits selected directory evidence and argv; and rejects ambiguous changed chains.
+  scope:
+  - path: maid_runner/cli/commands/_main.py
+    reason: Register the optional assess --manifest-dir override without changing public parser APIs.
+  create:
+  - path: tests/cli/test_assess_manifest_directory.py
+    artifacts:
+    - kind: test_function
+      name: test_assess_selects_changed_nondefault_manifest_directory
+      args: []
+      returns: None
+      description: A baseline changing one non-default app manifest emits and records that app's manifest directory instead of the configured default.
+    - kind: test_function
+      name: test_assess_explicit_manifest_directory_overrides_changed_candidate
+      args: []
+      returns: None
+      description: Explicit --manifest-dir is authoritative and appears in emitted verify argv and JSON evidence.
+    - kind: test_function
+      name: test_assess_rejects_multiple_changed_manifest_directories
+      args: []
+      returns: None
+      description: Multiple changed active-manifest parents exit 2 with explicit override guidance rather than selecting one silently.
+    - kind: test_function
+      name: test_assess_falls_back_to_config_when_no_manifest_changed
+      args: []
+      returns: None
+      description: A code-only change continues using the configured chain without redundantly adding a manifest-dir flag.
+    - kind: test_function
+      name: test_assess_parser_accepts_manifest_directory_override
+      args: []
+      returns: None
+      description: Public argument parsing accepts --manifest-dir and preserves omission as None.
+  read:
+  - maid_runner/core/change_assessment.py
+  - maid_runner/core/diff_scope.py
+  - maid_runner/core/config.py
+  - maid_runner/core/chain.py
+  - manifests/121-45-scope-assessed-deep-to-task.manifest.yaml
+  - tests/cli/test_assess_cmd.py
+validate:
+- uv run python -m pytest -q tests/cli/test_assess_manifest_directory.py tests/cli/test_assess_cmd.py
+- uv run maid validate manifests/fix-assess-changed-manifest-directory.manifest.yaml --mode behavioral --quiet
+outcome:
+  status: completed
+  completed_at: '2026-08-25T08:50:00+08:00'
+  summary: Assessment now preserves an explicit or single changed active-manifest directory in signal gathering, JSON evidence, and emitted verify commands, while retaining configured fallback and rejecting ambiguous multi-chain diffs.
+  rationale: A baseline-changed active manifest is deterministic task-ownership evidence and is stronger than a monorepo-wide configured default. Explicit input remains authoritative, inactive and deleted manifests are excluded, ambiguity fails visibly, and the emitted command continues to run from repository root with the existing task-scoped deep and handoff gates unchanged.
+  lessons:
+  - lesson_type: real-repository-validation
+    summary: In brownfield monorepos, assessment must bind both signal gathering and the emitted verification command to the same selected manifest chain; otherwise a correct baseline can still validate an unrelated configured app.
+    tags:
+    - assessment
+    - monorepo
+    - manifest-directory
+    - maid-runner-feedback
+    paths:
+    - maid_runner/cli/commands/assess.py
+    - tests/cli/test_assess_manifest_directory.py
+  - lesson_type: anti-gaming
+    summary: Automatic manifest-chain discovery should accept one existing changed active-manifest parent, exclude inactive and deleted candidates, and require an explicit override rather than guessing when multiple chains changed.
+    tags:
+    - ambiguity
+    - fail-closed
+    - diff-scope
+    paths:
+    - maid_runner/cli/commands/assess.py
+  review_notes:
+  - source: independent-review-review_assess_manifest_dir_fix
+    severity: ready
+    summary: The reviewer found no blockers and confirmed parser wiring, precedence, configured fallback, ambiguity behavior, JSON/text evidence, shell-safe command generation, deep gates, scope fidelity, and sibling-change interactions.
+  - source: independent-review-review_assess_manifest_dir_fix
+    severity: advisory
+    summary: Future hardening could reuse one collected diff snapshot, assert selected-chain signal differences directly, and cover more candidate boundaries such as edits, renames, inactive paths, yml suffixes, nested parents, and whitespace-only explicit values.
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/cli/test_assess_manifest_directory.py, tests/cli/test_assess_cmd.py]
+    status: passed
+    summary: All 20 focused and existing assessment tests passed after all five new scenarios failed in the pre-implementation red phase.
+  - command: [uv, run, maid, validate, manifests/fix-assess-changed-manifest-directory.manifest.yaml, --mode, implementation, --packet]
+    status: passed
+    summary: Focused implementation validation passed before and after mechanical Black formatting.
+  - command: [uv, run, maid, test, --manifest, manifests/fix-assess-changed-manifest-directory.manifest.yaml]
+    status: passed
+    summary: Both manifest-declared validation commands passed.
+  - command: [uv, run, maid, validate]
+    status: passed
+    summary: Repository-wide validation checked 652 manifests; 292 active passed, 0 failed, and 360 superseded were skipped.
+  - command: [uv, run, maid, test, --fail-fast]
+    status: passed
+    summary: All 300 active manifest commands passed after Black corrected formatting drift in the two new CLI test files.
+  - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, 9d58c4fa45fdd6d1945d324dfca289c67d14b3c9]
+    status: passed
+    summary: The repaired assessment emitted this exact command; all 11 cumulative deep stages passed with zero blockers and only the existing ts_compiler_resolver.cjs E307 warning family.
