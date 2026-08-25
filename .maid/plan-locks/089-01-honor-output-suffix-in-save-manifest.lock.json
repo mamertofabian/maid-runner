@@ -3,12 +3,12 @@
   "manifest_hash": "sha256-contract:fb5177132de524a7f02411146f0623ba3b76b529f9217bedc736eed3f47bc478",
   "test_hashes": {
     "tests/core/test_snapshot_output_format.py": "sha256-pyast:v2:66f82e84052bfe4e174af4cd74a01efb70df12046cd94f38116fcb1a630e6337",
-    "tests/integration/test_library_api.py": "sha256-pyast:v2:640e0fc6c45146c2a656ea0ce49e1000f060ac04235975044e1362d53de2512f",
+    "tests/integration/test_library_api.py": "sha256-pyast:v2:1d0ccfb952f87d458f2c7aff34b5c91963b9e1fb306760d267c9b8f44ccb5111",
     "tests/core/test_manifest.py": "sha256-pyast:v2:f265269a32afa5756269b4f750c45cd63a357d886cf87c8a6c70afe4c58fb4eb",
     "tests/core/test_save_manifest_output_format.py": "sha256-pyast:v2:0ee73d7ce997df7679e7f0fa65ede2ab0b48c51615095d8758b72b4782c209e3"
   },
   "created_at": "2026-07-25T14:17:48.937387+00:00",
-  "revision": 18,
+  "revision": 19,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:bb2d3e03a45d65e81887829e34d81be63e3147dc8f038502f1c898f6c761414e",
@@ -348,6 +348,26 @@
       },
       "revised_at": "2026-08-21T14:37:22.937425+00:00",
       "reason": "Accept the approved 2.27.1 release-metadata assertion update in the shared public API test",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:fb5177132de524a7f02411146f0623ba3b76b529f9217bedc736eed3f47bc478",
+      "prior_test_hashes": {
+        "tests/core/test_snapshot_output_format.py": "sha256-pyast:v2:66f82e84052bfe4e174af4cd74a01efb70df12046cd94f38116fcb1a630e6337",
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:640e0fc6c45146c2a656ea0ce49e1000f060ac04235975044e1362d53de2512f",
+        "tests/core/test_manifest.py": "sha256-pyast:v2:f265269a32afa5756269b4f750c45cd63a357d886cf87c8a6c70afe4c58fb4eb",
+        "tests/core/test_save_manifest_output_format.py": "sha256-pyast:v2:0ee73d7ce997df7679e7f0fa65ede2ab0b48c51615095d8758b72b4782c209e3"
+      },
+      "revised_at": "2026-08-25T00:41:55.799041+00:00",
+      "reason": "accept approved 2.27.2 release metadata test change",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

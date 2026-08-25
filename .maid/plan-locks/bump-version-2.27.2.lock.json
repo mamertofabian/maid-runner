@@ -1,0 +1,144 @@
+{
+  "manifest_path": "manifests/bump-version-2.27.2.manifest.yaml",
+  "manifest_hash": "sha256-contract:814740844e56f484b17380a5f37ae16703ea3b156af76df7f4aae71930193c39",
+  "test_hashes": {
+    "tests/integration/test_library_api.py": "sha256-pyast:v2:1d0ccfb952f87d458f2c7aff34b5c91963b9e1fb306760d267c9b8f44ccb5111",
+    "tests/validators/test_typescript_type_predicates.py": "sha256-pyast:v2:cc5d7906314d3077ba4fc74444d96316470a0200dc15c561b63254d930cc22b6",
+    "tests/core/test_presentation_asset_e307_policy.py": "sha256-pyast:v2:f303c748cd47543f83fc34566678a4d1f87a1d9a123cb9a22761a94f79cbc54c",
+    "tests/cli/test_assess_manifest_directory.py": "sha256-pyast:v2:98359f7e3669f4c32730809a9682721e44db298ec4e2f31cd7b497fb035df794",
+    "tests/cli/test_manifest_promote_output_routing.py": "sha256-pyast:v2:cc76086403437c1f63a0524c98f8808f41c47d9db81422cc003637389883f4a9",
+    "tests/test_reviewer_writable_scope_guidance.py": "sha256-pyast:v2:35115f1c4561b47566b0403a191b441795c3ccde6c14f53bbe23443848a74503"
+  },
+  "created_at": "2026-08-25T00:41:03.179321+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:ab8fe9f8be32adf522cfc3623af4f94e7f8e11b7982694101276de0c2ff26a94",
+      "prior_test_hashes": {
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:1d0ccfb952f87d458f2c7aff34b5c91963b9e1fb306760d267c9b8f44ccb5111",
+        "tests/validators/test_typescript_type_predicates.py": "sha256-pyast:v2:cc5d7906314d3077ba4fc74444d96316470a0200dc15c561b63254d930cc22b6",
+        "tests/core/test_presentation_asset_e307_policy.py": "sha256-pyast:v2:f303c748cd47543f83fc34566678a4d1f87a1d9a123cb9a22761a94f79cbc54c",
+        "tests/cli/test_assess_manifest_directory.py": "sha256-pyast:v2:98359f7e3669f4c32730809a9682721e44db298ec4e2f31cd7b497fb035df794",
+        "tests/cli/test_manifest_promote_output_routing.py": "sha256-pyast:v2:cc76086403437c1f63a0524c98f8808f41c47d9db81422cc003637389883f4a9",
+        "tests/test_reviewer_writable_scope_guidance.py": "sha256-pyast:v2:35115f1c4561b47566b0403a191b441795c3ccde6c14f53bbe23443848a74503"
+      },
+      "revised_at": "2026-08-25T00:41:04.316526+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/bump-version-2.27.2.manifest.yaml -> manifests/bump-version-2.27.2.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-25T00:41:04.042572+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/integration/test_library_api.py tests/validators/test_typescript_type_predicates.py tests/core/test_presentation_asset_e307_policy.py tests/cli/test_assess_manifest_directory.py tests/cli/test_manifest_promote_output_routing.py tests/test_reviewer_writable_scope_guidance.py",
+        "exit_code": 1,
+        "output_tail": "    \n        root = Path(__file__).resolve().parents[2]\n        pyproject = root / \"pyproject.toml\"\n        lockfile = root / \"uv.lock\"\n        changelog = root / \"CHANGELOG.md\"\n        roadmap = root / \"docs\" / \"ROADMAP.md\"\n    \n>       assert __version__ == \"2.27.2\"\nE       AssertionError: assert '2.27.1' == '2.27.2'\nE         \nE         - 2.27.2\nE         ?      ^\nE         + 2.27.1\nE         ?      ^\n\ntests/integration/test_library_api.py:44: AssertionError\n=========================== short test summary info ============================\nFAILED tests/integration/test_library_api.py::TestPublicAPIImports::test_release_metadata_is_current_version\nFAILED tests/integration/test_library_api.py::TestPublicAPIImports::test_release_metadata_is_2_21_0\n2 failed, 47 passed in 0.57s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version",
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version:arg=self:type=TestPublicAPIImports:default=None",
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version:kind=test_function",
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version:of=TestPublicAPIImports",
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version:returns=None"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "tests/integration/test_library_api.py"
+      ],
+      "read": [
+        "maid_runner/__version__.py",
+        "manifests/bump-version-2.27.1.manifest.yaml",
+        "manifests/fix-assess-changed-manifest-directory.manifest.yaml",
+        "manifests/fix-manifest-promote-output-routing.manifest.yaml",
+        "manifests/fix-presentation-asset-e307-noise.manifest.yaml",
+        "manifests/fix-reviewer-writable-scope-guidance.manifest.yaml",
+        "manifests/fix-typescript-type-predicate-return-annotations.manifest.yaml"
+      ],
+      "scope": [
+        "CHANGELOG.md",
+        "docs/ROADMAP.md",
+        "pyproject.toml",
+        "uv.lock"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "tests/integration/test_library_api.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_release_metadata_is_current_version",
+              "description": "Runtime version, package metadata, editable lock metadata, changelog heading and compare link, and roadmap all report 2.27.2 and identify the complete patch inventory.",
+              "of": "TestPublicAPIImports",
+              "args": [
+                {
+                  "name": "self",
+                  "type": "TestPublicAPIImports"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/__version__.py",
+        "manifests/bump-version-2.27.1.manifest.yaml",
+        "manifests/fix-typescript-type-predicate-return-annotations.manifest.yaml",
+        "manifests/fix-presentation-asset-e307-noise.manifest.yaml",
+        "manifests/fix-assess-changed-manifest-directory.manifest.yaml",
+        "manifests/fix-manifest-promote-output-routing.manifest.yaml",
+        "manifests/fix-reviewer-writable-scope-guidance.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "pyproject.toml",
+          "reason": "Package version metadata has no analyzer-visible public artifact."
+        },
+        {
+          "path": "uv.lock",
+          "reason": "Editable package lock metadata must mirror pyproject and be regenerated through uv."
+        },
+        {
+          "path": "CHANGELOG.md",
+          "reason": "Release notes document the 2.27.2 fixes, date, boundaries, and comparison link."
+        },
+        {
+          "path": "docs/ROADMAP.md",
+          "reason": "Roadmap current-version references mirror the prepared CLI release."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_assess_manifest_directory.py",
+      "tests/cli/test_manifest_promote_output_routing.py",
+      "tests/core/test_presentation_asset_e307_policy.py",
+      "tests/integration/test_library_api.py",
+      "tests/test_reviewer_writable_scope_guidance.py",
+      "tests/validators/test_typescript_type_predicates.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/integration/test_library_api.py tests/validators/test_typescript_type_predicates.py tests/core/test_presentation_asset_e307_policy.py tests/cli/test_assess_manifest_directory.py tests/cli/test_manifest_promote_output_routing.py tests/test_reviewer_writable_scope_guidance.py"
+    ]
+  }
+}
