@@ -18,6 +18,8 @@ from pathlib import Path
 from maid_runner.cli.commands._format import print_error
 from maid_runner.core.manifest import backfill_manifest_header, load_manifest
 
+_VALIDATE_AND_ACCEPTANCE_SOURCE = "validate_and_acceptance"
+
 
 def cmd_plan(args: argparse.Namespace) -> int:
     """Dispatch `maid plan <subcommand>`."""
@@ -591,19 +593,40 @@ def _preserved_evidence_commands_match_manifest(
         return False
     if not isinstance(locked_contract, dict):
         return False
-    locked_commands = locked_contract.get("validate_commands")
-    if not isinstance(locked_commands, list) or not all(
-        isinstance(command, str) for command in locked_commands
+    locked_validate = locked_contract.get("validate_commands")
+    if not isinstance(locked_validate, list) or not all(
+        isinstance(command, str) for command in locked_validate
     ):
         return False
     evidence_commands = [command["command"] for command in commands]
-    manifest_commands = [
-        shlex.join(command)
-        for command in load_manifest(manifest_path).validate_commands
-    ]
-    evidence_counter = Counter(evidence_commands)
-    return evidence_counter == Counter(locked_commands) and evidence_counter == Counter(
-        manifest_commands
+    manifest = load_manifest(manifest_path)
+    manifest_validate = [shlex.join(command) for command in manifest.validate_commands]
+    locked_acceptance: list[str] = []
+    manifest_acceptance: list[str] = []
+    command_source = evidence.get("command_source")
+    if command_source == _VALIDATE_AND_ACCEPTANCE_SOURCE:
+        raw_locked_acceptance = locked_contract.get("acceptance_commands")
+        if not isinstance(raw_locked_acceptance, list) or not all(
+            isinstance(command, str) for command in raw_locked_acceptance
+        ):
+            return False
+        locked_acceptance = raw_locked_acceptance
+        if manifest.acceptance is None:
+            return False
+        manifest_acceptance = [
+            shlex.join(command) for command in manifest.acceptance.tests
+        ]
+    elif command_source is not None:
+        return False
+    validate_count = len(locked_validate)
+    evidence_validate = evidence_commands[:validate_count]
+    evidence_acceptance = evidence_commands[validate_count:]
+    return (
+        len(evidence_commands) == len(locked_validate) + len(locked_acceptance)
+        and Counter(evidence_validate) == Counter(locked_validate)
+        and Counter(locked_validate) == Counter(manifest_validate)
+        and Counter(evidence_acceptance) == Counter(locked_acceptance)
+        and Counter(locked_acceptance) == Counter(manifest_acceptance)
     )
 
 

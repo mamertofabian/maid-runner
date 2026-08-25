@@ -1,0 +1,879 @@
+{
+  "manifest_path": "manifests/fix-cypress-acceptance-red-evidence.manifest.yaml",
+  "manifest_hash": "sha256-contract:81e7b799b5c47512dc831017077f52658c4d10c8fb3d10959da10d462147acd7",
+  "test_hashes": {
+    "tests/cli/test_plan_revise_preserve_command_mismatch.py": "sha256-pyast:v2:b28e39e951a4dc06c6abecce0e0d7062a2aa9cc8744d220c5f12e2987e7fa4aa",
+    "tests/cli/test_plan_revise_auto_preserve.py": "sha256-pyast:v2:45894dba876eefb71610329bbbd70d07130b7a2c8abba8aa1b50b94d4a49f04a",
+    "tests/core/test_plan_lock_red_evidence.py": "sha256-pyast:v2:474ceed3005a7923f0eebf12ed685760a257bead2ebf606b00b08d162881ee57",
+    "tests/core/test_plan_lock_evidence_integrity.py": "sha256-pyast:v2:5aed274e5b678b59132fd9e7341a343b1b0de6ea6b1fc634e0e6308dab875fbc",
+    "tests/core/test_file_discovery.py": "sha256-pyast:v2:0daea65436dc4f078ed7cbbe4aa2bac208aeb6992b4534ccc44ab1512ed0b5d6",
+    "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d",
+    "tests/core/test_acceptance_red_evidence.py": "sha256-pyast:v2:ee1f2aa19b460554f061ab25088388bed9bf4438fa59f8fc1c655ac2a8ccbfe3"
+  },
+  "created_at": "2026-08-25T04:54:20.111954+00:00",
+  "revision": 13,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:142fd6d1248fe69813154ac1f64bc0f0d3dfa3a03129d758b18bc33bf6adc585",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_red_evidence.py": "sha256-pyast:v2:474ceed3005a7923f0eebf12ed685760a257bead2ebf606b00b08d162881ee57",
+        "tests/core/test_plan_lock_evidence_integrity.py": "sha256-pyast:v2:5aed274e5b678b59132fd9e7341a343b1b0de6ea6b1fc634e0e6308dab875fbc",
+        "tests/core/test_file_discovery.py": "sha256-pyast:v2:0daea65436dc4f078ed7cbbe4aa2bac208aeb6992b4534ccc44ab1512ed0b5d6",
+        "tests/core/test_acceptance_red_evidence.py": "sha256-pyast:v2:4910cd4c85e22afc5844e0b48788db602b2fdd32fe47a1e09675ed94873444e9"
+      },
+      "revised_at": "2026-08-25T04:54:25.325525+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-cypress-acceptance-red-evidence.manifest.yaml -> manifests/fix-cypress-acceptance-red-evidence.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:dd13d415af1ca95dcb2160ba453f676a0ccf0f6be409b5575e938e48dea93277",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_red_evidence.py": "sha256-pyast:v2:474ceed3005a7923f0eebf12ed685760a257bead2ebf606b00b08d162881ee57",
+        "tests/core/test_plan_lock_evidence_integrity.py": "sha256-pyast:v2:5aed274e5b678b59132fd9e7341a343b1b0de6ea6b1fc634e0e6308dab875fbc",
+        "tests/core/test_file_discovery.py": "sha256-pyast:v2:0daea65436dc4f078ed7cbbe4aa2bac208aeb6992b4534ccc44ab1512ed0b5d6",
+        "tests/core/test_acceptance_red_evidence.py": "sha256-pyast:v2:4910cd4c85e22afc5844e0b48788db602b2fdd32fe47a1e09675ed94873444e9"
+      },
+      "revised_at": "2026-08-25T04:55:20.415235+00:00",
+      "reason": "Declare the acceptance command-source marker exposed by red capture before implementation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/core/plan_lock.py:attribute:RedPhaseEvidence.command_source",
+          "maid_runner/core/plan_lock.py:attribute:RedPhaseEvidence.command_source:kind=attribute",
+          "maid_runner/core/plan_lock.py:attribute:RedPhaseEvidence.command_source:of=RedPhaseEvidence",
+          "maid_runner/core/plan_lock.py:attribute:RedPhaseEvidence.command_source:type=str | None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:62cb013a59b39564ae9a608354a6a781141f32741196116270909d9c8110d129",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_red_evidence.py": "sha256-pyast:v2:474ceed3005a7923f0eebf12ed685760a257bead2ebf606b00b08d162881ee57",
+        "tests/core/test_plan_lock_evidence_integrity.py": "sha256-pyast:v2:5aed274e5b678b59132fd9e7341a343b1b0de6ea6b1fc634e0e6308dab875fbc",
+        "tests/core/test_file_discovery.py": "sha256-pyast:v2:0daea65436dc4f078ed7cbbe4aa2bac208aeb6992b4534ccc44ab1512ed0b5d6",
+        "tests/core/test_acceptance_red_evidence.py": "sha256-pyast:v2:7d477ac969549929c0a0bdc8f819fcab24c85458d18d6940116fa186eb997cc2"
+      },
+      "revised_at": "2026-08-25T04:58:33.469353+00:00",
+      "reason": "Fail closed when acceptance-scoped evidence lacks its acceptance command snapshot",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_acceptance_red_evidence.py:test_acceptance_red_evidence_without_acceptance_snapshot_fails_e707",
+          "tests/core/test_acceptance_red_evidence.py:test_acceptance_red_evidence_without_acceptance_snapshot_fails_e707:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:afb4ee1e8913f305a8174295f70380feaf1fe6155d7eeaa22f44f24478c3222a",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_red_evidence.py": "sha256-pyast:v2:474ceed3005a7923f0eebf12ed685760a257bead2ebf606b00b08d162881ee57",
+        "tests/core/test_plan_lock_evidence_integrity.py": "sha256-pyast:v2:5aed274e5b678b59132fd9e7341a343b1b0de6ea6b1fc634e0e6308dab875fbc",
+        "tests/core/test_file_discovery.py": "sha256-pyast:v2:0daea65436dc4f078ed7cbbe4aa2bac208aeb6992b4534ccc44ab1512ed0b5d6",
+        "tests/core/test_acceptance_red_evidence.py": "sha256-pyast:v2:df90c5a4a7a0eff0ba18f911b2cda2255b919045ed0f87aa348349fcef6e8806"
+      },
+      "revised_at": "2026-08-25T05:04:34.905675+00:00",
+      "reason": "Include the packaged MAID specification mirror required by distribution tests",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "read:tests/docs/test_chain_merge_docs.py",
+          "scope:maid_runner/docs/maid_specs.md"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:10aaa242f1796fdc7907f5180e6ff298e30c024e1eaf23d0ba821bd285d9644b",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_red_evidence.py": "sha256-pyast:v2:474ceed3005a7923f0eebf12ed685760a257bead2ebf606b00b08d162881ee57",
+        "tests/core/test_plan_lock_evidence_integrity.py": "sha256-pyast:v2:5aed274e5b678b59132fd9e7341a343b1b0de6ea6b1fc634e0e6308dab875fbc",
+        "tests/core/test_file_discovery.py": "sha256-pyast:v2:0daea65436dc4f078ed7cbbe4aa2bac208aeb6992b4534ccc44ab1512ed0b5d6",
+        "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d",
+        "tests/core/test_acceptance_red_evidence.py": "sha256-pyast:v2:df90c5a4a7a0eff0ba18f911b2cda2255b919045ed0f87aa348349fcef6e8806"
+      },
+      "revised_at": "2026-08-25T05:05:30.320456+00:00",
+      "reason": "Include the initialized repository-local MAID specification mirror required by docs tests",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:.maid/docs/maid_specs.md"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:33fe5455066abce582dcf4fb6736c26dfd209736e7157593d3ff4d2e33f9e336",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_red_evidence.py": "sha256-pyast:v2:474ceed3005a7923f0eebf12ed685760a257bead2ebf606b00b08d162881ee57",
+        "tests/core/test_plan_lock_evidence_integrity.py": "sha256-pyast:v2:5aed274e5b678b59132fd9e7341a343b1b0de6ea6b1fc634e0e6308dab875fbc",
+        "tests/core/test_file_discovery.py": "sha256-pyast:v2:0daea65436dc4f078ed7cbbe4aa2bac208aeb6992b4534ccc44ab1512ed0b5d6",
+        "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d",
+        "tests/core/test_acceptance_red_evidence.py": "sha256-pyast:v2:df90c5a4a7a0eff0ba18f911b2cda2255b919045ed0f87aa348349fcef6e8806"
+      },
+      "revised_at": "2026-08-25T05:11:16.945712+00:00",
+      "reason": "Run the declared packaged documentation mirror behavioral test",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/docs/test_chain_merge_docs.py::test_chain_merge_spec_mirrors_and_epic_closeout_are_current"
+        ],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2d235302dba901bb7af3c272f40e2b90a7ffe1aed808999889aab6007bc6972c",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_red_evidence.py": "sha256-pyast:v2:474ceed3005a7923f0eebf12ed685760a257bead2ebf606b00b08d162881ee57",
+        "tests/core/test_plan_lock_evidence_integrity.py": "sha256-pyast:v2:5aed274e5b678b59132fd9e7341a343b1b0de6ea6b1fc634e0e6308dab875fbc",
+        "tests/core/test_file_discovery.py": "sha256-pyast:v2:0daea65436dc4f078ed7cbbe4aa2bac208aeb6992b4534ccc44ab1512ed0b5d6",
+        "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d",
+        "tests/core/test_acceptance_red_evidence.py": "sha256-pyast:v2:df90c5a4a7a0eff0ba18f911b2cda2255b919045ed0f87aa348349fcef6e8806"
+      },
+      "revised_at": "2026-08-25T05:11:59.535659+00:00",
+      "reason": "Target the full declared docs test file so E230 can verify command coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/docs/test_chain_merge_docs.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/docs/test_chain_merge_docs.py::test_chain_merge_spec_mirrors_and_epic_closeout_are_current"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9fa18cfe65c165de5beb46fd0a084d0a92dc8cfba01194a0dfb2afb09264281b",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_red_evidence.py": "sha256-pyast:v2:474ceed3005a7923f0eebf12ed685760a257bead2ebf606b00b08d162881ee57",
+        "tests/core/test_plan_lock_evidence_integrity.py": "sha256-pyast:v2:5aed274e5b678b59132fd9e7341a343b1b0de6ea6b1fc634e0e6308dab875fbc",
+        "tests/core/test_file_discovery.py": "sha256-pyast:v2:0daea65436dc4f078ed7cbbe4aa2bac208aeb6992b4534ccc44ab1512ed0b5d6",
+        "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d",
+        "tests/core/test_acceptance_red_evidence.py": "sha256-pyast:v2:df90c5a4a7a0eff0ba18f911b2cda2255b919045ed0f87aa348349fcef6e8806"
+      },
+      "revised_at": "2026-08-25T05:20:50.430477+00:00",
+      "reason": "Close acceptance evidence review gaps in E707 and explicit preserve-red-evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/cli/commands/plan.py:function:cmd_plan_revise",
+          "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:arg=args:type=argparse.Namespace:default=None",
+          "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:kind=function",
+          "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:returns=int",
+          "tests/core/test_acceptance_red_evidence.py:test_acceptance_red_evidence_without_contract_snapshot_fails_e707",
+          "tests/core/test_acceptance_red_evidence.py:test_acceptance_red_evidence_without_contract_snapshot_fails_e707:kind=test_function",
+          "tests/core/test_acceptance_red_evidence.py:test_capture_runs_all_acceptance_commands_and_rejects_invalid_exit",
+          "tests/core/test_acceptance_red_evidence.py:test_capture_runs_all_acceptance_commands_and_rejects_invalid_exit:kind=test_function",
+          "tests/core/test_acceptance_red_evidence.py:test_legacy_validate_only_evidence_without_contract_snapshot_remains_valid",
+          "tests/core/test_acceptance_red_evidence.py:test_legacy_validate_only_evidence_without_contract_snapshot_remains_valid:kind=test_function",
+          "tests/core/test_acceptance_red_evidence.py:test_preserve_acceptance_red_evidence_accepts_unchanged_commands",
+          "tests/core/test_acceptance_red_evidence.py:test_preserve_acceptance_red_evidence_accepts_unchanged_commands:kind=test_function",
+          "tests/core/test_acceptance_red_evidence.py:test_preserve_acceptance_red_evidence_rejects_changed_acceptance_commands",
+          "tests/core/test_acceptance_red_evidence.py:test_preserve_acceptance_red_evidence_rejects_changed_acceptance_commands:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:maid_runner/cli/commands/plan.py",
+          "read:tests/cli/test_plan_revise_preserve_command_mismatch.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2b985bd23aab7ac900f66b5e84b9499d8546fe152bae84ef9104e2adce44cd0c",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_revise_preserve_command_mismatch.py": "sha256-pyast:v2:b28e39e951a4dc06c6abecce0e0d7062a2aa9cc8744d220c5f12e2987e7fa4aa",
+        "tests/core/test_plan_lock_red_evidence.py": "sha256-pyast:v2:474ceed3005a7923f0eebf12ed685760a257bead2ebf606b00b08d162881ee57",
+        "tests/core/test_plan_lock_evidence_integrity.py": "sha256-pyast:v2:5aed274e5b678b59132fd9e7341a343b1b0de6ea6b1fc634e0e6308dab875fbc",
+        "tests/core/test_file_discovery.py": "sha256-pyast:v2:0daea65436dc4f078ed7cbbe4aa2bac208aeb6992b4534ccc44ab1512ed0b5d6",
+        "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d",
+        "tests/core/test_acceptance_red_evidence.py": "sha256-pyast:v2:1f0f90fff9e018c2409ce44323ac3fd1bed4b506aa7228aee41bea568fb743c1"
+      },
+      "revised_at": "2026-08-25T05:21:36.771052+00:00",
+      "reason": "Run the declared adjacent explicit and automatic preservation suites",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "read:tests/cli/test_plan_revise_auto_preserve.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/cli/test_plan_revise_preserve_command_mismatch.py tests/cli/test_plan_revise_auto_preserve.py"
+        ],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b2517f5df44dcbd57879b1286d5c5fd9fd9924ccb7867b92de240da5ad79e79c",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_revise_preserve_command_mismatch.py": "sha256-pyast:v2:b28e39e951a4dc06c6abecce0e0d7062a2aa9cc8744d220c5f12e2987e7fa4aa",
+        "tests/cli/test_plan_revise_auto_preserve.py": "sha256-pyast:v2:45894dba876eefb71610329bbbd70d07130b7a2c8abba8aa1b50b94d4a49f04a",
+        "tests/core/test_plan_lock_red_evidence.py": "sha256-pyast:v2:474ceed3005a7923f0eebf12ed685760a257bead2ebf606b00b08d162881ee57",
+        "tests/core/test_plan_lock_evidence_integrity.py": "sha256-pyast:v2:5aed274e5b678b59132fd9e7341a343b1b0de6ea6b1fc634e0e6308dab875fbc",
+        "tests/core/test_file_discovery.py": "sha256-pyast:v2:0daea65436dc4f078ed7cbbe4aa2bac208aeb6992b4534ccc44ab1512ed0b5d6",
+        "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d",
+        "tests/core/test_acceptance_red_evidence.py": "sha256-pyast:v2:1f0f90fff9e018c2409ce44323ac3fd1bed4b506aa7228aee41bea568fb743c1"
+      },
+      "revised_at": "2026-08-25T05:35:03.735907+00:00",
+      "reason": "Bind acceptance red evidence to separate validate and acceptance command partitions",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_acceptance_red_evidence.py:test_acceptance_red_evidence_cross_layer_swap_fails_e707",
+          "tests/core/test_acceptance_red_evidence.py:test_acceptance_red_evidence_cross_layer_swap_fails_e707:kind=test_function",
+          "tests/core/test_acceptance_red_evidence.py:test_preserve_acceptance_red_evidence_accepts_reordering_within_layers",
+          "tests/core/test_acceptance_red_evidence.py:test_preserve_acceptance_red_evidence_accepts_reordering_within_layers:kind=test_function",
+          "tests/core/test_acceptance_red_evidence.py:test_preserve_acceptance_red_evidence_rejects_cross_layer_swap",
+          "tests/core/test_acceptance_red_evidence.py:test_preserve_acceptance_red_evidence_rejects_cross_layer_swap:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d9d7215474d831dc8e8782f442fc1b1075d17b7170153ccca3ef069f07028135",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_revise_preserve_command_mismatch.py": "sha256-pyast:v2:b28e39e951a4dc06c6abecce0e0d7062a2aa9cc8744d220c5f12e2987e7fa4aa",
+        "tests/cli/test_plan_revise_auto_preserve.py": "sha256-pyast:v2:45894dba876eefb71610329bbbd70d07130b7a2c8abba8aa1b50b94d4a49f04a",
+        "tests/core/test_plan_lock_red_evidence.py": "sha256-pyast:v2:474ceed3005a7923f0eebf12ed685760a257bead2ebf606b00b08d162881ee57",
+        "tests/core/test_plan_lock_evidence_integrity.py": "sha256-pyast:v2:5aed274e5b678b59132fd9e7341a343b1b0de6ea6b1fc634e0e6308dab875fbc",
+        "tests/core/test_file_discovery.py": "sha256-pyast:v2:0daea65436dc4f078ed7cbbe4aa2bac208aeb6992b4534ccc44ab1512ed0b5d6",
+        "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d",
+        "tests/core/test_acceptance_red_evidence.py": "sha256-pyast:v2:2161c694da03aa493044363492a99b691595b2a4c7055a8e9d9833a5c06d9430"
+      },
+      "revised_at": "2026-08-25T05:53:19.155726+00:00",
+      "reason": "Independent implementation review found unsupported command_source values could bypass unconditional E707 outside changed-manifest scope; add explicit fail-closed contract coverage.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_acceptance_red_evidence.py:test_acceptance_red_evidence_with_unknown_command_source_fails_e707",
+          "tests/core/test_acceptance_red_evidence.py:test_acceptance_red_evidence_with_unknown_command_source_fails_e707:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:81e7b799b5c47512dc831017077f52658c4d10c8fb3d10959da10d462147acd7",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_revise_preserve_command_mismatch.py": "sha256-pyast:v2:b28e39e951a4dc06c6abecce0e0d7062a2aa9cc8744d220c5f12e2987e7fa4aa",
+        "tests/cli/test_plan_revise_auto_preserve.py": "sha256-pyast:v2:45894dba876eefb71610329bbbd70d07130b7a2c8abba8aa1b50b94d4a49f04a",
+        "tests/core/test_plan_lock_red_evidence.py": "sha256-pyast:v2:474ceed3005a7923f0eebf12ed685760a257bead2ebf606b00b08d162881ee57",
+        "tests/core/test_plan_lock_evidence_integrity.py": "sha256-pyast:v2:5aed274e5b678b59132fd9e7341a343b1b0de6ea6b1fc634e0e6308dab875fbc",
+        "tests/core/test_file_discovery.py": "sha256-pyast:v2:0daea65436dc4f078ed7cbbe4aa2bac208aeb6992b4534ccc44ab1512ed0b5d6",
+        "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d",
+        "tests/core/test_acceptance_red_evidence.py": "sha256-pyast:v2:2161c694da03aa493044363492a99b691595b2a4c7055a8e9d9833a5c06d9430"
+      },
+      "revised_at": "2026-08-25T06:03:58.282538+00:00",
+      "reason": "Refresh the behavioral-test hash after the approved review regression was written; preserve the revision-12 contract and recapture honest red with implementation stashed.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-25T06:04:01.983238+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_acceptance_red_evidence.py",
+        "exit_code": 1,
+        "output_tail": "_____________________ test_cypress_suffixes_are_test_files _____________________\n\n    def test_cypress_suffixes_are_test_files() -> None:\n>       assert is_test_file(\"route-plan.cy.ts\") is True\nE       AssertionError: assert False is True\nE        +  where False = is_test_file('route-plan.cy.ts')\n\ntests/core/test_acceptance_red_evidence.py:487: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_acceptance_red_evidence.py::test_capture_uses_acceptance_red_when_validate_commands_are_green\nFAILED tests/core/test_acceptance_red_evidence.py::test_acceptance_red_evidence_passes_e707_command_integrity\nFAILED tests/core/test_acceptance_red_evidence.py::test_acceptance_red_evidence_missing_acceptance_command_fails_e707\nFAILED tests/core/test_acceptance_red_evidence.py::test_acceptance_red_evidence_cross_layer_swap_fails_e707\nFAILED tests/core/test_acceptance_red_evidence.py::test_acceptance_red_evidence_without_acceptance_snapshot_fails_e707\nFAILED tests/core/test_acceptance_red_evidence.py::test_acceptance_red_evidence_without_contract_snapshot_fails_e707\nFAILED tests/core/test_acceptance_red_evidence.py::test_capture_runs_all_acceptance_commands_and_rejects_invalid_exit\nFAILED tests/core/test_acceptance_red_evidence.py::test_preserve_acceptance_red_evidence_accepts_unchanged_commands\nFAILED tests/core/test_acceptance_red_evidence.py::test_preserve_acceptance_red_evidence_accepts_reordering_within_layers\nFAILED tests/core/test_acceptance_red_evidence.py::test_cypress_suffixes_are_test_files\n10 failed, 7 passed in 0.98s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest -q tests/core/test_plan_lock_red_evidence.py tests/core/test_plan_lock_evidence_integrity.py tests/core/test_file_discovery.py",
+        "exit_code": 0,
+        "output_tail": ".............................................                            [100%]\n45 passed in 0.49s",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run python -m pytest -q tests/docs/test_chain_merge_docs.py",
+        "exit_code": 0,
+        "output_tail": "...                                                                      [100%]\n3 passed in 0.16s",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_plan_revise_preserve_command_mismatch.py tests/cli/test_plan_revise_auto_preserve.py",
+        "exit_code": 0,
+        "output_tail": "..............                                                           [100%]\n14 passed in 1.15s",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:kind=function",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:returns=int",
+      "maid_runner/core/_file_discovery.py:function:is_test_file",
+      "maid_runner/core/_file_discovery.py:function:is_test_file:arg=path:type=str:default=None",
+      "maid_runner/core/_file_discovery.py:function:is_test_file:kind=function",
+      "maid_runner/core/_file_discovery.py:function:is_test_file:returns=bool",
+      "maid_runner/core/plan_lock.py:attribute:RedPhaseEvidence.command_source",
+      "maid_runner/core/plan_lock.py:attribute:RedPhaseEvidence.command_source:kind=attribute",
+      "maid_runner/core/plan_lock.py:attribute:RedPhaseEvidence.command_source:of=RedPhaseEvidence",
+      "maid_runner/core/plan_lock.py:attribute:RedPhaseEvidence.command_source:type=str | None",
+      "maid_runner/core/plan_lock.py:function:capture_red_phase_evidence",
+      "maid_runner/core/plan_lock.py:function:capture_red_phase_evidence:arg=command_timeout_seconds:type=int:default=300",
+      "maid_runner/core/plan_lock.py:function:capture_red_phase_evidence:arg=manifest_path:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:capture_red_phase_evidence:arg=project_root:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:capture_red_phase_evidence:kind=function",
+      "maid_runner/core/plan_lock.py:function:capture_red_phase_evidence:returns=RedPhaseEvidence",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=chain:type=ManifestChain:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=changed_paths:type=Collection[str] | None:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=plan_lock_scope:type=str:default='repository'",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=project_root:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=require_plan_lock:type=bool:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=require_red_evidence:type=bool:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:kind=function",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:returns=tuple[ValidationError, ...]",
+      "tests/core/test_acceptance_red_evidence.py:test_acceptance_red_evidence_cross_layer_swap_fails_e707",
+      "tests/core/test_acceptance_red_evidence.py:test_acceptance_red_evidence_cross_layer_swap_fails_e707:kind=test_function",
+      "tests/core/test_acceptance_red_evidence.py:test_acceptance_red_evidence_missing_acceptance_command_fails_e707",
+      "tests/core/test_acceptance_red_evidence.py:test_acceptance_red_evidence_missing_acceptance_command_fails_e707:kind=test_function",
+      "tests/core/test_acceptance_red_evidence.py:test_acceptance_red_evidence_passes_e707_command_integrity",
+      "tests/core/test_acceptance_red_evidence.py:test_acceptance_red_evidence_passes_e707_command_integrity:kind=test_function",
+      "tests/core/test_acceptance_red_evidence.py:test_acceptance_red_evidence_with_unknown_command_source_fails_e707",
+      "tests/core/test_acceptance_red_evidence.py:test_acceptance_red_evidence_with_unknown_command_source_fails_e707:kind=test_function",
+      "tests/core/test_acceptance_red_evidence.py:test_acceptance_red_evidence_without_acceptance_snapshot_fails_e707",
+      "tests/core/test_acceptance_red_evidence.py:test_acceptance_red_evidence_without_acceptance_snapshot_fails_e707:kind=test_function",
+      "tests/core/test_acceptance_red_evidence.py:test_acceptance_red_evidence_without_contract_snapshot_fails_e707",
+      "tests/core/test_acceptance_red_evidence.py:test_acceptance_red_evidence_without_contract_snapshot_fails_e707:kind=test_function",
+      "tests/core/test_acceptance_red_evidence.py:test_capture_does_not_mask_invalid_validate_with_acceptance_red",
+      "tests/core/test_acceptance_red_evidence.py:test_capture_does_not_mask_invalid_validate_with_acceptance_red:kind=test_function",
+      "tests/core/test_acceptance_red_evidence.py:test_capture_runs_all_acceptance_commands_and_rejects_invalid_exit",
+      "tests/core/test_acceptance_red_evidence.py:test_capture_runs_all_acceptance_commands_and_rejects_invalid_exit:kind=test_function",
+      "tests/core/test_acceptance_red_evidence.py:test_capture_skips_acceptance_when_validate_already_has_red",
+      "tests/core/test_acceptance_red_evidence.py:test_capture_skips_acceptance_when_validate_already_has_red:kind=test_function",
+      "tests/core/test_acceptance_red_evidence.py:test_capture_uses_acceptance_red_when_validate_commands_are_green",
+      "tests/core/test_acceptance_red_evidence.py:test_capture_uses_acceptance_red_when_validate_commands_are_green:kind=test_function",
+      "tests/core/test_acceptance_red_evidence.py:test_cypress_suffixes_are_test_files",
+      "tests/core/test_acceptance_red_evidence.py:test_cypress_suffixes_are_test_files:kind=test_function",
+      "tests/core/test_acceptance_red_evidence.py:test_legacy_validate_only_evidence_remains_valid_with_acceptance_contract",
+      "tests/core/test_acceptance_red_evidence.py:test_legacy_validate_only_evidence_remains_valid_with_acceptance_contract:kind=test_function",
+      "tests/core/test_acceptance_red_evidence.py:test_legacy_validate_only_evidence_without_contract_snapshot_remains_valid",
+      "tests/core/test_acceptance_red_evidence.py:test_legacy_validate_only_evidence_without_contract_snapshot_remains_valid:kind=test_function",
+      "tests/core/test_acceptance_red_evidence.py:test_preserve_acceptance_red_evidence_accepts_reordering_within_layers",
+      "tests/core/test_acceptance_red_evidence.py:test_preserve_acceptance_red_evidence_accepts_reordering_within_layers:kind=test_function",
+      "tests/core/test_acceptance_red_evidence.py:test_preserve_acceptance_red_evidence_accepts_unchanged_commands",
+      "tests/core/test_acceptance_red_evidence.py:test_preserve_acceptance_red_evidence_accepts_unchanged_commands:kind=test_function",
+      "tests/core/test_acceptance_red_evidence.py:test_preserve_acceptance_red_evidence_rejects_changed_acceptance_commands",
+      "tests/core/test_acceptance_red_evidence.py:test_preserve_acceptance_red_evidence_rejects_changed_acceptance_commands:kind=test_function",
+      "tests/core/test_acceptance_red_evidence.py:test_preserve_acceptance_red_evidence_rejects_cross_layer_swap",
+      "tests/core/test_acceptance_red_evidence.py:test_preserve_acceptance_red_evidence_rejects_cross_layer_swap:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_acceptance_red_evidence.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/plan.py",
+        "maid_runner/core/_file_discovery.py",
+        "maid_runner/core/plan_lock.py"
+      ],
+      "read": [
+        "maid_runner/core/_test_command_execution.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/result.py",
+        "maid_runner/core/types.py",
+        "manifests/067-06-cross-check-red-evidence-commands.manifest.yaml",
+        "manifests/085-04-test-only-green-red-evidence-mode.manifest.yaml",
+        "tests/cli/test_plan_revise_auto_preserve.py",
+        "tests/cli/test_plan_revise_preserve_command_mismatch.py",
+        "tests/core/test_file_discovery.py",
+        "tests/core/test_plan_lock_evidence_integrity.py",
+        "tests/core/test_plan_lock_red_evidence.py",
+        "tests/docs/test_chain_merge_docs.py"
+      ],
+      "scope": [
+        ".maid/docs/maid_specs.md",
+        "docs/maid_specs.md",
+        "maid_runner/docs/maid_specs.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_acceptance_red_evidence.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_capture_uses_acceptance_red_when_validate_commands_are_green",
+              "source_scenario": "A manifest has one green validate command and one acceptance command that exits 1 for the intended behavior failure.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "capture_red_phase_evidence"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Capture records both commands, marks command_source validate_and_acceptance, and reports valid red evidence."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_capture_skips_acceptance_when_validate_already_has_red",
+              "source_scenario": "A validate command exits 1 while an acceptance command would create an observable marker if executed.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "capture_red_phase_evidence"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Capture returns validate-only red evidence and the acceptance marker is absent."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_capture_does_not_mask_invalid_validate_with_acceptance_red",
+              "source_scenario": "A validate command exits 2 and an acceptance command would exit 1.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "capture_red_phase_evidence"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Capture remains invalid and does not execute the acceptance command."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_acceptance_red_evidence_passes_e707_command_integrity",
+              "source_scenario": "A lock saves marked evidence captured from one green validate command and one red acceptance command, then plan-lock enforcement runs.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "enforce_plan_locks"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Required plan-lock and red-evidence enforcement pass without E707."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_acceptance_red_evidence_missing_acceptance_command_fails_e707",
+              "source_scenario": "Marked validate_and_acceptance evidence is spliced to omit the locked acceptance command.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "enforce_plan_locks"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Enforcement fails with RED_EVIDENCE_COMMAND_MISMATCH."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_acceptance_red_evidence_cross_layer_swap_fails_e707",
+              "source_scenario": "Marked evidence retains its original command order while the locked contract snapshot swaps the validate and acceptance commands.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "enforce_plan_locks"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Enforcement fails with RED_EVIDENCE_COMMAND_MISMATCH even though the flattened combined command multiset is unchanged."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_acceptance_red_evidence_without_acceptance_snapshot_fails_e707",
+              "source_scenario": "Marked validate_and_acceptance evidence is paired with a lock contract whose acceptance_commands snapshot is missing.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "enforce_plan_locks"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Enforcement fails closed with RED_EVIDENCE_COMMAND_MISMATCH instead of applying legacy validate-only tolerance."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_acceptance_red_evidence_without_contract_snapshot_fails_e707",
+              "source_scenario": "Marked validate_and_acceptance evidence is paired with a lock whose entire _manifest_contract snapshot is missing.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "enforce_plan_locks"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Enforcement fails closed with RED_EVIDENCE_COMMAND_MISMATCH because marked evidence cannot receive legacy snapshot tolerance."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_acceptance_red_evidence_with_unknown_command_source_fails_e707",
+              "source_scenario": "A captured lock is tampered to use an unsupported non-null command_source while its validate evidence is also spliced, and repository-scope enforcement treats the manifest as unchanged.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "enforce_plan_locks"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Enforcement fails unconditionally with RED_EVIDENCE_COMMAND_MISMATCH rather than relying on changed-manifest E705 validity checks."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_legacy_validate_only_evidence_remains_valid_with_acceptance_contract",
+              "source_scenario": "An existing unmarked lock has validate-only red evidence and the manifest also declares acceptance commands.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "enforce_plan_locks"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The historical lock remains valid and does not receive E707."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_legacy_validate_only_evidence_without_contract_snapshot_remains_valid",
+              "source_scenario": "An unmarked validate-only evidence lock predates the entire _manifest_contract snapshot.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "enforce_plan_locks"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Legacy unmarked evidence retains historical snapshot tolerance and remains valid while the manifest hash still matches."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_capture_runs_all_acceptance_commands_and_rejects_invalid_exit",
+              "source_scenario": "Fast validate is green, the first acceptance command exits 1, and a later acceptance command exits 2.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "capture_red_phase_evidence"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Both acceptance commands run and aggregate evidence is invalid rather than accepting the earlier red exit."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_preserve_acceptance_red_evidence_accepts_unchanged_commands",
+              "source_scenario": "A marked validate_and_acceptance lock is explicitly revised with --preserve-red-evidence while both command lists are unchanged.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_plan_revise"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Revision succeeds and preserves the exact marked evidence payload."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_preserve_acceptance_red_evidence_rejects_changed_acceptance_commands",
+              "source_scenario": "A marked validate_and_acceptance lock is explicitly revised with --preserve-red-evidence after its acceptance command changes.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_plan_revise"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Revision refuses without modifying the lock because the acceptance command multiset no longer matches."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_preserve_acceptance_red_evidence_rejects_cross_layer_swap",
+              "source_scenario": "A marked lock's current manifest swaps its validate and acceptance commands before explicit --preserve-red-evidence revision.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_plan_revise"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Revision refuses without modifying the lock because command identity is bound separately to each layer."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_preserve_acceptance_red_evidence_accepts_reordering_within_layers",
+              "source_scenario": "A marked lock has two validate and two acceptance commands whose order changes only within each original layer.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "cmd_plan_revise"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Revision succeeds and preserves evidence because integrity comparison is order-insensitive inside each layer."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_cypress_suffixes_are_test_files",
+              "source_scenario": "The shared classifier receives conventional Cypress TypeScript and JavaScript basenames alongside a non-test source basename.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "is_test_file"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "All four .cy.* test suffixes are accepted and the ordinary source file is rejected."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/plan_lock.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "command_source",
+              "description": "Identifies evidence captured from validate plus acceptance commands; null preserves the historical validate-only evidence shape.",
+              "of": "RedPhaseEvidence",
+              "type": "str | None"
+            },
+            {
+              "kind": "function",
+              "name": "capture_red_phase_evidence",
+              "description": "Captures fast validate evidence first, then falls back to acceptance commands only when every fast command is green; marked fallback evidence remains command-bound through E707.",
+              "args": [
+                {
+                  "name": "manifest_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "command_timeout_seconds",
+                  "type": "int",
+                  "default": "300"
+                }
+              ],
+              "returns": "RedPhaseEvidence"
+            },
+            {
+              "kind": "function",
+              "name": "enforce_plan_locks",
+              "description": "Keeps legacy validate-only command integrity while binding validate_and_acceptance evidence to both locked command snapshots.",
+              "args": [
+                {
+                  "name": "chain",
+                  "type": "ManifestChain"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "require_plan_lock",
+                  "type": "bool"
+                },
+                {
+                  "name": "require_red_evidence",
+                  "type": "bool"
+                },
+                {
+                  "name": "changed_paths",
+                  "type": "Collection[str] | None",
+                  "default": "None"
+                },
+                {
+                  "name": "plan_lock_scope",
+                  "type": "str",
+                  "default": "'repository'"
+                }
+              ],
+              "returns": "tuple[ValidationError, ...]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/_file_discovery.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "is_test_file",
+              "description": "Recognizes standard Cypress .cy.ts/.tsx/.js/.jsx basenames in addition to existing test conventions.",
+              "args": [
+                {
+                  "name": "path",
+                  "type": "str"
+                }
+              ],
+              "returns": "bool"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/plan.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_plan_revise",
+              "description": "Allows explicit preservation of valid validate_and_acceptance evidence only when both locked and current validate plus acceptance command multisets remain unchanged.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/types.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/result.py",
+        "maid_runner/core/_test_command_execution.py",
+        "tests/cli/test_plan_revise_preserve_command_mismatch.py",
+        "tests/cli/test_plan_revise_auto_preserve.py",
+        "tests/core/test_plan_lock_red_evidence.py",
+        "tests/core/test_plan_lock_evidence_integrity.py",
+        "tests/core/test_file_discovery.py",
+        "tests/docs/test_chain_merge_docs.py",
+        "manifests/067-06-cross-check-red-evidence-commands.manifest.yaml",
+        "manifests/085-04-test-only-green-red-evidence-mode.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "docs/maid_specs.md",
+          "reason": "Document fast-first acceptance red capture, command-source integrity, and legacy-lock compatibility."
+        },
+        {
+          "path": "maid_runner/docs/maid_specs.md",
+          "reason": "Keep the packaged MAID specification mirror byte-identical to the canonical documentation."
+        },
+        {
+          "path": ".maid/docs/maid_specs.md",
+          "reason": "Keep the initialized repository-local MAID specification mirror byte-identical to the canonical documentation."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_plan_revise_auto_preserve.py",
+      "tests/cli/test_plan_revise_preserve_command_mismatch.py",
+      "tests/core/test_acceptance_red_evidence.py",
+      "tests/core/test_file_discovery.py",
+      "tests/core/test_plan_lock_evidence_integrity.py",
+      "tests/core/test_plan_lock_red_evidence.py",
+      "tests/docs/test_chain_merge_docs.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_acceptance_red_evidence.py",
+      "uv run python -m pytest -q tests/core/test_plan_lock_red_evidence.py tests/core/test_plan_lock_evidence_integrity.py tests/core/test_file_discovery.py",
+      "uv run python -m pytest -q tests/docs/test_chain_merge_docs.py",
+      "uv run python -m pytest -q tests/cli/test_plan_revise_preserve_command_mismatch.py tests/cli/test_plan_revise_auto_preserve.py"
+    ],
+    "acceptance_commands": []
+  }
+}

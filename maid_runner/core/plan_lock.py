@@ -50,6 +50,7 @@ _PYAST_HASH_PREFIX = "sha256-pyast:"
 _BYTE_HASH_PREFIX = "sha256:"
 _DELETED_FILE_FINGERPRINT = "<deleted>"
 _CLEAN_FILE_FINGERPRINT = "<clean>"
+_VALIDATE_AND_ACCEPTANCE_SOURCE = "validate_and_acceptance"
 
 
 class _PlanLockLoadError(Exception):
@@ -128,10 +129,11 @@ class RedPhaseEvidence:
     red: bool
     commands: tuple[RedPhaseCommandEvidence, ...]
     captured_at: str
+    command_source: str | None = None
 
     def to_payload(self) -> dict:
         """Serialize the evidence into the JSON payload stored in a plan lock."""
-        return {
+        payload = {
             "red": self.red,
             "captured_at": self.captured_at,
             "commands": [
@@ -144,6 +146,9 @@ class RedPhaseEvidence:
                 for command in self.commands
             ],
         }
+        if self.command_source is not None:
+            payload["command_source"] = self.command_source
+        return payload
 
 
 @dataclass(frozen=True)
@@ -652,12 +657,16 @@ def revision_preserves_red_evidence(
         return False
     if preserves_red or preserves_test_only_green:
         evidence_commands = existing.red_evidence.get("commands")
-        prior_commands = prior_contract.get("validate_commands")
-        new_commands = new_contract.get("validate_commands")
+        prior_command_groups = _red_evidence_contract_command_groups(
+            prior_contract, existing.red_evidence
+        )
+        new_command_groups = _red_evidence_contract_command_groups(
+            new_contract, existing.red_evidence
+        )
         if (
             not isinstance(evidence_commands, list)
-            or not isinstance(prior_commands, list)
-            or not isinstance(new_commands, list)
+            or prior_command_groups is None
+            or new_command_groups is None
         ):
             return False
         evidence_command_strings = [
@@ -665,12 +674,19 @@ def revision_preserves_red_evidence(
             for command in evidence_commands
             if isinstance(command, dict)
         ]
+        prior_validate, prior_acceptance = prior_command_groups
+        new_validate, new_acceptance = new_command_groups
+        validate_count = len(prior_validate)
+        evidence_validate = evidence_command_strings[:validate_count]
+        evidence_acceptance = evidence_command_strings[validate_count:]
         if (
             len(evidence_command_strings) != len(evidence_commands)
-            or not all(isinstance(command, str) for command in prior_commands)
-            or not all(isinstance(command, str) for command in new_commands)
-            or Counter(evidence_command_strings) != Counter(prior_commands)
-            or Counter(prior_commands) != Counter(new_commands)
+            or len(evidence_command_strings)
+            != len(prior_validate) + len(prior_acceptance)
+            or Counter(evidence_validate) != Counter(prior_validate)
+            or Counter(prior_validate) != Counter(new_validate)
+            or Counter(evidence_acceptance) != Counter(prior_acceptance)
+            or Counter(prior_acceptance) != Counter(new_acceptance)
         ):
             return False
 
@@ -814,7 +830,7 @@ def capture_red_phase_evidence(
     project_root: Path,
     command_timeout_seconds: int = 300,
 ) -> RedPhaseEvidence:
-    """Run the manifest's validate commands and record red-phase evidence."""
+    """Run fast validate commands, then acceptance commands when needed for red."""
     if command_timeout_seconds < 1:
         raise ValueError("Command timeout must be a positive integer")
 
@@ -837,11 +853,38 @@ def capture_red_phase_evidence(
                 classification=classify_red_exit_code(result.exit_code),
             )
         )
-    command_tuple = tuple(commands)
+    validate_command_tuple = tuple(commands)
+    if (
+        _has_valid_red_evidence(validate_command_tuple)
+        or any(command.classification != "not_red" for command in commands)
+        or manifest.acceptance is None
+    ):
+        return RedPhaseEvidence(
+            red=_has_valid_red_evidence(validate_command_tuple),
+            commands=validate_command_tuple,
+            captured_at=_utc_now(),
+        )
+
+    for command in manifest.acceptance.tests:
+        result = _run_test_command(
+            command,
+            cwd=root,
+            timeout=command_timeout_seconds,
+            manifest_slug=slug,
+        )
+        commands.append(
+            RedPhaseCommandEvidence(
+                command=shlex.join(command),
+                exit_code=result.exit_code,
+                output_tail=_combined_output_tail(result.stdout, result.stderr),
+                classification=classify_red_exit_code(result.exit_code),
+            )
+        )
     return RedPhaseEvidence(
-        red=_has_valid_red_evidence(command_tuple),
-        commands=command_tuple,
+        red=_has_valid_red_evidence(tuple(commands)),
+        commands=tuple(commands),
         captured_at=_utc_now(),
+        command_source=_VALIDATE_AND_ACCEPTANCE_SOURCE,
     )
 
 
@@ -1296,6 +1339,11 @@ def _manifest_contract(manifest: Manifest, project_root: Path) -> dict:
         "validate_commands": [
             shlex.join(command) for command in manifest.validate_commands
         ],
+        "acceptance_commands": (
+            [shlex.join(command) for command in manifest.acceptance.tests]
+            if manifest.acceptance is not None
+            else []
+        ),
     }
 
 
@@ -1746,25 +1794,78 @@ def _red_evidence_command_mismatch_detail(
     evidence = lock.red_evidence
     if not isinstance(evidence, dict):
         return None
+    command_source = evidence.get("command_source")
+    if command_source not in {None, _VALIDATE_AND_ACCEPTANCE_SOURCE}:
+        return f"red evidence uses unsupported command source {command_source!r}"
     commands = evidence.get("commands")
     if not isinstance(commands, list):
         return None
     contract = _load_locked_contract(lock_path)
     if contract is None:
+        if evidence.get("command_source") == _VALIDATE_AND_ACCEPTANCE_SOURCE:
+            return (
+                "acceptance-scoped red evidence lacks a locked manifest "
+                "contract snapshot"
+            )
         return None
-    snapshot = contract.get("validate_commands")
-    if not isinstance(snapshot, list):
+    snapshot_groups = _red_evidence_contract_command_groups(contract, evidence)
+    if snapshot_groups is None:
+        if evidence.get("command_source") == _VALIDATE_AND_ACCEPTANCE_SOURCE:
+            return (
+                "acceptance-scoped red evidence lacks a locked acceptance "
+                "command snapshot"
+            )
         return None
     evidence_commands = [
         command.get("command") for command in commands if isinstance(command, dict)
     ]
-    if Counter(evidence_commands) != Counter(snapshot):
-        return "red evidence commands do not match the locked validate commands"
+    validate_snapshot, acceptance_snapshot = snapshot_groups
+    validate_count = len(validate_snapshot)
+    evidence_validate = evidence_commands[:validate_count]
+    evidence_acceptance = evidence_commands[validate_count:]
+    if (
+        len(evidence_commands) != len(commands)
+        or len(evidence_commands) != len(validate_snapshot) + len(acceptance_snapshot)
+        or Counter(evidence_validate) != Counter(validate_snapshot)
+        or Counter(evidence_acceptance) != Counter(acceptance_snapshot)
+    ):
+        expected = (
+            "locked validate and acceptance command partitions"
+            if evidence.get("command_source") == _VALIDATE_AND_ACCEPTANCE_SOURCE
+            else "locked validate commands"
+        )
+        return f"red evidence commands do not match the {expected}"
     return None
+
+
+def _red_evidence_contract_command_groups(
+    contract: dict, evidence: dict
+) -> tuple[list[str], list[str]] | None:
+    validate_commands = contract.get("validate_commands")
+    if not isinstance(validate_commands, list) or not all(
+        isinstance(command, str) for command in validate_commands
+    ):
+        return None
+    command_source = evidence.get("command_source")
+    if command_source is None:
+        return validate_commands, []
+    if command_source != _VALIDATE_AND_ACCEPTANCE_SOURCE:
+        return None
+    acceptance_commands = contract.get("acceptance_commands")
+    if not isinstance(acceptance_commands, list) or not all(
+        isinstance(command, str) for command in acceptance_commands
+    ):
+        return None
+    return validate_commands, acceptance_commands
 
 
 def _red_evidence_is_valid(evidence: dict) -> bool:
     if not isinstance(evidence, dict) or evidence.get("red") is not True:
+        return False
+    if evidence.get("command_source") not in {
+        None,
+        _VALIDATE_AND_ACCEPTANCE_SOURCE,
+    }:
         return False
     mode = evidence.get("mode")
     if mode == "stash_restoration":
