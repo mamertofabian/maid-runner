@@ -1,0 +1,160 @@
+{
+  "manifest_path": "manifests/fix-artifact-coverage-multiprocessing-spawn.manifest.yaml",
+  "manifest_hash": "sha256-contract:8c3ef6cb390667ce3d6847dbbb1a8be5238e84fdefe56c1690b839e965108777",
+  "test_hashes": {
+    "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c34dfe965fa753658878c05966d0283f4abc97820a972e531ddc6fe2e1cf66de",
+    "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:58209da5bac256e1da44871ab1a283a0fea3560f2403a95a490481e8eb89b6b8",
+    "tests/core/test_artifact_coverage_resolver_permits.py": "sha256-pyast:v2:161b34f922883e437a9fc8edab824565accba15205b85c37725a6cd1ee9a4d31",
+    "tests/core/test_artifact_coverage_multiprocessing_spawn.py": "sha256-pyast:v2:631d926f780b27e8cafb45c18d17280b4e44ff7708d951f20e734ff9ca365387"
+  },
+  "created_at": "2026-08-30T23:28:44.210106+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:681ad8d5282c9943304a4477683421d10e0cc555c4c3b1f727bc7448ed2ac5d3",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c34dfe965fa753658878c05966d0283f4abc97820a972e531ddc6fe2e1cf66de",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:58209da5bac256e1da44871ab1a283a0fea3560f2403a95a490481e8eb89b6b8",
+        "tests/core/test_artifact_coverage_resolver_permits.py": "sha256-pyast:v2:161b34f922883e437a9fc8edab824565accba15205b85c37725a6cd1ee9a4d31",
+        "tests/core/test_artifact_coverage_multiprocessing_spawn.py": "sha256-pyast:v2:8c7c96d176ac70ed49e9a047cd3c9eff43ce4daf22c7daa8ec554c7d0aa65088"
+      },
+      "revised_at": "2026-08-30T23:29:04.210754+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-artifact-coverage-multiprocessing-spawn.manifest.yaml -> manifests/fix-artifact-coverage-multiprocessing-spawn.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:47d842eacac43a51609004869fa090f83c57bc46a5b87b6367d7bb26a7a189d2",
+      "prior_test_hashes": {
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c34dfe965fa753658878c05966d0283f4abc97820a972e531ddc6fe2e1cf66de",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:58209da5bac256e1da44871ab1a283a0fea3560f2403a95a490481e8eb89b6b8",
+        "tests/core/test_artifact_coverage_resolver_permits.py": "sha256-pyast:v2:161b34f922883e437a9fc8edab824565accba15205b85c37725a6cd1ee9a4d31",
+        "tests/core/test_artifact_coverage_multiprocessing_spawn.py": "sha256-pyast:v2:8c7c96d176ac70ed49e9a047cd3c9eff43ce4daf22c7daa8ec554c7d0aa65088"
+      },
+      "revised_at": "2026-08-30T23:37:39.749291+00:00",
+      "reason": "Independent review showed spawn children inherit mutable sys.argv, so the contract now requires import safety with unrelated child arguments.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-30T23:38:04.443453+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_artifact_coverage_multiprocessing_spawn.py",
+        "exit_code": 1,
+        "output_tail": "E             main_content = runpy.run_path(main_path,\nE                            ^^^^^^^^^^^^^^^^^^^^^^^^^\nE           File \"<frozen runpy>\", line 287, in run_path\nE           File \"<frozen runpy>\", line 98, in _run_module_code\nE           File \"<frozen runpy>\", line 88, in _run_code\nE           File \"/tmp/maid-artifact-coverage-command-gk_aeiji/artifact_coverage_runner.py\", line 10, in <module>\nE             target_files = set(json.loads(Path(sys.argv[2]).read_text()))\nE                                                ~~~~~~~~^^^\nE         IndexError: list index out of range\nE         =========================== short test summary info ============================\nE         FAILED tests/test_spawn.py::test_spawned_children_overlap - _queue.Empty\nE         1 failed in 5.10s\nE         \nE       assert 1 == 0\nE        +  where 1 = RuntimeCommandRecord(command=('tests/test_spawn.py', '-q'), returncode=1, stdout='F                                   ...py': RuntimeFileExecution(executed_lines=frozenset({1}), called_qualnames=frozenset({'<module>'}))}), report_errors=()).returncode\n\ntests/core/test_artifact_coverage_multiprocessing_spawn.py:76: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_artifact_coverage_multiprocessing_spawn.py::test_artifact_coverage_preserves_overlapping_spawn_children\n1 failed in 6.22s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest -q tests/core/test_artifact_coverage.py tests/core/test_artifact_coverage_fallback_workers.py tests/core/test_artifact_coverage_resolver_permits.py",
+        "exit_code": 0,
+        "output_tail": "..................................                                       [100%]\n34 passed in 17.69s",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/test_artifact_coverage_multiprocessing_spawn.py:test_artifact_coverage_preserves_overlapping_spawn_children",
+      "tests/core/test_artifact_coverage_multiprocessing_spawn.py:test_artifact_coverage_preserves_overlapping_spawn_children:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_artifact_coverage_multiprocessing_spawn.py:test_artifact_coverage_preserves_overlapping_spawn_children:kind=test_function",
+      "tests/core/test_artifact_coverage_multiprocessing_spawn.py:test_artifact_coverage_preserves_overlapping_spawn_children:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_artifact_coverage_multiprocessing_spawn.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/core/_test_command_execution.py",
+        "maid_runner/core/result.py",
+        "manifests/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml",
+        "manifests/fix-artifact-coverage-resolver-permit-starvation.manifest.yaml",
+        "tests/core/test_artifact_coverage.py",
+        "tests/core/test_artifact_coverage_fallback_workers.py",
+        "tests/core/test_artifact_coverage_resolver_permits.py"
+      ],
+      "scope": [
+        "maid_runner/core/_runtime_command_executor.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_artifact_coverage_multiprocessing_spawn.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_artifact_coverage_preserves_overlapping_spawn_children",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A real artifact-coverage command runs a pytest test that replaces sys.argv, starts two spawn-based multiprocessing children, and holds both alive before releasing either.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "SubprocessRuntimeCommandExecutor"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The command exits successfully despite unrelated inherited argv, both children are simultaneously alive and return their results, and parent-process artifact execution evidence remains populated."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_test_command_execution.py",
+        "maid_runner/core/result.py",
+        "tests/core/test_artifact_coverage.py",
+        "tests/core/test_artifact_coverage_fallback_workers.py",
+        "tests/core/test_artifact_coverage_resolver_permits.py",
+        "manifests/121-15-parallelize-isolated-artifact-coverage-fallbacks.manifest.yaml",
+        "manifests/fix-artifact-coverage-resolver-permit-starvation.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_runtime_command_executor.py",
+          "reason": "Make the private generated artifact-coverage runner import-safe for multiprocessing spawn without changing public signatures or xdist permit policy."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_artifact_coverage.py",
+      "tests/core/test_artifact_coverage_fallback_workers.py",
+      "tests/core/test_artifact_coverage_multiprocessing_spawn.py",
+      "tests/core/test_artifact_coverage_resolver_permits.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_artifact_coverage_multiprocessing_spawn.py",
+      "uv run python -m pytest -q tests/core/test_artifact_coverage.py tests/core/test_artifact_coverage_fallback_workers.py tests/core/test_artifact_coverage_resolver_permits.py"
+    ],
+    "acceptance_commands": []
+  }
+}

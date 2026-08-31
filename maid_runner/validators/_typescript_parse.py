@@ -21,6 +21,7 @@ _IMPORT_TYPE_ARGUMENT = re.compile(
     rb"""(?:\s*\.\s*[A-Za-z_$][A-Za-z0-9_$]*)+\s*>""",
     re.DOTALL,
 )
+_IN_PREFIXED_PROPERTY_ERROR = re.compile(rb"in_[A-Za-z_$][A-Za-z0-9_$]*\??\s*:")
 
 
 class TypeScriptParseSession:
@@ -49,10 +50,24 @@ def parse_typescript_source(
     parser = tsx_parser if str(file_path).endswith((".tsx", ".jsx")) else ts_parser
     tree = parser.parse(source_bytes)
     parse_errors = collect_parse_errors(tree.root_node)
+    tree_bytes = source_bytes
 
     if parse_errors:
         parse_bytes = _sanitize_type_query_imports_for_tree_sitter(source_bytes)
         if parse_bytes != source_bytes:
+            sanitized_tree = parser.parse(parse_bytes)
+            sanitized_errors = collect_parse_errors(sanitized_tree.root_node)
+            if len(sanitized_errors) < len(parse_errors):
+                tree = sanitized_tree
+                parse_errors = sanitized_errors
+                tree_bytes = parse_bytes
+
+    if parse_errors:
+        parse_bytes = _sanitize_in_prefixed_property_errors(
+            tree_bytes,
+            tree.root_node,
+        )
+        if parse_bytes != tree_bytes:
             sanitized_tree = parser.parse(parse_bytes)
             sanitized_errors = collect_parse_errors(sanitized_tree.root_node)
             if len(sanitized_errors) < len(parse_errors):
@@ -90,6 +105,23 @@ def _sanitize_type_query_imports_for_tree_sitter(source_bytes: bytes) -> bytes:
 
     sanitized = _TYPEOF_IMPORT_TYPE_ARGUMENT.sub(placeholder, source_bytes)
     return _IMPORT_TYPE_ARGUMENT.sub(placeholder, sanitized)
+
+
+def _sanitize_in_prefixed_property_errors(source_bytes: bytes, root: Any) -> bytes:
+    """Mask exact valid property prefixes misparsed by tree-sitter-typescript."""
+    output = bytearray(source_bytes)
+    changed = False
+    stack = [root]
+    while stack:
+        current = stack.pop()
+        if current.type == "ERROR":
+            error_bytes = source_bytes[current.start_byte : current.end_byte]
+            if _IN_PREFIXED_PROPERTY_ERROR.match(error_bytes):
+                output[current.start_byte : current.start_byte + 2] = b"xx"
+                changed = True
+            continue
+        stack.extend(reversed(current.children))
+    return bytes(output) if changed else source_bytes
 
 
 def collect_parse_errors(node: Any) -> list[str]:
