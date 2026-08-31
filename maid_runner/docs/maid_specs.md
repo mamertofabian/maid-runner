@@ -84,7 +84,12 @@ The development process is broken down into distinct phases, characterized by tw
 `.maid/plan-locks/<manifest-slug>.lock.json`. The lock records content hashes
 for the approved manifest and its behavioral test files, the creation
 timestamp, revision metadata, and red-phase evidence captured from the
-manifest's `validate:` commands.
+manifest's `validate:` commands. When every fast validate command is green,
+capture falls back to `acceptance.tests` so a browser or end-to-end contract
+can supply genuine red evidence without violating the fast-layer E231 rule.
+Fallback evidence records `command_source: validate_and_acceptance`; an invalid
+validate exit prevents fallback so acceptance red cannot hide broken fast-test
+infrastructure. If validate already supplies red, acceptance is not run.
 
 New locks store the manifest pin as a contract-scoped hash with the
 `sha256-contract:` prefix: the runner parses the manifest YAML, removes only
@@ -321,8 +326,8 @@ scope: E701 BEHAVIORAL_TEST_MODIFIED_AFTER_LOCK and E702 MANIFEST_CONTRACT_WEAKE
 E703 PLAN_LOCK_STALE applies when a lock references a missing manifest,
 E706 PLAN_LOCK_UNREADABLE applies when a lock file exists but is corrupt,
 unreadable, or malformed, and E707 RED_EVIDENCE_COMMAND_MISMATCH applies when
-a lock's red-phase evidence command strings do not match the `validate_commands`
-snapshot recorded in the lock's manifest contract. E702 applies when declared
+a lock's red-phase evidence command strings do not match the source-selected
+command snapshots recorded in the lock's manifest contract. E702 applies when declared
 artifacts or behavioral test entries shrink relative to the locked manifest;
 additive manifest changes are legal.
 E708 PLAN_LOCK_SCOPE_WIDENED is a warning reporting that enforcement widened beyond the task window.
@@ -331,13 +336,17 @@ E708 reports this widening without changing which manifests are enforced, and
 callers should reconcile the named manifests or pass an explicit baseline when
 the wider scope was not intended.
 
-E707 binds red-phase evidence to the validate commands that produced it.
+E707 binds red-phase evidence to the commands that produced it. Historical
+unmarked evidence remains bound to the validate commands only. Evidence marked
+`command_source: validate_and_acceptance` is bound to both the validate and
+acceptance command snapshots, so omitting or splicing either layer fails closed
+without invalidating existing validate-only locks.
 Sanctioned flows (`maid plan lock`, `maid plan revise`, and the promote
-migration) snapshot the manifest's validate command strings into the lock's
-`_manifest_contract.validate_commands` at save time, so honest locks are
-self-consistent. A lock whose `red_evidence` command multiset differs from
-that snapshot is spliced or hand-edited evidence and fails closed. The
-comparison targets the snapshot, not the current manifest: post-lock additive
+migration) snapshot the manifest's validate and acceptance command strings into
+the lock's `_manifest_contract` at save time, so honest locks are
+self-consistent. A lock whose `red_evidence` command multiset differs from its
+source-selected snapshot is spliced or hand-edited evidence and fails closed.
+The comparison targets the snapshot, not the current manifest: post-lock additive
 validate edits remain legal, and contract shrinkage stays E702's job. Locks
 created before the snapshot field existed skip the check until their next
 sanctioned re-save, and locks with `red_evidence: null` are owned by E704

@@ -1,0 +1,167 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Align distributed MAID implementation reviewer guidance with every writable manifest file category while preserving artifact-only checks for contracted files
+type: fix
+created: '2026-08-25T00:04:45Z'
+metadata:
+  tags:
+  - agent-skills
+  - implementation-review
+  - files-scope
+  priority: medium
+description: |
+  Generated reviewer guidance currently rejects legitimate implementation changes because
+  the Claude reviewer agent authorizes only files.create/files.edit and the Claude/Codex
+  review skills omit files.delete. Align all source and packaged reviewer payloads with the
+  manifest writable-scope model: files.create, files.edit, files.scope, and files.delete
+  authorize changed production paths, while public artifact validation remains limited to
+  contracted files.create/files.edit entries. Bump the instruction payload version so
+  downstream `maid init --check` detects the corrected reviewer contract.
+
+  Rationale: scope-only wiring and intentional deletions are valid writable operations but
+  do not declare public artifacts. Keeping file authorization and artifact verification as
+  separate reviewer steps avoids both false rejections and weakened artifact checks.
+temptations:
+- risk: Patch only the repo-local reviewer files and leave packaged init payloads stale.
+  instead: Edit repo-owned source payloads, run the synchronization script, and assert source/package parity for Claude and Codex.
+- risk: Add files.scope and files.delete to artifact validation as if both categories declared public artifacts.
+  instead: Authorize all four writable categories for changed-file scope, then explicitly restrict artifact checks to files.create and files.edit declarations.
+- risk: Treat files.read as writable while broadening reviewer scope.
+  instead: Preserve files.read as dependency context that never authorizes a production edit.
+- risk: Change init-distributed guidance without making stale downstream installs detectable.
+  instead: Advance INSTRUCTION_PAYLOAD_VERSION past 2026.08.20.1 and pin the version floor in the behavioral test.
+files:
+  edit:
+  - path: .claude/agents/maid-implementation-reviewer.md
+    artifacts:
+    - kind: attribute
+      name: _claude_reviewer_agent_scope_contract
+      of: agent guidance
+      type: markdown guidance
+      description: Claude reviewer agent authorizes files.create, files.edit, files.scope, and files.delete while limiting artifact verification to contracted entries.
+  - path: .claude/skills/maid-implementation-review/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _claude_review_skill_scope_contract
+      of: skill
+      type: markdown guidance
+      description: Claude review skill consistently distinguishes all writable categories from artifact-bearing files.create/files.edit entries.
+  - path: .codex/skills/maid-implementation-review/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _codex_review_skill_scope_contract
+      of: skill
+      type: markdown guidance
+      description: Codex review skill consistently distinguishes all writable categories from artifact-bearing files.create/files.edit entries.
+  - path: maid_runner/claude/agents/maid-implementation-reviewer.md
+    artifacts:
+    - kind: attribute
+      name: _packaged_claude_reviewer_agent_scope_contract
+      of: agent guidance
+      type: markdown guidance
+      description: Packaged Claude reviewer agent mirrors the corrected source scope contract.
+  - path: maid_runner/claude/skills/maid-implementation-review/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _packaged_claude_review_skill_scope_contract
+      of: skill
+      type: markdown guidance
+      description: Packaged Claude review skill mirrors the corrected source scope contract.
+  - path: maid_runner/codex/skills/maid-implementation-review/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _packaged_codex_review_skill_scope_contract
+      of: skill
+      type: markdown guidance
+      description: Packaged Codex review skill mirrors the corrected source scope contract.
+  - path: maid_runner/instruction_payload.py
+    artifacts:
+    - kind: attribute
+      name: INSTRUCTION_PAYLOAD_VERSION
+      type: str
+      description: Date-stamped payload version advances past 2026.08.20.1 for corrected init-distributed reviewer guidance.
+  create:
+  - path: tests/test_reviewer_writable_scope_guidance.py
+    artifacts:
+    - kind: test_function
+      name: test_reviewer_guidance_accepts_all_writable_scope_categories
+      args: []
+      returns: None
+      description: Every reviewer source and packaged payload authorizes create, edit, scope, and delete while keeping read contextual.
+    - kind: test_function
+      name: test_reviewer_guidance_limits_artifact_checks_to_contracted_files
+      args: []
+      returns: None
+      description: Every reviewer payload states that artifact verification applies to files.create and files.edit rather than scope-only or deleted paths.
+    - kind: test_function
+      name: test_reviewer_payload_sources_and_packages_match
+      args: []
+      returns: None
+      description: Claude agent and Claude/Codex review skill source payloads match their packaged copies byte-for-byte.
+    - kind: test_function
+      name: test_instruction_payload_version_bumped_for_reviewer_scope_fix
+      args: []
+      returns: None
+      description: Instruction payload version is newer than the defective 2026.08.20.1 payload.
+  read:
+  - scripts/sync_claude_files.py
+  - manifests/085-01-fix-agent-skill-scope-install-guidance.manifest.yaml
+  - tests/test_claude_skill_distribution.py
+validate:
+- uv run python -m pytest -q tests/test_reviewer_writable_scope_guidance.py tests/test_claude_skill_distribution.py tests/cli/test_init_instruction_payload_version.py
+- uv run maid validate manifests/fix-reviewer-writable-scope-guidance.manifest.yaml --mode behavioral --quiet
+outcome:
+  status: completed
+  completed_at: '2026-08-25T08:25:00+08:00'
+  summary: Distributed Claude and Codex implementation reviewers now authorize files.create, files.edit, files.scope, and files.delete while keeping files.read contextual and artifact verification limited to create/edit declarations.
+  rationale: Separating writable-path authorization from public-artifact verification aligns reviewers with the manifest schema without inventing artifacts for scope-only wiring or deleted files. Source payloads remain canonical, synchronized package copies are byte-identical, and payload version 2026.08.25.1 makes stale downstream installs detectable.
+  lessons:
+  - lesson_type: agent-skills
+    summary: Reviewer guidance must use the same four-category writable scope model as implementer guidance, while explicitly keeping artifact checks on artifact-bearing create/edit entries only.
+    tags:
+    - implementation-review
+    - files-scope
+    - payload-sync
+    - maid-runner-feedback
+    paths:
+    - .claude/agents/maid-implementation-reviewer.md
+    - .claude/skills/maid-implementation-review/SKILL.md
+    - .codex/skills/maid-implementation-review/SKILL.md
+  - lesson_type: validation-trust
+    summary: Test files under files.read participate in behavioral command-integrity checks; remove unused test dependencies or execute them explicitly before locking the final contract.
+    tags:
+    - behavioral-tests
+    - e230
+    - plan-revision
+    paths:
+    - manifests/fix-reviewer-writable-scope-guidance.manifest.yaml
+  review_notes:
+  - source: independent-review-review_reviewer_scope_fix
+    severity: ready
+    summary: The read-only reviewer found no blockers and verified writable-scope semantics, artifact boundaries, payload parity, versioning, declared scope, and validation integrity.
+  - source: independent-review-review_reviewer_scope_fix
+    severity: advisory
+    summary: Optional future hardening could assert the complete negative files.read authorization phrase; all current payloads already state that files.read does not authorize production edits.
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/test_reviewer_writable_scope_guidance.py, tests/test_claude_skill_distribution.py, tests/cli/test_init_instruction_payload_version.py]
+    status: passed
+    summary: 16 focused reviewer guidance, payload distribution, and instruction-version tests passed after the new behavioral contract failed for the intended three defects.
+  - command: [uv, run, maid, validate, manifests/fix-reviewer-writable-scope-guidance.manifest.yaml, --mode, implementation, --packet]
+    status: passed
+    summary: Implementation validation passed with only expected non-code E307 warnings for the six Markdown payload files.
+  - command: [uv, run, maid, test, --manifest, manifests/fix-reviewer-writable-scope-guidance.manifest.yaml]
+    status: passed
+    summary: Both manifest-declared validation commands passed.
+  - command: [uv, run, maid, validate]
+    status: passed
+    summary: Repository-wide validation checked 650 manifests; 290 active passed, 0 failed, and 360 superseded were skipped.
+  - command: [uv, run, maid, test]
+    status: passed
+    summary: All 298 active manifest commands passed.
+  - command: [uv, run, maid, verify, --profile, deep, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, 9d58c4fa45fdd6d1945d324dfca289c67d14b3c9]
+    status: passed
+    summary: All 11 assessed deep stages passed with zero blockers; only the existing ts_compiler_resolver.cjs E307 warning family remained.

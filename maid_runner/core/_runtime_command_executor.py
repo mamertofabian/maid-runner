@@ -352,12 +352,8 @@ import sys
 import threading
 from pathlib import Path
 
-call_output = Path(sys.argv[1])
-target_files = set(json.loads(Path(sys.argv[2]).read_text()))
-strict_validation = sys.argv[3] == "1"
-pytest_args = sys.argv[4:]
+target_files = set()
 calls: set[tuple[str, str, str, int]] = set()
-exit_code = 1
 monitoring_tool_id = None
 monitoring_ref = None
 monitoring_disable = None
@@ -443,28 +439,36 @@ def stop_call_monitoring():
     threading.setprofile(None)
 
 
-start_call_monitoring()
-if "MAID_ARTIFACT_COVERAGE_DATA" not in os.environ:
-    os.environ.pop("COVERAGE_CORE", None)
+def main():
+    global target_files
+    call_output = Path(sys.argv[1])
+    target_files = set(json.loads(Path(sys.argv[2]).read_text()))
+    strict_validation = sys.argv[3] == "1"
+    pytest_args = sys.argv[4:]
+    start_call_monitoring()
+    if "MAID_ARTIFACT_COVERAGE_DATA" not in os.environ:
+        os.environ.pop("COVERAGE_CORE", None)
 
-try:
-    sys.path.insert(0, str(Path.cwd()))
-    import pytest
-    from maid_runner.core._test_command_execution import (
-        _strict_validation_test_environment,
-    )
+    try:
+        sys.path.insert(0, str(Path.cwd()))
+        import pytest
+        from maid_runner.core._test_command_execution import (
+            _strict_validation_test_environment,
+        )
 
-    with _strict_validation_test_environment(strict_validation, process_wide=True):
-        exit_code = pytest.main(pytest_args)
-finally:
-    stop_call_monitoring()
-    payload = [
-        {"file": file, "name": name, "qualname": qualname, "firstlineno": firstlineno}
-        for file, name, qualname, firstlineno in sorted(calls)
-    ]
-    call_output.write_text(json.dumps(payload))
+        with _strict_validation_test_environment(strict_validation, process_wide=True):
+            return pytest.main(pytest_args)
+    finally:
+        stop_call_monitoring()
+        payload = [
+            {"file": file, "name": name, "qualname": qualname, "firstlineno": firstlineno}
+            for file, name, qualname, firstlineno in sorted(calls)
+        ]
+        call_output.write_text(json.dumps(payload))
 
-raise SystemExit(exit_code)
+
+if __name__ == "__main__":
+    raise SystemExit(main())
 """.lstrip()
     )
     return runner

@@ -1,0 +1,133 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Collect explicit TypeScript type-predicate and assertion return annotations without false E304 warnings"
+type: fix
+created: "2026-08-24T23:38:49Z"
+metadata:
+  bug_report: ~/.maid/bug-report/20260824-222144-studyfinder-typescript-type-predicate.md
+  tags:
+    - typescript
+    - tree-sitter
+    - implementation-validation
+    - e304
+  priority: high
+description: |
+  TypeScript's Tree-sitter grammar exposes ordinary return annotations as
+  `type_annotation`, predicates such as `value is GeoPoint` and `this is Box`
+  as `type_predicate_annotation`, and assertion signatures such as
+  `asserts value is GeoPoint` as `asserts_annotation`. The shared implementation
+  collector currently searches only for a direct `type_annotation` child, so
+  valid predicates and assertions are collected with no return type and later
+  produce the misleading E304 "Missing return type annotation" warning.
+
+  Read the grammar's named `return_type` field at the existing function-signature
+  collection seam so declarations, arrow functions, class methods, and interface
+  methods preserve all explicit return annotation forms. Keep ordinary return
+  collection, argument collection, JavaScript JSDoc fallback, generic type
+  comparison, diagnostic severity, and downstream application contracts
+  unchanged. The behavioral contract exercises the public TypeScriptValidator
+  API rather than private parser helpers.
+temptations:
+  - risk: "Do not weaken a predicate manifest return to boolean or suppress E304 to make strict verification pass."
+    instead: "Preserve the explicit predicate text during TypeScript artifact collection so normal implementation validation can compare the real contract."
+  - risk: "Do not add a Studyfinder-specific string or AST-node whitelist."
+    instead: "Use Tree-sitter's named return_type field at the shared function-signature seam and cover every supported function-like form."
+  - risk: "Do not broaden the generic type matcher or shared E304 policy as part of this collector fix."
+    instead: "Keep comparison and diagnostic behavior unchanged; prove the exact predicate annotation reaches them through the public validator API."
+  - risk: "Do not test the private _extract_func_signature helper directly."
+    instead: "Collect artifacts through TypeScriptValidator and assert observable return annotations and end-to-end diagnostics."
+files:
+  create:
+    - path: tests/validators/test_typescript_type_predicates.py
+      artifacts:
+        - kind: test_function
+          name: test_collects_type_predicate_returns_from_function_like_declarations
+          source_scenario: "TypeScript function declarations, arrow functions, class methods, and interface methods explicitly return parameter or this type predicates."
+          actions:
+            - type: api_call
+              subject:
+                method: TypeScriptValidator.collect_implementation_artifacts
+          expected:
+            behavior: "Every collected function or method preserves its exact explicit predicate return annotation instead of reporting no return type."
+        - kind: test_function
+          name: test_collects_assertion_signature_returns
+          source_scenario: "TypeScript functions explicitly return both asserts-value-is-Type and asserts-condition assertion signatures."
+          actions:
+            - type: api_call
+              subject:
+                method: TypeScriptValidator.collect_implementation_artifacts
+          expected:
+            behavior: "Each collected function preserves the complete assertion annotation while ordinary argument annotations remain unchanged."
+        - kind: test_function
+          name: test_type_predicate_contract_avoids_false_missing_return_warning
+          source_scenario: "A manifest declares a TypeScript function returning value is GeoPoint and the implementation carries that exact explicit predicate annotation."
+          actions:
+            - type: api_call
+              subject:
+                function: validate
+          expected:
+            behavior: "Implementation validation emits neither E304 MISSING_RETURN_TYPE nor E302 TYPE_MISMATCH for the correctly annotated predicate function."
+  scope:
+    - path: maid_runner/validators/_typescript_implementation.py
+      reason: "Change the private shared function-signature extraction seam without expanding the public validator API."
+  read:
+    - maid_runner/validators/typescript.py
+    - maid_runner/core/_implementation_validation.py
+    - maid_runner/core/_type_compare.py
+    - manifests/029-02-move-typescript-implementation-collector-module.manifest.yaml
+    - manifests/normalize-multiline-type-whitespace.manifest.yaml
+validate:
+  - ["uv", "run", "pytest", "tests/validators/test_typescript_type_predicates.py", "-q"]
+outcome:
+  status: completed
+  summary: "TypeScript implementation collection now preserves explicit predicate and assertion return annotations, eliminating false E304 warnings without weakening manifests or diagnostic policy."
+  rationale: "Tree-sitter exposes ordinary types, predicates, and assertion signatures through one named return_type field even though their concrete node kinds differ. Reading that field at the existing shared signature seam fixes every supported function-like collector path while leaving the generic comparator, JavaScript JSDoc fallback, and downstream validation policy unchanged."
+  completed_at: "2026-08-25T07:49:13+08:00"
+  lessons:
+    - lesson_type: validation-boundary
+      summary: "When one language grammar represents equivalent semantic roles with different node kinds, collect through the grammar's named field at the language boundary instead of enumerating syntax-specific node kinds or compensating in generic validation."
+      tags:
+        - typescript
+        - tree-sitter
+        - artifact-collection
+      paths:
+        - maid_runner/validators/_typescript_implementation.py
+        - tests/validators/test_typescript_type_predicates.py
+    - lesson_type: contract-scope
+      summary: "Test modules listed under files.read participate in behavioral test discovery; planning-only test references should be removed before the full maid test gate unless the manifest validate commands intentionally execute them."
+      tags:
+        - plan-lock
+        - behavioral-tests
+        - test-discovery
+      paths:
+        - manifests/fix-typescript-type-predicate-return-annotations.manifest.yaml
+  review_notes:
+    - source: independent-read-only-review
+      severity: ready
+      summary: "The reviewer found no blocking findings and judged scope, contract fidelity, ordinary-return compatibility, predicate coverage, and the shared return_type implementation ready."
+    - source: independent-read-only-review
+      severity: advisory
+      summary: "Optional future hardening could add assertion annotations on more function-like syntax forms; current predicate coverage already spans declarations, arrows, class methods, this predicates, and interface methods, and the shared field is not syntax-specific."
+  validation:
+    - command: ["uv", "run", "pytest", "tests/validators/test_typescript_type_predicates.py", "-q"]
+      status: passed
+      summary: "3 focused behavioral tests passed after all 3 failed in the pre-implementation red phase for missing collected returns and E304."
+    - command: ["uv", "run", "pytest", "tests/validators/test_typescript_implementation_collector_refactor.py", "tests/validators/test_typescript_artifact_edge_cases.py", "tests/validators/test_type_comparison_hook.py", "-q"]
+      status: passed
+      summary: "80 adjacent TypeScript collector and comparator regressions passed."
+    - command: ["uv", "run", "python", "-m", "pytest", "tests/", "-q", "-n", "auto"]
+      status: passed
+      summary: "The full repository suite passed with 4612 passed and 14 skipped."
+    - command: ["uv", "run", "maid", "validate", "--packet"]
+      status: passed
+      summary: "649 manifests checked: 289 active passed, 0 failed, and 360 superseded skipped."
+    - command: ["uv", "run", "maid", "test", "--jobs", "1", "--pytest-workers", "4"]
+      status: passed
+      summary: "All 297 active manifest test commands passed."
+    - command: ["uv", "run", "maid", "verify", "--profile", "deep", "--test-scope", "task", "--require-plan-lock", "--require-red-evidence", "--since", "HEAD"]
+      status: passed
+      summary: "All 11 deep verification stages passed with no blockers; the only warning was the pre-existing unsupported ts_compiler_resolver.cjs validator diagnostic."

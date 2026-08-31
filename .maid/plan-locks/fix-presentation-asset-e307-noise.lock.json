@@ -1,0 +1,218 @@
+{
+  "manifest_path": "manifests/fix-presentation-asset-e307-noise.manifest.yaml",
+  "manifest_hash": "sha256-contract:aa32a8d4b624d4336e744d88f1672e4c18e3588dcc4f0606a8f88664849c2bd9",
+  "test_hashes": {
+    "tests/core/test_e307_proportionate_policy.py": "sha256-pyast:v2:d231acd0dfd90c2acd76511b102286fdd28af5dea02f72b1eff8fe52b2130417",
+    "tests/core/test_presentation_asset_e307_policy.py": "sha256-pyast:v2:f303c748cd47543f83fc34566678a4d1f87a1d9a123cb9a22761a94f79cbc54c"
+  },
+  "created_at": "2026-08-24T23:07:32.152279+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:1c83dbd3f422a840b8377a3ba8c6990c09989f25e24362f1025c0e88a99af437",
+      "prior_test_hashes": {
+        "tests/core/test_e307_proportionate_policy.py": "sha256-pyast:v2:d231acd0dfd90c2acd76511b102286fdd28af5dea02f72b1eff8fe52b2130417",
+        "tests/core/test_presentation_asset_e307_policy.py": "sha256-pyast:v2:f303c748cd47543f83fc34566678a4d1f87a1d9a123cb9a22761a94f79cbc54c"
+      },
+      "revised_at": "2026-08-24T23:07:42.804380+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-presentation-asset-e307-noise.manifest.yaml -> manifests/fix-presentation-asset-e307-noise.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-presentation-asset-e307-noise.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/fix-presentation-asset-e307-noise.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-presentation-asset-e307-noise.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/fix-presentation-asset-e307-noise.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ff3daf44af85b29fe4990acf7cef7d73d2c58624e624d64ec273dfba238e62a3",
+      "prior_test_hashes": {
+        "tests/core/test_e307_proportionate_policy.py": "sha256-pyast:v2:d231acd0dfd90c2acd76511b102286fdd28af5dea02f72b1eff8fe52b2130417",
+        "tests/core/test_presentation_asset_e307_policy.py": "sha256-pyast:v2:f303c748cd47543f83fc34566678a4d1f87a1d9a123cb9a22761a94f79cbc54c"
+      },
+      "revised_at": "2026-08-24T23:09:22.338543+00:00",
+      "reason": "Run every behavioral test file that exercises the evolved no_validator_severity contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest tests/core/test_e307_proportionate_policy.py tests/core/test_presentation_asset_e307_policy.py -v"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest tests/core/test_presentation_asset_e307_policy.py -v"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-24T23:09:26.770406+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_e307_proportionate_policy.py tests/core/test_presentation_asset_e307_policy.py -v",
+        "exit_code": 1,
+        "output_tail": "        ] == [\n            (ErrorCode.VALIDATOR_NOT_AVAILABLE, Severity.INFO, \"src/app.component.html\"),\n            (ErrorCode.VALIDATOR_NOT_AVAILABLE, Severity.INFO, \"src/app.component.sass\"),\n        ]\nE       AssertionError: assert [(<ErrorCode....ponent.sass')] == [(<ErrorCode....ponent.sass')]\nE         \nE         At index 0 diff: (<ErrorCode.VALIDATOR_NOT_AVAILABLE: 'E307'>, <Severity.WARNING: 'warning'>, 'src/app.component.html') != (<ErrorCode.VALIDATOR_NOT_AVAILABLE: 'E307'>, <Severity.INFO: 'info'>, 'src/app.component.html')\nE         \nE         Full diff:\nE           [\nE               (\nE                   <ErrorCode.VALIDATOR_NOT_AVAILABLE: 'E307'>,...\nE         \nE         ...Full output truncated (15 lines hidden), use '-vv' to show\n\ntests/core/test_presentation_asset_e307_policy.py:66: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_presentation_asset_e307_policy.py::test_presentation_asset_extensions_are_presence_only_info\nFAILED tests/core/test_presentation_asset_e307_policy.py::test_implementation_validation_keeps_presentation_asset_e307_visible_as_info\n========================= 2 failed, 8 passed in 0.17s ==========================",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-presentation-asset-e307-noise.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-presentation-asset-e307-noise.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/diagnostic_policy.py:function:no_validator_severity",
+      "maid_runner/core/diagnostic_policy.py:function:no_validator_severity:arg=path:type=str:default=None",
+      "maid_runner/core/diagnostic_policy.py:function:no_validator_severity:kind=function",
+      "maid_runner/core/diagnostic_policy.py:function:no_validator_severity:returns=Severity",
+      "tests/core/test_presentation_asset_e307_policy.py:test_implementation_validation_keeps_presentation_asset_e307_visible_as_info",
+      "tests/core/test_presentation_asset_e307_policy.py:test_implementation_validation_keeps_presentation_asset_e307_visible_as_info:kind=test_function",
+      "tests/core/test_presentation_asset_e307_policy.py:test_presentation_asset_extensions_are_presence_only_info",
+      "tests/core/test_presentation_asset_e307_policy.py:test_presentation_asset_extensions_are_presence_only_info:kind=test_function",
+      "tests/core/test_presentation_asset_e307_policy.py:test_unrecognized_source_extension_remains_warning",
+      "tests/core/test_presentation_asset_e307_policy.py:test_unrecognized_source_extension_remains_warning:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_presentation_asset_e307_policy.py"
+      ],
+      "edit": [
+        "maid_runner/core/diagnostic_policy.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/core/_implementation_validation.py",
+        "maid_runner/core/verify_summary.py",
+        "manifests/062-06-preserve-e307-advisory-strict-policy.manifest.yaml",
+        "manifests/082-05-proportionate-e307-no-validator-policy.manifest.yaml",
+        "tests/core/test_e307_proportionate_policy.py"
+      ],
+      "scope": [
+        "docs/troubleshooting.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_presentation_asset_e307_policy.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_presentation_asset_extensions_are_presence_only_info",
+              "source_scenario": "Paths use the bounded HTML and stylesheet extensions supported as presence-only MAID inventory.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "no_validator_severity"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Every recognized presentation-asset path returns Severity.INFO regardless of filename casing."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_implementation_validation_keeps_presentation_asset_e307_visible_as_info",
+              "source_scenario": "A manifest declares existing HTML and Sass files under writable implementation scope even though no artifact validator exists for either format.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "validate"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Implementation validation succeeds and preserves one E307 info diagnostic with an exact file location for each declared presentation asset."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unrecognized_source_extension_remains_warning",
+              "source_scenario": "A path uses an unsupported executable source-language extension outside the closed presence-only set.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "no_validator_severity"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The unsupported source path remains Severity.WARNING, proving the policy does not infer presence-only status from validator absence."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/diagnostic_policy.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "no_validator_severity",
+              "description": "Return Severity.INFO for the documented closed sets of non-code inventory and presence-only presentation assets, while unknown source-language extensions remain Severity.WARNING.",
+              "args": [
+                {
+                  "name": "path",
+                  "type": "str"
+                }
+              ],
+              "returns": "Severity"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/082-05-proportionate-e307-no-validator-policy.manifest.yaml",
+        "manifests/062-06-preserve-e307-advisory-strict-policy.manifest.yaml",
+        "tests/core/test_e307_proportionate_policy.py",
+        "maid_runner/core/_implementation_validation.py",
+        "maid_runner/core/verify_summary.py",
+        "maid_runner/cli/commands/verify.py"
+      ],
+      "scope": [
+        {
+          "path": "docs/troubleshooting.md",
+          "reason": "Document presentation assets as presence-only E307 info diagnostics and keep repair guidance accurate for executable source languages."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_e307_proportionate_policy.py",
+      "tests/core/test_presentation_asset_e307_policy.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_e307_proportionate_policy.py tests/core/test_presentation_asset_e307_policy.py -v",
+      "uv run maid validate manifests/fix-presentation-asset-e307-noise.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/fix-presentation-asset-e307-noise.manifest.yaml --mode schema --quiet"
+    ]
+  }
+}

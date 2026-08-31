@@ -1,0 +1,160 @@
+{
+  "manifest_path": "manifests/refresh-version-2.27.2-release-candidate.manifest.yaml",
+  "manifest_hash": "sha256-contract:923d1ee1631a41875dec4bf760580b1db19850e385328e50b633a3494d448644",
+  "test_hashes": {
+    "tests/integration/test_library_api.py": "sha256-pyast:v2:fb5b1000e1475f2e58e070c51c4f93b0713f77f23d385423e4584251948bfd97",
+    "tests/validators/test_typescript_type_predicates.py": "sha256-pyast:v2:cc5d7906314d3077ba4fc74444d96316470a0200dc15c561b63254d930cc22b6",
+    "tests/core/test_presentation_asset_e307_policy.py": "sha256-pyast:v2:f303c748cd47543f83fc34566678a4d1f87a1d9a123cb9a22761a94f79cbc54c",
+    "tests/cli/test_assess_manifest_directory.py": "sha256-pyast:v2:98359f7e3669f4c32730809a9682721e44db298ec4e2f31cd7b497fb035df794",
+    "tests/cli/test_manifest_promote_output_routing.py": "sha256-pyast:v2:cc76086403437c1f63a0524c98f8808f41c47d9db81422cc003637389883f4a9",
+    "tests/test_reviewer_writable_scope_guidance.py": "sha256-pyast:v2:35115f1c4561b47566b0403a191b441795c3ccde6c14f53bbe23443848a74503",
+    "tests/core/test_acceptance_red_evidence.py": "sha256-pyast:v2:ee1f2aa19b460554f061ab25088388bed9bf4438fa59f8fc1c655ac2a8ccbfe3",
+    "tests/core/test_artifact_coverage_multiprocessing_spawn.py": "sha256-pyast:v2:631d926f780b27e8cafb45c18d17280b4e44ff7708d951f20e734ff9ca365387",
+    "tests/validators/test_typescript_supabase_generated_types.py": "sha256-pyast:v2:eabe051dc15c496a240cae1a85c0ba2a216facbb00225255801c3420b141d995"
+  },
+  "created_at": "2026-08-31T00:18:45.401352+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:ed201c3baf3a66f4d855c957a2b0cc76d9d56c94e27d7904abc0dedf9de02e3e",
+      "prior_test_hashes": {
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:fb5b1000e1475f2e58e070c51c4f93b0713f77f23d385423e4584251948bfd97",
+        "tests/validators/test_typescript_type_predicates.py": "sha256-pyast:v2:cc5d7906314d3077ba4fc74444d96316470a0200dc15c561b63254d930cc22b6",
+        "tests/core/test_presentation_asset_e307_policy.py": "sha256-pyast:v2:f303c748cd47543f83fc34566678a4d1f87a1d9a123cb9a22761a94f79cbc54c",
+        "tests/cli/test_assess_manifest_directory.py": "sha256-pyast:v2:98359f7e3669f4c32730809a9682721e44db298ec4e2f31cd7b497fb035df794",
+        "tests/cli/test_manifest_promote_output_routing.py": "sha256-pyast:v2:cc76086403437c1f63a0524c98f8808f41c47d9db81422cc003637389883f4a9",
+        "tests/test_reviewer_writable_scope_guidance.py": "sha256-pyast:v2:35115f1c4561b47566b0403a191b441795c3ccde6c14f53bbe23443848a74503",
+        "tests/core/test_acceptance_red_evidence.py": "sha256-pyast:v2:ee1f2aa19b460554f061ab25088388bed9bf4438fa59f8fc1c655ac2a8ccbfe3",
+        "tests/core/test_artifact_coverage_multiprocessing_spawn.py": "sha256-pyast:v2:631d926f780b27e8cafb45c18d17280b4e44ff7708d951f20e734ff9ca365387",
+        "tests/validators/test_typescript_supabase_generated_types.py": "sha256-pyast:v2:eabe051dc15c496a240cae1a85c0ba2a216facbb00225255801c3420b141d995"
+      },
+      "revised_at": "2026-08-31T00:18:48.548966+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/refresh-version-2.27.2-release-candidate.manifest.yaml -> manifests/refresh-version-2.27.2-release-candidate.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-31T00:18:48.246604+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/integration/test_library_api.py tests/validators/test_typescript_type_predicates.py tests/core/test_presentation_asset_e307_policy.py tests/cli/test_assess_manifest_directory.py tests/cli/test_manifest_promote_output_routing.py tests/test_reviewer_writable_scope_guidance.py tests/core/test_acceptance_red_evidence.py tests/core/test_artifact_coverage_multiprocessing_spawn.py tests/validators/test_typescript_supabase_generated_types.py",
+        "exit_code": 1,
+        "output_tail": "        pyproject = root / \"pyproject.toml\"\n        lockfile = root / \"uv.lock\"\n        changelog = root / \"CHANGELOG.md\"\n        roadmap = root / \"docs\" / \"ROADMAP.md\"\n    \n        assert __version__ == \"2.27.2\"\n        assert re.search(r'^version = \"2\\.27\\.2\"$', pyproject.read_text(), re.M)\n        assert re.search(\n            r'\\[\\[package\\]\\]\\nname = \"maid-runner\"\\nversion = \"2\\.27\\.2\"',\n            lockfile.read_text(),\n        )\n        changelog_text = changelog.read_text()\n>       assert \"## [2.27.2] - 2026-08-31\" in changelog_text\nE       AssertionError: assert '## [2.27.2] - 2026-08-31' in '# Changelog\\n\\nAll notable changes to this project will be documented in this file.\\n\\nThe format is based on [Keep a...n/maid-runner/compare/v2.5.2...v2.6.0\\n[2.5.2]: https://github.com/mamertofabian/maid-runner/compare/v2.5.1...v2.5.2\\n'\n\ntests/integration/test_library_api.py:51: AssertionError\n=========================== short test summary info ============================\nFAILED tests/integration/test_library_api.py::TestPublicAPIImports::test_release_metadata_is_current_version\nFAILED tests/integration/test_library_api.py::TestPublicAPIImports::test_release_metadata_is_2_21_0\n2 failed, 67 passed in 2.57s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version",
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version:arg=self:type=TestPublicAPIImports:default=None",
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version:kind=test_function",
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version:of=TestPublicAPIImports",
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version:returns=None"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "tests/integration/test_library_api.py"
+      ],
+      "read": [
+        "maid_runner/__version__.py",
+        "manifests/bump-version-2.27.2.manifest.yaml",
+        "manifests/fix-artifact-coverage-multiprocessing-spawn.manifest.yaml",
+        "manifests/fix-assess-changed-manifest-directory.manifest.yaml",
+        "manifests/fix-cypress-acceptance-red-evidence.manifest.yaml",
+        "manifests/fix-manifest-promote-output-routing.manifest.yaml",
+        "manifests/fix-presentation-asset-e307-noise.manifest.yaml",
+        "manifests/fix-reviewer-writable-scope-guidance.manifest.yaml",
+        "manifests/fix-supabase-generated-types-parser.manifest.yaml",
+        "manifests/fix-typescript-type-predicate-return-annotations.manifest.yaml"
+      ],
+      "scope": [
+        "CHANGELOG.md",
+        "docs/ROADMAP.md",
+        "pyproject.toml",
+        "uv.lock"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "tests/integration/test_library_api.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_release_metadata_is_current_version",
+              "description": "Runtime version, package metadata, editable lock metadata, changelog heading and compare link, roadmap, and the complete seven-entry inventory representing eight fixes report the unpublished 2.27.2 candidate dated 2026-08-31.",
+              "of": "TestPublicAPIImports",
+              "args": [
+                {
+                  "name": "self",
+                  "type": "TestPublicAPIImports"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/__version__.py",
+        "manifests/bump-version-2.27.2.manifest.yaml",
+        "manifests/fix-typescript-type-predicate-return-annotations.manifest.yaml",
+        "manifests/fix-presentation-asset-e307-noise.manifest.yaml",
+        "manifests/fix-assess-changed-manifest-directory.manifest.yaml",
+        "manifests/fix-manifest-promote-output-routing.manifest.yaml",
+        "manifests/fix-reviewer-writable-scope-guidance.manifest.yaml",
+        "manifests/fix-cypress-acceptance-red-evidence.manifest.yaml",
+        "manifests/fix-artifact-coverage-multiprocessing-spawn.manifest.yaml",
+        "manifests/fix-supabase-generated-types-parser.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "pyproject.toml",
+          "reason": "Confirm package metadata remains on the unpublished 2.27.2 candidate; no version change is expected."
+        },
+        {
+          "path": "uv.lock",
+          "reason": "Confirm editable lock metadata remains synchronized at 2.27.2; no lock regeneration is expected unless validation detects drift."
+        },
+        {
+          "path": "CHANGELOG.md",
+          "reason": "Refresh the 2.27.2 date and add the three post-preparation fixes to the complete release inventory."
+        },
+        {
+          "path": "docs/ROADMAP.md",
+          "reason": "Synchronize the prepared candidate's last-updated date while retaining its 2.27.2 version references."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_assess_manifest_directory.py",
+      "tests/cli/test_manifest_promote_output_routing.py",
+      "tests/core/test_acceptance_red_evidence.py",
+      "tests/core/test_artifact_coverage_multiprocessing_spawn.py",
+      "tests/core/test_presentation_asset_e307_policy.py",
+      "tests/integration/test_library_api.py",
+      "tests/test_reviewer_writable_scope_guidance.py",
+      "tests/validators/test_typescript_supabase_generated_types.py",
+      "tests/validators/test_typescript_type_predicates.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/integration/test_library_api.py tests/validators/test_typescript_type_predicates.py tests/core/test_presentation_asset_e307_policy.py tests/cli/test_assess_manifest_directory.py tests/cli/test_manifest_promote_output_routing.py tests/test_reviewer_writable_scope_guidance.py tests/core/test_acceptance_red_evidence.py tests/core/test_artifact_coverage_multiprocessing_spawn.py tests/validators/test_typescript_supabase_generated_types.py"
+    ],
+    "acceptance_commands": []
+  }
+}

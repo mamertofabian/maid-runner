@@ -1,0 +1,148 @@
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: Prepare maid-runner 2.27.2 release metadata and changelog
+type: fix
+created: "2026-08-25T00:41:04Z"
+supersedes:
+  - bump-version-2.27.1
+metadata:
+  planning_state: behavioral_contract
+  promotion_ready: true
+  tests_status: red_confirmed
+  tags:
+    - release
+    - version
+    - changelog
+  priority: high
+description: |
+  Bump maid-runner from the published 2.27.1 release to patch release 2.27.2
+  and synchronize package metadata, editable lock metadata, changelog,
+  roadmap version/date references, and the shared release-metadata test.
+
+  The release contains the complete v2.27.1..HEAD patch inventory: TypeScript
+  predicate and assertion return annotations are collected without false E304
+  warnings; HTML and stylesheet E307 diagnostics are retained at info severity;
+  assess and manifest promotion preserve the owning configured manifest chain;
+  and distributed implementation-review guidance authorizes every writable
+  manifest category while keeping artifact checks limited to contracted files.
+
+  This task prepares local release metadata only. Tagging, publishing, pushing,
+  merging to main, and creating a GitHub release remain separate actions.
+temptations:
+  - risk: Do not derive release notes only from the branch name or the remote integration tip.
+    instead: Inventory every commit and changed contract in the exact v2.27.1..HEAD tag range.
+  - risk: Do not update only pyproject.toml while leaving other release mirrors stale.
+    instead: Update pyproject.toml, uv.lock, changelog, roadmap, and runtime assertions together.
+  - risk: Do not collapse the configured-chain fixes into vague CLI wording that hides their fail-closed boundaries.
+    instead: Name assess propagation, draft-parent promotion inference, explicit overrides, and ambiguity refusal accurately.
+  - risk: Do not tag, publish, push, merge to main, or create a GitHub release because local preparation passes.
+    instead: Stop after build, validation, independent review, Outcome capture, and handoff.
+files:
+  scope:
+    - path: pyproject.toml
+      reason: Package version metadata has no analyzer-visible public artifact.
+    - path: uv.lock
+      reason: Editable package lock metadata must mirror pyproject and be regenerated through uv.
+    - path: CHANGELOG.md
+      reason: Release notes document the 2.27.2 fixes, date, boundaries, and comparison link.
+    - path: docs/ROADMAP.md
+      reason: Roadmap current-version references mirror the prepared CLI release.
+  edit:
+    - path: tests/integration/test_library_api.py
+      artifacts:
+        - kind: test_function
+          name: test_release_metadata_is_current_version
+          of: TestPublicAPIImports
+          args:
+            - name: self
+              type: TestPublicAPIImports
+          returns: None
+          description: Runtime version, package metadata, editable lock metadata, changelog heading and compare link, and roadmap all report 2.27.2 and identify the complete patch inventory.
+  read:
+    - maid_runner/__version__.py
+    - manifests/bump-version-2.27.1.manifest.yaml
+    - manifests/fix-typescript-type-predicate-return-annotations.manifest.yaml
+    - manifests/fix-presentation-asset-e307-noise.manifest.yaml
+    - manifests/fix-assess-changed-manifest-directory.manifest.yaml
+    - manifests/fix-manifest-promote-output-routing.manifest.yaml
+    - manifests/fix-reviewer-writable-scope-guidance.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/integration/test_library_api.py tests/validators/test_typescript_type_predicates.py tests/core/test_presentation_asset_e307_policy.py tests/cli/test_assess_manifest_directory.py tests/cli/test_manifest_promote_output_routing.py tests/test_reviewer_writable_scope_guidance.py
+outcome:
+  status: completed
+  completed_at: "2026-08-25T08:55:46+08:00"
+  summary: >-
+    Prepared maid-runner 2.27.2 by synchronizing runtime package metadata,
+    editable lock metadata, changelog notes and compare link, roadmap version
+    references, release assertions, and built distributions for all five fixes
+    in the published v2.27.1..HEAD range.
+  rationale: >-
+    The patch release groups two related manifest-chain routing corrections
+    while retaining distinct notes for TypeScript predicate returns,
+    presentation-asset diagnostics, and implementation-review scope guidance.
+    Every release mirror and built artifact reports 2.27.2, historical shared
+    test locks preserve their approved evidence, and the exact assessed deep
+    gate passed without weakening the existing nonblocking E307 policy.
+  agent:
+    model: gpt-5
+    provider: openai
+    client: codex
+    source: "Self-known model family; exact runtime slug and reasoning effort unavailable."
+    skills:
+      - maid-planner
+      - maid-plan-review
+      - maid-implementer
+      - maid-implementation-review
+  lessons:
+    - lesson_type: workflow
+      summary: >-
+        Patch release inventory remains auditable when it is derived from the
+        published tag boundary and synchronized across pyproject metadata,
+        editable lock metadata, changelog heading and compare link, roadmap,
+        runtime assertions, and built distribution metadata.
+      tags: [release, versioning, changelog]
+      paths: [pyproject.toml, uv.lock, CHANGELOG.md, docs/ROADMAP.md]
+    - lesson_type: validation-trust
+      summary: >-
+        Changing a shared release-metadata test requires revising every active
+        dependent plan lock through preserved evidence; matching only the new
+        release lock is insufficient for repository-wide handoff integrity.
+      tags: [release, plan-lock, shared-tests]
+      paths:
+        - tests/integration/test_library_api.py
+        - .maid/plan-locks/065-01-add-error-code-rule-registry-export.lock.json
+        - .maid/plan-locks/089-01-honor-output-suffix-in-save-manifest.lock.json
+        - .maid/plan-locks/snapshot-cli-commands--main-2.lock.json
+  review_notes:
+    - source: independent-read-only-release-review
+      severity: ready
+      summary: >-
+        Fresh explorer review found no blocking findings, confirmed that the
+        changelog accurately covers all five v2.27.1..HEAD contracts, and
+        verified SemVer, date, compare link, roadmap, runtime, package, lock,
+        and wheel metadata consistency.
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/integration/test_library_api.py, tests/validators/test_typescript_type_predicates.py, tests/core/test_presentation_asset_e307_policy.py, tests/cli/test_assess_manifest_directory.py, tests/cli/test_manifest_promote_output_routing.py, tests/test_reviewer_writable_scope_guidance.py]
+      status: passed
+      summary: All 49 focused release and underlying-fix tests passed.
+    - command: [uv, run, maid, validate, --packet]
+      status: passed
+      summary: All 292 active manifests passed; 361 superseded manifests were skipped.
+    - command: [uv, run, maid, test, --jobs, "1", --pytest-workers, "4"]
+      status: passed
+      summary: All 300 manifest command groups passed.
+    - command: [uv, run, python, -m, pytest, tests/, -q]
+      status: passed
+      summary: Publish-equivalent serial suite passed 4,626 tests with 14 skipped.
+    - command: [make, build]
+      status: passed
+      summary: Built maid_runner-2.27.2 source and wheel distributions.
+    - command: [uv, run, twine, check, dist/maid_runner-2.27.2.tar.gz, dist/maid_runner-2.27.2-py3-none-any.whl]
+      status: passed
+      summary: Twine accepted both 2.27.2 release artifacts and wheel metadata reported version 2.27.2.
+    - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, v2.27.1]
+      status: passed
+      summary: All 11 deep gates passed; only the existing nonblocking CJS E307 warning remained.

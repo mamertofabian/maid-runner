@@ -1,0 +1,182 @@
+{
+  "manifest_path": "manifests/fix-supabase-generated-types-parser.manifest.yaml",
+  "manifest_hash": "sha256-contract:9db69ab687dd8c93913fc9de5268bf2cde83c96303ed1b0521814c73820ab301",
+  "test_hashes": {
+    "tests/validators/test_typescript.py": "sha256-pyast:v2:3c753d04055b0d300a9e58b86f3a2f0f44fe60537bd61279148c18d420f3dac1",
+    "tests/core/validation/test_frontend_brownfield_contracts.py": "sha256-pyast:v2:9d9ee97e285f6ad0509f5b888db3ea29eb3b45d0067469f338b1ac18607d0416",
+    "tests/validators/test_typescript_supabase_generated_types.py": "sha256-pyast:v2:eabe051dc15c496a240cae1a85c0ba2a216facbb00225255801c3420b141d995"
+  },
+  "created_at": "2026-08-30T23:48:18.046520+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:60d77536f3830401ce7e14f117a578a86515c2aeb8ba8250babcf902922e72cf",
+      "prior_test_hashes": {
+        "tests/validators/test_typescript.py": "sha256-pyast:v2:3c753d04055b0d300a9e58b86f3a2f0f44fe60537bd61279148c18d420f3dac1",
+        "tests/core/validation/test_frontend_brownfield_contracts.py": "sha256-pyast:v2:9d9ee97e285f6ad0509f5b888db3ea29eb3b45d0067469f338b1ac18607d0416",
+        "tests/validators/test_typescript_supabase_generated_types.py": "sha256-pyast:v2:eabe051dc15c496a240cae1a85c0ba2a216facbb00225255801c3420b141d995"
+      },
+      "revised_at": "2026-08-30T23:48:25.101122+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-supabase-generated-types-parser.manifest.yaml -> manifests/fix-supabase-generated-types-parser.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-30T23:48:18.916246+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/validators/test_typescript_supabase_generated_types.py",
+        "exit_code": 1,
+        "output_tail": "      }\n    }\n    \"\"\"\n    \n        session = _parse(source)\n        collected = TypeScriptValidator().collect_implementation_artifacts(\n            source,\n            \"src/integrations/supabase/types.ts\",\n        )\n    \n>       assert session.parse_errors == []\nE       AssertionError: assert ['Syntax erro...near line 15'] == []\nE         \nE         Left contains 3 more items, first extra item: 'Syntax error near line 7'\nE         Use -v to get more diff\n\ntests/validators/test_typescript_supabase_generated_types.py:50: AssertionError\n=========================== short test summary info ============================\nFAILED tests/validators/test_typescript_supabase_generated_types.py::test_nested_in_prefixed_supabase_fields_parse_and_preserve_source\n1 failed, 1 passed in 0.12s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest -q tests/validators/test_typescript.py tests/core/validation/test_frontend_brownfield_contracts.py",
+        "exit_code": 0,
+        "output_tail": ".....................................................................    [100%]\n69 passed in 0.34s",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/validators/_typescript_parse.py:function:parse_typescript_source",
+      "maid_runner/validators/_typescript_parse.py:function:parse_typescript_source:arg=file_path:type=Union[str, Path]:default=None",
+      "maid_runner/validators/_typescript_parse.py:function:parse_typescript_source:arg=source:type=str:default=None",
+      "maid_runner/validators/_typescript_parse.py:function:parse_typescript_source:arg=ts_parser:type=Parser:default=None",
+      "maid_runner/validators/_typescript_parse.py:function:parse_typescript_source:arg=tsx_parser:type=Parser:default=None",
+      "maid_runner/validators/_typescript_parse.py:function:parse_typescript_source:kind=function",
+      "maid_runner/validators/_typescript_parse.py:function:parse_typescript_source:returns=TypeScriptParseSession",
+      "tests/validators/test_typescript_supabase_generated_types.py:test_nested_in_prefixed_sanitizer_preserves_unrelated_syntax_errors",
+      "tests/validators/test_typescript_supabase_generated_types.py:test_nested_in_prefixed_sanitizer_preserves_unrelated_syntax_errors:kind=test_function",
+      "tests/validators/test_typescript_supabase_generated_types.py:test_nested_in_prefixed_sanitizer_preserves_unrelated_syntax_errors:returns=None",
+      "tests/validators/test_typescript_supabase_generated_types.py:test_nested_in_prefixed_supabase_fields_parse_and_preserve_source",
+      "tests/validators/test_typescript_supabase_generated_types.py:test_nested_in_prefixed_supabase_fields_parse_and_preserve_source:kind=test_function",
+      "tests/validators/test_typescript_supabase_generated_types.py:test_nested_in_prefixed_supabase_fields_parse_and_preserve_source:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/validators/test_typescript_supabase_generated_types.py"
+      ],
+      "edit": [
+        "maid_runner/validators/_typescript_parse.py"
+      ],
+      "read": [
+        "maid_runner/validators/_typescript_implementation.py",
+        "maid_runner/validators/typescript.py",
+        "manifests/029-01-extract-typescript-parse-session.manifest.yaml",
+        "manifests/fix-frontend-brownfield-typescript-contracts.manifest.yaml",
+        "manifests/fix-validation-test-discovery-and-ts-import-query.manifest.yaml",
+        "tests/core/validation/test_frontend_brownfield_contracts.py",
+        "tests/validators/test_typescript.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/validators/test_typescript_supabase_generated_types.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_nested_in_prefixed_supabase_fields_parse_and_preserve_source",
+              "returns": "None",
+              "source_scenario": "A Supabase-shaped exported Database type contains Row, Insert, and Update objects with required and optional in_reply_to fields.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "parse_typescript_source"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Parsing and implementation collection succeed, the Database type artifact is retained, and session source bytes remain byte-identical to the input."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_nested_in_prefixed_sanitizer_preserves_unrelated_syntax_errors",
+              "returns": "None",
+              "source_scenario": "A nested generated type contains a valid in_reply_to property followed by a malformed sibling property.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "parse_typescript_source"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The valid grammar false positive is removed without hiding the malformed sibling's exact syntax error."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/validators/_typescript_parse.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "parse_typescript_source",
+              "description": "Additionally retries exact in_-prefixed property ERROR spans with equal-length parser-only placeholders, adopts only a strict error reduction, and preserves original session source bytes and every remaining syntax error.",
+              "args": [
+                {
+                  "name": "source",
+                  "type": "str"
+                },
+                {
+                  "name": "file_path",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "ts_parser",
+                  "type": "Parser"
+                },
+                {
+                  "name": "tsx_parser",
+                  "type": "Parser"
+                }
+              ],
+              "returns": "TypeScriptParseSession"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/validators/typescript.py",
+        "maid_runner/validators/_typescript_implementation.py",
+        "tests/validators/test_typescript.py",
+        "tests/core/validation/test_frontend_brownfield_contracts.py",
+        "manifests/029-01-extract-typescript-parse-session.manifest.yaml",
+        "manifests/fix-validation-test-discovery-and-ts-import-query.manifest.yaml",
+        "manifests/fix-frontend-brownfield-typescript-contracts.manifest.yaml"
+      ]
+    },
+    "test_files": [
+      "tests/core/validation/test_frontend_brownfield_contracts.py",
+      "tests/validators/test_typescript.py",
+      "tests/validators/test_typescript_supabase_generated_types.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/validators/test_typescript_supabase_generated_types.py",
+      "uv run python -m pytest -q tests/validators/test_typescript.py tests/core/validation/test_frontend_brownfield_contracts.py"
+    ],
+    "acceptance_commands": []
+  }
+}

@@ -25,9 +25,11 @@ Review MAID-backed implementation work in read-only mode. Confirm the code match
   coordinator after the independent reviewer responds.
 - If your prompt identifies you as the reviewer subagent, do not spawn another
   subagent. Perform the review locally and return the verdict.
-- Confirm changed implementation stays within the manifest `files.create`,
-  `files.edit`, and `files.scope` scope. `files.read` is dependency context and
-  does not authorize production edits.
+- Confirm changed implementation stays within writable production file scope:
+  `files.create`, `files.edit`, `files.scope`, or `files.delete`. `files.read`
+  is dependency context and does not authorize production edits.
+- Artifact validation applies to declarations in `files.create` and `files.edit` only;
+  scope-only and deleted files do not declare public artifacts.
 - Flag any implementation-phase manifest or behavioral-test edit as a process violation unless explicitly approved by the user.
 - Treat concrete behavior regressions, undeclared public API drift, and missing validation as primary findings.
 - Audit fidelity to the approved plan, including rationale and `temptations`; passing tests are not sufficient if the implementation took a path the manifest warned against.
@@ -148,8 +150,8 @@ test gaps, or risk. End with one verdict: ready, needs changes, or needs discuss
 
 Compare the working tree or branch state against the manifest:
 
-- only files declared in `files.create`, `files.edit`, or `files.scope` were
-  changed as production implementation files
+- only files declared in `files.create`, `files.edit`, `files.scope`, or
+  `files.delete` were changed as production implementation files
 - `files.read` production files are dependency context, not writable scope;
   flag dirty production files listed only in `files.read` and require plan
   revision to `files.scope` for no-artifact wiring or `files.edit` for public
@@ -163,7 +165,10 @@ Compare the working tree or branch state against the manifest:
 
 ## Phase 5 — Review Declared Artifacts
 
-Confirm declared artifacts exist with the expected names and parent relationships. Treat implementation-validation misses as blockers.
+Artifact validation applies to declarations in `files.create` and `files.edit` only;
+scope-only and deleted files do not declare public artifacts. Confirm
+those declared artifacts exist with the expected names and parent
+relationships. Treat implementation-validation misses as blockers.
 
 ## Phase 6 — Review Plan Fidelity
 

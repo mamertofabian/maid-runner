@@ -240,16 +240,20 @@ an unsupported extension.
 
 Likely cause: MAID Runner has no language validator for that file type.
 
-Fix: For recognized non-code inventory files, treat the diagnostic as an
-informational visibility signal and cover behavior through tests that read the
-file when behavior matters. The recognized non-code set is `.md`, `.markdown`,
-`.rst`, `.txt`, `.toml`, `.json`, `.jsonc`, `.yaml`, `.yml`, `.cfg`, `.ini`,
-`.lock`, plus `.gitignore`, `.gitattributes`, `.editorconfig`, and
-`.env.example`. Verify summary output aggregates these info-severity records
-by code while JSON, SARIF, and non-summary output keep the per-file records. For
-source-like files such as `.cjs`, `.mjs`, `.go`, or `.rb`, E307 remains a
-warning; install the needed optional dependency, add a validator, or keep the
-file out of contracted artifact scope.
+Fix: For recognized non-code inventory and presence-only presentation assets,
+treat the diagnostic as an informational visibility signal and cover behavior
+through the manifest's build and behavioral tests. The recognized non-code set
+is `.md`, `.markdown`, `.rst`, `.txt`, `.toml`, `.json`, `.jsonc`, `.yaml`,
+`.yml`, `.cfg`, `.ini`, `.lock`, plus `.gitignore`, `.gitattributes`,
+`.editorconfig`, and `.env.example`. The presence-only presentation set is
+`.htm`, `.html`, `.css`, `.less`, `.sass`, and `.scss`; MAID still checks that
+these files exist and that edits stay within writable manifest scope, but it
+does not invent artifact identities for markup nodes, selectors, or style
+declarations. Verify summary output aggregates these info-severity records by
+code while JSON, SARIF, and non-summary output keep the per-file records. For
+unsupported executable source such as `.cjs`, `.mjs`, `.go`, or `.rb`, E307
+remains a warning; install the needed optional dependency, add a validator, or
+keep the file out of contracted artifact scope.
 
 ### 23. Source cannot be parsed (`E308`)
 

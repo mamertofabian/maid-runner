@@ -1,0 +1,133 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Route draft promotion to its owning manifest chain when output directory is omitted and fail visibly when the source path is ambiguous
+type: fix
+created: '2026-08-25T00:13:53Z'
+metadata:
+  bug_report: ~/.maid/bug-report/20260820-215120-manifest-promote-infers-wrong-output-dir.md
+  tags:
+  - manifest-promotion
+  - monorepo
+  - cli-routing
+  priority: high
+description: |
+  `maid manifest promote <nested-chain>/drafts/<manifest>` currently defaults
+  `--output-dir` to root `manifests/`, silently moving a valid app draft into an
+  unrelated chain. Preserve whether the option was omitted, infer the owning
+  active directory only from the unambiguous `<manifest-dir>/drafts/<name>` path
+  shape, and fail with `--output-dir` guidance for sources outside a direct
+  drafts directory. An explicit output directory remains authoritative.
+
+  Rationale: the draft path is the strongest local ownership signal in a
+  monorepo and works for both root and nested chains without consulting an
+  unrelated configured default. Restricting inference to the direct `drafts`
+  parent avoids guessing from arbitrary paths and prevents silent cross-chain
+  writes.
+temptations:
+- risk: Infer from .maidrc.yaml even when the supplied draft belongs to a non-default app.
+  instead: Use the direct parent of the source `drafts` directory; configuration defaults must not override an explicit source path's chain ownership.
+- risk: Keep the parser default as manifests/ and try to guess whether the user explicitly supplied that same value.
+  instead: Represent omission as None and resolve the destination inside promotion before any file mutation.
+- risk: Accept any source parent and promote into its parent directory.
+  instead: Infer only when the immediate source parent is named drafts; otherwise fail with actionable --output-dir guidance.
+- risk: Break explicit recovery or custom-destination workflows.
+  instead: Preserve every explicit --output-dir value exactly and cover that precedence behavior through the public command handler.
+files:
+  edit:
+  - path: maid_runner/cli/commands/manifest.py
+    artifacts:
+    - kind: function
+      name: cmd_manifest
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Promote resolves omitted output directories from a direct drafts parent, honors explicit destinations, and returns exit 2 without mutation when inference is unsafe.
+  scope:
+  - path: maid_runner/cli/commands/_main.py
+    reason: Preserve an omitted promote --output-dir as None so the command handler can distinguish omission from an explicit root-manifests override; private parser registration only.
+  create:
+  - path: tests/cli/test_manifest_promote_output_routing.py
+    artifacts:
+    - kind: test_function
+      name: test_promote_infers_nested_manifest_chain_from_draft_path
+      args: []
+      returns: None
+      description: A nested app draft promoted without output_dir lands beside its owning drafts directory and not in root manifests.
+    - kind: test_function
+      name: test_promote_infers_standard_root_manifest_chain
+      args: []
+      returns: None
+      description: The ordinary manifests/drafts shape continues promoting into manifests when output_dir is omitted.
+    - kind: test_function
+      name: test_promote_explicit_output_directory_overrides_draft_owner
+      args: []
+      returns: None
+      description: An explicit custom output directory remains authoritative even for a nested draft path.
+    - kind: test_function
+      name: test_promote_rejects_ambiguous_source_without_output_directory
+      args: []
+      returns: None
+      description: A source outside a direct drafts directory exits 2, names --output-dir, and leaves the source and destinations untouched.
+    - kind: test_function
+      name: test_promote_parser_preserves_omitted_output_directory
+      args: []
+      returns: None
+      description: The public parser represents omitted promote output_dir as None while preserving explicit values.
+  read:
+  - manifests/073-01-migrate-plan-locks-on-draft-promotion.manifest.yaml
+  - tests/cli/test_manifest_cmd.py
+validate:
+- uv run python -m pytest -q tests/cli/test_manifest_promote_output_routing.py tests/cli/test_manifest_cmd.py
+- uv run maid validate manifests/fix-manifest-promote-output-routing.manifest.yaml --mode behavioral --quiet
+outcome:
+  status: completed
+  completed_at: '2026-08-25T08:35:00+08:00'
+  summary: Manifest promotion now infers root and nested owning chains from a direct drafts parent, honors explicit output directories, and fails before mutation when an omitted destination cannot be inferred safely.
+  rationale: Treating omission as None lets the command distinguish it from an explicit root-manifests override. The source path's direct drafts parent is a deterministic ownership signal that does not depend on an unrelated monorepo default, while refusing ambiguous paths prevents silent cross-chain writes.
+  lessons:
+  - lesson_type: design
+    summary: In multi-chain repositories, lifecycle commands should derive ownership from an explicit source path before consulting global defaults, and should fail visibly when that path does not provide an unambiguous ownership boundary.
+    tags:
+    - manifest-promotion
+    - monorepo
+    - cli-routing
+    - maid-runner-feedback
+    paths:
+    - maid_runner/cli/commands/manifest.py
+    - maid_runner/cli/commands/_main.py
+  - lesson_type: validation-trust
+    summary: Preserve option omission as a distinct parser value when command behavior must distinguish an inferred default from the same value supplied explicitly.
+    tags:
+    - argparse
+    - behavioral-tests
+    - explicit-precedence
+    paths:
+    - tests/cli/test_manifest_promote_output_routing.py
+  review_notes:
+  - source: independent-review-review_promote_routing_fix
+    severity: ready
+    summary: The reviewer found no blockers and confirmed routing semantics, explicit precedence, pre-mutation failure, relative and absolute construction, lock-migration compatibility, adjacent promotion behavior, and manifest scope fidelity.
+  - source: independent-review-review_promote_routing_fix
+    severity: advisory
+    summary: Optional future hardening could combine omitted nested routing with a locked draft and cover legacy direct callers whose Namespace omits output_dir entirely; current implementation handles both paths consistently.
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/cli/test_manifest_promote_output_routing.py, tests/cli/test_manifest_cmd.py, tests/cli/test_manifest_promote_lock_cmd.py, tests/cli/test_manifest_promote_argv_self_reference.py, tests/cli/test_manifest_promote_git_rename_cmd.py, tests/cli/test_manifest_promote_red_evidence_preservation.py, tests/cli/test_manifest_promote_yaml_style_cmd.py]
+    status: passed
+    summary: 62 focused and adjacent promotion regressions passed after four of five new routing scenarios failed in the pre-implementation red phase.
+  - command: [uv, run, maid, validate, manifests/fix-manifest-promote-output-routing.manifest.yaml, --mode, implementation, --packet]
+    status: passed
+    summary: Focused implementation validation passed without findings.
+  - command: [uv, run, maid, test, --manifest, manifests/fix-manifest-promote-output-routing.manifest.yaml]
+    status: passed
+    summary: Both manifest-declared commands passed.
+  - command: [uv, run, maid, validate]
+    status: passed
+    summary: Repository-wide validation checked 651 manifests; 291 active passed, 0 failed, and 360 superseded were skipped.
+  - command: [uv, run, maid, verify, --profile, deep, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, 9d58c4fa45fdd6d1945d324dfca289c67d14b3c9]
+    status: passed
+    summary: The cumulative assessed deep gate passed all 11 stages with zero blockers and only the existing ts_compiler_resolver.cjs E307 warning family.

@@ -14,8 +14,8 @@ Load `.claude/skills/maid-implementation-review/SKILL.md` when it exists in the 
 ## Your Task
 
 1. Identify the active manifest.
-2. Confirm every changed production file is listed in `files.create` or `files.edit`.
-3. Confirm declared artifacts exist with the expected names, parents, signatures, and return types.
+2. Confirm every changed production file is within writable production file scope: `files.create`, `files.edit`, `files.scope`, or `files.delete`. `files.read` is dependency context and does not authorize production edits.
+3. Confirm declared artifacts exist with the expected names, parents, signatures, and return types. Artifact validation applies to declarations in `files.create` and `files.edit` only; scope-only and deleted files do not declare public artifacts.
 4. Run the manifest's implementation validation and declared test commands when practical.
 5. Check whether the implementation matches the behavioral contract without modifying the plan.
 

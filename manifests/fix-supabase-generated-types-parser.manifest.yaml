@@ -1,0 +1,152 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Parse valid nested in_-prefixed fields in generated Supabase TypeScript types"
+type: fix
+created: "2026-08-30T23:48:25Z"
+metadata:
+  priority: high
+  tags: [typescript, parser, supabase, generated-code, downstream-bug]
+description: |
+  The pinned tree-sitter-typescript grammar reports ERROR nodes for valid
+  `in_`-prefixed property signatures such as `in_reply_to: string | null` when
+  they appear inside the nested object types emitted by Supabase. The same
+  property parses in isolation, and the project TypeScript compiler accepts the
+  generated file, so `maid assess` fails before it can recommend verification.
+
+  Extend the existing equal-length parse sanitization boundary narrowly: only
+  when the first parse contains an ERROR node beginning with a syntactically
+  shaped `in_...` property signature, replace the leading `in` bytes for a
+  second tree-sitter parse. Adopt that tree only when it reduces parse errors.
+  Continue exposing the original source bytes to artifact collectors so names,
+  offsets, and declarations remain exact. Unrelated or malformed syntax must
+  remain visible.
+
+  Rationale: this follows the existing type-query-import workaround and the
+  repository's validator-hardening constraint permitting bounded syntactic
+  rules with documented limits. It avoids a broad control-flow parser, does
+  not weaken all TypeScript parse errors, and does not require generated source
+  edits. Compiler-backed syntax validation alone is insufficient because MAID
+  still needs a usable tree-sitter tree for artifact collection.
+
+  Outcome evidence digestion: prior TypeScript parser fixes require equal-byte
+  placeholders, original-source collection, and explicit negative cases. The
+  new tests therefore pin source-byte preservation and an unrelated malformed
+  field. Import-resolution and type-comparison lessons are rejected as
+  unrelated because this defect occurs during initial source parsing.
+temptations:
+  - risk: "Do not ignore ERROR nodes merely because a file is generated or a project build succeeds."
+    instead: "Rewrite only parser-error spans that match the exact in_-prefixed property shape, reparse, and require a strict error-count reduction."
+  - risk: "Do not collect artifacts from rewritten identifiers or change byte offsets."
+    instead: "Use equal-length replacement bytes for the parser tree while retaining the original source bytes in TypeScriptParseSession."
+  - risk: "Do not hide adjacent genuine TypeScript syntax errors."
+    instead: "Keep remaining parse errors after the bounded rewrite and test a malformed sibling property explicitly."
+files:
+  edit:
+    - path: maid_runner/validators/_typescript_parse.py
+      artifacts:
+        - kind: function
+          name: parse_typescript_source
+          args:
+            - {name: source, type: str}
+            - {name: file_path, type: "Union[str, Path]"}
+            - {name: ts_parser, type: Parser}
+            - {name: tsx_parser, type: Parser}
+          returns: TypeScriptParseSession
+          description: "Additionally retries exact in_-prefixed property ERROR spans with equal-length parser-only placeholders, adopts only a strict error reduction, and preserves original session source bytes and every remaining syntax error."
+  create:
+    - path: tests/validators/test_typescript_supabase_generated_types.py
+      artifacts:
+        - kind: test_function
+          name: test_nested_in_prefixed_supabase_fields_parse_and_preserve_source
+          args: []
+          returns: None
+          source_scenario: "A Supabase-shaped exported Database type contains Row, Insert, and Update objects with required and optional in_reply_to fields."
+          actions:
+            - type: api_call
+              subject: {function: parse_typescript_source}
+          expected:
+            behavior: "Parsing and implementation collection succeed, the Database type artifact is retained, and session source bytes remain byte-identical to the input."
+        - kind: test_function
+          name: test_nested_in_prefixed_sanitizer_preserves_unrelated_syntax_errors
+          args: []
+          returns: None
+          source_scenario: "A nested generated type contains a valid in_reply_to property followed by a malformed sibling property."
+          actions:
+            - type: api_call
+              subject: {function: parse_typescript_source}
+          expected:
+            behavior: "The valid grammar false positive is removed without hiding the malformed sibling's exact syntax error."
+  read:
+    - maid_runner/validators/typescript.py
+    - maid_runner/validators/_typescript_implementation.py
+    - tests/validators/test_typescript.py
+    - tests/core/validation/test_frontend_brownfield_contracts.py
+    - manifests/029-01-extract-typescript-parse-session.manifest.yaml
+    - manifests/fix-validation-test-discovery-and-ts-import-query.manifest.yaml
+    - manifests/fix-frontend-brownfield-typescript-contracts.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_typescript_supabase_generated_types.py
+  - uv run python -m pytest -q tests/validators/test_typescript.py tests/core/validation/test_frontend_brownfield_contracts.py
+outcome:
+  status: completed
+  completed_at: "2026-08-31T07:56:05+08:00"
+  summary: >-
+    MAID now parses valid nested `in_`-prefixed properties in generated
+    Supabase TypeScript database types without changing source bytes, artifact
+    names, or offsets. Genuine adjacent syntax errors remain visible, and the
+    downstream Hubb Ops assessment proceeds to its verification recommendation.
+  rationale: >-
+    The pinned tree-sitter grammar produces bounded false-positive ERROR nodes
+    for nested properties such as `in_reply_to`. MAID now replaces only the
+    leading two bytes of exact matching error spans for a parser-only retry and
+    adopts the retry only when it strictly reduces errors. Original bytes stay
+    authoritative for collectors, avoiding generated-source edits and broad
+    parse-error suppression.
+  lessons:
+    - lesson_type: validation-hardening
+      summary: >-
+        Grammar workarounds should be driven by exact ERROR spans, preserve byte
+        length, retain original collector input, and require a strict diagnostic
+        improvement before adopting a sanitized parse tree.
+      tags: [typescript, parser, generated-code, maid-runner-feedback]
+      paths:
+        - maid_runner/validators/_typescript_parse.py
+        - tests/validators/test_typescript_supabase_generated_types.py
+    - lesson_type: test-design
+      summary: >-
+        A parser false-positive regression needs both the accepted generated
+        shape and a malformed adjacent shape so the fix proves it does not turn
+        a local compatibility rule into global syntax-error suppression.
+      tags: [supabase, regression-coverage, parser-safety]
+      paths:
+        - tests/validators/test_typescript_supabase_generated_types.py
+  review_notes:
+    - source: independent-reviewer-subagent
+      severity: ready
+      summary: >-
+        Independent batch review found no blockers, confirmed equal-length
+        offset preservation and remaining-error behavior, and identified only
+        the expected Outcome capture plus future grammar-upgrade reassessment as advisories.
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/validators/test_typescript_supabase_generated_types.py]
+      status: passed
+      summary: "Both generated-type acceptance and malformed-sibling regression tests passed."
+    - command: [uv, run, python, -m, pytest, -q, tests/validators/test_typescript.py, tests/core/validation/test_frontend_brownfield_contracts.py]
+      status: passed
+      summary: "All 69 adjacent TypeScript and brownfield contract tests passed."
+    - command: [downstream-hubb-ops-assess, --since, e1d86146]
+      status: passed
+      summary: "The real 8,476-line generated file parsed with all eight expected artifacts and assess emitted its critical/deep recommendation instead of E116."
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: "All 295 active manifests passed; 361 superseded manifests were skipped and none failed."
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: "All 300 manifest-declared command groups passed."
+    - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, 1569d36]
+      status: passed
+      summary: "All 11 deep verification stages passed with zero blockers and one unrelated non-blocking E307 warning."

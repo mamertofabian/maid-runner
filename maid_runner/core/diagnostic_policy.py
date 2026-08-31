@@ -34,6 +34,21 @@ _RECOGNIZED_NON_CODE_FILENAMES = frozenset(
     }
 )
 
+# Presentation assets are writable source inputs, but MAID does not define
+# stable artifact identities for markup nodes, selectors, or style
+# declarations. Their manifests and changed-scope checks still prove presence
+# and authorization; project build and behavioral tests prove their semantics.
+_PRESENCE_ONLY_PRESENTATION_EXTENSIONS = frozenset(
+    {
+        ".css",
+        ".htm",
+        ".html",
+        ".less",
+        ".sass",
+        ".scss",
+    }
+)
+
 _VALIDATOR_AUDIT_COMMAND = "maid validators"
 _VALIDATOR_PLUGIN_GUIDE = "docs/validator-plugin-authoring.md"
 
@@ -51,6 +66,8 @@ def no_validator_severity(path: str) -> Severity:
     if name in _RECOGNIZED_NON_CODE_FILENAMES:
         return Severity.INFO
     if suffix in _RECOGNIZED_NON_CODE_EXTENSIONS:
+        return Severity.INFO
+    if suffix in _PRESENCE_ONLY_PRESENTATION_EXTENSIONS:
         return Severity.INFO
     return Severity.WARNING
 

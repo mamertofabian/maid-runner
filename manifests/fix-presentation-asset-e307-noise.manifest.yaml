@@ -1,0 +1,186 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Stop unsupported HTML and stylesheet files from producing permanent E307 warning noise when MAID can only presence-check them"
+type: fix
+created: "2026-08-24T23:07:42Z"
+metadata:
+  planning_state: behavioral_contract
+  promotion_ready: true
+  tests_status: red_confirmed
+  priority: medium
+  tags:
+    - diagnostics
+    - E307
+    - presentation-assets
+    - signal-to-noise
+  related_contracts:
+    - 082-05-proportionate-e307-no-validator-policy
+    - 062-06-preserve-e307-advisory-strict-policy
+description: |
+  Evolve the closed E307 severity policy introduced by 082-05. HTML templates
+  and stylesheet files are routinely declared as writable MAID scope, but MAID
+  has no artifact collector for their markup, selectors, or declarations. The
+  current policy therefore emits one warning per file forever even though the
+  warning cannot be resolved without building a validator that MAID does not
+  otherwise need.
+
+  Treat the bounded presentation-asset extensions `.htm`, `.html`, `.css`,
+  `.less`, `.sass`, and `.scss` as presence-only inventory. Existing
+  implementation validation still proves the declared file exists, changed
+  scope still proves it was authorized, and the manifest's build and behavioral
+  tests remain responsible for compiled and rendered behavior. E307 remains
+  visible as an info-severity per-file diagnostic and continues to aggregate in
+  verify summaries; it is not filtered or silently discarded.
+
+  This is an additive policy evolution rather than a supersession: the public
+  `no_validator_severity(path) -> Severity` signature, the E307 identity, output
+  retention, and advisory gate semantics remain unchanged. Only the explicit
+  closed set of paths recognized as presence-only inventory grows. Unknown
+  source-language extensions such as `.rb` and `.go` must remain warnings so a
+  missing validator for executable source is still conspicuous.
+temptations:
+  - risk: "Do not silence E307 by filtering HTML or stylesheet diagnostics from validation output."
+    instead: "Return Severity.INFO for the explicit presentation-asset set and assert that E307, severity, and per-file locations remain visible."
+  - risk: "Do not downgrade every unsupported extension just because no validator exists."
+    instead: "Extend the closed path policy only for .htm, .html, .css, .less, .sass, and .scss, and pin an unknown executable source extension at Severity.WARNING."
+  - risk: "Do not build markup, CSS, Sass, or template-language artifact parsers for a presence-and-scope policy."
+    instead: "Leave semantic correctness to declared build and behavioral tests while MAID checks existence, writable scope, and diagnostic visibility."
+  - risk: "Do not edit the behavioral test module hashed by the completed 082-05 plan lock."
+    instead: "Put this evolution's coverage in a dedicated new test file and retain the prior contract unchanged."
+files:
+  edit:
+    - path: maid_runner/core/diagnostic_policy.py
+      artifacts:
+        - kind: function
+          name: no_validator_severity
+          args:
+            - name: path
+              type: str
+          returns: Severity
+          description: "Return Severity.INFO for the documented closed sets of non-code inventory and presence-only presentation assets, while unknown source-language extensions remain Severity.WARNING."
+  create:
+    - path: tests/core/test_presentation_asset_e307_policy.py
+      artifacts:
+        - kind: test_function
+          name: test_presentation_asset_extensions_are_presence_only_info
+          source_scenario: "Paths use the bounded HTML and stylesheet extensions supported as presence-only MAID inventory."
+          actions:
+            - type: api_call
+              subject:
+                function: no_validator_severity
+          expected:
+            behavior: "Every recognized presentation-asset path returns Severity.INFO regardless of filename casing."
+        - kind: test_function
+          name: test_implementation_validation_keeps_presentation_asset_e307_visible_as_info
+          source_scenario: "A manifest declares existing HTML and Sass files under writable implementation scope even though no artifact validator exists for either format."
+          actions:
+            - type: api_call
+              subject:
+                function: validate
+          expected:
+            behavior: "Implementation validation succeeds and preserves one E307 info diagnostic with an exact file location for each declared presentation asset."
+        - kind: test_function
+          name: test_unrecognized_source_extension_remains_warning
+          source_scenario: "A path uses an unsupported executable source-language extension outside the closed presence-only set."
+          actions:
+            - type: api_call
+              subject:
+                function: no_validator_severity
+          expected:
+            behavior: "The unsupported source path remains Severity.WARNING, proving the policy does not infer presence-only status from validator absence."
+  scope:
+    - path: docs/troubleshooting.md
+      reason: "Document presentation assets as presence-only E307 info diagnostics and keep repair guidance accurate for executable source languages."
+  read:
+    - manifests/082-05-proportionate-e307-no-validator-policy.manifest.yaml
+    - manifests/062-06-preserve-e307-advisory-strict-policy.manifest.yaml
+    - tests/core/test_e307_proportionate_policy.py
+    - maid_runner/core/_implementation_validation.py
+    - maid_runner/core/verify_summary.py
+    - maid_runner/cli/commands/verify.py
+validate:
+  - uv run python -m pytest tests/core/test_e307_proportionate_policy.py tests/core/test_presentation_asset_e307_policy.py -v
+  - uv run maid validate manifests/fix-presentation-asset-e307-noise.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/fix-presentation-asset-e307-noise.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-08-25T07:20:49+08:00"
+  summary: >-
+    E307 now treats the bounded `.htm`, `.html`, `.css`, `.less`, `.sass`,
+    and `.scss` presentation-asset set as presence-only informational
+    diagnostics. Per-file E307 records and locations remain visible, while
+    unknown executable source extensions continue to produce warnings.
+  rationale: >-
+    MAID has no stable artifact identities for markup nodes, selectors, or
+    stylesheet declarations, so warning on every declared presentation asset
+    created permanent noise without a reasonable repair. The closed extension
+    policy preserves file-existence and changed-scope enforcement and delegates
+    compiled or rendered semantics to the manifest's build and behavioral tests.
+    The existing E307 identity, structured output, aggregation, and advisory
+    gate behavior remain unchanged.
+  agent:
+    model: gpt-5
+    provider: openai
+    client: codex
+    source: "Self-known model family; exact runtime slug and reasoning effort unavailable."
+    skills:
+      - maid-planner
+      - maid-evolver
+      - maid-plan-review
+      - maid-implement-draft
+      - maid-implementation-review
+  lessons:
+    - lesson_type: validation-design
+      summary: >-
+        File authorization and artifact-language support are separate evidence
+        boundaries: known presentation assets can be presence- and scope-checked
+        without pretending MAID can identify their semantic artifacts, while
+        project build and behavioral tests remain the reliable semantic evidence.
+      tags:
+        - E307
+        - presentation-assets
+        - diagnostic-policy
+      paths:
+        - maid_runner/core/diagnostic_policy.py
+        - tests/core/test_presentation_asset_e307_policy.py
+    - lesson_type: workflow
+      summary: >-
+        An additive contract for an existing public function inherits every
+        behavioral test file that exercises that function; `maid test --manifest`
+        correctly exposed the missing historical test target as E230, and a
+        stash-backed plan revision recaptured red evidence with the complete
+        command before handoff.
+      tags:
+        - chain-merge
+        - E230
+        - plan-revision
+      paths:
+        - manifests/fix-presentation-asset-e307-noise.manifest.yaml
+        - .maid/plan-locks/fix-presentation-asset-e307-noise.lock.json
+  review_notes:
+    - source: independent-reviewer-presentation_asset_e307_review
+      severity: ready
+      summary: >-
+        Independent read-only review found no blocking or advisory findings and
+        confirmed the closed extension policy, E307 visibility, scope fidelity,
+        test coverage, and plan-lock consistency.
+  validation:
+    - command: [uv, run, python, -m, pytest, tests/core/test_e307_proportionate_policy.py, tests/core/test_presentation_asset_e307_policy.py, -v]
+      status: passed
+      summary: "All 10 focused E307 policy tests passed."
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: "All 288 active manifests passed; 360 superseded manifests were skipped and none failed."
+    - command: [uv, run, python, -m, pytest, tests/, -q, -n, auto]
+      status: passed
+      summary: "The full suite passed 4,609 tests with 14 platform-specific skips after syncing the declared docs dependency group."
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: "All 297 active manifest test commands passed."
+    - command: [uv, run, maid, verify, --profile, deep, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, HEAD, --summary]
+      status: passed
+      summary: "All 11 deep verification stages passed with zero blocking findings."

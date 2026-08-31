@@ -1,0 +1,272 @@
+{
+  "manifest_path": "manifests/fix-reviewer-writable-scope-guidance.manifest.yaml",
+  "manifest_hash": "sha256-contract:22403995e5a7377d07459a945db7fea6b3300038f77aa6682de441f68d5b42c0",
+  "test_hashes": {
+    "tests/test_claude_skill_distribution.py": "sha256-pyast:v2:de7cd68bf62fb90661da3358c497acbc78a055332f5b3bc9ffc2aa905c56c300",
+    "tests/test_reviewer_writable_scope_guidance.py": "sha256-pyast:v2:35115f1c4561b47566b0403a191b441795c3ccde6c14f53bbe23443848a74503",
+    "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:v2:cc5d9cee1cf655f34e3cc4a71c4ffa3ccc83263687ca04e269d0a13f41cb563c"
+  },
+  "created_at": "2026-08-25T00:04:44.325027+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:9b53eb5bd014b0bbb0d6f586734c4bcc7f39325f059c996c8ce768dc03a66ce0",
+      "prior_test_hashes": {
+        "tests/test_agent_skill_scope_install_guidance.py": "sha256-pyast:v2:08be364bcb02c7134acbb4a7e4a0c1686eea02718c7792d41c9fd40de6b42f06",
+        "tests/test_claude_skill_distribution.py": "sha256-pyast:v2:de7cd68bf62fb90661da3358c497acbc78a055332f5b3bc9ffc2aa905c56c300",
+        "tests/test_reviewer_writable_scope_guidance.py": "sha256-pyast:v2:35115f1c4561b47566b0403a191b441795c3ccde6c14f53bbe23443848a74503",
+        "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:v2:cc5d9cee1cf655f34e3cc4a71c4ffa3ccc83263687ca04e269d0a13f41cb563c"
+      },
+      "revised_at": "2026-08-25T00:04:45.519762+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-reviewer-writable-scope-guidance.manifest.yaml -> manifests/fix-reviewer-writable-scope-guidance.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:370fe9e9203734dbbab096655d9f46d17b8fc810e8d43e06b4b80942805967c9",
+      "prior_test_hashes": {
+        "tests/test_agent_skill_scope_install_guidance.py": "sha256-pyast:v2:08be364bcb02c7134acbb4a7e4a0c1686eea02718c7792d41c9fd40de6b42f06",
+        "tests/test_claude_skill_distribution.py": "sha256-pyast:v2:de7cd68bf62fb90661da3358c497acbc78a055332f5b3bc9ffc2aa905c56c300",
+        "tests/test_reviewer_writable_scope_guidance.py": "sha256-pyast:v2:35115f1c4561b47566b0403a191b441795c3ccde6c14f53bbe23443848a74503",
+        "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:v2:cc5d9cee1cf655f34e3cc4a71c4ffa3ccc83263687ca04e269d0a13f41cb563c"
+      },
+      "revised_at": "2026-08-25T00:05:53.524720+00:00",
+      "reason": "Remove an unused files.read test dependency that caused E230 because the contract did not execute that test",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [
+          "read:tests/test_agent_skill_scope_install_guidance.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-25T00:05:58.212636+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_reviewer_writable_scope_guidance.py tests/test_claude_skill_distribution.py tests/cli/test_init_instruction_payload_version.py",
+        "exit_code": 1,
+        "output_tail": "E             + 3. Confirm declare...\nE             \nE             ...Full output truncated (7 lines hidden), use '-vv' to show\n\ntests/test_reviewer_writable_scope_guidance.py:75: AssertionError\n________ test_instruction_payload_version_bumped_for_reviewer_scope_fix ________\n\n    def test_instruction_payload_version_bumped_for_reviewer_scope_fix() -> None:\n>       assert _version_tuple(INSTRUCTION_PAYLOAD_VERSION) > _version_tuple(\"2026.08.20.1\")\nE       AssertionError: assert (2026, 8, 20, 1) > (2026, 8, 20, 1)\nE        +  where (2026, 8, 20, 1) = _version_tuple('2026.08.20.1')\nE        +  and   (2026, 8, 20, 1) = _version_tuple('2026.08.20.1')\n\ntests/test_reviewer_writable_scope_guidance.py:79: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_reviewer_writable_scope_guidance.py::test_reviewer_guidance_accepts_all_writable_scope_categories\nFAILED tests/test_reviewer_writable_scope_guidance.py::test_reviewer_guidance_limits_artifact_checks_to_contracted_files\nFAILED tests/test_reviewer_writable_scope_guidance.py::test_reviewer_payload_sources_and_packages_match\nFAILED tests/test_reviewer_writable_scope_guidance.py::test_instruction_payload_version_bumped_for_reviewer_scope_fix\n4 failed, 12 passed in 0.49s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-reviewer-writable-scope-guidance.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      ".claude/agents/maid-implementation-reviewer.md:attribute:agent guidance._claude_reviewer_agent_scope_contract",
+      ".claude/agents/maid-implementation-reviewer.md:attribute:agent guidance._claude_reviewer_agent_scope_contract:kind=attribute",
+      ".claude/agents/maid-implementation-reviewer.md:attribute:agent guidance._claude_reviewer_agent_scope_contract:of=agent guidance",
+      ".claude/agents/maid-implementation-reviewer.md:attribute:agent guidance._claude_reviewer_agent_scope_contract:type=markdown guidance",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:skill._claude_review_skill_scope_contract",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:skill._claude_review_skill_scope_contract:kind=attribute",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:skill._claude_review_skill_scope_contract:of=skill",
+      ".claude/skills/maid-implementation-review/SKILL.md:attribute:skill._claude_review_skill_scope_contract:type=markdown guidance",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:skill._codex_review_skill_scope_contract",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:skill._codex_review_skill_scope_contract:kind=attribute",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:skill._codex_review_skill_scope_contract:of=skill",
+      ".codex/skills/maid-implementation-review/SKILL.md:attribute:skill._codex_review_skill_scope_contract:type=markdown guidance",
+      "maid_runner/claude/agents/maid-implementation-reviewer.md:attribute:agent guidance._packaged_claude_reviewer_agent_scope_contract",
+      "maid_runner/claude/agents/maid-implementation-reviewer.md:attribute:agent guidance._packaged_claude_reviewer_agent_scope_contract:kind=attribute",
+      "maid_runner/claude/agents/maid-implementation-reviewer.md:attribute:agent guidance._packaged_claude_reviewer_agent_scope_contract:of=agent guidance",
+      "maid_runner/claude/agents/maid-implementation-reviewer.md:attribute:agent guidance._packaged_claude_reviewer_agent_scope_contract:type=markdown guidance",
+      "maid_runner/claude/skills/maid-implementation-review/SKILL.md:attribute:skill._packaged_claude_review_skill_scope_contract",
+      "maid_runner/claude/skills/maid-implementation-review/SKILL.md:attribute:skill._packaged_claude_review_skill_scope_contract:kind=attribute",
+      "maid_runner/claude/skills/maid-implementation-review/SKILL.md:attribute:skill._packaged_claude_review_skill_scope_contract:of=skill",
+      "maid_runner/claude/skills/maid-implementation-review/SKILL.md:attribute:skill._packaged_claude_review_skill_scope_contract:type=markdown guidance",
+      "maid_runner/codex/skills/maid-implementation-review/SKILL.md:attribute:skill._packaged_codex_review_skill_scope_contract",
+      "maid_runner/codex/skills/maid-implementation-review/SKILL.md:attribute:skill._packaged_codex_review_skill_scope_contract:kind=attribute",
+      "maid_runner/codex/skills/maid-implementation-review/SKILL.md:attribute:skill._packaged_codex_review_skill_scope_contract:of=skill",
+      "maid_runner/codex/skills/maid-implementation-review/SKILL.md:attribute:skill._packaged_codex_review_skill_scope_contract:type=markdown guidance",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:kind=attribute",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:type=str",
+      "tests/test_reviewer_writable_scope_guidance.py:test_instruction_payload_version_bumped_for_reviewer_scope_fix",
+      "tests/test_reviewer_writable_scope_guidance.py:test_instruction_payload_version_bumped_for_reviewer_scope_fix:kind=test_function",
+      "tests/test_reviewer_writable_scope_guidance.py:test_instruction_payload_version_bumped_for_reviewer_scope_fix:returns=None",
+      "tests/test_reviewer_writable_scope_guidance.py:test_reviewer_guidance_accepts_all_writable_scope_categories",
+      "tests/test_reviewer_writable_scope_guidance.py:test_reviewer_guidance_accepts_all_writable_scope_categories:kind=test_function",
+      "tests/test_reviewer_writable_scope_guidance.py:test_reviewer_guidance_accepts_all_writable_scope_categories:returns=None",
+      "tests/test_reviewer_writable_scope_guidance.py:test_reviewer_guidance_limits_artifact_checks_to_contracted_files",
+      "tests/test_reviewer_writable_scope_guidance.py:test_reviewer_guidance_limits_artifact_checks_to_contracted_files:kind=test_function",
+      "tests/test_reviewer_writable_scope_guidance.py:test_reviewer_guidance_limits_artifact_checks_to_contracted_files:returns=None",
+      "tests/test_reviewer_writable_scope_guidance.py:test_reviewer_payload_sources_and_packages_match",
+      "tests/test_reviewer_writable_scope_guidance.py:test_reviewer_payload_sources_and_packages_match:kind=test_function",
+      "tests/test_reviewer_writable_scope_guidance.py:test_reviewer_payload_sources_and_packages_match:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/test_reviewer_writable_scope_guidance.py"
+      ],
+      "edit": [
+        ".claude/agents/maid-implementation-reviewer.md",
+        ".claude/skills/maid-implementation-review/SKILL.md",
+        ".codex/skills/maid-implementation-review/SKILL.md",
+        "maid_runner/claude/agents/maid-implementation-reviewer.md",
+        "maid_runner/claude/skills/maid-implementation-review/SKILL.md",
+        "maid_runner/codex/skills/maid-implementation-review/SKILL.md",
+        "maid_runner/instruction_payload.py"
+      ],
+      "read": [
+        "manifests/085-01-fix-agent-skill-scope-install-guidance.manifest.yaml",
+        "scripts/sync_claude_files.py",
+        "tests/test_claude_skill_distribution.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_reviewer_writable_scope_guidance.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_reviewer_guidance_accepts_all_writable_scope_categories",
+              "description": "Every reviewer source and packaged payload authorizes create, edit, scope, and delete while keeping read contextual.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_reviewer_guidance_limits_artifact_checks_to_contracted_files",
+              "description": "Every reviewer payload states that artifact verification applies to files.create and files.edit rather than scope-only or deleted paths.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_reviewer_payload_sources_and_packages_match",
+              "description": "Claude agent and Claude/Codex review skill source payloads match their packaged copies byte-for-byte.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_instruction_payload_version_bumped_for_reviewer_scope_fix",
+              "description": "Instruction payload version is newer than the defective 2026.08.20.1 payload.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": ".claude/agents/maid-implementation-reviewer.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_claude_reviewer_agent_scope_contract",
+              "description": "Claude reviewer agent authorizes files.create, files.edit, files.scope, and files.delete while limiting artifact verification to contracted entries.",
+              "of": "agent guidance",
+              "type": "markdown guidance"
+            }
+          ]
+        },
+        {
+          "path": ".claude/skills/maid-implementation-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_claude_review_skill_scope_contract",
+              "description": "Claude review skill consistently distinguishes all writable categories from artifact-bearing files.create/files.edit entries.",
+              "of": "skill",
+              "type": "markdown guidance"
+            }
+          ]
+        },
+        {
+          "path": ".codex/skills/maid-implementation-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_codex_review_skill_scope_contract",
+              "description": "Codex review skill consistently distinguishes all writable categories from artifact-bearing files.create/files.edit entries.",
+              "of": "skill",
+              "type": "markdown guidance"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/claude/agents/maid-implementation-reviewer.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_packaged_claude_reviewer_agent_scope_contract",
+              "description": "Packaged Claude reviewer agent mirrors the corrected source scope contract.",
+              "of": "agent guidance",
+              "type": "markdown guidance"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/claude/skills/maid-implementation-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_packaged_claude_review_skill_scope_contract",
+              "description": "Packaged Claude review skill mirrors the corrected source scope contract.",
+              "of": "skill",
+              "type": "markdown guidance"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-implementation-review/SKILL.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_packaged_codex_review_skill_scope_contract",
+              "description": "Packaged Codex review skill mirrors the corrected source scope contract.",
+              "of": "skill",
+              "type": "markdown guidance"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/instruction_payload.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "INSTRUCTION_PAYLOAD_VERSION",
+              "description": "Date-stamped payload version advances past 2026.08.20.1 for corrected init-distributed reviewer guidance.",
+              "type": "str"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "scripts/sync_claude_files.py",
+        "manifests/085-01-fix-agent-skill-scope-install-guidance.manifest.yaml",
+        "tests/test_claude_skill_distribution.py"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_init_instruction_payload_version.py",
+      "tests/test_claude_skill_distribution.py",
+      "tests/test_reviewer_writable_scope_guidance.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_reviewer_writable_scope_guidance.py tests/test_claude_skill_distribution.py tests/cli/test_init_instruction_payload_version.py",
+      "uv run maid validate manifests/fix-reviewer-writable-scope-guidance.manifest.yaml --mode behavioral --quiet"
+    ]
+  }
+}
