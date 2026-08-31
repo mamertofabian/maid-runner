@@ -1,0 +1,155 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: Refresh the prepared maid-runner 2.27.2 candidate with the complete release inventory
+type: fix
+created: "2026-08-31T00:18:48Z"
+supersedes:
+  - bump-version-2.27.2
+metadata:
+  planning_state: behavioral_contract
+  promotion_ready: true
+  tests_status: red_confirmed
+  tags: [release, version, changelog]
+  priority: high
+description: |
+  Keep the already prepared 2.27.2 patch version because PyPI still reports
+  2.27.1 and v2.27.2 is absent locally and remotely. Refresh the candidate's
+  release date and complete v2.27.1..HEAD inventory after three additional
+  fixes landed: acceptance-layer plan-lock red evidence, spawn-safe artifact
+  coverage, and bounded parsing of generated Supabase in_-prefixed fields.
+
+  Preserve the existing package, lock, compare-link, and roadmap consistency
+  checks while extending the release-metadata behavioral contract to cover all
+  seven release-note entries representing eight manifested fixes. This
+  supersedes the earlier 2.27.2 release
+  contract because its claim that the four-entry inventory was complete is no
+  longer true. Tagging, publishing, pushing, merging to main, and creating a
+  GitHub release remain separate approval-gated actions.
+
+  Outcome evidence digestion: prior release Outcomes require inventory from the
+  published-tag boundary, synchronized metadata mirrors, built-artifact checks,
+  and preserved-evidence revision of every shared-test plan lock. This contract
+  retains those safeguards. Unrelated performance and parser implementation
+  lessons are represented by their own completed manifests and are not used to
+  widen this release-metadata scope.
+temptations:
+  - risk: Do not bump to 2.27.3 merely because fixes landed after the original local 2.27.2 preparation.
+    instead: Reconfirm that 2.27.2 is unpublished and untagged, then refresh the existing candidate inventory.
+  - risk: Do not leave the changelog dated before the final candidate inventory existed.
+    instead: Synchronize the changelog heading, roadmap last-updated date, and release-metadata assertion to 2026-08-31.
+  - risk: Do not summarize only the two commit subjects and lose independently manifested behavior.
+    instead: Inventory the exact v2.27.1..HEAD manifests and cover all eight fixes in seven precise changelog entries, with the two routing fixes intentionally grouped.
+  - risk: Do not recreate red evidence for historical manifests that share the release test.
+    instead: Revise affected dependent locks through MAID's preserved-evidence workflow and verify the final task-scoped gate.
+files:
+  scope:
+    - path: pyproject.toml
+      reason: Confirm package metadata remains on the unpublished 2.27.2 candidate; no version change is expected.
+    - path: uv.lock
+      reason: Confirm editable lock metadata remains synchronized at 2.27.2; no lock regeneration is expected unless validation detects drift.
+    - path: CHANGELOG.md
+      reason: Refresh the 2.27.2 date and add the three post-preparation fixes to the complete release inventory.
+    - path: docs/ROADMAP.md
+      reason: Synchronize the prepared candidate's last-updated date while retaining its 2.27.2 version references.
+  edit:
+    - path: tests/integration/test_library_api.py
+      artifacts:
+        - kind: test_function
+          name: test_release_metadata_is_current_version
+          of: TestPublicAPIImports
+          args:
+            - name: self
+              type: TestPublicAPIImports
+          returns: None
+          description: Runtime version, package metadata, editable lock metadata, changelog heading and compare link, roadmap, and the complete seven-entry inventory representing eight fixes report the unpublished 2.27.2 candidate dated 2026-08-31.
+  read:
+    - maid_runner/__version__.py
+    - manifests/bump-version-2.27.2.manifest.yaml
+    - manifests/fix-typescript-type-predicate-return-annotations.manifest.yaml
+    - manifests/fix-presentation-asset-e307-noise.manifest.yaml
+    - manifests/fix-assess-changed-manifest-directory.manifest.yaml
+    - manifests/fix-manifest-promote-output-routing.manifest.yaml
+    - manifests/fix-reviewer-writable-scope-guidance.manifest.yaml
+    - manifests/fix-cypress-acceptance-red-evidence.manifest.yaml
+    - manifests/fix-artifact-coverage-multiprocessing-spawn.manifest.yaml
+    - manifests/fix-supabase-generated-types-parser.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/integration/test_library_api.py tests/validators/test_typescript_type_predicates.py tests/core/test_presentation_asset_e307_policy.py tests/cli/test_assess_manifest_directory.py tests/cli/test_manifest_promote_output_routing.py tests/test_reviewer_writable_scope_guidance.py tests/core/test_acceptance_red_evidence.py tests/core/test_artifact_coverage_multiprocessing_spawn.py tests/validators/test_typescript_supabase_generated_types.py
+outcome:
+  status: completed
+  completed_at: "2026-08-31T08:30:00+08:00"
+  summary: >-
+    Refreshed the unpublished maid-runner 2.27.2 candidate with a 2026-08-31
+    release date and seven changelog entries representing all eight manifested
+    fixes since v2.27.1, while keeping package and lock metadata on the already
+    prepared patch version.
+  rationale: >-
+    PyPI still reports 2.27.1 and v2.27.2 remains absent locally and remotely,
+    so another version bump would skip an available patch number. The release
+    contract now supersedes the stale four-entry inventory, synchronizes the
+    changelog and roadmap date, and preserves the approved red evidence of
+    every historical lock sharing the release-metadata test.
+  agent:
+    model: gpt-5
+    provider: openai
+    client: codex
+    source: "Self-known model family; exact runtime slug and reasoning effort were unavailable."
+    skills:
+      - maid-evolver
+      - maid-planner
+      - maid-plan-review
+      - maid-implementer
+      - maid-implementation-review
+  lessons:
+    - lesson_type: workflow
+      summary: >-
+        An unpublished release candidate should retain its prepared SemVer when
+        later fixes land before publication; refresh the exact tag-boundary
+        inventory, date mirrors, behavioral assertions, and built artifacts
+        instead of needlessly advancing another patch number.
+      tags: [release, versioning, changelog]
+      paths: [pyproject.toml, uv.lock, CHANGELOG.md, docs/ROADMAP.md]
+    - lesson_type: validation-trust
+      summary: >-
+        Superseding a release contract does not eliminate historical locks that
+        share its behavioral test; enumerate active dependents, revise only the
+        mismatches through preserved evidence, and require every dependent hash
+        to match before the deep handoff gate.
+      tags: [release, plan-lock, shared-tests, maid-runner-feedback]
+      paths:
+        - tests/integration/test_library_api.py
+        - .maid/plan-locks/065-01-add-error-code-rule-registry-export.lock.json
+        - .maid/plan-locks/089-01-honor-output-suffix-in-save-manifest.lock.json
+        - .maid/plan-locks/snapshot-cli-commands--main-2.lock.json
+  review_notes:
+    - source: independent-read-only-release-review
+      severity: ready
+      summary: >-
+        Fresh explorer review found no blockers, confirmed the patch SemVer,
+        eight-fix inventory, seven-entry changelog, scope fidelity, synchronized
+        metadata, preserved lock evidence, and genuine red phase. It retained
+        only two pre-existing future-hardening advisories about section-scoped
+        changelog assertions and a stale compatibility-test name.
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/integration/test_library_api.py, tests/validators/test_typescript_type_predicates.py, tests/core/test_presentation_asset_e307_policy.py, tests/cli/test_assess_manifest_directory.py, tests/cli/test_manifest_promote_output_routing.py, tests/test_reviewer_writable_scope_guidance.py, tests/core/test_acceptance_red_evidence.py, tests/core/test_artifact_coverage_multiprocessing_spawn.py, tests/validators/test_typescript_supabase_generated_types.py]
+      status: passed
+      summary: "All 69 focused release and underlying-fix tests passed."
+    - command: [uv, run, python, -m, pytest, tests/, -q]
+      status: passed
+      summary: "The full suite passed 4,646 tests with 14 skipped."
+    - command: [uv, run, maid, validate, --packet]
+      status: passed
+      summary: "All 295 active manifests passed; 362 superseded manifests were skipped."
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: "All 300 manifest-declared command groups passed."
+    - command: [uv, build, --out-dir, fresh-temporary-directory]
+      status: passed
+      summary: "Built exactly one 2.27.2 wheel and one sdist; Twine accepted both and a clean environment installed the wheel and discovered all built-in validators."
+    - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, 3fd8dca]
+      status: passed
+      summary: "All 11 deep gates passed with zero blockers and one known non-blocking CJS E307 warning."

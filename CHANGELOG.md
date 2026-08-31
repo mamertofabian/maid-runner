@@ -5,13 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.27.2] - 2026-08-25
+## [2.27.2] - 2026-08-31
 
 ### Fixed
 - **TypeScript predicate return annotations** — Collect explicit type-predicate and assertion return annotations for declarations, arrow functions, class methods, and interface methods, preventing false `E304` missing-return-type warnings while preserving ordinary TypeScript and JavaScript fallback behavior.
 - **Presentation-asset diagnostics** — Retain per-file `E307` diagnostics for HTML and stylesheet files at informational severity because MAID presence- and scope-checks these assets while project build and behavioral tests verify their semantics. Unsupported executable source languages remain warnings.
 - **Configured manifest-chain routing** — Preserve an explicit or unambiguous changed manifest directory in `maid assess` output and emitted verify commands, and infer draft-promotion destinations from their direct owning `drafts` directory. Explicit overrides remain authoritative and ambiguous paths fail visibly instead of writing to or verifying an unrelated chain.
 - **Implementation-review scope guidance** — Align distributed Claude and Codex reviewer guidance with all writable manifest categories (`files.create`, `files.edit`, `files.scope`, and `files.delete`) while keeping public-artifact checks limited to contracted create/edit entries and `files.read` strictly read-only.
+- **Acceptance-layer red evidence** — Allow plan locks to capture genuine red evidence from acceptance commands after every fast validation command passes, while preserving validate-versus-acceptance provenance, rejecting invalid or spliced evidence, and recognizing conventional Cypress `.cy.*` test filenames.
+- **Spawn-safe artifact coverage** — Keep generated artifact-coverage runners import-safe for multiprocessing spawn children, including inherited application arguments, without recursively starting pytest, weakening xdist process budgets, or losing parent-process execution evidence.
+- **Generated Supabase type parsing** — Retry exact tree-sitter false-positive spans for nested `in_`-prefixed generated TypeScript properties with equal-length parser-only placeholders, preserving original source bytes and all unrelated syntax errors.
 
 ## [2.27.1] - 2026-08-21
 
