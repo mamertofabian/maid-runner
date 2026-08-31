@@ -1,0 +1,1337 @@
+{
+  "manifest_path": "manifests/fix-cypress-spec-option-path.manifest.yaml",
+  "manifest_hash": "sha256-contract:83b96276483d9047291cb7428ff5b7302baa860ca331623509780e6a23d32108",
+  "test_hashes": {
+    "tests/core/validation/test_acceptance_validation.py": "sha256-pyast:v2:d29a446e13d757fd5ec8bb91896c35c4e4117854ed49fee717503c3928ed6fa0",
+    "tests/core/validation/test_cypress_spec_option_path.py": "sha256-pyast:v2:22b0e01ae2090dd94b9246c4e0cbc07f4cba549c9b447cdad7abf1b30b8d2532"
+  },
+  "created_at": "2026-08-31T04:33:23.528426+00:00",
+  "revision": 19,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:6fd55c36d76058edde70f2360f6d0f3f1f23c7e7633955421f1eff0d79ffc67f",
+      "prior_test_hashes": {
+        "tests/core/validation/test_acceptance_validation.py": "sha256-pyast:v2:d29a446e13d757fd5ec8bb91896c35c4e4117854ed49fee717503c3928ed6fa0",
+        "tests/core/validation/test_cypress_spec_option_path.py": "sha256-pyast:v2:826a26b527705e9b4f11ddebe6acb4c99108755c737b62319a6248376232465b"
+      },
+      "revised_at": "2026-08-31T04:33:31.607401+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-cypress-spec-option-path.manifest.yaml -> manifests/fix-cypress-spec-option-path.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b2c050e60aa126020727ba8e2ab1ac69597ea0aa6e29ee30e7966e02ff46ef89",
+      "prior_test_hashes": {
+        "tests/core/validation/test_acceptance_validation.py": "sha256-pyast:v2:d29a446e13d757fd5ec8bb91896c35c4e4117854ed49fee717503c3928ed6fa0",
+        "tests/core/validation/test_cypress_spec_option_path.py": "sha256-pyast:v2:826a26b527705e9b4f11ddebe6acb4c99108755c737b62319a6248376232465b"
+      },
+      "revised_at": "2026-08-31T04:34:59.432492+00:00",
+      "reason": "Include the historical validate_acceptance behavioral suite required by additive chain coverage (E230).",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest tests/core/validation/test_acceptance_validation.py tests/core/validation/test_cypress_spec_option_path.py -v"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest tests/core/validation/test_cypress_spec_option_path.py -v"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2108b1fc51b0f782384f7a5eb186d710ebc06f86ad1b70ea290303d078267a5b",
+      "prior_test_hashes": {
+        "tests/core/validation/test_acceptance_validation.py": "sha256-pyast:v2:d29a446e13d757fd5ec8bb91896c35c4e4117854ed49fee717503c3928ed6fa0",
+        "tests/core/validation/test_cypress_spec_option_path.py": "sha256-pyast:v2:826a26b527705e9b4f11ddebe6acb4c99108755c737b62319a6248376232465b"
+      },
+      "revised_at": "2026-08-31T04:38:59.814727+00:00",
+      "reason": "Apply repository Black formatting to the locked behavioral test without changing its contract.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2108b1fc51b0f782384f7a5eb186d710ebc06f86ad1b70ea290303d078267a5b",
+      "prior_test_hashes": {
+        "tests/core/validation/test_acceptance_validation.py": "sha256-pyast:v2:d29a446e13d757fd5ec8bb91896c35c4e4117854ed49fee717503c3928ed6fa0",
+        "tests/core/validation/test_cypress_spec_option_path.py": "sha256-pyast:v2:826a26b527705e9b4f11ddebe6acb4c99108755c737b62319a6248376232465b"
+      },
+      "revised_at": "2026-08-31T04:45:39.437421+00:00",
+      "reason": "Strengthen the unrelated-option contract after review exposed Playwright --project values as a false E500 path.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2108b1fc51b0f782384f7a5eb186d710ebc06f86ad1b70ea290303d078267a5b",
+      "prior_test_hashes": {
+        "tests/core/validation/test_acceptance_validation.py": "sha256-pyast:v2:d29a446e13d757fd5ec8bb91896c35c4e4117854ed49fee717503c3928ed6fa0",
+        "tests/core/validation/test_cypress_spec_option_path.py": "sha256-pyast:v2:a79b6e453565be6e1e3371a39f36f222cb7619a51ee791005888285200728603"
+      },
+      "revised_at": "2026-08-31T04:54:37.046230+00:00",
+      "reason": "Harden Cypress spec parsing after review: validate comma-separated targets, split unrelated option values, and command-relative paths.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_cypress_spec_option_path.py:test_cypress_spec_list_rejects_nonleading_project_escape",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_cypress_spec_list_rejects_nonleading_project_escape:kind=test_function",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_existing_cypress_spec_assignment_respects_command_cwd",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_existing_cypress_spec_assignment_respects_command_cwd:kind=test_function",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_existing_cypress_spec_list_does_not_report_e500",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_existing_cypress_spec_list_does_not_report_e500:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:0ab6b41e895691801df14d59ee724d61805ec4e6667b17c495dc57f29fe28084",
+      "prior_test_hashes": {
+        "tests/core/validation/test_acceptance_validation.py": "sha256-pyast:v2:d29a446e13d757fd5ec8bb91896c35c4e4117854ed49fee717503c3928ed6fa0",
+        "tests/core/validation/test_cypress_spec_option_path.py": "sha256-pyast:v2:6584e2903c703824f535a340166c7db8d8b30834ee2dbc2695e5483dc08e77aa"
+      },
+      "revised_at": "2026-08-31T05:03:44.425945+00:00",
+      "reason": "Validate every explicit Cypress spec value and attached command-directory containment; bound unrelated split-option guarantees to recognized options.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_cypress_spec_option_path.py:test_attached_command_cwd_outside_project_is_rejected",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_attached_command_cwd_outside_project_is_rejected:kind=test_function",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_existing_cypress_spec_respects_attached_command_cwd",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_existing_cypress_spec_respects_attached_command_cwd:kind=test_function",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_missing_nonconventional_cypress_spec_reports_extracted_path",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_missing_nonconventional_cypress_spec_reports_extracted_path:kind=test_function",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_nonconventional_cypress_spec_outside_project_is_rejected",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_nonconventional_cypress_spec_outside_project_is_rejected:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:94bd27c7eb1f46f6c993aae407f0504be700edb72948098a06ab4756092e7a0a",
+      "prior_test_hashes": {
+        "tests/core/validation/test_acceptance_validation.py": "sha256-pyast:v2:d29a446e13d757fd5ec8bb91896c35c4e4117854ed49fee717503c3928ed6fa0",
+        "tests/core/validation/test_cypress_spec_option_path.py": "sha256-pyast:v2:fc9ebd858cd038f704e591071ebb1919b627c5de5c33fc1ad4864ae73498d700"
+      },
+      "revised_at": "2026-08-31T05:12:03.119444+00:00",
+      "reason": "Clarify the approved parser boundary: direct argv tokens only; nested shell-language command strings remain outside this task.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:281d90aa9bb6d70e468ba55fce3fcea73c41a9528689e09012e480b1b45c9964",
+      "prior_test_hashes": {
+        "tests/core/validation/test_acceptance_validation.py": "sha256-pyast:v2:d29a446e13d757fd5ec8bb91896c35c4e4117854ed49fee717503c3928ed6fa0",
+        "tests/core/validation/test_cypress_spec_option_path.py": "sha256-pyast:v2:fc9ebd858cd038f704e591071ebb1919b627c5de5c33fc1ad4864ae73498d700"
+      },
+      "revised_at": "2026-08-31T05:17:17.025741+00:00",
+      "reason": "Reset runner-local cwd across command segments and preserve Windows absolute spec identity before cwd joining.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_cypress_spec_option_path.py:test_command_cwd_option_does_not_leak_to_later_segment",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_command_cwd_option_does_not_leak_to_later_segment:kind=test_function",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_windows_absolute_spec_with_command_cwd_is_rejected",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_windows_absolute_spec_with_command_cwd_is_rejected:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d3535f8280d210edb93bf33800ba88ae444c3ef41ed61ba8f1eb3c5629ed7882",
+      "prior_test_hashes": {
+        "tests/core/validation/test_acceptance_validation.py": "sha256-pyast:v2:d29a446e13d757fd5ec8bb91896c35c4e4117854ed49fee717503c3928ed6fa0",
+        "tests/core/validation/test_cypress_spec_option_path.py": "sha256-pyast:v2:b5a31393038f41763ad68b8cb680d7ebaff5804c4585936bfc6afdffa84a469b"
+      },
+      "revised_at": "2026-08-31T05:28:01.893162+00:00",
+      "reason": "Preserve legacy acceptance command paths and gate Cypress spec extraction to Cypress and Nx e2e invocations.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_cypress_spec_option_path.py:test_attached_acceptance_path_option_containment_remains_enforced",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_attached_acceptance_path_option_containment_remains_enforced:kind=test_function",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_existing_nx_cypress_spec_assignment_does_not_report_e500",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_existing_nx_cypress_spec_assignment_does_not_report_e500:kind=test_function",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_non_cypress_spec_option_is_not_a_file_target",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_non_cypress_spec_option_is_not_a_file_target:kind=test_function",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_positional_acceptance_directory_containment_remains_enforced",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_positional_acceptance_directory_containment_remains_enforced:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c22bc1e6c47c7c0599299838b10dfbe3ab49b96ed6324c5ab0a5aa25cd41e439",
+      "prior_test_hashes": {
+        "tests/core/validation/test_acceptance_validation.py": "sha256-pyast:v2:d29a446e13d757fd5ec8bb91896c35c4e4117854ed49fee717503c3928ed6fa0",
+        "tests/core/validation/test_cypress_spec_option_path.py": "sha256-pyast:v2:5285c73f4135fe942714dbdbebeae61f032bd50264f35907f3978c8a0ea29857"
+      },
+      "revised_at": "2026-08-31T05:35:40.973341+00:00",
+      "reason": "Normalize effective commands for Cypress/Nx gating, cover Nx target flags, and reset legacy runner cwd between segments.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_cypress_spec_option_path.py:test_cypress_like_argument_values_do_not_activate_spec_parsing",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_cypress_like_argument_values_do_not_activate_spec_parsing:kind=test_function",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_existing_nx_target_spec_assignment_does_not_report_e500",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_existing_nx_target_spec_assignment_does_not_report_e500:kind=test_function",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_legacy_command_cwd_does_not_leak_to_later_outside_target",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_legacy_command_cwd_does_not_leak_to_later_outside_target:kind=test_function",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_nx_target_spec_outside_project_is_rejected",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_nx_target_spec_outside_project_is_rejected:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:f0655deda22ae5f61d6ac775d8f37185617c31f5dac5c2c4e5e6f52b723a079c",
+      "prior_test_hashes": {
+        "tests/core/validation/test_acceptance_validation.py": "sha256-pyast:v2:d29a446e13d757fd5ec8bb91896c35c4e4117854ed49fee717503c3928ed6fa0",
+        "tests/core/validation/test_cypress_spec_option_path.py": "sha256-pyast:v2:ea2483d2f938c6d8366ef71c52147ac8b18cb9210c05651e3be069f8cc244c18"
+      },
+      "revised_at": "2026-08-31T05:44:21.361871+00:00",
+      "reason": "Normalize package-runner cwd flags before Cypress detection and restrict Nx e2e activation to target positions and flags.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_cypress_spec_option_path.py:test_existing_pnpm_cypress_spec_respects_command_cwd",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_existing_pnpm_cypress_spec_respects_command_cwd:kind=test_function",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_nx_non_target_e2e_values_do_not_activate_spec_parsing",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_nx_non_target_e2e_values_do_not_activate_spec_parsing:kind=test_function",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_pnpm_command_cwd_outside_spec_is_rejected",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_pnpm_command_cwd_outside_spec_is_rejected:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:80ca1bb27bcd67dbaac8a6d585881c56356c0401885ebe9cc8bd7902b01fe9ba",
+      "prior_test_hashes": {
+        "tests/core/validation/test_acceptance_validation.py": "sha256-pyast:v2:d29a446e13d757fd5ec8bb91896c35c4e4117854ed49fee717503c3928ed6fa0",
+        "tests/core/validation/test_cypress_spec_option_path.py": "sha256-pyast:v2:105ced4e7234983debc7c0828fd63e65d7fe3813a613dbd265e43d02e441885e"
+      },
+      "revised_at": "2026-08-31T05:51:35.044036+00:00",
+      "reason": "Recognize configured Nx e2e targets and consume split npx package options before effective executable detection.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_cypress_spec_option_path.py:test_npx_package_injection_preserves_nx_spec_detection",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_npx_package_injection_preserves_nx_spec_detection:kind=test_function",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_npx_package_value_does_not_activate_cypress_spec_parsing",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_npx_package_value_does_not_activate_cypress_spec_parsing:kind=test_function",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_nx_configured_target_missing_spec_reports_e500",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_nx_configured_target_missing_spec_reports_e500:kind=test_function",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_nx_configured_target_spec_outside_project_is_rejected",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_nx_configured_target_spec_outside_project_is_rejected:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:3046bdb6fb6f6358f7efaa1a6abd5ee19d2c38aa40cd8c78ed5f95b695391066",
+      "prior_test_hashes": {
+        "tests/core/validation/test_acceptance_validation.py": "sha256-pyast:v2:d29a446e13d757fd5ec8bb91896c35c4e4117854ed49fee717503c3928ed6fa0",
+        "tests/core/validation/test_cypress_spec_option_path.py": "sha256-pyast:v2:e09062b03365d4314ac79752b31d68e3b6eb87299bcd424ce96ca7621d1fc8b6"
+      },
+      "revised_at": "2026-08-31T06:00:05.334219+00:00",
+      "reason": "Consume npx package injection across standalone flags and explicitly skip shell -c command strings.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_cypress_spec_option_path.py:test_npx_package_injection_after_standalone_flag_preserves_detection",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_npx_package_injection_after_standalone_flag_preserves_detection:kind=test_function",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_shell_login_command_string_is_not_a_literal_test_path",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_shell_login_command_string_is_not_a_literal_test_path:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:466dca8fce9343f4782e304271f9ac7575dbe3e0be64304bc6e5bddc5f3a3bd4",
+      "prior_test_hashes": {
+        "tests/core/validation/test_acceptance_validation.py": "sha256-pyast:v2:d29a446e13d757fd5ec8bb91896c35c4e4117854ed49fee717503c3928ed6fa0",
+        "tests/core/validation/test_cypress_spec_option_path.py": "sha256-pyast:v2:8b5529f7af5cebe76c24c132628d0f04021d2e382f7bbdde35e14f8d4e369420"
+      },
+      "revised_at": "2026-08-31T06:08:30.569615+00:00",
+      "reason": "Separate glob containment from literal existence and tighten effective shell -c command-string exclusion.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_cypress_spec_option_path.py:test_cypress_spec_glob_does_not_report_literal_e500",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_cypress_spec_glob_does_not_report_literal_e500:kind=test_function",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_cypress_spec_glob_outside_project_is_rejected",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_cypress_spec_glob_outside_project_is_rejected:kind=test_function",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_env_wrapped_shell_command_string_is_not_a_literal_test_path",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_env_wrapped_shell_command_string_is_not_a_literal_test_path:kind=test_function",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_shell_non_command_flag_preserves_positional_test_path",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_shell_non_command_flag_preserves_positional_test_path:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8ebc3ad2cbc1ed2382586493652300f317fd4f1d9c8911be43a5e4ce952b7912",
+      "prior_test_hashes": {
+        "tests/core/validation/test_acceptance_validation.py": "sha256-pyast:v2:d29a446e13d757fd5ec8bb91896c35c4e4117854ed49fee717503c3928ed6fa0",
+        "tests/core/validation/test_cypress_spec_option_path.py": "sha256-pyast:v2:3b8873ef68d98ca27fc97bd35700444c03ae31c715b280c92e2b2ee021a1243b"
+      },
+      "revised_at": "2026-08-31T06:19:39.136840+00:00",
+      "reason": "Normalize package exec separators and remove npx value-option arguments before executable detection.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_cypress_spec_option_path.py:test_npx_value_option_before_package_injection_preserves_detection",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_npx_value_option_before_package_injection_preserves_detection:kind=test_function",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_package_exec_separator_outside_spec_is_rejected",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_package_exec_separator_outside_spec_is_rejected:kind=test_function",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_package_exec_separator_preserves_cypress_detection",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_package_exec_separator_preserves_cypress_detection:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4f776bf06a936e238a69ab4888a1c50fbb194c55d1747cf0a9f1cdd09f072896",
+      "prior_test_hashes": {
+        "tests/core/validation/test_acceptance_validation.py": "sha256-pyast:v2:d29a446e13d757fd5ec8bb91896c35c4e4117854ed49fee717503c3928ed6fa0",
+        "tests/core/validation/test_cypress_spec_option_path.py": "sha256-pyast:v2:87ce7d272e87ecd8ee2b16e4c63b0104c9e3c1aa386ec46a53d45fb5822a95aa"
+      },
+      "revised_at": "2026-08-31T06:29:04.185633+00:00",
+      "reason": "Normalize env/uv execution wrappers before nested npx options and bound wildcard support to Python glob syntax.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_cypress_spec_option_path.py:test_nested_npx_package_injection_outside_spec_is_rejected",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_nested_npx_package_injection_outside_spec_is_rejected:kind=test_function",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_nested_npx_package_injection_preserves_detection",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_nested_npx_package_injection_preserves_detection:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:28b912926d7586bc098c8d27342ecb2ddf84326e099ffded673b87d78997a0ba",
+      "prior_test_hashes": {
+        "tests/core/validation/test_acceptance_validation.py": "sha256-pyast:v2:d29a446e13d757fd5ec8bb91896c35c4e4117854ed49fee717503c3928ed6fa0",
+        "tests/core/validation/test_cypress_spec_option_path.py": "sha256-pyast:v2:4966891a33d25704de68340f7cffc17f7c75581763936ecbbb09e29ad45f8585"
+      },
+      "revised_at": "2026-08-31T06:38:58.313793+00:00",
+      "reason": "Align raw npx option consumption and handle shell -c separators plus env long standalone flags.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_cypress_spec_option_path.py:test_npx_test_shaped_option_values_are_not_acceptance_targets",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_npx_test_shaped_option_values_are_not_acceptance_targets:kind=test_function",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_shell_command_string_variants_are_not_literal_test_paths",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_shell_command_string_variants_are_not_literal_test_paths:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:bdbd6a843eae0a937af556cf371fd5d5c311ad104d2099fe51ac189388b61f7e",
+      "prior_test_hashes": {
+        "tests/core/validation/test_acceptance_validation.py": "sha256-pyast:v2:d29a446e13d757fd5ec8bb91896c35c4e4117854ed49fee717503c3928ed6fa0",
+        "tests/core/validation/test_cypress_spec_option_path.py": "sha256-pyast:v2:76eb0b6afffd67c623816ad1aacf3a8fd4bfa602f1bfae3556b2d7c9943b68c9"
+      },
+      "revised_at": "2026-08-31T06:49:24.812610+00:00",
+      "reason": "Consume npx values in legacy containment and scope cwd options to outer package-runner prefixes.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_cypress_spec_option_path.py:test_cypress_config_flag_is_not_a_command_cwd",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_cypress_config_flag_is_not_a_command_cwd:kind=test_function",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_npx_outside_option_value_is_not_a_manifest_path",
+          "tests/core/validation/test_cypress_spec_option_path.py:test_npx_outside_option_value_is_not_a_manifest_path:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-08-31T06:49:25.832971+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/validation/test_acceptance_validation.py tests/core/validation/test_cypress_spec_option_path.py -v",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/core/validation/test_cypress_spec_option_path.py::test_env_wrapped_shell_command_string_is_not_a_literal_test_path\nFAILED tests/core/validation/test_cypress_spec_option_path.py::test_shell_command_string_variants_are_not_literal_test_paths[bash -c -- \"npx cypress run --spec=missing.cy.ts\"]\nFAILED tests/core/validation/test_cypress_spec_option_path.py::test_shell_command_string_variants_are_not_literal_test_paths[env --ignore-environment bash -lc \"npx cypress run --spec=missing.cy.ts\"]\nFAILED tests/core/validation/test_cypress_spec_option_path.py::test_nx_target_spec_outside_project_is_rejected[--target=e2e]\nFAILED tests/core/validation/test_cypress_spec_option_path.py::test_nx_target_spec_outside_project_is_rejected[-t=e2e]\nFAILED tests/core/validation/test_cypress_spec_option_path.py::test_nx_configured_target_spec_outside_project_is_rejected\nFAILED tests/core/validation/test_cypress_spec_option_path.py::test_nested_npx_package_injection_outside_spec_is_rejected[/usr/bin/env]\nFAILED tests/core/validation/test_cypress_spec_option_path.py::test_nested_npx_package_injection_outside_spec_is_rejected[uv run]\nFAILED tests/core/validation/test_cypress_spec_option_path.py::test_cypress_spec_assignment_outside_project_is_rejected\nFAILED tests/core/validation/test_cypress_spec_option_path.py::test_nonconventional_cypress_spec_outside_project_is_rejected\nFAILED tests/core/validation/test_cypress_spec_option_path.py::test_attached_command_cwd_outside_project_is_rejected\nFAILED tests/core/validation/test_cypress_spec_option_path.py::test_pnpm_command_cwd_outside_spec_is_rejected[--dir=frontend]\nFAILED tests/core/validation/test_cypress_spec_option_path.py::test_pnpm_command_cwd_outside_spec_is_rejected[--dir frontend]\nFAILED tests/core/validation/test_cypress_spec_option_path.py::test_package_exec_separator_outside_spec_is_rejected[npm]\nFAILED tests/core/validation/test_cypress_spec_option_path.py::test_package_exec_separator_outside_spec_is_rejected[pnpm]\nFAILED tests/core/validation/test_cypress_spec_option_path.py::test_windows_absolute_spec_with_command_cwd_is_rejected[--prefix=frontend]\nFAILED tests/core/validation/test_cypress_spec_option_path.py::test_windows_absolute_spec_with_command_cwd_is_rejected[--prefix frontend]\nFAILED tests/core/validation/test_cypress_spec_option_path.py::test_cypress_spec_list_rejects_nonleading_project_escape\nFAILED tests/core/validation/test_cypress_spec_option_path.py::test_cypress_spec_glob_outside_project_is_rejected\n======================== 53 failed, 15 passed in 0.82s =========================",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/manifest.py:function:validate_manifest_paths",
+      "maid_runner/core/manifest.py:function:validate_manifest_paths:arg=manifest:type=Manifest:default=None",
+      "maid_runner/core/manifest.py:function:validate_manifest_paths:arg=project_root:type=Union[str, Path]:default=None",
+      "maid_runner/core/manifest.py:function:validate_manifest_paths:kind=function",
+      "maid_runner/core/manifest.py:function:validate_manifest_paths:returns=list[ValidationError]",
+      "maid_runner/core/validate.py:method:ValidationEngine.validate_acceptance",
+      "maid_runner/core/validate.py:method:ValidationEngine.validate_acceptance:arg=manifest:type=Manifest:default=None",
+      "maid_runner/core/validate.py:method:ValidationEngine.validate_acceptance:kind=method",
+      "maid_runner/core/validate.py:method:ValidationEngine.validate_acceptance:of=ValidationEngine",
+      "maid_runner/core/validate.py:method:ValidationEngine.validate_acceptance:returns=list[ValidationError]",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_attached_acceptance_path_option_containment_remains_enforced",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_attached_acceptance_path_option_containment_remains_enforced:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_attached_command_cwd_outside_project_is_rejected",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_attached_command_cwd_outside_project_is_rejected:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_command_cwd_option_does_not_leak_to_later_segment",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_command_cwd_option_does_not_leak_to_later_segment:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_cypress_config_flag_is_not_a_command_cwd",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_cypress_config_flag_is_not_a_command_cwd:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_cypress_like_argument_values_do_not_activate_spec_parsing",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_cypress_like_argument_values_do_not_activate_spec_parsing:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_cypress_spec_assignment_outside_project_is_rejected",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_cypress_spec_assignment_outside_project_is_rejected:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_cypress_spec_glob_does_not_report_literal_e500",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_cypress_spec_glob_does_not_report_literal_e500:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_cypress_spec_glob_outside_project_is_rejected",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_cypress_spec_glob_outside_project_is_rejected:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_cypress_spec_list_rejects_nonleading_project_escape",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_cypress_spec_list_rejects_nonleading_project_escape:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_env_wrapped_shell_command_string_is_not_a_literal_test_path",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_env_wrapped_shell_command_string_is_not_a_literal_test_path:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_existing_cypress_spec_assignment_does_not_report_e500",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_existing_cypress_spec_assignment_does_not_report_e500:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_existing_cypress_spec_assignment_respects_command_cwd",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_existing_cypress_spec_assignment_respects_command_cwd:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_existing_cypress_spec_list_does_not_report_e500",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_existing_cypress_spec_list_does_not_report_e500:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_existing_cypress_spec_respects_attached_command_cwd",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_existing_cypress_spec_respects_attached_command_cwd:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_existing_cypress_split_spec_option_remains_supported",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_existing_cypress_split_spec_option_remains_supported:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_existing_nx_cypress_spec_assignment_does_not_report_e500",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_existing_nx_cypress_spec_assignment_does_not_report_e500:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_existing_nx_target_spec_assignment_does_not_report_e500",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_existing_nx_target_spec_assignment_does_not_report_e500:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_existing_pnpm_cypress_spec_respects_command_cwd",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_existing_pnpm_cypress_spec_respects_command_cwd:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_legacy_command_cwd_does_not_leak_to_later_outside_target",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_legacy_command_cwd_does_not_leak_to_later_outside_target:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_missing_cypress_spec_assignment_reports_extracted_path",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_missing_cypress_spec_assignment_reports_extracted_path:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_missing_nonconventional_cypress_spec_reports_extracted_path",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_missing_nonconventional_cypress_spec_reports_extracted_path:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_nested_npx_package_injection_outside_spec_is_rejected",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_nested_npx_package_injection_outside_spec_is_rejected:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_nested_npx_package_injection_preserves_detection",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_nested_npx_package_injection_preserves_detection:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_non_cypress_spec_option_is_not_a_file_target",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_non_cypress_spec_option_is_not_a_file_target:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_nonconventional_cypress_spec_outside_project_is_rejected",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_nonconventional_cypress_spec_outside_project_is_rejected:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_npx_outside_option_value_is_not_a_manifest_path",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_npx_outside_option_value_is_not_a_manifest_path:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_npx_package_injection_after_standalone_flag_preserves_detection",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_npx_package_injection_after_standalone_flag_preserves_detection:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_npx_package_injection_preserves_nx_spec_detection",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_npx_package_injection_preserves_nx_spec_detection:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_npx_package_value_does_not_activate_cypress_spec_parsing",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_npx_package_value_does_not_activate_cypress_spec_parsing:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_npx_test_shaped_option_values_are_not_acceptance_targets",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_npx_test_shaped_option_values_are_not_acceptance_targets:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_npx_value_option_before_package_injection_preserves_detection",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_npx_value_option_before_package_injection_preserves_detection:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_nx_configured_target_missing_spec_reports_e500",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_nx_configured_target_missing_spec_reports_e500:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_nx_configured_target_spec_outside_project_is_rejected",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_nx_configured_target_spec_outside_project_is_rejected:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_nx_non_target_e2e_values_do_not_activate_spec_parsing",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_nx_non_target_e2e_values_do_not_activate_spec_parsing:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_nx_target_spec_outside_project_is_rejected",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_nx_target_spec_outside_project_is_rejected:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_package_exec_separator_outside_spec_is_rejected",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_package_exec_separator_outside_spec_is_rejected:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_package_exec_separator_preserves_cypress_detection",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_package_exec_separator_preserves_cypress_detection:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_pnpm_command_cwd_outside_spec_is_rejected",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_pnpm_command_cwd_outside_spec_is_rejected:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_positional_acceptance_directory_containment_remains_enforced",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_positional_acceptance_directory_containment_remains_enforced:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_shell_command_string_variants_are_not_literal_test_paths",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_shell_command_string_variants_are_not_literal_test_paths:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_shell_login_command_string_is_not_a_literal_test_path",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_shell_login_command_string_is_not_a_literal_test_path:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_shell_non_command_flag_preserves_positional_test_path",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_shell_non_command_flag_preserves_positional_test_path:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_unrelated_option_with_test_suffix_is_not_a_file_target",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_unrelated_option_with_test_suffix_is_not_a_file_target:kind=test_function",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_windows_absolute_spec_with_command_cwd_is_rejected",
+      "tests/core/validation/test_cypress_spec_option_path.py:test_windows_absolute_spec_with_command_cwd_is_rejected:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/validation/test_cypress_spec_option_path.py"
+      ],
+      "edit": [
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/validate.py"
+      ],
+      "read": [
+        "maid_runner/core/_file_discovery.py",
+        "maid_runner/core/result.py",
+        "maid_runner/core/types.py",
+        "manifests/040-39-retire-manifest-path-containment-legacy-cases.manifest.yaml",
+        "manifests/fix-cypress-acceptance-red-evidence.manifest.yaml",
+        "tests/core/validation/test_acceptance_validation.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/validation/test_cypress_spec_option_path.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_existing_cypress_spec_assignment_does_not_report_e500",
+              "source_scenario": "An acceptance command selects an existing conventional Cypress file through --spec=<project-relative-path>.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "method": "ValidationEngine.validate_acceptance"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Acceptance validation succeeds without treating the complete option token as a missing file."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_existing_nx_cypress_spec_assignment_does_not_report_e500",
+              "source_scenario": "An Nx e2e acceptance command selects an existing conventional Cypress file through --spec=<project-relative-path>.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "method": "ValidationEngine.validate_acceptance"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Acceptance validation recognizes the reported Nx form and does not treat the complete option token as a missing file."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_existing_nx_target_spec_assignment_does_not_report_e500",
+              "source_scenario": "An Nx run-many acceptance command uses --target=e2e or -t=e2e before selecting an existing Cypress spec.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "method": "ValidationEngine.validate_acceptance"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Package-runner normalization and Nx target detection activate spec parsing without E500 for the existing file."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_nx_configured_target_missing_spec_reports_e500",
+              "source_scenario": "An Nx run command uses a configured project:e2e:ci target with a missing nonconventional spec.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "method": "ValidationEngine.validate_acceptance"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Configured e2e target identity activates parsing and reports E500 against the extracted spec."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_npx_package_injection_preserves_nx_spec_detection",
+              "source_scenario": "An npx command injects the nx package with -p before invoking Nx e2e with an existing spec.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "method": "ValidationEngine.validate_acceptance"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The package option and value are consumed before executable detection, and the existing spec produces no E500."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_npx_package_injection_after_standalone_flag_preserves_detection",
+              "source_scenario": "An npx --yes command uses split -p or --package injection before invoking a configured Nx e2e target with an existing spec.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "method": "ValidationEngine.validate_acceptance"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Package injection is consumed across the preceding standalone flag and the existing spec produces no E500."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_npx_value_option_before_package_injection_preserves_detection",
+              "source_scenario": "An npx --cache value precedes package injection and a configured Nx e2e target with an existing spec.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "method": "ValidationEngine.validate_acceptance"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The value-taking npx option and value are consumed before executable detection, and the existing spec produces no E500."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_npx_test_shaped_option_values_are_not_acceptance_targets",
+              "source_scenario": "Split npx package or cache option values end with a conventional Cypress test suffix before Cypress selects an existing spec.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "method": "ValidationEngine.validate_acceptance"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The raw scanner consumes the recognized npx option values and reports no false E500."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_npx_outside_option_value_is_not_a_manifest_path",
+              "source_scenario": "A split npx package value points outside project_root while Cypress selects an existing in-project spec.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "validate_manifest_paths"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Both acceptance parsers consume the npx option value, so it does not produce false containment diagnostics."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_nested_npx_package_injection_preserves_detection",
+              "source_scenario": "An env or uv run wrapper invokes npx package injection before a configured Nx e2e target with an existing spec.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "method": "ValidationEngine.validate_acceptance"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Outer execution wrappers are removed before npx package normalization, and the existing spec produces no E500."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_missing_cypress_spec_assignment_reports_extracted_path",
+              "source_scenario": "An acceptance command selects a missing Cypress file through an attached --spec assignment.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "method": "ValidationEngine.validate_acceptance"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Exactly one E500 identifies the option value path in both its message and structured location."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_missing_nonconventional_cypress_spec_reports_extracted_path",
+              "source_scenario": "An acceptance command selects a missing Cypress spec whose filename does not match MAID test-file naming conventions.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "method": "ValidationEngine.validate_acceptance"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The explicit --spec value still produces E500 with its extracted path."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_existing_cypress_split_spec_option_remains_supported",
+              "source_scenario": "An acceptance command selects an existing Cypress file through the split --spec <project-relative-path> form.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "method": "ValidationEngine.validate_acceptance"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The standalone path token remains recognized and does not produce E500."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_existing_cypress_spec_list_does_not_report_e500",
+              "source_scenario": "An acceptance command selects two existing Cypress files through a comma-separated --spec assignment.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "method": "ValidationEngine.validate_acceptance"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Each listed spec is checked independently and no combined pseudo-path produces E500."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_cypress_spec_glob_does_not_report_literal_e500",
+              "source_scenario": "A Cypress --spec selector uses an in-project glob that matches an existing conventional spec.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "method": "ValidationEngine.validate_acceptance"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The glob remains subject to containment but skips literal file-existence E500 evaluation."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_existing_cypress_spec_assignment_respects_command_cwd",
+              "source_scenario": "An acceptance command changes into a frontend directory before selecting an existing Cypress spec relative to that command directory.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "method": "ValidationEngine.validate_acceptance"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Acceptance validation resolves the extracted spec beneath the command working directory and does not report E500."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_existing_cypress_spec_respects_attached_command_cwd",
+              "source_scenario": "An npm acceptance command uses --prefix=<frontend> before selecting an existing Cypress spec relative to that directory.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "method": "ValidationEngine.validate_acceptance"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Acceptance validation resolves the spec beneath the attached command working directory and does not report E500."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_cypress_config_flag_is_not_a_command_cwd",
+              "source_scenario": "A direct Cypress command uses -C for its config file before selecting an existing root-relative spec.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "method": "ValidationEngine.validate_acceptance"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Cwd parsing remains owned by the outer package runner, so Cypress -C does not change spec resolution or produce E500."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_existing_pnpm_cypress_spec_respects_command_cwd",
+              "source_scenario": "A pnpm acceptance command uses split or attached --dir before executing Cypress with an existing relative spec.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "method": "ValidationEngine.validate_acceptance"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Package-runner normalization identifies Cypress behind cwd options and resolves the existing spec without E500."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_package_exec_separator_preserves_cypress_detection",
+              "source_scenario": "An npm or pnpm exec command uses the conventional -- separator before Cypress selects an existing spec.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "method": "ValidationEngine.validate_acceptance"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Normalization discards the separator, identifies Cypress, and reports no E500 for the existing spec."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_cwd_option_does_not_leak_to_later_segment",
+              "source_scenario": "One acceptance command segment uses an attached frontend prefix before a later segment selects an existing root-relative Cypress spec.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "method": "ValidationEngine.validate_acceptance"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The runner-local command directory resets at the separator, so both existing specs resolve without E500."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unrelated_option_with_test_suffix_is_not_a_file_target",
+              "source_scenario": "An unrelated Cypress option has an attached value whose text ends with the conventional .cy.ts suffix.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "method": "ValidationEngine.validate_acceptance"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Acceptance validation ignores the non-path option instead of reporting a false E500."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_non_cypress_spec_option_is_not_a_file_target",
+              "source_scenario": "An unrelated Python command uses an attached or split --spec option whose value resembles a Cypress test filename.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "method": "ValidationEngine.validate_acceptance"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Cypress-specific extraction remains inactive and no false E500 is reported."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_cypress_like_argument_values_do_not_activate_spec_parsing",
+              "source_scenario": "An unrelated executable receives cypress, nx, or e2e as ordinary option values alongside its own --spec option.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "method": "ValidationEngine.validate_acceptance"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Only the effective executable and direct Nx targets control activation, so no false E500 is reported."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_nx_non_target_e2e_values_do_not_activate_spec_parsing",
+              "source_scenario": "Nx show, graph, or report commands receive e2e or project:e2e as values for non-target options alongside --spec.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "method": "ValidationEngine.validate_acceptance"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Only target positions and target flags activate spec parsing, so no false E500 is reported."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_npx_package_value_does_not_activate_cypress_spec_parsing",
+              "source_scenario": "An npx command injects the cypress package but invokes an unrelated Python executable with its own --spec option.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "method": "ValidationEngine.validate_acceptance"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The injected package value is not mistaken for the executable and no false E500 is reported."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_shell_login_command_string_is_not_a_literal_test_path",
+              "source_scenario": "A bash or zsh -lc wrapper contains a Cypress command string ending in a conventional test suffix.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "method": "ValidationEngine.validate_acceptance"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The excluded nested shell-language string is skipped as the shell flag's value and does not produce E500."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_env_wrapped_shell_command_string_is_not_a_literal_test_path",
+              "source_scenario": "An env-wrapped sh -lc command contains a Cypress command string ending in a conventional test suffix.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "method": "ValidationEngine.validate_acceptance"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Effective shell detection skips the nested command string and does not produce E500."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_shell_command_string_variants_are_not_literal_test_paths",
+              "source_scenario": "A shell uses -c -- before its command string, or env uses --ignore-environment before an effective bash -lc command.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "method": "ValidationEngine.validate_acceptance"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Shell option parsing consumes the actual command string and reports no false E500."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_shell_non_command_flag_preserves_positional_test_path",
+              "source_scenario": "A bash command uses --norc before a missing positional Cypress-style test filename.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "method": "ValidationEngine.validate_acceptance"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The unrelated long flag does not consume the positional path, which retains legacy E500 behavior."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_positional_acceptance_directory_containment_remains_enforced",
+              "source_scenario": "A pytest acceptance command targets a positional tests directory outside project_root.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "validate_manifest_paths"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The pre-existing general command-path parser still rejects the outside positional directory."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_attached_acceptance_path_option_containment_remains_enforced",
+              "source_scenario": "A pytest acceptance command uses an attached --rootdir assignment outside project_root.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "validate_manifest_paths"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The pre-existing general command-path parser still rejects the outside path-bearing option value."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_legacy_command_cwd_does_not_leak_to_later_outside_target",
+              "source_scenario": "A runner-local prefix applies to one command segment before a later pytest segment targets an outside positional directory.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "validate_manifest_paths"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The legacy parser resets runner-local cwd at the separator and rejects the later outside target."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_nx_target_spec_outside_project_is_rejected",
+              "source_scenario": "An Nx run-many command uses --target=e2e or -t=e2e with a nonconventional spec outside project_root.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "validate_manifest_paths"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Nx target detection activates direct spec containment and rejects the outside value."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_nx_configured_target_spec_outside_project_is_rejected",
+              "source_scenario": "An Nx run command uses a configured project:e2e:ci target with a nonconventional spec outside project_root.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "validate_manifest_paths"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Configured e2e target identity activates containment and rejects the outside spec."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_nested_npx_package_injection_outside_spec_is_rejected",
+              "source_scenario": "An env or uv run wrapper invokes npx package injection and a configured Nx e2e target with a spec outside project_root.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "validate_manifest_paths"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Outer execution wrappers and npx options normalize before target detection, which rejects the outside spec."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_cypress_spec_assignment_outside_project_is_rejected",
+              "source_scenario": "A Cypress --spec assignment points through .. to a test file that genuinely exists outside project_root.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "validate_manifest_paths"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Manifest path validation rejects the extracted outside path with MANIFEST_PATH_OUTSIDE_PROJECT."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_nonconventional_cypress_spec_outside_project_is_rejected",
+              "source_scenario": "A Cypress --spec assignment points outside project_root using a filename without a conventional test suffix.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "validate_manifest_paths"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Manifest path validation rejects the explicit outside spec regardless of filename convention."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_attached_command_cwd_outside_project_is_rejected",
+              "source_scenario": "An attached npm --prefix value points outside project_root before Cypress selects a spec relative to that directory.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "validate_manifest_paths"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Manifest path validation combines the attached command directory with the spec and rejects the resulting outside path."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_pnpm_command_cwd_outside_spec_is_rejected",
+              "source_scenario": "A pnpm command uses split or attached --dir before Cypress selects a nonconventional spec outside project_root.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "validate_manifest_paths"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Package-runner normalization preserves Cypress activation and rejects the cwd-relative outside spec."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_package_exec_separator_outside_spec_is_rejected",
+              "source_scenario": "An npm or pnpm exec command uses -- before Cypress selects a nonconventional spec outside project_root.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "validate_manifest_paths"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Normalization discards the separator, identifies Cypress, and rejects the outside spec."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_windows_absolute_spec_with_command_cwd_is_rejected",
+              "source_scenario": "A split or attached npm prefix precedes a Windows drive-qualified Cypress spec on a POSIX validation host.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "validate_manifest_paths"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The Windows absolute spec retains its drive identity before cwd joining and is rejected as outside project_root."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_cypress_spec_list_rejects_nonleading_project_escape",
+              "source_scenario": "A comma-separated Cypress --spec assignment lists an in-project file followed by a real file outside project_root.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "validate_manifest_paths"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Manifest path validation checks every list item and rejects the non-leading outside path with MANIFEST_PATH_OUTSIDE_PROJECT."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_cypress_spec_glob_outside_project_is_rejected",
+              "source_scenario": "A Cypress --spec glob begins outside project_root.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "validate_manifest_paths"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Containment rejects the outside glob even though literal file-existence evaluation is skipped."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/validate.py",
+          "artifacts": [
+            {
+              "kind": "method",
+              "name": "validate_acceptance",
+              "description": "Validate existing positional acceptance test paths and every directly tokenized Cypress or Nx e2e --spec assignment value, including lists, nonconventional filenames, split or attached command-relative paths, and cross-segment cwd reset; report E500 against each extracted path while leaving unrelated --spec options untouched and ignoring the bounded recognized set of non-target option values. Nested shell-language command strings are outside this argv parser.",
+              "of": "ValidationEngine",
+              "args": [
+                {
+                  "name": "manifest",
+                  "type": "Manifest"
+                }
+              ],
+              "returns": "list[ValidationError]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/manifest.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "validate_manifest_paths",
+              "description": "Reject every directly tokenized Cypress or Nx e2e --spec assignment value, including nonconventional names, non-leading list items, Windows absolute paths, and split or attached command-relative paths, that resolves outside project_root; union these targets with all previously covered general acceptance command path sources. Nested shell-language command strings are outside this argv parser.",
+              "args": [
+                {
+                  "name": "manifest",
+                  "type": "Manifest"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]"
+                }
+              ],
+              "returns": "list[ValidationError]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_file_discovery.py",
+        "maid_runner/core/result.py",
+        "maid_runner/core/types.py",
+        "tests/core/validation/test_acceptance_validation.py",
+        "manifests/040-39-retire-manifest-path-containment-legacy-cases.manifest.yaml",
+        "manifests/fix-cypress-acceptance-red-evidence.manifest.yaml"
+      ]
+    },
+    "test_files": [
+      "tests/core/validation/test_acceptance_validation.py",
+      "tests/core/validation/test_cypress_spec_option_path.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/validation/test_acceptance_validation.py tests/core/validation/test_cypress_spec_option_path.py -v"
+    ],
+    "acceptance_commands": []
+  }
+}

@@ -15,6 +15,13 @@ import uuid
 import jsonschema
 import yaml
 
+from maid_runner.core._test_runner_invocation import (
+    _PACKAGE_RUNNER_WRAPPERS,
+    _package_runner_inner_command,
+    _strip_environment_prefix,
+    _test_runner_target_scan_segment,
+    _uv_run_inner_command,
+)
 from maid_runner.core.result import ErrorCode, Location, ValidationError
 from maid_runner.core.types import (
     AcceptanceConfig,
@@ -293,7 +300,11 @@ def _iter_manifest_declared_paths(
 
     if manifest.acceptance is not None:
         for cmd in manifest.acceptance.tests:
-            for path in _test_paths_from_command(cmd, project_root):
+            command_paths = [
+                *_test_paths_from_command(cmd, project_root),
+                *_acceptance_test_paths_from_command(cmd),
+            ]
+            for path in dict.fromkeys(command_paths):
                 paths.append(("acceptance.tests", path))
 
     return paths
@@ -320,30 +331,44 @@ def _test_paths_from_command(
     project_root: Path,
 ) -> list[str]:
     paths: list[str] = []
-    cwd = Path(".")
+    persistent_cwd = Path(".")
 
     for segment in _command_segments(command):
         if not segment:
             continue
         if segment[0] == "cd":
             if len(segment) > 1:
-                cwd = cwd / segment[1]
+                persistent_cwd = persistent_cwd / segment[1]
             continue
 
+        command_cwd = persistent_cwd
         allow_explicit_directories = _runs_known_test_runner(segment)
+        outer_command = _unwrap_acceptance_execution_wrappers(segment)
+        uses_npx = bool(outer_command) and Path(outer_command[0]).name.lower() == "npx"
         index = 0
         while index < len(segment):
             part = segment[index]
-            if part in {"-C", "--cwd", "--dir", "--prefix"} and index + 1 < len(
-                segment
+            option = part.split("=", 1)[0]
+            if (
+                uses_npx
+                and "=" not in part
+                and option in {"-p", "--package", *_NPX_VALUE_OPTIONS}
+                and index + 1 < len(segment)
             ):
-                cwd = cwd / segment[index + 1]
                 index += 2
+                continue
+            if part in _ACCEPTANCE_CWD_OPTIONS and index + 1 < len(segment):
+                command_cwd = command_cwd / segment[index + 1]
+                index += 2
+                continue
+            if "=" in part and option in _ACCEPTANCE_CWD_OPTIONS:
+                command_cwd = command_cwd / part.split("=", 1)[1]
+                index += 1
                 continue
             if part.startswith("-"):
                 option_path = _path_value_from_option_assignment(part)
                 if option_path is not None:
-                    candidate = _display_path(cwd / option_path)
+                    candidate = _display_path(command_cwd / option_path)
                     if _looks_like_test_path(
                         candidate,
                         project_root,
@@ -353,7 +378,7 @@ def _test_paths_from_command(
                 index += 1
                 continue
 
-            candidate = _display_path(cwd / part)
+            candidate = _display_path(command_cwd / part)
             if _looks_like_test_path(
                 candidate,
                 project_root,
@@ -363,6 +388,290 @@ def _test_paths_from_command(
             index += 1
 
     return paths
+
+
+_ACCEPTANCE_NON_TARGET_VALUE_OPTIONS = {
+    "-b",
+    "-c",
+    "-e",
+    "-g",
+    "-k",
+    "-o",
+    "-P",
+    "-p",
+    "-r",
+    "-t",
+    "--browser",
+    "--ci-build-id",
+    "--config",
+    "--config-file",
+    "--env",
+    "--grep",
+    "--grep-invert",
+    "--group",
+    "--key",
+    "--output",
+    "--port",
+    "--project",
+    "--reporter",
+    "--reporter-options",
+    "--shard",
+    "--spec",
+    "--tag",
+    "--test-list",
+    "--testNamePattern",
+    "--timeout",
+    "--trace",
+    "--workers",
+}
+_ACCEPTANCE_CWD_OPTIONS = {"-C", "--cwd", "--dir", "--prefix"}
+_CYPRESS_PACKAGE_RUNNERS = _PACKAGE_RUNNER_WRAPPERS | {"npm", "bun"}
+_NPX_VALUE_OPTIONS = {
+    "-c",
+    "--call",
+    "--cache",
+    "--node-options",
+    "--npm",
+    "--shell",
+    "--userconfig",
+}
+_ACCEPTANCE_NON_TARGET_VALUE_OPTIONS.update({"-p", "--package", *_NPX_VALUE_OPTIONS})
+_ACCEPTANCE_NON_TARGET_VALUE_OPTIONS.update(_ACCEPTANCE_CWD_OPTIONS)
+_SHELL_COMMANDS = {"bash", "sh", "zsh"}
+_ENV_VALUE_OPTIONS = {
+    "-C",
+    "-S",
+    "-u",
+    "--chdir",
+    "--split-string",
+    "--unset",
+}
+
+
+def _acceptance_test_paths_from_command(
+    command: tuple[str, ...],
+) -> list[str]:
+    paths: list[str] = []
+    persistent_cwd = Path(".")
+
+    for segment in _command_segments(command):
+        if not segment:
+            continue
+        if segment[0] == "cd":
+            if len(segment) > 1:
+                persistent_cwd = persistent_cwd / segment[1]
+            continue
+
+        command_cwd = _package_runner_command_cwd(segment, persistent_cwd)
+        supports_cypress_spec = _runs_cypress_spec_command(segment)
+        is_shell_command = _effective_shell_command_name(segment) in _SHELL_COMMANDS
+        index = 0
+        while index < len(segment):
+            part = segment[index]
+            option = part.split("=", 1)[0]
+
+            if supports_cypress_spec and part == "--spec" and index + 1 < len(segment):
+                spec_value = segment[index + 1]
+                index += 2
+            elif supports_cypress_spec and part.startswith("--spec="):
+                spec_value = part.partition("=")[2]
+                index += 1
+            else:
+                spec_value = None
+
+            if spec_value is not None:
+                for value in spec_value.split(","):
+                    if not value:
+                        continue
+                    candidate = _display_command_path(command_cwd, value)
+                    paths.append(candidate)
+                continue
+
+            if part.startswith("-"):
+                if (
+                    is_shell_command
+                    and part.startswith("-")
+                    and not part.startswith("--")
+                    and "c" in part[1:]
+                    and index + 1 < len(segment)
+                ):
+                    index += 3 if segment[index + 1] == "--" else 2
+                    continue
+                index += (
+                    2
+                    if "=" not in part
+                    and option in _ACCEPTANCE_NON_TARGET_VALUE_OPTIONS
+                    and index + 1 < len(segment)
+                    else 1
+                )
+                continue
+
+            candidate = _display_command_path(command_cwd, part)
+            if _is_test_file(candidate):
+                paths.append(candidate)
+            index += 1
+
+    return paths
+
+
+def _display_command_path(command_cwd: Path, value: str) -> str:
+    value_path = Path(value)
+    windows_path = PureWindowsPath(value)
+    if value_path.is_absolute() or windows_path.is_absolute() or windows_path.drive:
+        return value
+    return _display_path(command_cwd / value_path)
+
+
+def _package_runner_command_cwd(segment: list[str], base_cwd: Path) -> Path:
+    outer = _unwrap_acceptance_execution_wrappers(segment)
+    if not outer:
+        return base_cwd
+    command_name = Path(outer[0]).name.lower()
+    if command_name not in _CYPRESS_PACKAGE_RUNNERS:
+        return base_cwd
+
+    command_cwd = base_cwd
+    index = 1
+    while index < len(outer):
+        part = outer[index]
+        option = part.split("=", 1)[0]
+        if part in _ACCEPTANCE_CWD_OPTIONS and index + 1 < len(outer):
+            command_cwd = command_cwd / outer[index + 1]
+            index += 2
+            continue
+        if "=" in part and option in _ACCEPTANCE_CWD_OPTIONS:
+            command_cwd = command_cwd / part.split("=", 1)[1]
+            index += 1
+            continue
+        if part in {"exec", "dlx", "x"} or not part.startswith("-"):
+            break
+        index += 1
+    return command_cwd
+
+
+def _runs_cypress_spec_command(segment: list[str]) -> bool:
+    outer_normalized = _unwrap_acceptance_execution_wrappers(segment)
+    raw_command_name = (
+        Path(outer_normalized[0]).name.lower() if outer_normalized else ""
+    )
+    normalized_segment = _strip_npx_package_options(outer_normalized)
+    effective = normalized_segment
+    if raw_command_name in _CYPRESS_PACKAGE_RUNNERS:
+        package_inner = _package_runner_inner_command(
+            normalized_segment,
+            preserve_cwd_options=False,
+        )
+        if package_inner is not None:
+            effective = package_inner
+    else:
+        effective = _test_runner_target_scan_segment(segment)
+    while effective and effective[0] == "--":
+        effective = effective[1:]
+    if not effective:
+        return False
+
+    command_name = Path(effective[0]).name.lower()
+    if command_name == "cypress":
+        return True
+    if command_name != "nx":
+        return False
+
+    args = effective[1:]
+    if args and _nx_target_is_e2e(args[0]):
+        return True
+    if len(args) > 1 and args[0].lower() in {"run", "r"} and _nx_target_is_e2e(args[1]):
+        return True
+
+    for index, part in enumerate(args):
+        normalized = part.lower()
+        if normalized in {"--target", "-t"} and index + 1 < len(args):
+            if _nx_target_is_e2e(args[index + 1]):
+                return True
+        if normalized.startswith("--target=") or normalized.startswith("-t="):
+            if _nx_target_is_e2e(normalized.split("=", 1)[1]):
+                return True
+    return False
+
+
+def _unwrap_acceptance_execution_wrappers(segment: list[str]) -> list[str]:
+    current = _strip_environment_prefix(segment)
+    while current:
+        command_name = Path(current[0]).name.lower()
+        if command_name == "uv" and len(current) >= 3 and current[1] == "run":
+            inner = _uv_run_inner_command(current)
+            if inner is None:
+                break
+            current = _strip_environment_prefix(inner)
+            continue
+        if command_name in {"poetry", "pdm"} and len(current) >= 3:
+            if current[1] != "run":
+                break
+            current = _strip_environment_prefix(current[2:])
+            continue
+        break
+    return current
+
+
+def _effective_shell_command_name(segment: list[str]) -> str:
+    effective = _test_runner_target_scan_segment(segment)
+    if effective and Path(effective[0]).name.lower() in _SHELL_COMMANDS:
+        return Path(effective[0]).name.lower()
+    if not segment or Path(segment[0]).name.lower() != "env":
+        return ""
+
+    index = 1
+    while index < len(segment):
+        part = segment[index]
+        if "=" in part and not part.startswith("-"):
+            index += 1
+            continue
+        option = part.split("=", 1)[0]
+        if part.startswith("-"):
+            index += (
+                2
+                if "=" not in part
+                and option in _ENV_VALUE_OPTIONS
+                and index + 1 < len(segment)
+                else 1
+            )
+            continue
+        return Path(part).name.lower()
+    return ""
+
+
+def _strip_npx_package_options(segment: list[str]) -> list[str]:
+    if not segment or Path(segment[0]).name.lower() != "npx":
+        return segment
+
+    normalized = [segment[0]]
+    index = 1
+    while index < len(segment):
+        part = segment[index]
+        if part in {"-p", "--package"} and index + 1 < len(segment):
+            index += 2
+            continue
+        if part.startswith("--package="):
+            index += 1
+            continue
+        if part.startswith("-"):
+            if (
+                "=" not in part
+                and part in _NPX_VALUE_OPTIONS
+                and index + 1 < len(segment)
+            ):
+                index += 2
+            else:
+                normalized.append(part)
+                index += 1
+            continue
+        normalized.extend(segment[index:])
+        break
+    return normalized
+
+
+def _nx_target_is_e2e(value: str) -> bool:
+    parts = value.lower().split(":")
+    return parts[0] == "e2e" or (len(parts) > 1 and parts[1] == "e2e")
 
 
 def _command_segments(command: tuple[str, ...]) -> list[list[str]]:
