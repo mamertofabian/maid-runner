@@ -41,30 +41,24 @@ class TestPublicAPIImports:
         changelog = root / "CHANGELOG.md"
         roadmap = root / "docs" / "ROADMAP.md"
 
-        assert __version__ == "2.27.2"
-        assert re.search(r'^version = "2\.27\.2"$', pyproject.read_text(), re.M)
+        assert __version__ == "2.27.3"
+        assert re.search(r'^version = "2\.27\.3"$', pyproject.read_text(), re.M)
         assert re.search(
-            r'\[\[package\]\]\nname = "maid-runner"\nversion = "2\.27\.2"',
+            r'\[\[package\]\]\nname = "maid-runner"\nversion = "2\.27\.3"',
             lockfile.read_text(),
         )
         changelog_text = changelog.read_text()
-        assert "## [2.27.2] - 2026-08-31" in changelog_text
+        assert "## [2.27.3] - 2026-08-31" in changelog_text
         assert (
-            "[2.27.2]: https://github.com/mamertofabian/maid-runner/compare/v2.27.1...v2.27.2"
+            "[2.27.3]: https://github.com/mamertofabian/maid-runner/compare/v2.27.2...v2.27.3"
             in changelog_text
         )
-        assert "TypeScript predicate return annotations" in changelog_text
-        assert "Presentation-asset diagnostics" in changelog_text
-        assert "Configured manifest-chain routing" in changelog_text
-        assert "Implementation-review scope guidance" in changelog_text
-        assert "Acceptance-layer red evidence" in changelog_text
-        assert "Spawn-safe artifact coverage" in changelog_text
-        assert "Generated Supabase type parsing" in changelog_text
+        assert "Cypress spec option paths" in changelog_text
 
         roadmap_text = roadmap.read_text()
-        assert "**Current Version:** 2.27.2" in roadmap_text
+        assert "**Current Version:** 2.27.3" in roadmap_text
         assert "**Last Updated:** 2026-08-31" in roadmap_text
-        assert "The local CLI reports `maid 2.27.2`." in roadmap_text
+        assert "The local CLI reports `maid 2.27.3`." in roadmap_text
         assert "`maid chain merge`" in roadmap_text
         help_result = subprocess.run(
             ["maid", "--help"],

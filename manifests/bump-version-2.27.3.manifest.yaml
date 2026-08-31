@@ -1,0 +1,149 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Prepare maid-runner 2.27.3 release metadata and changelog"
+type: fix
+created: "2026-08-31T07:49:52Z"
+supersedes:
+  - refresh-version-2.27.2-release-candidate
+metadata:
+  planning_state: behavioral_contract
+  promotion_ready: true
+  tests_status: red_confirmed
+  tags:
+    - release
+    - version
+    - changelog
+  priority: high
+description: |
+  Bump maid-runner from published 2.27.2 to patch release 2.27.3 and
+  synchronize package metadata, editable lock metadata, changelog, roadmap,
+  and the shared release-metadata assertion.
+
+  The v2.27.2..HEAD inventory contains the Cypress/Nx acceptance `--spec`
+  parsing fix: attached option values resolve as test paths, E500 identifies
+  extracted missing paths, project containment remains enforced across direct
+  wrappers and cwd forms, unrelated option values remain ignored, and legacy
+  general acceptance path coverage is preserved.
+
+  This task prepares local release metadata only. Tagging, publishing, pushing,
+  merging to main, and creating a GitHub release remain separate actions.
+temptations:
+  - risk: "Do not update only pyproject.toml while leaving release mirrors stale."
+    instead: "Synchronize pyproject.toml, uv.lock, changelog, roadmap, and the runtime metadata assertion together."
+  - risk: "Do not describe the fix as generic Cypress support."
+    instead: "Name attached --spec extraction, exact E500 locations, containment preservation, and bounded wrapper/option parsing accurately."
+  - risk: "Do not include commits already released in v2.27.2."
+    instead: "Derive the patch inventory from the exact v2.27.2..HEAD range."
+  - risk: "Do not tag, publish, push, merge to main, or create a GitHub release."
+    instead: "Stop after local metadata, build validation, independent review, Outcome capture, and a committed release bump."
+files:
+  scope:
+    - path: pyproject.toml
+      reason: "Package version metadata has no analyzer-visible public artifact."
+    - path: uv.lock
+      reason: "Editable package lock metadata must mirror pyproject and be regenerated through uv."
+    - path: CHANGELOG.md
+      reason: "Release notes document the 2.27.3 fix, date, boundary, and comparison link."
+    - path: docs/ROADMAP.md
+      reason: "Roadmap current-version references mirror the prepared CLI release."
+  edit:
+    - path: tests/integration/test_library_api.py
+      artifacts:
+        - kind: test_function
+          name: test_release_metadata_is_current_version
+          of: TestPublicAPIImports
+          args:
+            - name: self
+              type: TestPublicAPIImports
+          returns: None
+          description: "Runtime version, package metadata, editable lock metadata, changelog heading and compare link, roadmap, and release inventory all report 2.27.3."
+  read:
+    - maid_runner/__version__.py
+    - manifests/refresh-version-2.27.2-release-candidate.manifest.yaml
+    - manifests/bump-version-2.27.2.manifest.yaml
+    - manifests/fix-cypress-spec-option-path.manifest.yaml
+    - tests/core/validation/test_cypress_spec_option_path.py
+validate:
+  - uv run python -m pytest -q tests/integration/test_library_api.py tests/core/validation/test_cypress_spec_option_path.py
+outcome:
+  status: completed
+  completed_at: "2026-08-31T08:13:41Z"
+  summary: >-
+    Prepared maid-runner 2.27.3 by synchronizing package and editable-lock
+    metadata, runtime assertions, changelog heading/date/compare link and patch
+    inventory, roadmap version references, shared plan-lock hashes, and built
+    wheel/source distributions for the Cypress/Nx spec-path fix.
+  rationale: >-
+    The exact v2.27.2..HEAD range contains one logical post-release fix. The
+    release contract therefore advances one patch version, supersedes the
+    effective 2.27.2 refresh contract, and names that fix precisely without
+    carrying forward already released inventory. Built artifacts and every
+    local release mirror independently report 2.27.3.
+  agent:
+    model: gpt-5
+    provider: openai
+    client: codex
+    source: "System-provided model family; exact runtime slug and reasoning effort were unavailable."
+    skills:
+      - maid-evolver
+      - maid-planner
+      - maid-plan-review
+      - maid-implementer
+      - maid-implementation-review
+  lessons:
+    - lesson_type: workflow
+      summary: >-
+        A release bump must supersede the effective latest release contract,
+        not an already superseded predecessor; preserved shared-test lock hashes
+        do not resolve a semantic conflict between two simultaneously active
+        release assertions.
+      tags: [release, supersession, plan-lock]
+      paths:
+        - manifests/bump-version-2.27.3.manifest.yaml
+        - manifests/refresh-version-2.27.2-release-candidate.manifest.yaml
+        - tests/integration/test_library_api.py
+    - lesson_type: validation-trust
+      summary: >-
+        Patch release consistency is established across pyproject metadata,
+        editable lock metadata, changelog boundary and inventory, roadmap,
+        runtime assertions, wheel metadata, and source-distribution metadata;
+        any one mirror alone is insufficient release evidence.
+      tags: [release, versioning, artifacts]
+      paths: [pyproject.toml, uv.lock, CHANGELOG.md, docs/ROADMAP.md]
+  review_notes:
+    - source: independent-read-only-release-review
+      severity: ready
+      summary: >-
+        Fresh review found no blockers and confirmed SemVer, the sole
+        v2.27.2..HEAD inventory item, effective supersession, shared lock
+        integrity, all metadata mirrors, built artifacts, and absence of tag,
+        push, publication, main-branch merge, or GitHub release actions.
+    - source: independent-read-only-release-review
+      severity: advisory
+      summary: >-
+        A future release contract may isolate the current changelog section
+        before checking inventory phrases; direct inspection confirmed the
+        2.27.3 section is complete, so no current release change was required.
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/integration/test_library_api.py, tests/core/validation/test_cypress_spec_option_path.py]
+      status: passed
+      summary: "All 93 focused release and underlying-fix tests passed."
+    - command: [uv, run, maid, validate, --packet]
+      status: passed
+      summary: "All 296 active manifests passed; 363 superseded manifests were skipped after corrected release supersession."
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: "All 300 active manifest command groups passed."
+    - command: [make, build]
+      status: passed
+      summary: "Built maid_runner-2.27.3 source and wheel distributions."
+    - command: [uv, run, twine, check, dist/maid_runner-2.27.3.tar.gz, dist/maid_runner-2.27.3-py3-none-any.whl]
+      status: passed
+      summary: "Twine accepted both artifacts; wheel METADATA and sdist pyproject reported 2.27.3."
+    - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, v2.27.2]
+      status: passed
+      summary: "All 11 critical-tier deep stages passed with zero blocking findings."
