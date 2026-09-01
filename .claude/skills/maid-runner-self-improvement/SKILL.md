@@ -204,7 +204,7 @@ Useful probes:
 ```bash
 # Current health.
 uv run maid validate --quiet
-uv run maid test --quiet
+uv run maid test --json
 uv run maid verify --summary --keep-going
 
 # Planning inventory.
