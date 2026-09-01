@@ -41,6 +41,20 @@ general MAID skills:
    red phase is meaningful.
 4. Restate the manifest `temptations` before editing.
 
+## Packet-Driven Retry Gates
+
+For implementer retries, run validation gates with `--packet`; for example,
+`maid validate --packet` and `maid verify --profile agent-retry --since <baseline>`. When a packet-aware gate fails, read `.maid/last-failure-packet.json` instead of re-exploring the repository. The packet is the retry context: failed command argv, exit code, project root, failed manifest excerpts, diagnostics, `next_action` repair recipes, failed-command output tails, and environment versions.
+
+Respect `next_action` exactly. Valid kinds include `edit-implementation`,
+`edit-tests`, `edit-manifest`, `run-command`, `revise-plan`, and
+`escalate-human`; kinds that change tests or manifests route through explicit
+plan revision when the contract must change. Recipes never authorize weakening tests or manifests to silence errors, and they never authorize weakening tests or manifests as the first remedy for an implementation failure.
+
+Stop at the default 5 attempt bound. If the gate still fails, or the packet
+requests `escalate-human`, stop and escalate to a human with the final packet
+instead of looping, hiding the failure, or broadening scope.
+
 ## Outcome-Aware MAID Guidance
 
 Outcome records are deterministic manifest data, not agent-only memory. When
@@ -85,6 +99,19 @@ uv run maid manifest promote manifests/drafts/<slug>.manifest.yaml
 ```
 
 Do not manually move or copy draft manifests.
+
+After promotion and before implementation edits, start the active task so hook
+integrations can check writes against the promoted contract:
+
+```bash
+uv run maid task start manifests/<slug>.manifest.yaml
+```
+
+Interactive editor sessions use the default fail-open policy: no active task
+and internal hook errors allow the edit. Locked-down autonomous loops should
+pass `--strict` to deny those outcomes. The hook is advisory edit-time
+infrastructure only. maid verify changed-scope checks remain the authoritative handoff evidence.
+Hook decisions do not replace validation or add `ErrorCode` entries.
 
 3. If promotion warns that other active manifests still reference the draft
    path, report the warning and handle those references through their own
@@ -159,13 +186,13 @@ evidence automatically. Use `--test-only-green` for a test-only contract. Use
 
 ## Review Loop
 
-Before reporting done, run a read-only implementation review with the Agent
-tool and `subagent_type: "maid-implementation-reviewer"`. Do not substitute a
-local-only review because the current turn did not mention reviewer agents; repo
-guidance provides standing authorization. The review packet must be
-self-contained and use the verdict-neutral complete packet defined above; never
-narrow it to a current diff, recent changed files, or a validation summary. The
-review must check:
+Before reporting done, run a read-only implementation review subagent with
+the verdict-neutral complete packet defined above; never narrow it to a current
+diff, recent changed files, or a validation summary.
+Do not substitute a local-only review because the current turn did not mention
+reviewer agents; repo guidance provides standing authorization. Use the Agent
+tool with `subagent_type: "maid-implementation-reviewer"`. The review must
+check:
 
 - changed files stayed within manifest scope;
 - declared artifacts exist without undeclared public drift;
@@ -191,6 +218,8 @@ only after the promoted manifest has the `outcome:` section, unless the final
 response explicitly reports why Outcome is not applicable or is blocked.
 After Outcome capture, run `uv run maid learn` to refresh the local `.maid/outcomes.json` advisory index for subsequent recall.
 `.maid/outcomes.json` is generated and ignored; do not commit it. If `maid learn` fails, report the refresh failure as advisory unless recall or insights are required for the current task.
+After Outcome capture, run `uv run maid task stop` to clear the active task
+pointer before handoff.
 
 ## Automation Reporting
 

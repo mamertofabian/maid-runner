@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from contextlib import AbstractContextManager, contextmanager
+from glob import has_magic
 import time
 from pathlib import Path
 from typing import Optional, Union
 
-from maid_runner.core._file_discovery import is_test_file
 from maid_runner.core import _implementation_validation
 from maid_runner.core._artifact_collection_cache import clear_artifact_collection_cache
 from maid_runner.core._implementation_runner import _run_implementation_validation
@@ -54,6 +54,7 @@ from maid_runner.core.ts_module_paths import (
 from maid_runner.core.manifest import (
     ManifestLoadError,
     ManifestSchemaError,
+    _acceptance_test_paths_from_command,
     load_manifest,
     validate_manifest_paths,
 )
@@ -361,18 +362,19 @@ class ValidationEngine:
             return errors
 
         for cmd in manifest.acceptance.tests:
-            for part in cmd:
-                if is_test_file(part):
-                    full_path = self._project_root / part
-                    if not full_path.exists():
-                        errors.append(
-                            ValidationError(
-                                code=ErrorCode.ACCEPTANCE_TEST_FILE_NOT_FOUND,
-                                message=f"Acceptance test file '{part}' not found",
-                                location=Location(file=part),
-                                suggestion="Create the acceptance test file before implementation",
-                            )
+            for test_path in _acceptance_test_paths_from_command(cmd):
+                if has_magic(test_path):
+                    continue
+                full_path = self._project_root / test_path
+                if not full_path.exists():
+                    errors.append(
+                        ValidationError(
+                            code=ErrorCode.ACCEPTANCE_TEST_FILE_NOT_FOUND,
+                            message=f"Acceptance test file '{test_path}' not found",
+                            location=Location(file=test_path),
+                            suggestion="Create the acceptance test file before implementation",
                         )
+                    )
 
         return errors
 

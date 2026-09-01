@@ -1,0 +1,581 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Treat Cypress --spec=<path> acceptance options as file paths without mistaking the whole option or unrelated options for files"
+type: fix
+created: "2026-08-31T04:33:31Z"
+metadata:
+  bug_report: ~/.maid/bug-report/20260831-101326-codefrost-cypress-spec-option.md
+  planning_state: behavioral_contract
+  promotion_ready: true
+  tests_status: red_confirmed
+  priority: high
+  tags:
+    - acceptance
+    - cypress
+    - path-validation
+    - E500
+  related_contracts:
+    - 040-39-retire-manifest-path-containment-legacy-cases
+    - fix-cypress-acceptance-red-evidence
+description: |
+  Acceptance validation currently applies the test-file classifier to every
+  raw command token. Because conventional Cypress `.cy.ts` names are now test
+  files, an attached selector such as `--spec=path/to/example.cy.ts` is treated
+  as one literal filesystem path and produces E500 even when its value exists.
+  Any unrelated option whose value happens to end in a test suffix is similarly
+  vulnerable to a false missing-file diagnostic.
+
+  Recognize directly tokenized Cypress `--spec=<path>` assignments explicitly,
+  including comma-separated spec lists and command-relative paths. File
+  existence diagnostics must use each extracted value as its path and location,
+  regardless of its filename convention. Values belonging to the bounded set
+  of recognized attached or split non-target options remain ignored. Feed the
+  same extracted values and split or attached command working directories into
+  the existing manifest project-boundary validation so an outside path anywhere
+  in a spec list cannot use a real file to bypass containment. Runner-local cwd
+  options reset at command separators while explicit `cd` changes persist, and
+  Windows absolute or drive-qualified specs retain their outside-path identity
+  before cwd joining. Cypress spec semantics activate only for direct Cypress
+  commands and Nx e2e invocations; the same option spelling on unrelated tools
+  remains untouched. Package-runner cwd options are removed before effective
+  executable detection. Nx target detection uses only target positions and
+  explicit `--target`/`-t` flags, including attached values, so incidental e2e
+  option values do not activate parsing. Union this extraction with the existing
+  general acceptance command-path parser so positional directories and
+  established path-bearing options retain their containment checks, including
+  runner-local cwd reset between segments.
+  Shell-language strings nested inside `bash -c`, `sh -c`, or equivalent wrappers
+  are outside this bounded argv-token parser; shell target interpretation remains
+  the responsibility of the existing specialized command-target machinery.
+  Literal Cypress spec paths receive existence checks. Python-style wildcard
+  selectors using `*`, `?`, or `[]` retain project-containment validation but
+  skip literal `Path.exists()` E500 checks. Cypress minimatch brace/extglob
+  interpretation and expansion remain outside this contract. Explicitly skip
+  embedded command strings consumed by actual short shell `-c` flag combinations,
+  including env-wrapped shells, without treating unrelated long flags such as
+  `--norc` as command-string consumers. Consume npx package injection options
+  even when standalone or value-taking npx flags precede them, and discard the
+  conventional package-exec `--` separator before effective executable
+  detection. The raw scanner consumes the same split npx package/value options,
+  including test-shaped values. Shell command-string exclusion also handles a
+  `-c --` separator and env long standalone flags before the effective shell.
+  Apply cwd flags only while scanning an owning outer package-runner prefix, so
+  Cypress's own `-C` config option cannot mutate command cwd. Consume recognized
+  split npx values in both the new extractor and the legacy containment union.
+
+  This is an additive behavior evolution rather than a supersession: the
+  public `ValidationEngine.validate_acceptance` and `validate_manifest_paths`
+  signatures and return types do not change. Existing positional and split
+  option forms remain supported by their standalone path token.
+temptations:
+  - risk: "Do not strip everything before '=' from every option token and then classify the remainder as a file."
+    instead: "Recognize only the path-bearing Cypress --spec assignment and pin an unrelated .cy.ts-shaped option value as a negative case."
+  - risk: "Do not fix E500 while leaving attached --spec parent paths outside project containment."
+    instead: "Use the same extracted --spec value for existence and project-boundary validation, including an outside file that genuinely exists."
+  - risk: "Do not special-case the reported Studyfinder repository or filename."
+    instead: "Exercise generic Cypress --spec syntax through the public validation APIs in an isolated project fixture."
+  - risk: "Do not edit the shared acceptance characterization file already covered by historical contracts."
+    instead: "Add this regression contract in a dedicated behavioral test file to avoid disturbing prior plan-lock hashes."
+files:
+  edit:
+    - path: maid_runner/core/validate.py
+      artifacts:
+        - kind: method
+          name: validate_acceptance
+          of: ValidationEngine
+          args:
+            - name: manifest
+              type: Manifest
+          returns: list[ValidationError]
+          description: "Validate existing positional acceptance test paths and every directly tokenized Cypress or Nx e2e --spec assignment value, including lists, nonconventional filenames, split or attached command-relative paths, and cross-segment cwd reset; report E500 against each extracted path while leaving unrelated --spec options untouched and ignoring the bounded recognized set of non-target option values. Nested shell-language command strings are outside this argv parser."
+    - path: maid_runner/core/manifest.py
+      artifacts:
+        - kind: function
+          name: validate_manifest_paths
+          args:
+            - name: manifest
+              type: Manifest
+            - name: project_root
+              type: Union[str, Path]
+          returns: list[ValidationError]
+          description: "Reject every directly tokenized Cypress or Nx e2e --spec assignment value, including nonconventional names, non-leading list items, Windows absolute paths, and split or attached command-relative paths, that resolves outside project_root; union these targets with all previously covered general acceptance command path sources. Nested shell-language command strings are outside this argv parser."
+  create:
+    - path: tests/core/validation/test_cypress_spec_option_path.py
+      artifacts:
+        - kind: test_function
+          name: test_existing_cypress_spec_assignment_does_not_report_e500
+          source_scenario: "An acceptance command selects an existing conventional Cypress file through --spec=<project-relative-path>."
+          actions:
+            - type: api_call
+              subject:
+                method: ValidationEngine.validate_acceptance
+          expected:
+            behavior: "Acceptance validation succeeds without treating the complete option token as a missing file."
+        - kind: test_function
+          name: test_existing_nx_cypress_spec_assignment_does_not_report_e500
+          source_scenario: "An Nx e2e acceptance command selects an existing conventional Cypress file through --spec=<project-relative-path>."
+          actions:
+            - type: api_call
+              subject:
+                method: ValidationEngine.validate_acceptance
+          expected:
+            behavior: "Acceptance validation recognizes the reported Nx form and does not treat the complete option token as a missing file."
+        - kind: test_function
+          name: test_existing_nx_target_spec_assignment_does_not_report_e500
+          source_scenario: "An Nx run-many acceptance command uses --target=e2e or -t=e2e before selecting an existing Cypress spec."
+          actions:
+            - type: api_call
+              subject:
+                method: ValidationEngine.validate_acceptance
+          expected:
+            behavior: "Package-runner normalization and Nx target detection activate spec parsing without E500 for the existing file."
+        - kind: test_function
+          name: test_nx_configured_target_missing_spec_reports_e500
+          source_scenario: "An Nx run command uses a configured project:e2e:ci target with a missing nonconventional spec."
+          actions:
+            - type: api_call
+              subject:
+                method: ValidationEngine.validate_acceptance
+          expected:
+            behavior: "Configured e2e target identity activates parsing and reports E500 against the extracted spec."
+        - kind: test_function
+          name: test_npx_package_injection_preserves_nx_spec_detection
+          source_scenario: "An npx command injects the nx package with -p before invoking Nx e2e with an existing spec."
+          actions:
+            - type: api_call
+              subject:
+                method: ValidationEngine.validate_acceptance
+          expected:
+            behavior: "The package option and value are consumed before executable detection, and the existing spec produces no E500."
+        - kind: test_function
+          name: test_npx_package_injection_after_standalone_flag_preserves_detection
+          source_scenario: "An npx --yes command uses split -p or --package injection before invoking a configured Nx e2e target with an existing spec."
+          actions:
+            - type: api_call
+              subject:
+                method: ValidationEngine.validate_acceptance
+          expected:
+            behavior: "Package injection is consumed across the preceding standalone flag and the existing spec produces no E500."
+        - kind: test_function
+          name: test_npx_value_option_before_package_injection_preserves_detection
+          source_scenario: "An npx --cache value precedes package injection and a configured Nx e2e target with an existing spec."
+          actions:
+            - type: api_call
+              subject:
+                method: ValidationEngine.validate_acceptance
+          expected:
+            behavior: "The value-taking npx option and value are consumed before executable detection, and the existing spec produces no E500."
+        - kind: test_function
+          name: test_npx_test_shaped_option_values_are_not_acceptance_targets
+          source_scenario: "Split npx package or cache option values end with a conventional Cypress test suffix before Cypress selects an existing spec."
+          actions:
+            - type: api_call
+              subject:
+                method: ValidationEngine.validate_acceptance
+          expected:
+            behavior: "The raw scanner consumes the recognized npx option values and reports no false E500."
+        - kind: test_function
+          name: test_npx_outside_option_value_is_not_a_manifest_path
+          source_scenario: "A split npx package value points outside project_root while Cypress selects an existing in-project spec."
+          actions:
+            - type: api_call
+              subject:
+                function: validate_manifest_paths
+          expected:
+            behavior: "Both acceptance parsers consume the npx option value, so it does not produce false containment diagnostics."
+        - kind: test_function
+          name: test_nested_npx_package_injection_preserves_detection
+          source_scenario: "An env or uv run wrapper invokes npx package injection before a configured Nx e2e target with an existing spec."
+          actions:
+            - type: api_call
+              subject:
+                method: ValidationEngine.validate_acceptance
+          expected:
+            behavior: "Outer execution wrappers are removed before npx package normalization, and the existing spec produces no E500."
+        - kind: test_function
+          name: test_missing_cypress_spec_assignment_reports_extracted_path
+          source_scenario: "An acceptance command selects a missing Cypress file through an attached --spec assignment."
+          actions:
+            - type: api_call
+              subject:
+                method: ValidationEngine.validate_acceptance
+          expected:
+            behavior: "Exactly one E500 identifies the option value path in both its message and structured location."
+        - kind: test_function
+          name: test_missing_nonconventional_cypress_spec_reports_extracted_path
+          source_scenario: "An acceptance command selects a missing Cypress spec whose filename does not match MAID test-file naming conventions."
+          actions:
+            - type: api_call
+              subject:
+                method: ValidationEngine.validate_acceptance
+          expected:
+            behavior: "The explicit --spec value still produces E500 with its extracted path."
+        - kind: test_function
+          name: test_existing_cypress_split_spec_option_remains_supported
+          source_scenario: "An acceptance command selects an existing Cypress file through the split --spec <project-relative-path> form."
+          actions:
+            - type: api_call
+              subject:
+                method: ValidationEngine.validate_acceptance
+          expected:
+            behavior: "The standalone path token remains recognized and does not produce E500."
+        - kind: test_function
+          name: test_existing_cypress_spec_list_does_not_report_e500
+          source_scenario: "An acceptance command selects two existing Cypress files through a comma-separated --spec assignment."
+          actions:
+            - type: api_call
+              subject:
+                method: ValidationEngine.validate_acceptance
+          expected:
+            behavior: "Each listed spec is checked independently and no combined pseudo-path produces E500."
+        - kind: test_function
+          name: test_cypress_spec_glob_does_not_report_literal_e500
+          source_scenario: "A Cypress --spec selector uses an in-project glob that matches an existing conventional spec."
+          actions:
+            - type: api_call
+              subject:
+                method: ValidationEngine.validate_acceptance
+          expected:
+            behavior: "The glob remains subject to containment but skips literal file-existence E500 evaluation."
+        - kind: test_function
+          name: test_existing_cypress_spec_assignment_respects_command_cwd
+          source_scenario: "An acceptance command changes into a frontend directory before selecting an existing Cypress spec relative to that command directory."
+          actions:
+            - type: api_call
+              subject:
+                method: ValidationEngine.validate_acceptance
+          expected:
+            behavior: "Acceptance validation resolves the extracted spec beneath the command working directory and does not report E500."
+        - kind: test_function
+          name: test_existing_cypress_spec_respects_attached_command_cwd
+          source_scenario: "An npm acceptance command uses --prefix=<frontend> before selecting an existing Cypress spec relative to that directory."
+          actions:
+            - type: api_call
+              subject:
+                method: ValidationEngine.validate_acceptance
+          expected:
+            behavior: "Acceptance validation resolves the spec beneath the attached command working directory and does not report E500."
+        - kind: test_function
+          name: test_cypress_config_flag_is_not_a_command_cwd
+          source_scenario: "A direct Cypress command uses -C for its config file before selecting an existing root-relative spec."
+          actions:
+            - type: api_call
+              subject:
+                method: ValidationEngine.validate_acceptance
+          expected:
+            behavior: "Cwd parsing remains owned by the outer package runner, so Cypress -C does not change spec resolution or produce E500."
+        - kind: test_function
+          name: test_existing_pnpm_cypress_spec_respects_command_cwd
+          source_scenario: "A pnpm acceptance command uses split or attached --dir before executing Cypress with an existing relative spec."
+          actions:
+            - type: api_call
+              subject:
+                method: ValidationEngine.validate_acceptance
+          expected:
+            behavior: "Package-runner normalization identifies Cypress behind cwd options and resolves the existing spec without E500."
+        - kind: test_function
+          name: test_package_exec_separator_preserves_cypress_detection
+          source_scenario: "An npm or pnpm exec command uses the conventional -- separator before Cypress selects an existing spec."
+          actions:
+            - type: api_call
+              subject:
+                method: ValidationEngine.validate_acceptance
+          expected:
+            behavior: "Normalization discards the separator, identifies Cypress, and reports no E500 for the existing spec."
+        - kind: test_function
+          name: test_command_cwd_option_does_not_leak_to_later_segment
+          source_scenario: "One acceptance command segment uses an attached frontend prefix before a later segment selects an existing root-relative Cypress spec."
+          actions:
+            - type: api_call
+              subject:
+                method: ValidationEngine.validate_acceptance
+          expected:
+            behavior: "The runner-local command directory resets at the separator, so both existing specs resolve without E500."
+        - kind: test_function
+          name: test_unrelated_option_with_test_suffix_is_not_a_file_target
+          source_scenario: "An unrelated Cypress option has an attached value whose text ends with the conventional .cy.ts suffix."
+          actions:
+            - type: api_call
+              subject:
+                method: ValidationEngine.validate_acceptance
+          expected:
+            behavior: "Acceptance validation ignores the non-path option instead of reporting a false E500."
+        - kind: test_function
+          name: test_non_cypress_spec_option_is_not_a_file_target
+          source_scenario: "An unrelated Python command uses an attached or split --spec option whose value resembles a Cypress test filename."
+          actions:
+            - type: api_call
+              subject:
+                method: ValidationEngine.validate_acceptance
+          expected:
+            behavior: "Cypress-specific extraction remains inactive and no false E500 is reported."
+        - kind: test_function
+          name: test_cypress_like_argument_values_do_not_activate_spec_parsing
+          source_scenario: "An unrelated executable receives cypress, nx, or e2e as ordinary option values alongside its own --spec option."
+          actions:
+            - type: api_call
+              subject:
+                method: ValidationEngine.validate_acceptance
+          expected:
+            behavior: "Only the effective executable and direct Nx targets control activation, so no false E500 is reported."
+        - kind: test_function
+          name: test_nx_non_target_e2e_values_do_not_activate_spec_parsing
+          source_scenario: "Nx show, graph, or report commands receive e2e or project:e2e as values for non-target options alongside --spec."
+          actions:
+            - type: api_call
+              subject:
+                method: ValidationEngine.validate_acceptance
+          expected:
+            behavior: "Only target positions and target flags activate spec parsing, so no false E500 is reported."
+        - kind: test_function
+          name: test_npx_package_value_does_not_activate_cypress_spec_parsing
+          source_scenario: "An npx command injects the cypress package but invokes an unrelated Python executable with its own --spec option."
+          actions:
+            - type: api_call
+              subject:
+                method: ValidationEngine.validate_acceptance
+          expected:
+            behavior: "The injected package value is not mistaken for the executable and no false E500 is reported."
+        - kind: test_function
+          name: test_shell_login_command_string_is_not_a_literal_test_path
+          source_scenario: "A bash or zsh -lc wrapper contains a Cypress command string ending in a conventional test suffix."
+          actions:
+            - type: api_call
+              subject:
+                method: ValidationEngine.validate_acceptance
+          expected:
+            behavior: "The excluded nested shell-language string is skipped as the shell flag's value and does not produce E500."
+        - kind: test_function
+          name: test_env_wrapped_shell_command_string_is_not_a_literal_test_path
+          source_scenario: "An env-wrapped sh -lc command contains a Cypress command string ending in a conventional test suffix."
+          actions:
+            - type: api_call
+              subject:
+                method: ValidationEngine.validate_acceptance
+          expected:
+            behavior: "Effective shell detection skips the nested command string and does not produce E500."
+        - kind: test_function
+          name: test_shell_command_string_variants_are_not_literal_test_paths
+          source_scenario: "A shell uses -c -- before its command string, or env uses --ignore-environment before an effective bash -lc command."
+          actions:
+            - type: api_call
+              subject:
+                method: ValidationEngine.validate_acceptance
+          expected:
+            behavior: "Shell option parsing consumes the actual command string and reports no false E500."
+        - kind: test_function
+          name: test_shell_non_command_flag_preserves_positional_test_path
+          source_scenario: "A bash command uses --norc before a missing positional Cypress-style test filename."
+          actions:
+            - type: api_call
+              subject:
+                method: ValidationEngine.validate_acceptance
+          expected:
+            behavior: "The unrelated long flag does not consume the positional path, which retains legacy E500 behavior."
+        - kind: test_function
+          name: test_positional_acceptance_directory_containment_remains_enforced
+          source_scenario: "A pytest acceptance command targets a positional tests directory outside project_root."
+          actions:
+            - type: api_call
+              subject:
+                function: validate_manifest_paths
+          expected:
+            behavior: "The pre-existing general command-path parser still rejects the outside positional directory."
+        - kind: test_function
+          name: test_attached_acceptance_path_option_containment_remains_enforced
+          source_scenario: "A pytest acceptance command uses an attached --rootdir assignment outside project_root."
+          actions:
+            - type: api_call
+              subject:
+                function: validate_manifest_paths
+          expected:
+            behavior: "The pre-existing general command-path parser still rejects the outside path-bearing option value."
+        - kind: test_function
+          name: test_legacy_command_cwd_does_not_leak_to_later_outside_target
+          source_scenario: "A runner-local prefix applies to one command segment before a later pytest segment targets an outside positional directory."
+          actions:
+            - type: api_call
+              subject:
+                function: validate_manifest_paths
+          expected:
+            behavior: "The legacy parser resets runner-local cwd at the separator and rejects the later outside target."
+        - kind: test_function
+          name: test_nx_target_spec_outside_project_is_rejected
+          source_scenario: "An Nx run-many command uses --target=e2e or -t=e2e with a nonconventional spec outside project_root."
+          actions:
+            - type: api_call
+              subject:
+                function: validate_manifest_paths
+          expected:
+            behavior: "Nx target detection activates direct spec containment and rejects the outside value."
+        - kind: test_function
+          name: test_nx_configured_target_spec_outside_project_is_rejected
+          source_scenario: "An Nx run command uses a configured project:e2e:ci target with a nonconventional spec outside project_root."
+          actions:
+            - type: api_call
+              subject:
+                function: validate_manifest_paths
+          expected:
+            behavior: "Configured e2e target identity activates containment and rejects the outside spec."
+        - kind: test_function
+          name: test_nested_npx_package_injection_outside_spec_is_rejected
+          source_scenario: "An env or uv run wrapper invokes npx package injection and a configured Nx e2e target with a spec outside project_root."
+          actions:
+            - type: api_call
+              subject:
+                function: validate_manifest_paths
+          expected:
+            behavior: "Outer execution wrappers and npx options normalize before target detection, which rejects the outside spec."
+        - kind: test_function
+          name: test_cypress_spec_assignment_outside_project_is_rejected
+          source_scenario: "A Cypress --spec assignment points through .. to a test file that genuinely exists outside project_root."
+          actions:
+            - type: api_call
+              subject:
+                function: validate_manifest_paths
+          expected:
+            behavior: "Manifest path validation rejects the extracted outside path with MANIFEST_PATH_OUTSIDE_PROJECT."
+        - kind: test_function
+          name: test_nonconventional_cypress_spec_outside_project_is_rejected
+          source_scenario: "A Cypress --spec assignment points outside project_root using a filename without a conventional test suffix."
+          actions:
+            - type: api_call
+              subject:
+                function: validate_manifest_paths
+          expected:
+            behavior: "Manifest path validation rejects the explicit outside spec regardless of filename convention."
+        - kind: test_function
+          name: test_attached_command_cwd_outside_project_is_rejected
+          source_scenario: "An attached npm --prefix value points outside project_root before Cypress selects a spec relative to that directory."
+          actions:
+            - type: api_call
+              subject:
+                function: validate_manifest_paths
+          expected:
+            behavior: "Manifest path validation combines the attached command directory with the spec and rejects the resulting outside path."
+        - kind: test_function
+          name: test_pnpm_command_cwd_outside_spec_is_rejected
+          source_scenario: "A pnpm command uses split or attached --dir before Cypress selects a nonconventional spec outside project_root."
+          actions:
+            - type: api_call
+              subject:
+                function: validate_manifest_paths
+          expected:
+            behavior: "Package-runner normalization preserves Cypress activation and rejects the cwd-relative outside spec."
+        - kind: test_function
+          name: test_package_exec_separator_outside_spec_is_rejected
+          source_scenario: "An npm or pnpm exec command uses -- before Cypress selects a nonconventional spec outside project_root."
+          actions:
+            - type: api_call
+              subject:
+                function: validate_manifest_paths
+          expected:
+            behavior: "Normalization discards the separator, identifies Cypress, and rejects the outside spec."
+        - kind: test_function
+          name: test_windows_absolute_spec_with_command_cwd_is_rejected
+          source_scenario: "A split or attached npm prefix precedes a Windows drive-qualified Cypress spec on a POSIX validation host."
+          actions:
+            - type: api_call
+              subject:
+                function: validate_manifest_paths
+          expected:
+            behavior: "The Windows absolute spec retains its drive identity before cwd joining and is rejected as outside project_root."
+        - kind: test_function
+          name: test_cypress_spec_list_rejects_nonleading_project_escape
+          source_scenario: "A comma-separated Cypress --spec assignment lists an in-project file followed by a real file outside project_root."
+          actions:
+            - type: api_call
+              subject:
+                function: validate_manifest_paths
+          expected:
+            behavior: "Manifest path validation checks every list item and rejects the non-leading outside path with MANIFEST_PATH_OUTSIDE_PROJECT."
+        - kind: test_function
+          name: test_cypress_spec_glob_outside_project_is_rejected
+          source_scenario: "A Cypress --spec glob begins outside project_root."
+          actions:
+            - type: api_call
+              subject:
+                function: validate_manifest_paths
+          expected:
+            behavior: "Containment rejects the outside glob even though literal file-existence evaluation is skipped."
+  read:
+    - maid_runner/core/_file_discovery.py
+    - maid_runner/core/result.py
+    - maid_runner/core/types.py
+    - tests/core/validation/test_acceptance_validation.py
+    - manifests/040-39-retire-manifest-path-containment-legacy-cases.manifest.yaml
+    - manifests/fix-cypress-acceptance-red-evidence.manifest.yaml
+validate:
+  - uv run python -m pytest tests/core/validation/test_acceptance_validation.py tests/core/validation/test_cypress_spec_option_path.py -v
+outcome:
+  status: completed
+  completed_at: "2026-08-31T06:58:30Z"
+  summary: >-
+    Acceptance validation now resolves directly tokenized Cypress and Nx e2e
+    `--spec` values instead of treating attached options as literal files. It
+    preserves legacy acceptance command containment, reports E500 against
+    extracted missing paths, and applies project-boundary checks across lists,
+    command working directories, wrappers, and Windows paths.
+  rationale: >-
+    The 2.27.2 regression passed each raw acceptance token to the test-file
+    classifier, so an existing `--spec=path.cy.ts` became a nonexistent literal
+    path. A bounded command parser now separates wrapper options, effective
+    Cypress/Nx target identity, spec values, and runner-local cwd state while
+    retaining the prior general path parser as a containment union. This avoids
+    false E500 diagnostics without weakening outside-project rejection.
+  agent:
+    model: gpt-5
+    provider: openai
+    client: codex
+    source: "System-provided model family; exact runtime slug and reasoning effort were unavailable."
+    skills:
+      - maid-planner
+      - maid-evolver
+      - maid-plan-review
+      - maid-implementer
+      - maid-implementation-review
+  lessons:
+    - lesson_type: validation-design
+      summary: >-
+        Command option ownership must be parsed at the executable layer that
+        defines it: package-runner cwd and injection options, Cypress spec
+        selectors, Nx target forms, and shell command strings cannot safely
+        share a raw suffix-based token heuristic. Containment should union new
+        semantic extraction with historical general-path coverage so hardening
+        does not silently drop prior path sources.
+      tags:
+        - acceptance
+        - cypress
+        - nx
+        - path-containment
+      paths:
+        - maid_runner/core/manifest.py
+        - maid_runner/core/validate.py
+        - tests/core/validation/test_cypress_spec_option_path.py
+  review_notes:
+    - source: independent-read-only-review
+      severity: ready
+      summary: >-
+        Fresh context-minimal review found no blocking correctness, security,
+        compatibility, scope, or test-integrity findings after the review-fix
+        loop; production scope and declared test artifacts matched the manifest.
+  validation:
+    - command: [uv, run, python, -m, pytest, tests/core/validation/test_acceptance_validation.py, tests/core/validation/test_cypress_spec_option_path.py, -q]
+      status: passed
+      summary: "68 focused and historical acceptance tests passed."
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: "All 296 active manifests passed; 361 superseded manifests were skipped."
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: "All 300 active manifest commands passed, including the repository pytest batch."
+    - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, HEAD]
+      status: passed
+      summary: "All 11 deep verification stages passed with zero blocking findings."
+    - command: [/home/atomrem/projects/codefrost-dev/maid-runner-dev-active/.venv/bin/maid, validate, apps/studyfinder/manifests/61-subtle-reconnection-indicator.manifest.yaml, --mode, behavioral, --packet]
+      status: passed
+      summary: "The original Studyfinder manifest reproduced from the bug report passed with the worktree implementation."
