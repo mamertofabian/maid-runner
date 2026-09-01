@@ -48,7 +48,7 @@ class TestPublicAPIImports:
             lockfile.read_text(),
         )
         changelog_text = changelog.read_text()
-        assert "## [2.27.3] - 2026-08-31" in changelog_text
+        assert "## [2.27.3] - 2026-09-01" in changelog_text
         assert (
             "[2.27.3]: https://github.com/mamertofabian/maid-runner/compare/v2.27.2...v2.27.3"
             in changelog_text
@@ -57,7 +57,7 @@ class TestPublicAPIImports:
 
         roadmap_text = roadmap.read_text()
         assert "**Current Version:** 2.27.3" in roadmap_text
-        assert "**Last Updated:** 2026-08-31" in roadmap_text
+        assert "**Last Updated:** 2026-09-01" in roadmap_text
         assert "The local CLI reports `maid 2.27.3`." in roadmap_text
         assert "`maid chain merge`" in roadmap_text
         help_result = subprocess.run(

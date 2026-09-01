@@ -5,10 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.27.3] - 2026-08-31
+## [2.27.3] - 2026-09-01
 
 ### Fixed
 - **Cypress spec option paths** — Parse directly tokenized Cypress and Nx e2e `--spec` values as acceptance targets instead of treating attached option tokens as literal files. Missing files now report E500 against extracted paths, project containment remains enforced across supported package-runner, cwd, list, wildcard, Windows-path, and Nx target forms, unrelated option values remain ignored, and historical general acceptance-path checks stay active.
+- **Repository skill parity** — Realign the repository-internal Claude `maid-runner-draft-implement`, `maid-runner-performance-optimization`, and `maid-runner-self-improvement` skills with their Codex counterparts, restoring packet-driven retry-gate guidance, `maid task start`/`maid task stop` steps around implementation, and machine-readable profiling commands. Cross-tool parity tests now fail on future drift. Distributed Claude and Codex skill payloads are unchanged.
 
 ## [2.27.2] - 2026-08-31
 

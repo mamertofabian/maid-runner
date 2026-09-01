@@ -3,7 +3,7 @@
 **Project:** MAID Runner - validation framework for Manifest-driven AI Development
 **Status:** Active v2 development
 **Current Version:** 2.27.3
-**Last Updated:** 2026-08-31
+**Last Updated:** 2026-09-01
 
 ## Purpose
 

@@ -3,10 +3,10 @@
   "manifest_hash": "sha256-contract:e199d9e1d69046a7984452d4419702d408d9da0c518a88a103593eb8ef027f43",
   "test_hashes": {
     "tests/core/validation/test_cypress_spec_option_path.py": "sha256-pyast:v2:22b0e01ae2090dd94b9246c4e0cbc07f4cba549c9b447cdad7abf1b30b8d2532",
-    "tests/integration/test_library_api.py": "sha256-pyast:v2:5a34b6fe06270ba06cb7142486f59967279c6a2f86fef61e08a8332a574259e5"
+    "tests/integration/test_library_api.py": "sha256-pyast:v2:2a4ae97cca3f423e721d2bed74db3a9035191b6cb2617627298f57c867871b01"
   },
   "created_at": "2026-08-31T07:49:51.463803+00:00",
-  "revision": 3,
+  "revision": 4,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:88cdc95435148c446bc1ac6c78230fae9d15fae8ca199fe84aac5befbc9414f4",
@@ -41,6 +41,24 @@
         "files_added": [
           "read:manifests/refresh-version-2.27.2-release-candidate.manifest.yaml"
         ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:e199d9e1d69046a7984452d4419702d408d9da0c518a88a103593eb8ef027f43",
+      "prior_test_hashes": {
+        "tests/core/validation/test_cypress_spec_option_path.py": "sha256-pyast:v2:22b0e01ae2090dd94b9246c4e0cbc07f4cba549c9b447cdad7abf1b30b8d2532",
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:5a34b6fe06270ba06cb7142486f59967279c6a2f86fef61e08a8332a574259e5"
+      },
+      "revised_at": "2026-09-01T14:37:47.143334+00:00",
+      "reason": "re-date 2.27.3 release entry to actual release date 2026-09-01",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
         "files_removed": [],
         "validate_commands_added": [],
         "validate_commands_removed": []
