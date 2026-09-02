@@ -79,3 +79,8 @@ class TestTypesMatch:
         assert types_match("dict[str, int]", "Dict[str, int]") is True
         assert types_match("tuple[int, ...]", "Tuple[int, ...]") is True
         assert types_match("set[str]", "Set[str]") is True
+
+
+def test_nested_union_matches_pipe_union_type_annotation():
+    assert types_match("int | str | None", "Union[Union[int, str], None]") is True
+    assert types_match("Union[Union[int, str], None]", "int | str | None") is True

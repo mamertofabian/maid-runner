@@ -617,7 +617,7 @@ validate:
     write_source(
         project,
         "src/auth.py",
-        "def authenticate():\n    pass\n\n" "def helper():\n    pass\n",
+        "def authenticate():\n    pass\n\ndef helper():\n    pass\n",
     )
 
     engine = ValidationEngine(project_root=project)
@@ -679,7 +679,7 @@ validate:
     write_source(
         project,
         "src/auth.py",
-        "def authenticate():\n    pass\n\n" "class Helper:\n    pass\n",
+        "def authenticate():\n    pass\n\nclass Helper:\n    pass\n",
     )
 
     engine = ValidationEngine(project_root=project)
@@ -815,6 +815,244 @@ validate:
 
     assert result.success is False
     assert ErrorCode.TYPE_MISMATCH in error_codes(result)
+
+
+def test_missing_declared_python_parameter_reports_signature_mismatch(project):
+    manifest_path = write_manifest(
+        project,
+        "add-greet.manifest.yaml",
+        """schema: "2"
+goal: "Add greet"
+files:
+  create:
+    - path: src/greet.py
+      artifacts:
+        - kind: function
+          name: greet
+          args:
+            - name: name
+              type: str
+            - name: title
+              type: str
+          returns: str
+  read:
+    - tests/test_greet.py
+validate:
+  - pytest tests/test_greet.py -v
+""",
+    )
+    write_source(
+        project,
+        "src/greet.py",
+        'def greet(name: str) -> str:\n    return f"Hello, {name}!"\n',
+    )
+    write_test(project, "tests/test_greet.py", "src.greet", ["greet"])
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert result.success is False
+    assert ErrorCode.SIGNATURE_MISMATCH in error_codes(result)
+    assert any(
+        error.code == ErrorCode.SIGNATURE_MISMATCH and "title" in error.message
+        for error in result.errors
+    )
+
+
+def test_swapped_python_function_arities_report_signature_mismatch(project):
+    manifest_path = write_manifest(
+        project,
+        "add-snapshots.manifest.yaml",
+        """schema: "2"
+goal: "Add snapshot helpers"
+files:
+  create:
+    - path: src/snapshots.py
+      artifacts:
+        - kind: function
+          name: load_snapshot
+          args:
+            - name: output_dir
+              type: str
+            - name: snapshot_id
+              type: str
+            - name: expected_fingerprint
+              type: str
+          returns: None
+        - kind: function
+          name: verify_snapshot
+          args:
+            - name: output_dir
+              type: str
+            - name: snapshot_id
+              type: str
+          returns: None
+  read:
+    - tests/test_snapshots.py
+validate:
+  - pytest tests/test_snapshots.py -v
+""",
+    )
+    write_source(
+        project,
+        "src/snapshots.py",
+        "def load_snapshot(output_dir: str, snapshot_id: str) -> None:\n"
+        "    return None\n\n"
+        "def verify_snapshot(\n"
+        "    output_dir: str, snapshot_id: str, expected_fingerprint: str\n"
+        ") -> None:\n"
+        "    return None\n",
+    )
+    write_test(
+        project,
+        "tests/test_snapshots.py",
+        "src.snapshots",
+        ["load_snapshot", "verify_snapshot"],
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert result.success is False
+    assert ErrorCode.SIGNATURE_MISMATCH in error_codes(result)
+    mismatch_messages = [
+        error.message
+        for error in result.errors
+        if error.code == ErrorCode.SIGNATURE_MISMATCH
+    ]
+    assert any(
+        "load_snapshot" in message and "expected_fingerprint" in message
+        for message in mismatch_messages
+    )
+
+
+def test_extra_implementation_only_python_parameter_still_passes(project):
+    manifest_path = write_manifest(
+        project,
+        "add-greet.manifest.yaml",
+        """schema: "2"
+goal: "Add greet"
+files:
+  create:
+    - path: src/greet.py
+      artifacts:
+        - kind: function
+          name: greet
+          args:
+            - name: name
+              type: str
+          returns: str
+  read:
+    - tests/test_greet.py
+validate:
+  - pytest tests/test_greet.py -v
+""",
+    )
+    write_source(
+        project,
+        "src/greet.py",
+        'def greet(name: str, ctx: object) -> str:\n    return f"Hello, {name}!"\n',
+    )
+    write_test(project, "tests/test_greet.py", "src.greet", ["greet"])
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert result.success is True
+    assert result.errors == []
+
+
+def test_keyword_only_python_parameters_match_declared_signature(project):
+    manifest_path = write_manifest(
+        project,
+        "add-format.manifest.yaml",
+        """schema: "2"
+goal: "Add format_message"
+files:
+  create:
+    - path: src/format_message.py
+      artifacts:
+        - kind: function
+          name: format_message
+          args:
+            - name: result
+              type: str
+            - name: json_mode
+              type: bool
+          returns: str
+  read:
+    - tests/test_format_message.py
+validate:
+  - pytest tests/test_format_message.py -v
+""",
+    )
+    write_source(
+        project,
+        "src/format_message.py",
+        "def format_message(result: str, *, json_mode: bool = False) -> str:\n"
+        "    return result if not json_mode else result\n",
+    )
+    write_test(
+        project,
+        "tests/test_format_message.py",
+        "src.format_message",
+        ["format_message"],
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert result.success is True
+    assert result.errors == []
+
+
+def test_method_self_in_manifest_does_not_report_signature_mismatch(project):
+    manifest_path = write_manifest(
+        project,
+        "add-greeter.manifest.yaml",
+        """schema: "2"
+goal: "Add Greeter"
+files:
+  create:
+    - path: src/greeter.py
+      artifacts:
+        - kind: class
+          name: Greeter
+        - kind: method
+          name: greet
+          of: Greeter
+          args:
+            - name: self
+            - name: name
+              type: str
+          returns: str
+  read:
+    - tests/test_greeter.py
+validate:
+  - pytest tests/test_greeter.py -v
+""",
+    )
+    write_source(
+        project,
+        "src/greeter.py",
+        "class Greeter:\n"
+        "    def greet(self, name: str) -> str:\n"
+        '        return f"Hello, {name}!"\n',
+    )
+    write_source(
+        project,
+        "tests/test_greeter.py",
+        "from src.greeter import Greeter\n\n"
+        "def test_greeter_exists():\n"
+        '    assert Greeter().greet("world") == "Hello, world!"\n',
+    )
+
+    engine = ValidationEngine(project_root=project)
+    result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)
+
+    assert result.success is True
+    assert ErrorCode.SIGNATURE_MISMATCH not in error_codes(result)
+    assert result.errors == []
 
 
 def test_created_file_missing_reports_file_should_be_present(project):

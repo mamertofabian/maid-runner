@@ -30,7 +30,7 @@ def normalize_type(type_str: Optional[str]) -> Optional[str]:
     2. Remove internal spaces
     3. Convert pipe unions (X | Y) -> Union[X, Y]
     4. Convert Optional[X] -> Union[X, None]
-    5. Sort Union members alphabetically
+    5. Flatten and sort Union members alphabetically
     6. Normalize comma spacing inside brackets
     """
     if type_str is None:
@@ -44,7 +44,7 @@ def normalize_type(type_str: Optional[str]) -> Optional[str]:
     s = s.replace(" ", "")
     s = _convert_pipe_union(s)
     s = _convert_optional(s)
-    s = _sort_union(s)
+    s = _flatten_and_sort_union(s)
     s = _normalize_comma_spacing(s)
 
     return s
@@ -124,13 +124,30 @@ def _convert_optional(s: str) -> str:
     return s
 
 
+def _flatten_and_sort_union(s: str) -> str:
+    if not (s.startswith("Union[") and s.endswith("]")):
+        return s
+
+    members: list[str] = []
+
+    def collect(member: str) -> None:
+        member = member.strip()
+        if member.startswith("Union[") and member.endswith("]"):
+            for nested in _split_by_delimiter(member[len("Union[") : -1], ","):
+                collect(nested)
+            return
+        if member:
+            members.append(member)
+
+    for part in _split_by_delimiter(s[len("Union[") : -1], ","):
+        collect(part)
+
+    members.sort()
+    return "Union[" + ",".join(members) + "]"
+
+
 def _sort_union(s: str) -> str:
-    if s.startswith("Union[") and s.endswith("]"):
-        inner = s[len("Union[") : -1]
-        members = _split_by_delimiter(inner, ",")
-        members.sort()
-        return "Union[" + ",".join(members) + "]"
-    return s
+    return _flatten_and_sort_union(s)
 
 
 def _normalize_comma_spacing(s: str) -> str:
