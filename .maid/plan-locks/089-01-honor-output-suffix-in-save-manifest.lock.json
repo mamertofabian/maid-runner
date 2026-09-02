@@ -3,12 +3,12 @@
   "manifest_hash": "sha256-contract:fb5177132de524a7f02411146f0623ba3b76b529f9217bedc736eed3f47bc478",
   "test_hashes": {
     "tests/core/test_snapshot_output_format.py": "sha256-pyast:v2:66f82e84052bfe4e174af4cd74a01efb70df12046cd94f38116fcb1a630e6337",
-    "tests/integration/test_library_api.py": "sha256-pyast:v2:2a4ae97cca3f423e721d2bed74db3a9035191b6cb2617627298f57c867871b01",
+    "tests/integration/test_library_api.py": "sha256-pyast:v2:049449742ca9f55bb97db01210640785fb68abd594fdec901791e17f01956dbe",
     "tests/core/test_manifest.py": "sha256-pyast:v2:f265269a32afa5756269b4f750c45cd63a357d886cf87c8a6c70afe4c58fb4eb",
     "tests/core/test_save_manifest_output_format.py": "sha256-pyast:v2:0ee73d7ce997df7679e7f0fa65ede2ab0b48c51615095d8758b72b4782c209e3"
   },
   "created_at": "2026-07-25T14:17:48.937387+00:00",
-  "revision": 22,
+  "revision": 23,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:bb2d3e03a45d65e81887829e34d81be63e3147dc8f038502f1c898f6c761414e",
@@ -428,6 +428,26 @@
       },
       "revised_at": "2026-09-01T14:37:38.265033+00:00",
       "reason": "re-date 2.27.3 release entry to actual release date 2026-09-01",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:fb5177132de524a7f02411146f0623ba3b76b529f9217bedc736eed3f47bc478",
+      "prior_test_hashes": {
+        "tests/core/test_snapshot_output_format.py": "sha256-pyast:v2:66f82e84052bfe4e174af4cd74a01efb70df12046cd94f38116fcb1a630e6337",
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:2a4ae97cca3f423e721d2bed74db3a9035191b6cb2617627298f57c867871b01",
+        "tests/core/test_manifest.py": "sha256-pyast:v2:f265269a32afa5756269b4f750c45cd63a357d886cf87c8a6c70afe4c58fb4eb",
+        "tests/core/test_save_manifest_output_format.py": "sha256-pyast:v2:0ee73d7ce997df7679e7f0fa65ede2ab0b48c51615095d8758b72b4782c209e3"
+      },
+      "revised_at": "2026-09-02T02:31:59.224245+00:00",
+      "reason": "Refresh shared release-metadata test hashes after preparing maid-runner 2.27.4",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

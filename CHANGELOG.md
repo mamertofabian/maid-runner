@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.27.4] - 2026-09-02
+
+### Added
+- **Draft-resume skill** — Ship `maid-implement-draft` through Claude and Codex `maid init` payloads as the receiving skill for planner Planning Handoff Mode. A `manifests/drafts/*.manifest.yaml` child is hardened, locked, and promoted, then implementation and review stay on the existing phase skills. Already-promoted contracts still use `maid-implementer`. `maid init --check` reports older instruction payloads as stale.
+
 ## [2.27.3] - 2026-09-01
 
 ### Fixed
@@ -1314,6 +1319,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.27.4]: https://github.com/mamertofabian/maid-runner/compare/v2.27.3...v2.27.4
 [2.27.3]: https://github.com/mamertofabian/maid-runner/compare/v2.27.2...v2.27.3
 [2.27.2]: https://github.com/mamertofabian/maid-runner/compare/v2.27.1...v2.27.2
 [2.27.1]: https://github.com/mamertofabian/maid-runner/compare/v2.27.0...v2.27.1

@@ -1,0 +1,143 @@
+{
+  "manifest_path": "manifests/bump-version-2.27.4.manifest.yaml",
+  "manifest_hash": "sha256-contract:4e81df3fd229fe93e2027e625d4d995fa6ec90d7cbaa81dec362d3d4501bd56c",
+  "test_hashes": {
+    "tests/integration/test_library_api.py": "sha256-pyast:v2:049449742ca9f55bb97db01210640785fb68abd594fdec901791e17f01956dbe",
+    "tests/test_implement_draft_skill_guidance.py": "sha256-pyast:v2:88e2da22a49a4e3611ed1692cc8a4bb09ea82e140f2e173896ddc633c63d8ced"
+  },
+  "created_at": "2026-09-02T02:31:18.343853+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:e247c2a248283ff5a367d64c1a67e3e1f87e61c0e726e71d582044a21871c653",
+      "prior_test_hashes": {
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:049449742ca9f55bb97db01210640785fb68abd594fdec901791e17f01956dbe",
+        "tests/test_implement_draft_skill_guidance.py": "sha256-pyast:v2:88e2da22a49a4e3611ed1692cc8a4bb09ea82e140f2e173896ddc633c63d8ced"
+      },
+      "revised_at": "2026-09-02T02:31:19.121468+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/bump-version-2.27.4.manifest.yaml -> manifests/bump-version-2.27.4.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4e81df3fd229fe93e2027e625d4d995fa6ec90d7cbaa81dec362d3d4501bd56c",
+      "prior_test_hashes": {
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:049449742ca9f55bb97db01210640785fb68abd594fdec901791e17f01956dbe",
+        "tests/test_implement_draft_skill_guidance.py": "sha256-pyast:v2:88e2da22a49a4e3611ed1692cc8a4bb09ea82e140f2e173896ddc633c63d8ced"
+      },
+      "revised_at": "2026-09-02T02:33:02.710022+00:00",
+      "reason": "Capture Outcome after 2.27.4 metadata implementation review",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-02T02:31:18.843067+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/integration/test_library_api.py tests/test_implement_draft_skill_guidance.py",
+        "exit_code": 1,
+        "output_tail": "    \n        root = Path(__file__).resolve().parents[2]\n        pyproject = root / \"pyproject.toml\"\n        lockfile = root / \"uv.lock\"\n        changelog = root / \"CHANGELOG.md\"\n        roadmap = root / \"docs\" / \"ROADMAP.md\"\n    \n>       assert __version__ == \"2.27.4\"\nE       AssertionError: assert '2.27.3' == '2.27.4'\nE         \nE         - 2.27.4\nE         ?      ^\nE         + 2.27.3\nE         ?      ^\n\ntests/integration/test_library_api.py:44: AssertionError\n=========================== short test summary info ============================\nFAILED tests/integration/test_library_api.py::TestPublicAPIImports::test_release_metadata_is_current_version\nFAILED tests/integration/test_library_api.py::TestPublicAPIImports::test_release_metadata_is_2_21_0\n2 failed, 38 passed in 0.28s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version",
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version:arg=self:type=TestPublicAPIImports:default=None",
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version:kind=test_function",
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version:of=TestPublicAPIImports",
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version:returns=None"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "tests/integration/test_library_api.py"
+      ],
+      "read": [
+        "maid_runner/__version__.py",
+        "manifests/add-maid-implement-draft-skill.manifest.yaml",
+        "manifests/bump-version-2.27.3.manifest.yaml"
+      ],
+      "scope": [
+        "CHANGELOG.md",
+        "docs/ROADMAP.md",
+        "pyproject.toml",
+        "uv.lock"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "tests/integration/test_library_api.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_release_metadata_is_current_version",
+              "description": "Runtime version, package metadata, editable lock metadata, changelog heading and compare link, roadmap, and release inventory all report 2.27.4.",
+              "of": "TestPublicAPIImports",
+              "args": [
+                {
+                  "name": "self",
+                  "type": "TestPublicAPIImports"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/__version__.py",
+        "manifests/bump-version-2.27.3.manifest.yaml",
+        "manifests/add-maid-implement-draft-skill.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "pyproject.toml",
+          "reason": "Package version metadata has no analyzer-visible public artifact."
+        },
+        {
+          "path": "uv.lock",
+          "reason": "Editable package lock metadata must mirror pyproject and be regenerated through uv."
+        },
+        {
+          "path": "CHANGELOG.md",
+          "reason": "Release notes document the 2.27.4 skill, date, boundary, and comparison link."
+        },
+        {
+          "path": "docs/ROADMAP.md",
+          "reason": "Roadmap current-version references mirror the prepared CLI release."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/integration/test_library_api.py",
+      "tests/test_implement_draft_skill_guidance.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/integration/test_library_api.py tests/test_implement_draft_skill_guidance.py"
+    ],
+    "acceptance_commands": []
+  }
+}

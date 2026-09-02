@@ -1,0 +1,121 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Prepare maid-runner 2.27.4 release metadata and changelog"
+type: fix
+created: "2026-09-02T02:31:19Z"
+supersedes:
+  - bump-version-2.27.3
+metadata:
+  tags:
+    - release
+    - version
+    - changelog
+  priority: high
+description: |
+  Bump maid-runner from published 2.27.3 to patch release 2.27.4 and
+  synchronize package metadata, editable lock metadata, changelog, roadmap,
+  and the shared release-metadata assertion.
+
+  The v2.27.3..HEAD inventory contains the generic maid-implement-draft
+  init-payload skill: Claude and Codex maid init install a coordinator that
+  resumes manifests/drafts children through lock, promote, implement, review,
+  and Outcome capture. Already-promoted contracts still use maid-implementer.
+  INSTRUCTION_PAYLOAD_VERSION advanced so maid init --check reports stale
+  installs.
+
+  This task prepares local release metadata only. Tagging, publishing, pushing,
+  merging to main, and creating a GitHub release remain separate actions.
+temptations:
+  - risk: "Do not update only pyproject.toml while leaving release mirrors stale."
+    instead: "Synchronize pyproject.toml, uv.lock, changelog, roadmap, and the runtime metadata assertion together."
+  - risk: "Do not describe the change as a maid-runner-internal draft-implement wrapper."
+    instead: "Name the generic init-distributed maid-implement-draft coordinator, lock-then-promote order, and maid-implementer routing for already-promoted contracts."
+  - risk: "Do not include commits already released in v2.27.3."
+    instead: "Derive the patch inventory from the exact v2.27.3..HEAD range."
+  - risk: "Do not tag, publish, push, merge to main, or create a GitHub release."
+    instead: "Stop after local metadata, validation, and a committed release bump."
+files:
+  scope:
+    - path: pyproject.toml
+      reason: "Package version metadata has no analyzer-visible public artifact."
+    - path: uv.lock
+      reason: "Editable package lock metadata must mirror pyproject and be regenerated through uv."
+    - path: CHANGELOG.md
+      reason: "Release notes document the 2.27.4 skill, date, boundary, and comparison link."
+    - path: docs/ROADMAP.md
+      reason: "Roadmap current-version references mirror the prepared CLI release."
+  edit:
+    - path: tests/integration/test_library_api.py
+      artifacts:
+        - kind: test_function
+          name: test_release_metadata_is_current_version
+          of: TestPublicAPIImports
+          args:
+            - name: self
+              type: TestPublicAPIImports
+          returns: None
+          description: "Runtime version, package metadata, editable lock metadata, changelog heading and compare link, roadmap, and release inventory all report 2.27.4."
+  read:
+    - maid_runner/__version__.py
+    - manifests/bump-version-2.27.3.manifest.yaml
+    - manifests/add-maid-implement-draft-skill.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/integration/test_library_api.py tests/test_implement_draft_skill_guidance.py
+outcome:
+  status: completed
+  completed_at: "2026-09-02T02:45:00Z"
+  summary: >-
+    Prepared maid-runner 2.27.4 by synchronizing package and editable-lock
+    metadata, runtime assertions, changelog heading/date/compare link and
+    Draft-resume skill inventory, roadmap version references, and shared
+    plan-lock hashes after the maid-implement-draft init-payload work.
+  rationale: >-
+    The exact v2.27.3..HEAD range contains one logical post-release addition.
+    The release contract therefore advances one patch version, supersedes
+    bump-version-2.27.3, and names the generic init-distributed
+    maid-implement-draft coordinator without carrying already-released 2.27.3
+    inventory. Tagging, publishing, pushing, merging to main, and creating a
+    GitHub release remain separate.
+  agent:
+    model: Cursor Grok 4.6
+    provider: SpaceXAI/Cursor
+    client: cursor
+    skills:
+      - maid-planner
+      - maid-implementer
+      - maid-implementation-review
+    source: "Marketing-name self-report; exact runtime slug was unavailable."
+  lessons:
+    - lesson_type: workflow
+      summary: >-
+        A patch bump after a payload-skill addition must keep pyproject,
+        uv.lock, changelog heading plus compare link, roadmap, and the shared
+        release-metadata test on the same version, then revise sibling locks
+        that pin that test.
+      tags: [release, versioning, plan-lock]
+      paths:
+        - pyproject.toml
+        - uv.lock
+        - CHANGELOG.md
+        - docs/ROADMAP.md
+        - tests/integration/test_library_api.py
+  review_notes:
+    - source: local-self-review
+      severity: ready
+      summary: >-
+        Local review confirmed SemVer patch, the sole v2.27.3..HEAD inventory
+        item, supersession of bump-version-2.27.3, shared lock refresh, all
+        declared metadata mirrors, and absence of tag, push, publication,
+        main-branch merge, or GitHub release actions. Independent subagent
+        review was skipped because this session forbids non-Auto subagents.
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/integration/test_library_api.py, tests/test_implement_draft_skill_guidance.py]
+      status: passed
+      summary: "All 40 focused release and draft-resume skill tests passed."
+    - command: [uv, run, maid, validate, manifests/bump-version-2.27.4.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "bump-version-2.27.4 passed implementation validation."
