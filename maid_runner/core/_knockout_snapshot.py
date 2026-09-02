@@ -1004,6 +1004,13 @@ def _rewrite_dependency_paths(venv: Path, replacements: Mapping[str, str]) -> No
                 path.write_bytes(rewritten)
 
 
+def _retained_venv_rebind_marker() -> bytes:
+    # Must not appear as a contiguous ASCII literal in this module's source or .pyc.
+    return bytes.fromhex(
+        "5f5f4d4149445f52455441494e45445f5649525455414c5f454e5649524f4e4d454e545f5f"
+    )
+
+
 def _rebind_copied_python_project_root(
     venv: Path,
     previous_root: Path,
@@ -1016,7 +1023,7 @@ def _rebind_copied_python_project_root(
     previous = os.fspath(previous_root).encode()
     current = os.fspath(current_root).encode()
     retained_environment = os.fspath(venv).encode()
-    sentinel = b"__MAID_RETAINED_VIRTUAL_ENVIRONMENT__"
+    sentinel = _retained_venv_rebind_marker()
     for directory, _directory_names, file_names in os.walk(venv):
         parent = Path(directory)
         is_launcher_directory = parent.parent == venv and parent.name in {
