@@ -1,0 +1,82 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Make maid init ignore .maid/cache in the managed gitignore block"
+type: fix
+created: "2026-09-02T03:09:32Z"
+metadata:
+  tags:
+    - init
+    - gitignore
+    - cache
+  priority: high
+description: |
+  Runtime caches live under `.maid/cache/`. The dogfood repository already
+  ignores that directory inside the MAID-managed gitignore markers, but
+  `maid init` writes the managed block from `_MAID_GENERATED_IGNORE_PATHS`,
+  which omits `.maid/cache/`. New repositories therefore leave cache files
+  unignored, and a force re-init can strip the dogfood entry.
+
+  Add `.maid/cache/` to the managed ignore inventory so create, update, and
+  idempotent re-init all keep it without clobbering user-owned rules.
+temptations:
+  - risk: "Do not ignore all of `.maid/` and hide plan locks or other tracked state."
+    instead: "Add only `.maid/cache/` to the marked generated-files ignore block."
+  - risk: "Do not patch only this repository's `.gitignore` and leave init stale."
+    instead: "Change the init-managed path list and cover it with CLI init tests."
+files:
+  scope:
+    - path: maid_runner/cli/commands/init.py
+      reason: Extend the private managed gitignore inventory without changing cmd_init's public signature.
+  edit:
+    - path: tests/cli/test_init_payload_portability.py
+      artifacts:
+        - kind: test_function
+          name: test_init_adds_generated_advisory_paths_to_gitignore_without_clobbering
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: monkeypatch, type: pytest.MonkeyPatch}
+          returns: None
+          description: "Init preserves user rules and includes `.maid/cache/` in the bounded MAID-managed ignore block with the other advisory paths."
+        - kind: test_function
+          name: test_init_upgrades_managed_gitignore_to_include_maid_cache
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: monkeypatch, type: pytest.MonkeyPatch}
+          returns: None
+          source_scenario: "A consuming repository already has a MAID-managed ignore block that predates `.maid/cache/`."
+          actions:
+            - type: api_call
+              subject:
+                export: main
+          expected:
+            behavior: "Init updates the existing managed block to include `.maid/cache/` without removing prior advisory paths or user rules outside the markers."
+validate:
+  - uv run python -m pytest -q tests/cli/test_init_payload_portability.py
+outcome:
+  status: completed
+  completed_at: "2026-09-02T03:14:20Z"
+  summary: "maid init now includes `.maid/cache/` in the managed gitignore block for create, upgrade, and idempotent re-init."
+  rationale: "One additive entry in `_MAID_GENERATED_IGNORE_PATHS` keeps cache ignored without blanketing `.maid/` or rewriting user-owned rules. Shared-test dependents were revised for the portability test file change."
+  lessons:
+    - lesson_type: workflow
+      summary: "Pytest `-k` filters on validate commands can fail E230 even when the selected tests exercise the declared behavioral file; prefer running the full declared test file."
+      tags: [validate, e230, pytest]
+      paths: [manifests/fix-init-gitignore-maid-cache.manifest.yaml]
+  review_notes:
+    - source: independent-reviewer-7bf670d8
+      severity: ready
+      summary: "Approved with no blocking findings; scope matched the one-line inventory change plus the two declared CLI tests."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/cli/test_init_payload_portability.py]
+      status: passed
+      summary: "Full init payload portability suite passed."
+    - command: [uv, run, maid, validate, manifests/fix-init-gitignore-maid-cache.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "Implementation validation passed."
+    - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, 2f287febb0bbaab2479cf1b8f8c62e58b2451a4d]
+      status: passed
+      summary: "Deep verify passed 11 stages after shared-test lock refresh and E230 validate-command revise."

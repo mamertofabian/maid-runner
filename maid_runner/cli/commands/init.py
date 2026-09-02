@@ -49,6 +49,7 @@ _MAID_GENERATED_IGNORE_PATHS = (
     ".maid/run-review-request.json",
     ".maid/run-review.json",
     ".maid/run-reviews/",
+    ".maid/cache/",
 )
 _CHECKED_AGENT_MANIFESTS = {
     "claude": Path(".claude/manifest.json"),
