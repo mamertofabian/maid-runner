@@ -26,6 +26,7 @@ from pathlib import Path
 CODEX_DISTRIBUTABLE_SKILLS = [
     "maid-planner",
     "maid-plan-review",
+    "maid-implement-draft",
     "maid-implementer",
     "maid-implementation-review",
     "maid-evolver",
@@ -275,6 +276,9 @@ def _codex_manifest(source_skills: Path, skill_names: list[str]) -> dict:
                 ),
                 "maid-plan-review": (
                     "Review a MAID manifest and behavioral tests before implementation"
+                ),
+                "maid-implement-draft": (
+                    "Harden, lock, promote, and implement a MAID draft manifest"
                 ),
                 "maid-implementer": (
                     "Implement approved MAID manifests with Outcome recall context"

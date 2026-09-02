@@ -1,0 +1,371 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Ship a generic maid-implement-draft skill through the Claude and Codex init payloads so downstream repos can resume a manifests/drafts child through lock, promote, implement, review, and Outcome capture
+type: feature
+created: '2026-09-02T02:10:37Z'
+metadata:
+  tags:
+  - agent-skills
+  - init-payload
+  - draft-workflow
+  - documentation
+  priority: medium
+description: |
+  Add a generic, tool-agnostic `maid-implement-draft` coordinator skill to the
+  per-repo `maid init` payload (Claude and Codex). It is the receiving skill
+  for planner Planning Handoff Mode: take `manifests/drafts/<slug>.manifest.yaml`,
+  harden tests, confirm red evidence, plan-review, `maid plan lock`, then
+  `maid manifest promote`, then delegate to `maid-implementer` and
+  `maid-implementation-review` before Outcome capture.
+
+  Pinned decisions (do not redesign):
+
+  1. This is a coordinator, not a replacement for `maid-implementer`. Already
+     promoted contracts stay on `maid-implementer`. Do not ship
+     `maid-runner-draft-implement` or any maid-runner automation wrapper
+     (`AUTOMATION_STATUS`, standing reviewer authorization, loop scripts).
+
+  2. Distribution follows 084-07: source skills under `.claude/skills/` and
+     `.codex/skills/` (Codex `agents/openai.yaml`), register in
+     `.claude/manifest.json` and `CODEX_DISTRIBUTABLE_SKILLS`, regenerate
+     payloads with `make sync-agent-payloads`. Claude and Codex SKILL.md
+     bodies must be identical.
+
+  3. Command order is lock-then-promote. Handoff verify is `maid assess` /
+     `maid verify --profile handoff`, not the stale
+     `maid verify --require-plan-lock --require-red-evidence` example as the
+     primary command. After-the-fact red evidence is forbidden.
+
+  4. Name the skill in planner handoff text, implementer draft routing,
+     docs/agent-skills.md, docs/draft-manifest-workflow.md, this repo's
+     CLAUDE.md / AGENTS.md, onboard's generic-skill count, and the init
+     marked-section workflow sentence.
+
+  5. Advance `INSTRUCTION_PAYLOAD_VERSION` past `2026.08.25.1`. Update
+     existing hardcoded distributable skill lists in the same change.
+
+  Learning digestion: 084-07/081-04 require the whole payload surface in one
+  child (sources, sync, generated copies, onboard count, payload version).
+  Dedicated test file avoids hashing shared tests as this contract's only
+  coverage, but the shared list fixtures still need files.scope updates so
+  exact-equality assertions do not regress. Rejected: copying the user-level
+  ~/.codex skill as-is (Codex-flavored, stale verify flags); putting this in
+  user_skills like maid-onboard (it is per-repo workflow, not a bootstrapper).
+temptations:
+- risk: Do not copy maid-runner-draft-implement or the user-level Codex skill into the distributable payload.
+  instead: Write a generic coordinator that delegates to maid-plan-review, maid-implementer, and maid-implementation-review, with identical Claude/Codex bodies.
+- risk: Do not add the skill to sources without registries, sync, generated copies, onboard count, and INSTRUCTION_PAYLOAD_VERSION.
+  instead: Update the full 084-07 distribution surface and pin it with tests/test_implement_draft_skill_guidance.py.
+- risk: Do not tell agents to promote by moving files or to mint red evidence after implementation is green.
+  instead: Pin lock-then-promote, never-manual-move, and the after-the-fact red-evidence prohibition.
+- risk: Do not leave planner handoff pointing at an unnamed receiving agent.
+  instead: Name maid-implement-draft in Planning Handoff Mode and route unpromoted drafts away from maid-implementer.
+- risk: Do not edit generated maid_runner payload copies by hand or let Claude/Codex skill bodies diverge.
+  instead: Author .claude/.codex sources and regenerate with make sync-agent-payloads; pin byte-for-byte source equality.
+files:
+  create:
+  - path: .claude/skills/maid-implement-draft/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _claude_implement_draft_skill
+      of: documentation
+      type: markdown skill definition
+      description: 'Claude source coordinator skill: draft resume, lock-then-promote, phase-skill delegation, current handoff verify.'
+  - path: .codex/skills/maid-implement-draft/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _codex_implement_draft_skill
+      of: documentation
+      type: markdown skill definition
+      description: Codex source skill body identical to the Claude coordinator.
+  - path: .codex/skills/maid-implement-draft/agents/openai.yaml
+    artifacts:
+    - kind: attribute
+      name: _codex_implement_draft_agent_config
+      of: repository configuration
+      type: YAML agent config
+      description: Codex $maid-implement-draft companion config.
+  - path: maid_runner/claude/skills/maid-implement-draft/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _generated_claude_implement_draft_skill
+      of: documentation
+      type: markdown skill definition
+      description: Generated Claude package copy after sync.
+  - path: maid_runner/codex/skills/maid-implement-draft/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _generated_codex_implement_draft_skill
+      of: documentation
+      type: markdown skill definition
+      description: Generated Codex package copy after sync.
+  - path: maid_runner/codex/skills/maid-implement-draft/agents/openai.yaml
+    artifacts:
+    - kind: attribute
+      name: _generated_codex_implement_draft_agent_config
+      of: repository configuration
+      type: YAML agent config
+      description: Generated Codex agent config after sync.
+  - path: tests/test_implement_draft_skill_guidance.py
+    artifacts:
+    - kind: test_function
+      name: test_both_source_skills_exist_and_match
+      args: []
+      returns: None
+      description: Claude and Codex source SKILL.md files exist and are identical.
+    - kind: test_function
+      name: test_skill_is_a_coordinator_not_an_implementer_replacement
+      args: []
+      returns: None
+      description: The skill delegates to phase skills and excludes repo-internal automation wrappers.
+    - kind: test_function
+      name: test_skill_pins_lock_then_promote_and_current_handoff_verify
+      args: []
+      returns: None
+      description: Lock precedes promote; assess/handoff verify and task start/stop are required.
+    - kind: test_function
+      name: test_planner_handoff_names_implement_draft_as_receiving_skill
+      args: []
+      returns: None
+      description: Planning Handoff Mode names maid-implement-draft as the receiving skill.
+    - kind: test_function
+      name: test_implementer_routes_unpromoted_drafts_to_implement_draft
+      args: []
+      returns: None
+      description: maid-implementer sends unpromoted drafts to maid-implement-draft.
+    - kind: test_function
+      name: test_agent_skills_and_draft_docs_list_implement_draft
+      args: []
+      returns: None
+      description: Docs and this repo's CLAUDE.md/AGENTS.md name maid-implement-draft.
+    - kind: test_function
+      name: test_onboard_guidance_counts_ten_generic_skills
+      args: []
+      returns: None
+      description: Onboard guidance counts 10 generic skills including maid-implement-draft.
+    - kind: test_function
+      name: test_init_guidance_names_implement_draft_for_draft_resume
+      args: []
+      returns: None
+      description: maid init Claude and Codex payloads install the skill and name it for draft resume.
+    - kind: test_function
+      name: test_distributable_skill_lists_include_implement_draft
+      args: []
+      returns: None
+      description: Sync and payload test lists include maid-implement-draft.
+    - kind: test_function
+      name: test_generated_payload_copies_match_sources
+      args: []
+      returns: None
+      description: Generated Claude/Codex copies match sources, including Codex agent metadata.
+    - kind: test_function
+      name: test_instruction_payload_version_bumped_for_implement_draft_skill
+      args: []
+      returns: None
+      description: INSTRUCTION_PAYLOAD_VERSION advanced past 2026.08.25.1.
+  edit:
+  - path: docs/agent-skills.md
+    artifacts:
+    - kind: attribute
+      name: _maid_implement_draft_skill_row
+      of: documentation
+      type: markdown table row
+      description: Distribution and lifecycle row for maid-implement-draft.
+  - path: docs/draft-manifest-workflow.md
+    artifacts:
+    - kind: attribute
+      name: _maid_implement_draft_workflow_pointer
+      of: documentation
+      type: markdown guidance
+      description: Points draft resume at maid-implement-draft.
+  - path: .claude/manifest.json
+    artifacts:
+    - kind: attribute
+      name: _claude_manifest_implement_draft_entry
+      of: repository configuration
+      type: JSON skill registry entry
+      description: Registers maid-implement-draft in the Claude payload manifest.
+  - path: maid_runner/claude/manifest.json
+    artifacts:
+    - kind: attribute
+      name: _generated_claude_manifest_implement_draft_entry
+      of: repository configuration
+      type: JSON skill registry entry
+      description: Generated Claude payload manifest includes maid-implement-draft.
+  - path: maid_runner/codex/manifest.json
+    artifacts:
+    - kind: attribute
+      name: _codex_manifest_implement_draft_entry
+      of: repository configuration
+      type: JSON skill registry entry
+      description: Generated Codex payload manifest includes maid-implement-draft.
+  - path: scripts/sync_claude_files.py
+    artifacts:
+    - kind: attribute
+      name: CODEX_DISTRIBUTABLE_SKILLS
+      type: list[str]
+      description: Adds maid-implement-draft to the synced Codex skill set.
+  - path: maid_runner/instruction_payload.py
+    artifacts:
+    - kind: attribute
+      name: INSTRUCTION_PAYLOAD_VERSION
+      type: str
+      description: Date-stamped instruction payload version advanced past 2026.08.25.1.
+  - path: .claude/skills/maid-planner/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _claude_planner_implement_draft_handoff
+      of: documentation
+      type: markdown guidance
+      description: Planning Handoff Mode names maid-implement-draft as the receiving skill.
+  - path: .codex/skills/maid-planner/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _codex_planner_implement_draft_handoff
+      of: documentation
+      type: markdown guidance
+      description: Codex planner handoff names maid-implement-draft.
+  - path: .claude/skills/maid-implementer/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _claude_implementer_draft_routing
+      of: documentation
+      type: markdown guidance
+      description: Routes unpromoted drafts to maid-implement-draft.
+  - path: .codex/skills/maid-implementer/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _codex_implementer_draft_routing
+      of: documentation
+      type: markdown guidance
+      description: Codex implementer routes unpromoted drafts to maid-implement-draft.
+  - path: .claude/skills/maid-onboard/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _claude_onboard_ten_generic_skills
+      of: documentation
+      type: markdown guidance
+      description: Claude onboard counts 10 generic skills including maid-implement-draft.
+  - path: .codex/skills/maid-onboard/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _codex_onboard_ten_generic_skills
+      of: documentation
+      type: markdown guidance
+      description: Codex onboard counts 10 generic skills including maid-implement-draft.
+  - path: maid_runner/user_skills/claude/maid-onboard/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _generated_claude_onboard_ten_generic_skills
+      of: documentation
+      type: markdown guidance
+      description: Generated Claude user-skill onboard copy matches the 10-skill count.
+  - path: maid_runner/user_skills/codex/maid-onboard/SKILL.md
+    artifacts:
+    - kind: attribute
+      name: _generated_codex_onboard_ten_generic_skills
+      of: documentation
+      type: markdown guidance
+      description: Generated Codex user-skill onboard copy matches the 10-skill count.
+  - path: CLAUDE.md
+    artifacts:
+    - kind: attribute
+      name: _claude_md_implement_draft_skill_row
+      of: documentation
+      type: markdown list item
+      description: This repo's Claude skill list includes maid-implement-draft.
+  - path: AGENTS.md
+    artifacts:
+    - kind: attribute
+      name: _agents_md_implement_draft_receiving_role
+      of: documentation
+      type: markdown guidance
+      description: Optional multi-agent split names maid-implement-draft for draft resume.
+  read:
+  - .claude/skills/maid-run-review/SKILL.md
+  - .codex/skills/maid-run-review/SKILL.md
+  - .claude/skills/maid-runner-draft-implement/SKILL.md
+  - manifests/084-07-add-maid-run-review-skill-and-docs.manifest.yaml
+  scope:
+  - path: tests/test_agent_payload_distribution.py
+    reason: Add maid-implement-draft to the hardcoded Codex distributable skill list.
+  - path: tests/cli/test_init_codex_distributable_scope.py
+    reason: Add maid-implement-draft to the sorted generic Codex init skill list.
+  - path: tests/test_insights_skill_guidance.py
+    reason: Add maid-implement-draft to the Codex distributable skill list fixture.
+  - path: tests/test_learning_loop_init_payload.py
+    reason: Add maid-implement-draft to GENERIC_CODEX_SKILLS and the onboard count assertion.
+  - path: tests/test_cross_tool_skill_parity.py
+    reason: Include maid-implement-draft in identical-body distributable skills.
+  - path: maid_runner/cli/commands/init.py
+    reason: Name maid-implement-draft in the marked-section draft-resume sentence.
+  - path: maid_runner/claude/skills/maid-planner/SKILL.md
+    reason: Generated Claude planner copy stays byte-for-byte with the handoff edit.
+  - path: maid_runner/codex/skills/maid-planner/SKILL.md
+    reason: Generated Codex planner copy stays byte-for-byte with the handoff edit.
+  - path: maid_runner/claude/skills/maid-implementer/SKILL.md
+    reason: Generated Claude implementer copy stays byte-for-byte with draft routing.
+  - path: maid_runner/codex/skills/maid-implementer/SKILL.md
+    reason: Generated Codex implementer copy stays byte-for-byte with draft routing.
+validate:
+- uv run python -m pytest -q tests/test_implement_draft_skill_guidance.py tests/test_agent_payload_distribution.py tests/cli/test_init_codex_distributable_scope.py tests/test_insights_skill_guidance.py tests/test_learning_loop_init_payload.py tests/test_cross_tool_skill_parity.py
+outcome:
+  status: completed
+  completed_at: "2026-09-02T10:20:00+08:00"
+  summary: "Shipped a generic maid-implement-draft coordinator through the Claude and Codex init payloads, named it as the planner handoff receiving skill, and advanced INSTRUCTION_PAYLOAD_VERSION to 2026.09.02.1."
+  rationale: "Downstream repos using manifests/drafts had planner handoff mode but no shipped receiving skill. The new skill hardens, locks, and promotes, then delegates to maid-implementer and maid-implementation-review. Claude and Codex SKILL.md bodies are identical; maid-runner-draft-implement stays repo-internal."
+  agent:
+    model: Cursor Grok 4.6
+    provider: cursor
+    client: cursor-ide
+    skills:
+    - maid-planner
+    - maid-implement-draft
+    - maid-implementer
+    - maid-implementation-review
+    source: outcome-capture
+  lessons:
+  - lesson_type: agent-skills
+    summary: "A generic draft-resume skill belongs in the per-repo init payload, not user-level skills or the maid-runner-internal draft-implement wrapper, and must keep Claude/Codex bodies identical."
+    tags:
+    - agent-skills
+    - init-payload
+    - draft-workflow
+    paths:
+    - .claude/skills/maid-implement-draft/SKILL.md
+    - .codex/skills/maid-implement-draft/SKILL.md
+    - scripts/sync_claude_files.py
+  - lesson_type: plan-lock
+    summary: "Adding a distributable skill still requires explicit maid plan revise --preserve-red-evidence on every active lock that pins the shared payload test lists."
+    tags:
+    - plan-lock
+    - agent-skills
+    paths:
+    - tests/test_agent_payload_distribution.py
+    - tests/cli/test_init_codex_distributable_scope.py
+  - lesson_type: validation
+    summary: "files.read of an unrelated test file can trip E230 even when the validate command already covers this contract's tests; keep pattern-reference tests out of files.read."
+    tags:
+    - validation
+    - test-design
+    paths:
+    - manifests/add-maid-implement-draft-skill.manifest.yaml
+  review_notes:
+  - source: local-self-review
+    severity: ready
+    summary: "Changed files stayed in declared create/edit/scope, Claude/Codex skill bodies match, repo-internal automation wrappers are absent, lock-then-promote and handoff verify are pinned, and deep verify passed after sibling lock refresh and the E230 files.read cleanup. Independent subagent review was skipped because this session forbids non-Auto subagents."
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/test_implement_draft_skill_guidance.py, tests/test_agent_payload_distribution.py, tests/cli/test_init_codex_distributable_scope.py, tests/test_insights_skill_guidance.py, tests/test_learning_loop_init_payload.py, tests/test_cross_tool_skill_parity.py]
+    status: passed
+    summary: 37 focused guidance and payload-distribution tests passed.
+  - command: [uv, run, maid, validate, manifests/add-maid-implement-draft-skill.manifest.yaml, --mode, implementation]
+    status: passed
+    summary: Implementation validation passed with expected E307 warnings on Markdown and JSON skill payload files.
+  - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, HEAD]
+    status: passed
+    summary: All 11 assessed deep stages passed with zero blockers after sibling plan-lock hash refresh.
+

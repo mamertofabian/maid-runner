@@ -23,6 +23,7 @@
     "distributable": [
       "maid-planner",
       "maid-plan-review",
+      "maid-implement-draft",
       "maid-implementer",
       "maid-implementation-review",
       "maid-evolver",
@@ -34,6 +35,7 @@
     "descriptions": {
       "maid-planner": "Create a machine-checkable MAID manifest and behavioral tests",
       "maid-plan-review": "Review a MAID manifest and behavioral tests before implementation",
+      "maid-implement-draft": "Harden, lock, promote, and implement a MAID draft manifest",
       "maid-implementer": "Implement code against an approved MAID manifest",
       "maid-implementation-review": "Review implementation scope, artifacts, tests, and validation",
       "maid-evolver": "Intentionally evolve existing MAID manifest contracts",

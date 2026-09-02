@@ -2,14 +2,14 @@
   "manifest_path": "manifests/077-02-activate-learning-loop-guidance-in-workflow-skills.manifest.yaml",
   "manifest_hash": "sha256-contract:b447be36fe0e6785738ddade63724d87a974584196d3854b38b3086f06c4fd97",
   "test_hashes": {
-    "tests/test_recall_skill_guidance.py": "sha256-pyast:9aa5c43988361275c65ab7b98aa25041a290da49b90f82c6d0657a3cb6789217",
-    "tests/test_recall_payload_sync.py": "sha256-pyast:ab6e7a7d158e1fb7cddeb4e869bf564e1e48e4e945883a1bf10f73a904e46fcf",
-    "tests/test_agent_payload_distribution.py": "sha256-pyast:0f0983482a2286b9c2811b843effb4bc913b5c62e2000e9faec8676651d1fe2c",
-    "tests/cli/test_learn_cmd.py": "sha256-pyast:432ef9a672adfe5ca35f22852dd10452a4cbab9a84d36dc5a2f8bd6939f4eada",
-    "tests/test_learning_loop_workflow_guidance.py": "sha256-pyast:d9ab117426dc0269b2908b871617f7096affe324707402ded6eff3204764e44d"
+    "tests/test_recall_skill_guidance.py": "sha256-pyast:v2:db008cd15a2cf82ddc1a6bd861237d8159738929f8b447219f753653efa5df06",
+    "tests/test_recall_payload_sync.py": "sha256-pyast:v2:24bb2c97131f30de6b582b65c26109e1139189dce3bc5ac431ae6f7ce69c7dcb",
+    "tests/test_agent_payload_distribution.py": "sha256-pyast:v2:a95404b58b1be8cc25b059b8c8b2c737d33130e5b1d0394c02721cefa9d1a667",
+    "tests/cli/test_learn_cmd.py": "sha256-pyast:v2:72b914e3a42579cffc0576324ea4efd38f0dca3a9fc1b991b93b279514b2d372",
+    "tests/test_learning_loop_workflow_guidance.py": "sha256-pyast:v2:808af7544611e47bac39d1fa6a693e37a8fbbe6cb72515ddafdd2a21276e008e"
   },
   "created_at": "2026-06-26T15:40:51.445215+00:00",
-  "revision": 8,
+  "revision": 9,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:c85a5f1aacba8177d19f8b248aa51da35b4d9fbe74c5aa0c69830dd3e2934c2b",
@@ -147,6 +147,27 @@
       },
       "revised_at": "2026-07-25T01:08:48.933679+00:00",
       "reason": "shared init-payload tests updated for the 9-skill Codex distribution; behavioral contracts unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b447be36fe0e6785738ddade63724d87a974584196d3854b38b3086f06c4fd97",
+      "prior_test_hashes": {
+        "tests/test_recall_skill_guidance.py": "sha256-pyast:9aa5c43988361275c65ab7b98aa25041a290da49b90f82c6d0657a3cb6789217",
+        "tests/test_recall_payload_sync.py": "sha256-pyast:ab6e7a7d158e1fb7cddeb4e869bf564e1e48e4e945883a1bf10f73a904e46fcf",
+        "tests/test_agent_payload_distribution.py": "sha256-pyast:0f0983482a2286b9c2811b843effb4bc913b5c62e2000e9faec8676651d1fe2c",
+        "tests/cli/test_learn_cmd.py": "sha256-pyast:432ef9a672adfe5ca35f22852dd10452a4cbab9a84d36dc5a2f8bd6939f4eada",
+        "tests/test_learning_loop_workflow_guidance.py": "sha256-pyast:d9ab117426dc0269b2908b871617f7096affe324707402ded6eff3204764e44d"
+      },
+      "revised_at": "2026-09-02T02:16:55.965251+00:00",
+      "reason": "Refresh shared Codex payload test hashes after adding maid-implement-draft to the distributable skill set",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
@@ -626,6 +647,7 @@
     ],
     "validate_commands": [
       "uv run python -m pytest -q tests/test_learning_loop_workflow_guidance.py tests/test_recall_skill_guidance.py tests/test_recall_payload_sync.py tests/test_agent_payload_distribution.py tests/cli/test_learn_cmd.py"
-    ]
+    ],
+    "acceptance_commands": []
   }
 }

@@ -18,6 +18,8 @@ When available, use the installed Claude MAID skills as the primary workflow:
 
 - `maid-planner`: create or revise the manifest and behavioral tests.
 - `maid-plan-review`: review the manifest and tests before implementation.
+- `maid-implement-draft`: resume a `manifests/drafts` child through lock,
+  promote, implement, review, and Outcome capture.
 - `maid-implementer`: implement only within approved manifest scope.
 - `maid-implementation-review`: review changed files, artifacts, tests, and
   validation before handoff.
@@ -38,7 +40,8 @@ strategy and planning.
   skill's **Planning Handoff Mode**: design the draft under `manifests/drafts/`,
   run the adversarial self-review, then emit the handoff packet and stop —
   before behavioral tests, red phase, or `maid plan lock`. Codex (or another
-  implementing agent) hardens the contract and implements.
+  implementing agent) uses `maid-implement-draft` to harden the contract and
+  implement.
 - Only run the full single-agent planner flow (through plan lock and promotion)
   when the user explicitly asks Claude to complete the contract or implement.
 - This is a repo preference, not a MAID requirement; the shipped skills remain

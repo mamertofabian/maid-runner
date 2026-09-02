@@ -10,6 +10,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DISTRIBUTABLE_SKILLS = (
     "maid-planner",
     "maid-plan-review",
+    "maid-implement-draft",
     "maid-implementer",
     "maid-evolver",
     "maid-auditor",
