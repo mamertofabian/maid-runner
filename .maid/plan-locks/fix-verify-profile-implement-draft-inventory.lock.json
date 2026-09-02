@@ -1,0 +1,137 @@
+{
+  "manifest_path": "manifests/fix-verify-profile-implement-draft-inventory.manifest.yaml",
+  "manifest_hash": "sha256-contract:bc741a9bffe14a1e837de970fbc614a6e6657b1dfa49efa021f470574185a7a7",
+  "test_hashes": {
+    "tests/cli/test_verify_profile_distribution.py": "sha256-pyast:v2:a894073d6c192f393c5f4ca5f29f0624dfd6211153d403e0c763530e1935e874"
+  },
+  "created_at": "2026-09-02T02:52:42.267043+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:5f5caa075538dd79ab853bdc6e360eabc7c08383f6d56261962ee65150b13763",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_profile_distribution.py": "sha256-pyast:v2:a5f3d402c80ef36ea2814ebc38ca38b2a733caf545e2b5301849e0ec055cdc79"
+      },
+      "revised_at": "2026-09-02T02:52:46.134731+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-verify-profile-implement-draft-inventory.manifest.yaml -> manifests/fix-verify-profile-implement-draft-inventory.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:bc741a9bffe14a1e837de970fbc614a6e6657b1dfa49efa021f470574185a7a7",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_profile_distribution.py": "sha256-pyast:v2:a5f3d402c80ef36ea2814ebc38ca38b2a733caf545e2b5301849e0ec055cdc79"
+      },
+      "revised_at": "2026-09-02T02:53:28.853115+00:00",
+      "reason": "Register maid-implement-draft in packaged verify-payload inventory after implementation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:bc741a9bffe14a1e837de970fbc614a6e6657b1dfa49efa021f470574185a7a7",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_profile_distribution.py": "sha256-pyast:v2:a894073d6c192f393c5f4ca5f29f0624dfd6211153d403e0c763530e1935e874"
+      },
+      "revised_at": "2026-09-02T02:54:57.580070+00:00",
+      "reason": "Capture Outcome after inventory fix review",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-02T02:52:42.697944+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_verify_profile_distribution.py",
+        "exit_code": 1,
+        "output_tail": "            for root in (\n                ROOT / \"maid_runner\" / \"claude\",\n                ROOT / \"maid_runner\" / \"codex\",\n                ROOT / \"maid_runner\" / \"user_skills\",\n            )\n            for path in root.rglob(\"*\")\n            if path.is_file() and \"maid verify\" in path.read_text(encoding=\"utf-8\")\n        }\n>       assert found == PACKAGED_VERIFY_PAYLOADS\nE       AssertionError: assert {'maid_runner...KILL.md', ...} == {'maid_runner...KILL.md', ...}\nE         \nE         Extra items in the left set:\nE         'maid_runner/claude/skills/maid-implement-draft/SKILL.md'\nE         'maid_runner/codex/skills/maid-implement-draft/SKILL.md'\nE         Use -v to get more diff\n\ntests/cli/test_verify_profile_distribution.py:229: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_verify_profile_distribution.py::test_verify_payload_inventory_and_generated_copies_are_synchronized\n1 failed, 6 passed in 0.23s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/cli/test_verify_profile_distribution.py:test_actionable_payload_commands_use_gate_equivalent_profiles",
+      "tests/cli/test_verify_profile_distribution.py:test_actionable_payload_commands_use_gate_equivalent_profiles:kind=test_function",
+      "tests/cli/test_verify_profile_distribution.py:test_actionable_payload_commands_use_gate_equivalent_profiles:returns=None",
+      "tests/cli/test_verify_profile_distribution.py:test_verify_payload_inventory_and_generated_copies_are_synchronized",
+      "tests/cli/test_verify_profile_distribution.py:test_verify_payload_inventory_and_generated_copies_are_synchronized:kind=test_function",
+      "tests/cli/test_verify_profile_distribution.py:test_verify_payload_inventory_and_generated_copies_are_synchronized:returns=None"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "tests/cli/test_verify_profile_distribution.py"
+      ],
+      "read": [
+        ".claude/skills/maid-implement-draft/SKILL.md",
+        ".codex/skills/maid-implement-draft/SKILL.md",
+        "maid_runner/claude/skills/maid-implement-draft/SKILL.md",
+        "maid_runner/codex/skills/maid-implement-draft/SKILL.md",
+        "manifests/add-maid-implement-draft-skill.manifest.yaml"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "tests/cli/test_verify_profile_distribution.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_actionable_payload_commands_use_gate_equivalent_profiles",
+              "description": "Expects maid verify --profile handoff --since <baseline> in Claude and Codex maid-implement-draft skill sources, and keeps PACKAGED_VERIFY_PAYLOADS plus ACTIONABLE_SOURCE_COPIES registered for those packaged skills.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_verify_payload_inventory_and_generated_copies_are_synchronized",
+              "description": "Found packaged verify payloads match PACKAGED_VERIFY_PAYLOADS including maid_runner Claude and Codex maid-implement-draft SKILL.md paths, and actionable source copies stay byte-identical.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        ".claude/skills/maid-implement-draft/SKILL.md",
+        ".codex/skills/maid-implement-draft/SKILL.md",
+        "maid_runner/claude/skills/maid-implement-draft/SKILL.md",
+        "maid_runner/codex/skills/maid-implement-draft/SKILL.md",
+        "manifests/add-maid-implement-draft-skill.manifest.yaml"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_verify_profile_distribution.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_verify_profile_distribution.py"
+    ],
+    "acceptance_commands": []
+  }
+}
