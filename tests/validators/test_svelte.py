@@ -102,9 +102,7 @@ files:
       artifacts:
         - kind: function
           name: RepoSettings
-          args:
-            - name: props
-              type: RepoSettings component props
+          args: []
           returns: Svelte component instance
   read:
     - tests/repo-settings.test.ts

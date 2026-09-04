@@ -1,0 +1,212 @@
+{
+  "manifest_path": "manifests/fix-e303-regression-fixtures.manifest.yaml",
+  "manifest_hash": "sha256-contract:176a4fe6e51e2c3188b15afeebdb010d2dc1a11e7393251fb9302252a0130f40",
+  "test_hashes": {
+    "tests/cli/test_validate_cmd.py": "sha256-pyast:v2:e850f36e0cf52c31bf6904473898ddb2240993b8a7706b674435df1a0774dcfc",
+    "tests/validators/test_svelte.py": "sha256-pyast:v2:885c6877910376b59a7df81bf206a90de6e54c3ffe5f804f7e8d9a7e4a5343ca"
+  },
+  "created_at": "2026-09-04T13:00:44.399386+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:72f193095760effbd094b3b34d291b8d714e393b37aa16300f928c1c188dde4f",
+      "prior_test_hashes": {
+        "tests/cli/test_validate_cmd.py": "sha256-pyast:v2:f4d15bda00505a0416994fbe2cdefa40891b53d1cc311b4e0b0c5395e7cdeb81",
+        "tests/validators/test_svelte.py": "sha256-pyast:v2:5d5c6a4be687e494cd391397f2d3c3c708b27930a72655ecd4f411a0fc301b1c"
+      },
+      "revised_at": "2026-09-04T13:00:49.694086+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-e303-regression-fixtures.manifest.yaml -> manifests/fix-e303-regression-fixtures.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:cbef963d498ddde69403a1fea41d661750d6558b8e0046ab0768f82408bf578b",
+      "prior_test_hashes": {
+        "tests/cli/test_validate_cmd.py": "sha256-pyast:v2:f4d15bda00505a0416994fbe2cdefa40891b53d1cc311b4e0b0c5395e7cdeb81",
+        "tests/validators/test_svelte.py": "sha256-pyast:v2:5d5c6a4be687e494cd391397f2d3c3c708b27930a72655ecd4f411a0fc301b1c"
+      },
+      "revised_at": "2026-09-04T13:02:28.453635+00:00",
+      "reason": "Replace pytest node-id targets with complete behavioral test-file targets so maid test command-integrity discovery recognizes both declared test files",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/cli/test_validate_cmd.py tests/validators/test_svelte.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/cli/test_validate_cmd.py::TestCmdValidateAll::test_validate_changed_scope_returns_1_for_changed_read_only_file tests/cli/test_validate_cmd.py::TestCmdValidateAll::test_validate_manifest_changed_scope_uses_selected_manifest_scope tests/validators/test_svelte.py::test_component_artifact_satisfies_implementation_validation"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": false,
+    "captured_at": "2026-09-04T13:02:33.936056+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_validate_cmd.py tests/validators/test_svelte.py",
+        "exit_code": 0,
+        "output_tail": "........................................................................ [ 48%]\n........................................................................ [ 96%]\n......                                                                   [100%]\n150 passed in 5.23s",
+        "classification": "not_red"
+      }
+    ],
+    "mode": "test_only_green"
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/cli/test_validate_cmd.py:test_validate_changed_scope_returns_1_for_changed_read_only_file",
+      "tests/cli/test_validate_cmd.py:test_validate_changed_scope_returns_1_for_changed_read_only_file:arg=capsys:type=None:default=None",
+      "tests/cli/test_validate_cmd.py:test_validate_changed_scope_returns_1_for_changed_read_only_file:arg=project_dir:type=None:default=None",
+      "tests/cli/test_validate_cmd.py:test_validate_changed_scope_returns_1_for_changed_read_only_file:arg=self:type=None:default=None",
+      "tests/cli/test_validate_cmd.py:test_validate_changed_scope_returns_1_for_changed_read_only_file:kind=test_function",
+      "tests/cli/test_validate_cmd.py:test_validate_changed_scope_returns_1_for_changed_read_only_file:returns=None",
+      "tests/cli/test_validate_cmd.py:test_validate_manifest_changed_scope_uses_selected_manifest_scope",
+      "tests/cli/test_validate_cmd.py:test_validate_manifest_changed_scope_uses_selected_manifest_scope:arg=capsys:type=None:default=None",
+      "tests/cli/test_validate_cmd.py:test_validate_manifest_changed_scope_uses_selected_manifest_scope:arg=project_dir:type=None:default=None",
+      "tests/cli/test_validate_cmd.py:test_validate_manifest_changed_scope_uses_selected_manifest_scope:arg=self:type=None:default=None",
+      "tests/cli/test_validate_cmd.py:test_validate_manifest_changed_scope_uses_selected_manifest_scope:kind=test_function",
+      "tests/cli/test_validate_cmd.py:test_validate_manifest_changed_scope_uses_selected_manifest_scope:returns=None",
+      "tests/validators/test_svelte.py:test_component_artifact_satisfies_implementation_validation",
+      "tests/validators/test_svelte.py:test_component_artifact_satisfies_implementation_validation:arg=tmp_path:type=Path:default=None",
+      "tests/validators/test_svelte.py:test_component_artifact_satisfies_implementation_validation:kind=test_function",
+      "tests/validators/test_svelte.py:test_component_artifact_satisfies_implementation_validation:returns=None"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "tests/cli/test_validate_cmd.py",
+        "tests/validators/test_svelte.py"
+      ],
+      "read": [
+        "maid_runner/core/_implementation_validation.py",
+        "maid_runner/validators/svelte.py",
+        "manifests/fix-python-function-arg-signature-mismatch.manifest.yaml",
+        "manifests/fix-svelte-component-artifact-validation.manifest.yaml",
+        "manifests/fix-svelte5-props-artifact-collection.manifest.yaml"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "tests/cli/test_validate_cmd.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_validate_changed_scope_returns_1_for_changed_read_only_file",
+              "args": [
+                {
+                  "name": "self"
+                },
+                {
+                  "name": "project_dir"
+                },
+                {
+                  "name": "capsys"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A selected manifest creates owner() while a changed production file is declared read-only.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The fixture has no stray declared owner parameter, so validation reaches E114 and reports src/greet.py."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_validate_manifest_changed_scope_uses_selected_manifest_scope",
+              "args": [
+                {
+                  "name": "self"
+                },
+                {
+                  "name": "project_dir"
+                },
+                {
+                  "name": "capsys"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A selected manifest creates owner() and lists a changed file as read-only while another manifest edits that file.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The fixture has no stray declared owner parameter, so selected-manifest scope reports E114 for src/greet.py."
+              }
+            }
+          ]
+        },
+        {
+          "path": "tests/validators/test_svelte.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_component_artifact_satisfies_implementation_validation",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A Svelte component manifest declares the importable file-stem component function without a synthetic callable props parameter.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "ValidationEngine.validate"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Implementation validation succeeds and does not emit ARTIFACT_NOT_DEFINED or SIGNATURE_MISMATCH."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_implementation_validation.py",
+        "maid_runner/validators/svelte.py",
+        "manifests/fix-python-function-arg-signature-mismatch.manifest.yaml",
+        "manifests/fix-svelte-component-artifact-validation.manifest.yaml",
+        "manifests/fix-svelte5-props-artifact-collection.manifest.yaml"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_validate_cmd.py",
+      "tests/validators/test_svelte.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_validate_cmd.py tests/validators/test_svelte.py"
+    ],
+    "acceptance_commands": []
+  }
+}
