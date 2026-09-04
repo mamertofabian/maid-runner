@@ -59,6 +59,10 @@ that makes them not promotion-ready, but it is not by itself a planning defect.
    and Outcome capture are ready.
 10. Re-scan `manifests/drafts/` for the next child draft.
 
+Downstream repos that ran `maid init` can use `maid-implement-draft` to resume
+from a child draft: harden tests, lock, promote, implement, review, and capture
+Outcome. Already-promoted contracts stay on `maid-implementer`.
+
 Drafts may be edited freely before promotion. After promotion, do not silently
 rewrite the contract. Use the normal MAID evolution path instead. For
 metadata-only reference cleanup on locked active manifests, use

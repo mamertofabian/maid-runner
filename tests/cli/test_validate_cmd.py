@@ -3478,6 +3478,7 @@ validate:
         manifest["files"]["read"].append("src/greet.py")
         manifest["files"]["create"][0]["path"] = "src/owner.py"
         manifest["files"]["create"][0]["artifacts"][0]["name"] = "owner"
+        manifest["files"]["create"][0]["artifacts"][0]["args"] = []
         manifest_path.write_text(yaml.dump(manifest))
         (project_dir / "src" / "owner.py").write_text(
             "def owner() -> str:\n    return 'ok'\n"
@@ -3511,6 +3512,7 @@ validate:
         manifest["files"]["read"].append("src/greet.py")
         manifest["files"]["create"][0]["path"] = "src/owner.py"
         manifest["files"]["create"][0]["artifacts"][0]["name"] = "owner"
+        manifest["files"]["create"][0]["artifacts"][0]["args"] = []
         selected_manifest.write_text(yaml.dump(manifest))
 
         masking_manifest = {

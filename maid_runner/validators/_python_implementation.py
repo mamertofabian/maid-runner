@@ -582,7 +582,7 @@ def _extract_args(
     is_method: bool,
 ) -> tuple[ArgSpec, ...]:
     args = node.args
-    all_args = list(args.args)
+    all_args = list(args.posonlyargs) + list(args.args)
 
     if is_method and all_args:
         first_arg_name = all_args[0].arg
@@ -602,6 +602,14 @@ def _extract_args(
         default_val = None
         if padded_defaults[i] is not None:
             default_val = _ast_to_default_string(padded_defaults[i])
+        result.append(ArgSpec(name=arg.arg, type=type_ann, default=default_val))
+
+    for i, arg in enumerate(args.kwonlyargs):
+        type_ann = _ast_to_type_string(arg.annotation) if arg.annotation else None
+        default_val = None
+        kw_default = args.kw_defaults[i] if i < len(args.kw_defaults) else None
+        if kw_default is not None:
+            default_val = _ast_to_default_string(kw_default)
         result.append(ArgSpec(name=arg.arg, type=type_ann, default=default_val))
 
     return tuple(result)

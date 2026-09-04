@@ -1,11 +1,11 @@
 {
   "manifest_path": "manifests/fix-init-payload-portability.manifest.yaml",
-  "manifest_hash": "sha256:315f7872b747182483a8d2c745e9e54c09bac28c218a5bfe001aff30d367f0d6",
+  "manifest_hash": "sha256-contract:ef4f92ee5242fa7658edab1fd12c8350a5d8fcc7037bfb76da8e15dc9bedc5ba",
   "test_hashes": {
-    "tests/cli/test_init_payload_portability.py": "sha256:05be7ffda63fb121f4614f7532085952baddf10ca0ed85fcb929295d808500a2"
+    "tests/cli/test_init_payload_portability.py": "sha256-pyast:v2:dd65b53bd7df51414718770fcc73646db987b0d30c782be73dcc31cd10d79ea0"
   },
   "created_at": "2026-07-11T05:49:15.846094+00:00",
-  "revision": 6,
+  "revision": 7,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:228657674e108525d9ce171f4a408117b7945d277f1c31b50d8d00682aff3ea2",
@@ -97,6 +97,29 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256:315f7872b747182483a8d2c745e9e54c09bac28c218a5bfe001aff30d367f0d6",
+      "prior_test_hashes": {
+        "tests/cli/test_init_payload_portability.py": "sha256:05be7ffda63fb121f4614f7532085952baddf10ca0ed85fcb929295d808500a2"
+      },
+      "revised_at": "2026-09-02T03:11:00.647021+00:00",
+      "reason": "accept approved shared-test change for .maid/cache gitignore coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:.gitignore",
+          "scope:maid_runner/cli/commands/init.py",
+          "scope:maid_runner/instruction_payload.py",
+          "scope:maid_runner/manifests/drafts/README.md",
+          "scope:manifests/drafts/README.md"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -111,6 +134,7 @@
       }
     ]
   },
+  "legacy_baseline": null,
   "agent": null,
   "_manifest_contract": {
     "artifacts": [
@@ -135,6 +159,132 @@
         "manifests/069-03-wire-hooks-into-init-payloads.manifest.yaml",
         "manifests/079-01-version-init-instruction-payload.manifest.yaml",
         "manifests/add-init-pre-commit-verification.manifest.yaml"
+      ],
+      "scope": [
+        ".gitignore",
+        "maid_runner/cli/commands/init.py",
+        "maid_runner/instruction_payload.py",
+        "maid_runner/manifests/drafts/README.md",
+        "manifests/drafts/README.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_init_payload_portability.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_init_installs_generic_draft_guidance_without_runner_only_references",
+              "source_scenario": "A non-runner repository initializes the generic MAID workflow payload.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The installed draft README contains no parser roadmap reference or compiler fast-path obligation."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_adds_generated_advisory_paths_to_gitignore_without_clobbering",
+              "source_scenario": "A consuming repository already has user-owned ignore rules before init.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Init preserves user rules and adds every documented MAID advisory output to a bounded ignore block."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_uses_existing_project_maid_wrapper_for_generated_hooks",
+              "source_scenario": "A consuming repository provides scripts/maid before Claude initialization.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Both the generated pre-commit verify hook and Claude scope-check hook invoke the repository launcher."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_force_reinit_migrates_bare_scope_hook_to_project_wrapper",
+              "source_scenario": "Claude init first installs a bare scope hook, a user adds a sibling command plus an unrelated empty user hook container, then the repository adds scripts/maid and force-refreshes the payload.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The refreshed settings contain exactly one wrapper-backed MAID scope hook, remove the obsolete bare variant, preserve the sibling user command exactly once, and retain the unrelated empty user container."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_reports_malformed_gitignore_markers_as_gitignore_conflict",
+              "source_scenario": "A consuming repository has an incomplete MAID generated-files marker pair before init.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Init fails before writes, identifies .gitignore as the conflicting configuration, and does not mislabel it as a pre-commit conflict."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/claude/settings.json",
+        "manifests/069-03-wire-hooks-into-init-payloads.manifest.yaml",
+        "manifests/079-01-version-init-instruction-payload.manifest.yaml",
+        "manifests/add-init-pre-commit-verification.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/init.py",
+          "reason": "Extend private init preparation and payload-install helpers without changing cmd_init's public signature."
+        },
+        {
+          "path": "maid_runner/instruction_payload.py",
+          "reason": "Bump installed payload metadata so downstream check mode detects the corrected guidance."
+        },
+        {
+          "path": "manifests/drafts/README.md",
+          "reason": "Remove repository-specific roadmap and performance guidance from the canonical distributable document."
+        },
+        {
+          "path": "maid_runner/manifests/drafts/README.md",
+          "reason": "Keep the packaged workflow document synchronized with its canonical source."
+        },
+        {
+          "path": ".gitignore",
+          "reason": "The repository dogfoods the same generated advisory ignore inventory asserted for downstream init."
+        }
       ]
     },
     "test_files": [
@@ -142,6 +292,7 @@
     ],
     "validate_commands": [
       "uv run python -m pytest -q tests/cli/test_init_payload_portability.py"
-    ]
+    ],
+    "acceptance_commands": []
   }
 }

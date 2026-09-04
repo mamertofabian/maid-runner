@@ -383,6 +383,22 @@ def _compare_single(
         for expected_arg in spec.args:
             found_arg = found_args_by_name.get(expected_arg.name)
             if found_arg is None:
+                if (
+                    expected_arg.name in ("self", "cls")
+                    and spec.kind == ArtifactKind.METHOD
+                ):
+                    continue
+                errors.append(
+                    ValidationError(
+                        code=ErrorCode.SIGNATURE_MISMATCH,
+                        message=(
+                            f"Signature mismatch for {spec.kind.value} "
+                            f"'{spec.qualified_name}': missing parameter "
+                            f"'{expected_arg.name}'"
+                        ),
+                        location=Location(file=file_path, line=found.line),
+                    )
+                )
                 continue
             if expected_arg.type and found_arg.type is None:
                 errors.append(

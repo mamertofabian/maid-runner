@@ -2,12 +2,12 @@
   "manifest_path": "manifests/069-04-document-edit-time-scope-workflow.manifest.yaml",
   "manifest_hash": "sha256-contract:4b8bad67eca20f0128fddb674a16ac886aee36338acc79023761da39374230eb",
   "test_hashes": {
-    "tests/test_agent_payload_distribution.py": "sha256-pyast:0f0983482a2286b9c2811b843effb4bc913b5c62e2000e9faec8676651d1fe2c",
-    "tests/test_claude_skill_distribution.py": "sha256-pyast:d909d20a1af0e92728d6f63903a58c87ab840d55d5049cdf46a29f8a09a7d010",
-    "tests/test_edit_time_scope_docs.py": "sha256-pyast:daa67c4a622fe0b2ce20cc0af0938495bf9bc8d8fcc71a5c5952e0351b0378f9"
+    "tests/test_agent_payload_distribution.py": "sha256-pyast:v2:a95404b58b1be8cc25b059b8c8b2c737d33130e5b1d0394c02721cefa9d1a667",
+    "tests/test_claude_skill_distribution.py": "sha256-pyast:v2:de7cd68bf62fb90661da3358c497acbc78a055332f5b3bc9ffc2aa905c56c300",
+    "tests/test_edit_time_scope_docs.py": "sha256-pyast:v2:1f95ab35c3c413f290d0952810d4d5f1f940ddb957db892d2832a90147cd0160"
   },
   "created_at": "2026-06-17T03:58:49.712423+00:00",
-  "revision": 12,
+  "revision": 13,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:4229cbd6fbbde6ba8783f11e9659b0f8932be6cf3b9080317e2d200475ce59ae",
@@ -161,6 +161,25 @@
       },
       "revised_at": "2026-07-25T01:08:48.218510+00:00",
       "reason": "shared init-payload tests updated for the 9-skill Codex distribution; behavioral contracts unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4b8bad67eca20f0128fddb674a16ac886aee36338acc79023761da39374230eb",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256-pyast:0f0983482a2286b9c2811b843effb4bc913b5c62e2000e9faec8676651d1fe2c",
+        "tests/test_claude_skill_distribution.py": "sha256-pyast:d909d20a1af0e92728d6f63903a58c87ab840d55d5049cdf46a29f8a09a7d010",
+        "tests/test_edit_time_scope_docs.py": "sha256-pyast:daa67c4a622fe0b2ce20cc0af0938495bf9bc8d8fcc71a5c5952e0351b0378f9"
+      },
+      "revised_at": "2026-09-02T02:16:55.703154+00:00",
+      "reason": "Refresh shared Codex payload test hashes after adding maid-implement-draft to the distributable skill set",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
@@ -401,6 +420,7 @@
       "uv run python -m pytest -q tests/test_edit_time_scope_docs.py tests/test_agent_payload_distribution.py tests/test_claude_skill_distribution.py",
       "uv run maid validate manifests/069-04-document-edit-time-scope-workflow.manifest.yaml --mode behavioral --quiet",
       "uv run maid validate manifests/069-04-document-edit-time-scope-workflow.manifest.yaml --mode schema --quiet"
-    ]
+    ],
+    "acceptance_commands": []
   }
 }

@@ -1,11 +1,11 @@
 {
   "manifest_path": "manifests/fix-svelte5-props-artifact-collection.manifest.yaml",
-  "manifest_hash": "sha256:c8aee2baa4fd3cd56e0aab8b033b87894d30d0a79535600f6d0bb6f519e8fdf4",
+  "manifest_hash": "sha256-contract:f89c039632e15a7aa93a60150cf863e51f1d385930e093e748d0701179e311cb",
   "test_hashes": {
-    "tests/validators/test_svelte.py": "sha256:26c4ad38c5f06ff2fa5ae968f2229373ffc064e848fe29653bdf2fc50f5507dc"
+    "tests/validators/test_svelte.py": "sha256-pyast:v2:885c6877910376b59a7df81bf206a90de6e54c3ffe5f804f7e8d9a7e4a5343ca"
   },
   "created_at": "2026-06-24T14:35:43.972298+00:00",
-  "revision": 4,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:2e34870d5d4e38ae049527c95511bd270eb384d129576d6595d6c85ccaa09a31",
@@ -13,7 +13,9 @@
         "tests/validators/test_svelte.py": "sha256:a7ace0045cba7465e24b44c4dab92905596fe0d8650d7fffc3ebef0155cd2bca"
       },
       "revised_at": "2026-06-24T14:38:20.538196+00:00",
-      "reason": "Run the full Svelte validator test file so maid test can verify the behavioral test command."
+      "reason": "Run the full Svelte validator test file so maid test can verify the behavioral test command.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:20ad46f286486d8d808ff5d3a47301c3682d6de9e9b9f51a7ac5bf01cc2b081e",
@@ -21,7 +23,9 @@
         "tests/validators/test_svelte.py": "sha256:a7ace0045cba7465e24b44c4dab92905596fe0d8650d7fffc3ebef0155cd2bca"
       },
       "revised_at": "2026-06-24T14:51:30.881298+00:00",
-      "reason": "Add module-script negative coverage and declare the TypeScript parse helper dependency found during implementation review."
+      "reason": "Add module-script negative coverage and declare the TypeScript parse helper dependency found during implementation review.",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:4c90b19fa6d8f5bf363364343be36ac2f373d02ac9ce91df75a77898d0dc84fd",
@@ -29,7 +33,36 @@
         "tests/validators/test_svelte.py": "sha256:26c4ad38c5f06ff2fa5ae968f2229373ffc064e848fe29653bdf2fc50f5507dc"
       },
       "revised_at": "2026-06-24T15:04:31.183794+00:00",
-      "reason": "Capture Outcome after ready implementation review."
+      "reason": "Capture Outcome after ready implementation review.",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:c8aee2baa4fd3cd56e0aab8b033b87894d30d0a79535600f6d0bb6f519e8fdf4",
+      "prior_test_hashes": {
+        "tests/validators/test_svelte.py": "sha256:26c4ad38c5f06ff2fa5ae968f2229373ffc064e848fe29653bdf2fc50f5507dc"
+      },
+      "revised_at": "2026-09-04T13:06:29.617441+00:00",
+      "reason": "accept approved shared-test fixture correction from fix-e303-regression-fixtures",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:maid_runner/validators/svelte.py",
+          "edit:tests/validators/test_svelte.py",
+          "read:maid_runner/core/_implementation_validation.py",
+          "read:maid_runner/core/validate.py",
+          "read:maid_runner/validators/_typescript_implementation.py",
+          "read:maid_runner/validators/_typescript_parse.py",
+          "read:maid_runner/validators/base.py",
+          "read:maid_runner/validators/typescript.py",
+          "read:manifests/fix-svelte-component-artifact-validation.manifest.yaml"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -44,6 +77,8 @@
       }
     ]
   },
+  "legacy_baseline": null,
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       "maid_runner/validators/svelte.py:method:SvelteValidator.collect_implementation_artifacts",
@@ -61,11 +96,86 @@
       "tests/validators/test_svelte.py:test_svelte5_props_destructuring_satisfies_implementation_validation",
       "tests/validators/test_svelte.py:test_svelte5_props_destructuring_satisfies_implementation_validation:kind=test_function"
     ],
+    "files": {
+      "create": [],
+      "edit": [
+        "maid_runner/validators/svelte.py",
+        "tests/validators/test_svelte.py"
+      ],
+      "read": [
+        "maid_runner/core/_implementation_validation.py",
+        "maid_runner/core/validate.py",
+        "maid_runner/validators/_typescript_implementation.py",
+        "maid_runner/validators/_typescript_parse.py",
+        "maid_runner/validators/base.py",
+        "maid_runner/validators/typescript.py",
+        "manifests/fix-svelte-component-artifact-validation.manifest.yaml"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "maid_runner/validators/svelte.py",
+          "artifacts": [
+            {
+              "kind": "method",
+              "name": "collect_implementation_artifacts",
+              "of": "SvelteValidator",
+              "args": [
+                {
+                  "name": "source",
+                  "type": "str"
+                },
+                {
+                  "name": "file_path",
+                  "type": "Union[str, Path]"
+                }
+              ],
+              "returns": "CollectionResult"
+            }
+          ]
+        },
+        {
+          "path": "tests/validators/test_svelte.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_svelte5_props_destructuring_collects_component_attributes"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_svelte5_props_destructuring_satisfies_implementation_validation"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_svelte5_props_destructuring_ignores_non_props_object_patterns"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_svelte5_props_destructuring_ignores_module_scripts"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/validators/base.py",
+        "maid_runner/validators/typescript.py",
+        "maid_runner/validators/_typescript_implementation.py",
+        "maid_runner/validators/_typescript_parse.py",
+        "maid_runner/core/validate.py",
+        "maid_runner/core/_implementation_validation.py",
+        "manifests/fix-svelte-component-artifact-validation.manifest.yaml"
+      ]
+    },
     "test_files": [
       "tests/validators/test_svelte.py"
     ],
     "validate_commands": [
       "uv run python -m pytest -q tests/validators/test_svelte.py"
-    ]
+    ],
+    "acceptance_commands": []
   }
 }

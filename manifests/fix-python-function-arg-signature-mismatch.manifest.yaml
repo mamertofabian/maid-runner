@@ -1,0 +1,168 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Emit E303 when implementation validation finds a declared function or method parameter name missing from the collected signature"
+type: fix
+created: "2026-09-02T09:29:33Z"
+metadata:
+  bug_report: ~/.maid/bug-report/20260901-085833-quant-forge-artifact-arity.md
+  tags:
+    - python
+    - implementation-validation
+    - e303
+    - signature-mismatch
+  priority: high
+description: |
+  Implementation comparison currently type-checks only parameters whose names
+  already match and silently skips declared names that are absent. Shared
+  overlapping names with swapped arities therefore pass, even though E303
+  SIGNATURE_MISMATCH is documented and registered.
+
+  When a non-empty args list is declared, require every declared parameter name
+  to exist on the collected artifact and emit E303 for each missing name.
+  Collect Python positional-only, ordinary positional, and keyword-only
+  parameters so manifests that correctly declare keyword-only args are not
+  false-failed. Continue stripping method receivers from collection, and do
+  not emit E303 when a method contract still lists conventional self/cls.
+  Flatten nested Union type strings during comparison so keyword-only
+  parameters annotated with X | Y | Z match historical Union[Union[X, Y], Z]
+  collector renderings and pipe-form manifest declarations. Preserve
+  name-based type checks (E302/E304) and continue allowing extra
+  implementation-only parameters such as MCP ctx. Do not reject empty args
+  lists, change argument order rules when all names are present, or invent a
+  new error code.
+temptations:
+  - risk: "Do not reject extra implementation-only parameters to force exact arity equality."
+    instead: "Require declared names to be present; allow additional found parameters."
+  - risk: "Do not invent a new diagnostic code for missing parameter names."
+    instead: "Emit the existing ErrorCode.SIGNATURE_MISMATCH (E303) already documented for signature mismatches."
+  - risk: "Do not emit E303 for keyword-only parameters that exist in source but are omitted from Python collection."
+    instead: "Collect posonlyargs, ordinary args, and kwonlyargs together before comparing declared names."
+  - risk: "Do not fail method contracts that still list self or cls after the collector strips receivers."
+    instead: "Skip conventional self/cls missing-name checks for method artifacts."
+  - risk: "Do not leave nested Union[Union[X, Y], Z] unequal to X | Y | Z after collecting keyword-only BitOr annotations."
+    instead: "Flatten nested Union members in type normalization before comparing."
+files:
+  edit:
+    - path: tests/core/validation/test_implementation_basics.py
+      artifacts:
+        - kind: test_function
+          name: test_missing_declared_python_parameter_reports_signature_mismatch
+          args:
+            - name: project
+          returns: None
+          source_scenario: "A manifest declares function greet(name: str, title: str) -> str but the implementation only defines greet(name: str) -> str."
+          actions:
+            - type: api_call
+              subject:
+                function: validate
+          expected:
+            behavior: "Implementation validation fails with ErrorCode.SIGNATURE_MISMATCH and a message that names the missing parameter title."
+        - kind: test_function
+          name: test_swapped_python_function_arities_report_signature_mismatch
+          args:
+            - name: project
+          returns: None
+          source_scenario: "A manifest declares load_snapshot(output_dir, snapshot_id, expected_fingerprint) and verify_snapshot(output_dir, snapshot_id), but the implementation has those arities reversed."
+          actions:
+            - type: api_call
+              subject:
+                function: validate
+          expected:
+            behavior: "Implementation validation fails with SIGNATURE_MISMATCH naming the missing expected_fingerprint on load_snapshot."
+        - kind: test_function
+          name: test_extra_implementation_only_python_parameter_still_passes
+          args:
+            - name: project
+          returns: None
+          source_scenario: "A manifest declares greet(name: str) -> str and the implementation defines greet(name: str, ctx: object) -> str."
+          actions:
+            - type: api_call
+              subject:
+                function: validate
+          expected:
+            behavior: "Implementation validation succeeds with no errors because every declared parameter name is present."
+        - kind: test_function
+          name: test_keyword_only_python_parameters_match_declared_signature
+          args:
+            - name: project
+          returns: None
+          source_scenario: "A manifest declares format_message(result: str, *, json_mode: bool) -> str and the implementation defines that exact signature."
+          actions:
+            - type: api_call
+              subject:
+                function: validate
+          expected:
+            behavior: "Implementation validation succeeds because keyword-only json_mode is collected and present."
+        - kind: test_function
+          name: test_method_self_in_manifest_does_not_report_signature_mismatch
+          args:
+            - name: project
+          returns: None
+          source_scenario: "A manifest declares method greet of Greeter with args self and name while the implementation method only exposes name after receiver stripping."
+          actions:
+            - type: api_call
+              subject:
+                function: validate
+          expected:
+            behavior: "Implementation validation succeeds without SIGNATURE_MISMATCH for the conventional self receiver."
+    - path: tests/core/test_type_compare.py
+      artifacts:
+        - kind: test_function
+          name: test_nested_union_matches_pipe_union_type_annotation
+          args: []
+          returns: None
+          source_scenario: "One annotation is written as int | str | None and another as Union[Union[int, str], None]."
+          actions:
+            - type: api_call
+              subject:
+                function: types_match
+          expected:
+            behavior: "types_match returns True in both directions after nested Union flattening."
+  scope:
+    - path: maid_runner/core/_implementation_validation.py
+      reason: "Emit E303 from the private comparison seam when a declared parameter name is missing, without expanding the public compare_artifacts API."
+    - path: maid_runner/validators/_python_implementation.py
+      reason: "Collect positional-only and keyword-only parameters so declared keyword-only names are visible to E303 comparison."
+    - path: maid_runner/core/_type_compare.py
+      reason: "Flatten nested Union members so BitOr-collected keyword-only annotations compare equal to pipe-form manifest types."
+  read:
+    - maid_runner/core/result.py
+    - docs/troubleshooting.md
+validate:
+  - ["uv", "run", "python", "-m", "pytest", "-q", "tests/core/validation/test_implementation_basics.py", "tests/core/test_type_compare.py"]
+outcome:
+  status: completed
+  completed_at: "2026-09-02T09:43:20Z"
+  summary: "Implementation validation now emits E303 for missing declared parameter names, including swapped-arity cases, while collecting keyword-only parameters and flattening nested Union type strings so historical contracts stay green."
+  rationale: "The false negative came from silent skips on missing names during name-based comparison. Emitting E303 closes that gap; collecting kwonlyargs and flattening nested Unions prevents newly visible false positives against keyword-only and BitOr annotations; skipping method self/cls preserves receiver-stripping semantics."
+  lessons:
+    - lesson_type: validation-trust
+      summary: "Name-based signature comparison must fail closed on missing declared names; otherwise overlapping shared parameters can hide arity swaps."
+      tags: [e303, signature-mismatch, implementation-validation]
+      paths:
+        - maid_runner/core/_implementation_validation.py
+        - tests/core/validation/test_implementation_basics.py
+    - lesson_type: backward-compatibility
+      summary: "Enforcing declared parameter presence requires collecting keyword-only and positional-only parameters and normalizing nested Union vs pipe forms, or historical manifests false-fail."
+      tags: [python-ast, kwonlyargs, type-normalization]
+      paths:
+        - maid_runner/validators/_python_implementation.py
+        - maid_runner/core/_type_compare.py
+  review_notes:
+    - source: independent-reviewer-e303
+      severity: ready
+      summary: "Independent review found no blocking issues; remaining advisories were Outcome capture and optional dedicated posonly coverage outside the declared contract."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/validation/test_implementation_basics.py, tests/core/test_type_compare.py]
+      status: passed
+      summary: "Focused implementation-basics and type-compare suite passed."
+    - command: [uv, run, maid, validate, manifests/fix-python-function-arg-signature-mismatch.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "Promoted manifest passed implementation validation."
+    - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, 3dff0c15ca39d5af5cc4f51880f0133692c67964]
+      status: passed
+      summary: "Deep task-scoped verify passed 11 stages with only pre-existing E307 warnings."

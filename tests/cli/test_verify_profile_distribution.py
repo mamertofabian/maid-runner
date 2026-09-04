@@ -20,8 +20,10 @@ PROFILE_PAYLOAD_FLOOR = "2.25.0"
 PRE_CHANGE_PAYLOAD_VERSION = "2026.07.31.1"
 
 PACKAGED_VERIFY_PAYLOADS = {
+    "maid_runner/claude/skills/maid-implement-draft/SKILL.md",
     "maid_runner/claude/skills/maid-implementation-review/SKILL.md",
     "maid_runner/claude/skills/maid-implementer/SKILL.md",
+    "maid_runner/codex/skills/maid-implement-draft/SKILL.md",
     "maid_runner/codex/skills/maid-implementation-review/SKILL.md",
     "maid_runner/codex/skills/maid-implementer/SKILL.md",
     "maid_runner/codex/skills/maid-runner-draft-implement/SKILL.md",
@@ -35,6 +37,12 @@ PACKAGED_VERIFY_PAYLOADS = {
 }
 
 ACTIONABLE_SOURCE_COPIES = {
+    ".claude/skills/maid-implement-draft/SKILL.md": (
+        "maid_runner/claude/skills/maid-implement-draft/SKILL.md"
+    ),
+    ".codex/skills/maid-implement-draft/SKILL.md": (
+        "maid_runner/codex/skills/maid-implement-draft/SKILL.md"
+    ),
     ".claude/skills/maid-implementation-review/SKILL.md": (
         "maid_runner/claude/skills/maid-implementation-review/SKILL.md"
     ),
@@ -120,6 +128,12 @@ def test_generated_hook_profile_is_gate_equivalent_to_frozen_flags() -> None:
 
 def test_actionable_payload_commands_use_gate_equivalent_profiles() -> None:
     expected = {
+        ".claude/skills/maid-implement-draft/SKILL.md": (
+            "maid verify --profile handoff --since <baseline>",
+        ),
+        ".codex/skills/maid-implement-draft/SKILL.md": (
+            "maid verify --profile handoff --since <baseline>",
+        ),
         ".claude/skills/maid-implementation-review/SKILL.md": (
             "maid verify --profile handoff --since <baseline>",
             "maid assess --since <baseline>",

@@ -2,11 +2,11 @@
   "manifest_path": "manifests/fix-pgtap-red-evidence-adapter.manifest.yaml",
   "manifest_hash": "sha256-contract:f74d0c568425a5a6eb8b94718e77d2048a2985ef4242396383ad5cb66edc9db2",
   "test_hashes": {
-    "tests/test_agent_payload_distribution.py": "sha256-pyast:0f0983482a2286b9c2811b843effb4bc913b5c62e2000e9faec8676651d1fe2c",
-    "tests/cli/test_pgtap_cmd.py": "sha256-pyast:aa549a2db36c30b0113a4ce051d8f7ca22cab7ed02c6c480fcd2b6df12de59ba"
+    "tests/test_agent_payload_distribution.py": "sha256-pyast:v2:a95404b58b1be8cc25b059b8c8b2c737d33130e5b1d0394c02721cefa9d1a667",
+    "tests/cli/test_pgtap_cmd.py": "sha256-pyast:v2:c0d8206b72cd5f53459d7afcd609243e4b29592f44afdee1f1e1a20f34175d85"
   },
   "created_at": "2026-07-13T11:18:02.997218+00:00",
-  "revision": 8,
+  "revision": 9,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:df62b1f3d3fe7374b46d01e2eaecc1438ee8184cf770ce9b627ea2d1d00248ca",
@@ -133,6 +133,24 @@
       },
       "revised_at": "2026-07-25T01:08:51.355329+00:00",
       "reason": "shared init-payload tests updated for the 9-skill Codex distribution; behavioral contracts unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:f74d0c568425a5a6eb8b94718e77d2048a2985ef4242396383ad5cb66edc9db2",
+      "prior_test_hashes": {
+        "tests/test_agent_payload_distribution.py": "sha256-pyast:0f0983482a2286b9c2811b843effb4bc913b5c62e2000e9faec8676651d1fe2c",
+        "tests/cli/test_pgtap_cmd.py": "sha256-pyast:aa549a2db36c30b0113a4ce051d8f7ca22cab7ed02c6c480fcd2b6df12de59ba"
+      },
+      "revised_at": "2026-09-02T02:16:56.196839+00:00",
+      "reason": "Refresh shared Codex payload test hashes after adding maid-implement-draft to the distributable skill set",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
@@ -329,6 +347,7 @@
     ],
     "validate_commands": [
       "uv run python -m pytest -q tests/cli/test_pgtap_cmd.py tests/test_agent_payload_distribution.py"
-    ]
+    ],
+    "acceptance_commands": []
   }
 }

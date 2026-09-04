@@ -11,6 +11,7 @@ guides an AI agent through a specific phase of contract-driven development.
 | Skill | Phase | Question It Answers |
 |-------|-------|---------------------|
 | `maid-planner` | Create | "What are we building?" |
+| `maid-implement-draft` | Resume | "Continue this draft through lock, promote, implement, and Outcome." |
 | `maid-plan-review` | Review | "Is the contract ready?" |
 | `maid-implementer` | Execute | "Make it work." |
 | `maid-implementation-review` | Review | "Did implementation stay in scope?" |
@@ -21,17 +22,22 @@ guides an AI agent through a specific phase of contract-driven development.
 ### Lifecycle
 
 ```
-maid-planner    →  maid-implementer    →  maid-auditor
-    │                    │                    │
-    │                    │                    └── regression detected
-    │                    │                        │
-    │                    └───────────┐            ▼
-    │                                ▼      maid-evolver
-    └────────────────────────────  evolve ──────┐
-                    ▲                           │
-                    └───────────────────────────┘
+maid-planner    →  maid-implement-draft  →  maid-implementer    →  maid-auditor
+    │                    │                         │                    │
+    │                    │                         │                    └── regression detected
+    │                    │                         │                        │
+    │                    └───────────┐             └───────────┐            ▼
+    │                                ▼                         ▼      maid-evolver
+    └────────────────────────────  evolve ──────────────────────────────┐
+                    ▲                                                   │
+                    └───────────────────────────────────────────────────┘
                               repeat
 ```
+
+`maid-implement-draft` is the receiving skill for planner Planning Handoff
+Mode and for any session that starts from `manifests/drafts/*.manifest.yaml`.
+It hardens tests, locks, and promotes, then delegates to `maid-implementer`.
+Already-promoted contracts skip it and start at `maid-implementer`.
 
 After `maid-implementer` completes validation and implementation review, the
 handoff should include explicit Outcome capture when the schema is available.
@@ -72,6 +78,7 @@ declared scope, validation, or review.
 | Role | Outcome use |
 |------|-------------|
 | `maid-planner` | Run `maid learn` when the index is stale, or once when it is missing. If no completed Outcome records exist, skip recall and report that no advisory history is available. For drafts, `maid recall --for-manifest <draft>` is only a query builder for related completed Outcomes, not a lookup for an Outcome on the unimplemented draft itself. |
+| `maid-implement-draft` | Recall related lessons before promotion and treat them as historical context for tests, implementation approach, and review packet quality while staying inside the selected draft. |
 | `maid-plan-review` | Check whether relevant recalled evidence informed the draft when available, without making recall an automatic approval or rejection rule. |
 | `maid-implementer` | Consult recalled Outcome records when choosing focused tests and code patterns, including before promoting the selected draft, while staying inside the approved manifest scope. |
 | `maid-implementation-review` | After the review verdict is ready, check whether the completed manifest needs an `outcome:` record backed by validation and review evidence. |
@@ -124,19 +131,20 @@ The skill payload is:
 
 The current MAID skill distribution installed by `maid init --tool claude`
 places the MAID-only skill set into a target repository under `.claude/skills/`:
-`maid-planner`, `maid-plan-review`, `maid-implementer`,
+`maid-planner`, `maid-plan-review`, `maid-implement-draft`, `maid-implementer`,
 `maid-implementation-review`, `maid-evolver`, `maid-auditor`, and
 `maid-incident-logger`. The Claude repo-level payload is generated from
 `.claude/skills/` into `maid_runner/claude/` by `scripts/sync_claude_files.py`.
 
 The Codex distribution installed by `maid init --tool codex` places the same
 generic MAID workflow and audit skills into `.codex/skills/`: `maid-planner`,
-`maid-plan-review`, `maid-implementer`, `maid-implementation-review`,
-`maid-evolver`, `maid-auditor`, `maid-incident-logger`, `maid-outcome-enrich`,
-and `maid-run-review`. The Claude and Codex distributions ship the same skill
-set with the same skill bodies; the only intended differences are tool-specific
-reviewer-subagent mechanics and the pre-edit scope-check guidance that Claude
-receives through `.claude/settings.json` hooks instead of prose. Repo-internal maid-runner skills remain packaged for this
+`maid-plan-review`, `maid-implement-draft`, `maid-implementer`,
+`maid-implementation-review`, `maid-evolver`, `maid-auditor`,
+`maid-incident-logger`, `maid-outcome-enrich`, and `maid-run-review`. The Claude
+and Codex distributions ship the same skill set with the same skill bodies; the
+only intended differences are tool-specific reviewer-subagent mechanics and the
+pre-edit scope-check guidance that Claude receives through `.claude/settings.json`
+hooks instead of prose. Repo-internal maid-runner skills remain packaged for this
 repository's own tooling but are excluded from the distributable list. Skill-local
 agent metadata under `agents/` is copied with distributable skills and listed in
 the generated `maid_runner/codex/manifest.json` for stale-file pruning.
@@ -152,6 +160,12 @@ AI-calling counterpart to deterministic `maid evaluate run|prompt|validate|rende
 the runner emits bounded run evidence, validates a candidate review, and renders
 labeled advisory markdown, while the skill owns model generation, cloud privacy
 disclosure, and the advisory-never-gate workflow.
+
+`maid-implement-draft` ships through both Claude and Codex init payloads. It is
+the receiving skill for planner Planning Handoff Mode: harden a
+`manifests/drafts/*.manifest.yaml` child, lock, promote, then delegate to
+`maid-implementer` and `maid-implementation-review`. It does not replace those
+phase skills, and it is not the repo-internal draft-implement wrapper.
 
 The planner, implementer, implementation-review, and repo-internal
 draft-implement skills now carry shared review-convergence guidance: dedicated
@@ -186,6 +200,27 @@ downstream `maid init --check` reports stale guidance.
 **Key insight:** The plan IS the contract. No translation step. The manifest is structured (YAML with JSON Schema), machine-validatable, and durable (checked on every future validation run).
 
 **Works for:** Greenfield projects (new files, `files.create`) and brownfield projects (existing files, `files.edit` + `files.read`). The planner analyzes what exists and declares the delta.
+
+---
+
+### maid-implement-draft
+
+**Location:** `.claude/skills/maid-implement-draft/SKILL.md`
+
+**Purpose:** Resume a `manifests/drafts/*.manifest.yaml` child through hardening,
+lock, promotion, implementation, review, and Outcome capture.
+
+**Workflow:**
+1. Inspect the selected draft and recall related Outcomes
+2. Write or update behavioral tests and confirm the red phase
+3. Run `maid validate --mode behavioral` and `maid-plan-review`
+4. `maid plan lock` the draft, then `maid manifest promote`
+5. `maid task start`, then implement with `maid-implementer`
+6. Review with `maid-implementation-review`, capture Outcome, `maid learn`,
+   `maid task stop`
+
+**Key insight:** This is a coordinator. Already-promoted contracts use
+`maid-implementer`. Do not manually move draft files.
 
 ---
 
@@ -445,6 +480,8 @@ downstream `maid init --check` reports stale guidance.
 ```
 .claude/skills/
 ├── maid-planner/
+│   └── SKILL.md
+├── maid-implement-draft/
 │   └── SKILL.md
 ├── maid-implementer/
 │   └── SKILL.md

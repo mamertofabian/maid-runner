@@ -1,0 +1,190 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Restore the MAID Test and MAID Validation gates after E303 exposed three stale test fixtures"
+type: fix
+created: "2026-09-04T13:00:49Z"
+metadata:
+  tags:
+    - ci
+    - e303
+    - regression
+    - test-fixtures
+  priority: high
+description: |
+  The missing-declared-parameter E303 behavior is working as designed, but the
+  full CI suite contains three fixtures that accidentally declare parameters
+  their synthetic implementations do not expose. Two changed-scope scenarios
+  rename the fixture function from greet(name) to owner() without clearing the
+  inherited manifest args, so implementation validation correctly stops at
+  E303 before the scenarios can exercise E114. The Svelte component scenario
+  declares a synthetic callable `props` argument even though MAID's Svelte
+  component artifact model represents component props as owned attributes and
+  its file-stem component function has no callable args.
+
+  Correct only those fixture manifests. Preserve the production E303 behavior,
+  the changed-scope E114 assertions, and Svelte component import validation.
+  This is a test-contract repair, not a weakening of signature validation or a
+  change to production APIs.
+temptations:
+  - risk: "Do not weaken or special-case E303 in production code to make stale fixtures pass."
+    instead: "Make each fixture manifest describe the zero-argument synthetic implementation it creates."
+  - risk: "Do not remove the E114 assertions from the changed-scope scenarios."
+    instead: "Clear only the inherited args so validation reaches and proves the intended changed-scope diagnostic."
+  - risk: "Do not synthesize a fake callable props parameter for every Svelte component."
+    instead: "Keep component props modeled as owned attributes and remove the obsolete callable arg from this fixture."
+files:
+  edit:
+    - path: tests/cli/test_validate_cmd.py
+      artifacts:
+        - kind: test_function
+          name: test_validate_changed_scope_returns_1_for_changed_read_only_file
+          args:
+            - name: self
+            - name: project_dir
+            - name: capsys
+          returns: None
+          source_scenario: "A selected manifest creates owner() while a changed production file is declared read-only."
+          actions:
+            - type: api_call
+              subject:
+                function: main
+          expected:
+            behavior: "The fixture has no stray declared owner parameter, so validation reaches E114 and reports src/greet.py."
+        - kind: test_function
+          name: test_validate_manifest_changed_scope_uses_selected_manifest_scope
+          args:
+            - name: self
+            - name: project_dir
+            - name: capsys
+          returns: None
+          source_scenario: "A selected manifest creates owner() and lists a changed file as read-only while another manifest edits that file."
+          actions:
+            - type: api_call
+              subject:
+                function: main
+          expected:
+            behavior: "The fixture has no stray declared owner parameter, so selected-manifest scope reports E114 for src/greet.py."
+    - path: tests/validators/test_svelte.py
+      artifacts:
+        - kind: test_function
+          name: test_component_artifact_satisfies_implementation_validation
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "A Svelte component manifest declares the importable file-stem component function without a synthetic callable props parameter."
+          actions:
+            - type: api_call
+              subject:
+                function: ValidationEngine.validate
+          expected:
+            behavior: "Implementation validation succeeds and does not emit ARTIFACT_NOT_DEFINED or SIGNATURE_MISMATCH."
+  read:
+    - maid_runner/core/_implementation_validation.py
+    - maid_runner/validators/svelte.py
+    - manifests/fix-python-function-arg-signature-mismatch.manifest.yaml
+    - manifests/fix-svelte-component-artifact-validation.manifest.yaml
+    - manifests/fix-svelte5-props-artifact-collection.manifest.yaml
+validate:
+  - ["uv", "run", "python", "-m", "pytest", "-q", "tests/cli/test_validate_cmd.py", "tests/validators/test_svelte.py"]
+outcome:
+  status: completed
+  completed_at: "2026-09-04T21:12:02+08:00"
+  summary: |
+    MAID Test and MAID Validation are green again after correcting three stale
+    test fixture manifests exposed by the stricter E303 missing-parameter
+    diagnostic. The production validator remains unchanged: the two synthetic
+    Python owner functions and the Svelte file-stem component now declare their
+    actual zero-argument callable surfaces.
+  rationale: |
+    E303 correctly rejected declared parameters absent from implementation, so
+    weakening the validator would have restored a false negative. Correcting
+    only the inaccurate fixture declarations preserves both signature checking
+    and the original E114 and Svelte component behaviors. The validate command
+    was revised to target complete test files because E230 intentionally rejects
+    node-id-only commands that do not map to discovered behavioral test files.
+  lessons:
+    - lesson_type: validation-trust
+      summary: |
+        When a stricter validator exposes failures in unrelated scenarios,
+        verify whether their fixture manifests still describe the synthetic
+        implementations before weakening the new diagnostic.
+      tags:
+        - e303
+        - test-fixtures
+        - regression
+        - maid-runner-feedback
+      paths:
+        - tests/cli/test_validate_cmd.py
+        - tests/validators/test_svelte.py
+  review_notes:
+    - source: maid-implementation-review
+      severity: ready
+      summary: |
+        The independent read-only reviewer found no blocking issues and
+        confirmed the fixture edits preserve production E303 behavior, match
+        the Svelte collector model, and remain within approved scope. It noted
+        a P2 advisory that the changed-scope tests could explicitly assert E303
+        is absent; the locked contract was not revised for this advisory.
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/cli/test_validate_cmd.py::TestCmdValidateAll::test_validate_changed_scope_returns_1_for_changed_read_only_file
+        - tests/cli/test_validate_cmd.py::TestCmdValidateAll::test_validate_manifest_changed_scope_uses_selected_manifest_scope
+        - tests/validators/test_svelte.py::test_component_artifact_satisfies_implementation_validation
+      status: passed
+      summary: "3 focused regression tests passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "666 manifests processed: 302 passed, 0 failed, and 364 superseded."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "All 300 repository MAID test commands passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --profile
+        - deep
+        - --manifest-dir
+        - manifests
+        - --test-scope
+        - task
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - eb8122de
+      status: passed
+      summary: "All 11 deep verification stages passed after dependent shared-test locks were reconciled."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --json
+        - --manifest-dir
+        - manifests/
+        - --jobs
+        - "1"
+        - --pytest-workers
+        - "4"
+      status: passed
+      summary: "The exact MAID Test CI command passed all 300 commands with no chain errors."

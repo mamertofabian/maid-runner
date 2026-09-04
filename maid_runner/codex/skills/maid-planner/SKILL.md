@@ -38,11 +38,12 @@ locking the plan:
 - the expected red-phase failure and why it should fail
 - open questions, assumptions, and design rationale
 
-The receiving agent resumes at Phase 4 (behavioral tests → red phase →
-`maid validate --mode behavioral` → plan review → plan lock → promotion) using
-only the handoff packet, then implements within the locked scope. Keep contract
-authoring and later implementation review in separate sessions or subagents so
-the review does not inherit blind spots from authoring.
+The receiving agent uses `maid-implement-draft` and resumes at Phase 4
+(behavioral tests → red phase → `maid validate --mode behavioral` → plan
+review → plan lock → promotion) using only the handoff packet, then implements
+within the locked scope. Keep contract authoring and later implementation
+review in separate sessions or subagents so the review does not inherit
+blind spots from authoring.
 
 Check repository guidance (e.g. CLAUDE.md / AGENTS.md) for whether a repo sets
 handoff mode as the default for a given agent. Absent such guidance, default to

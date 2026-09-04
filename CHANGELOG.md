@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.27.4] - 2026-09-02
+
+### Added
+- **Draft-resume skill** — Ship `maid-implement-draft` through Claude and Codex `maid init` payloads as the receiving skill for planner Planning Handoff Mode. A `manifests/drafts/*.manifest.yaml` child is hardened, locked, and promoted, then implementation and review stay on the existing phase skills. Already-promoted contracts still use `maid-implementer`. `maid init --check` reports older instruction payloads as stale.
+
+### Fixed
+- **Draft-resume verification inventory** — Register the packaged Claude and Codex `maid-implement-draft` skills in the verify-payload inventory so distribution checks accept the newly shipped workflow and CI remains green.
+- **Generated cache ignores** — Keep `.maid/cache/` in the managed `maid init` gitignore block across first-time setup, upgrades, force refreshes, and idempotent re-runs so runtime cache files do not appear as untracked project changes.
+- **Python function signature validation** — Emit `E303` when a declared parameter is missing instead of silently accepting swapped or reduced arities. Positional-only and keyword-only parameters are now collected, conventional method receivers remain compatible, extra implementation-only parameters remain allowed, and nested `Union` forms compare consistently with pipe unions.
+- **Installed-package knockout scans** — Prevent retained-virtual-environment knockout rebinding from mistaking its own reserved marker for leftover metadata and emitting `E712`, while preserving fail-closed detection of genuine incomplete rewrites.
+- **Strict-signature CI fixtures** — Align changed-scope and Svelte fixture manifests with the zero-argument artifacts they create, restoring their intended validation scenarios under the stricter `E303` checks.
+
 ## [2.27.3] - 2026-09-01
 
 ### Fixed
@@ -1314,6 +1326,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.27.4]: https://github.com/mamertofabian/maid-runner/compare/v2.27.3...v2.27.4
 [2.27.3]: https://github.com/mamertofabian/maid-runner/compare/v2.27.2...v2.27.3
 [2.27.2]: https://github.com/mamertofabian/maid-runner/compare/v2.27.1...v2.27.2
 [2.27.1]: https://github.com/mamertofabian/maid-runner/compare/v2.27.0...v2.27.1

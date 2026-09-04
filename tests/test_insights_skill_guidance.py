@@ -20,6 +20,7 @@ AUDITOR_ANCHOR = "Outcome Insights Cadence"
 CODEX_DISTRIBUTABLE_SKILLS = [
     "maid-planner",
     "maid-plan-review",
+    "maid-implement-draft",
     "maid-implementer",
     "maid-implementation-review",
     "maid-evolver",

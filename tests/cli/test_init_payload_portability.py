@@ -52,6 +52,7 @@ def test_init_adds_generated_advisory_paths_to_gitignore_without_clobbering(
         ".maid/run-review-request.json",
         ".maid/run-review.json",
         ".maid/run-reviews/",
+        ".maid/cache/",
     ):
         assert path in updated
     assert updated.count("# BEGIN MAID RUNNER GENERATED FILES") == 1
@@ -59,6 +60,35 @@ def test_init_adds_generated_advisory_paths_to_gitignore_without_clobbering(
 
     assert main(["init", "--tool", "generic", "--force"]) == 0
     assert gitignore.read_text() == updated
+
+
+def test_init_upgrades_managed_gitignore_to_include_maid_cache(
+    tmp_path: Path, monkeypatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    gitignore = tmp_path / ".gitignore"
+    gitignore.write_text(
+        "dist/\n"
+        "# BEGIN MAID RUNNER GENERATED FILES\n"
+        ".maid/outcomes.json\n"
+        ".maid/outcomes-digest.json\n"
+        ".maid/outcomes-digest.md\n"
+        ".maid/outcomes-enrichment-prompt.json\n"
+        ".maid/run-review-request.json\n"
+        ".maid/run-review.json\n"
+        ".maid/run-reviews/\n"
+        "# END MAID RUNNER GENERATED FILES\n"
+    )
+
+    assert main(["init", "--tool", "generic"]) == 0
+
+    updated = gitignore.read_text()
+    assert updated.startswith("dist/\n")
+    assert ".maid/cache/" in updated
+    assert ".maid/outcomes.json" in updated
+    assert ".maid/run-reviews/" in updated
+    assert updated.count("# BEGIN MAID RUNNER GENERATED FILES") == 1
+    assert updated.count("# END MAID RUNNER GENERATED FILES") == 1
 
 
 def test_init_uses_existing_project_maid_wrapper_for_generated_hooks(

@@ -3,6 +3,7 @@
     "distributable": [
       "maid-planner",
       "maid-plan-review",
+      "maid-implement-draft",
       "maid-implementer",
       "maid-implementation-review",
       "maid-evolver",
@@ -14,6 +15,7 @@
     "descriptions": {
       "maid-planner": "Plan MAID changes with manifest-derived Outcome recall",
       "maid-plan-review": "Review a MAID manifest and behavioral tests before implementation",
+      "maid-implement-draft": "Harden, lock, promote, and implement a MAID draft manifest",
       "maid-implementer": "Implement approved MAID manifests with Outcome recall context",
       "maid-implementation-review": "Review MAID implementations and Outcome record needs",
       "maid-evolver": "Intentionally evolve existing MAID manifest contracts",
@@ -27,6 +29,7 @@
     "distributable": [
       "maid-planner/agents/openai.yaml",
       "maid-plan-review/agents/openai.yaml",
+      "maid-implement-draft/agents/openai.yaml",
       "maid-implementer/agents/openai.yaml",
       "maid-implementation-review/agents/openai.yaml",
       "maid-evolver/agents/openai.yaml",

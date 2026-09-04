@@ -2,13 +2,13 @@
   "manifest_path": "manifests/092-04-align-risk-v1-guidance.manifest.yaml",
   "manifest_hash": "sha256-contract:60fd8bd573de86ea42950ace0a6b78ba6f6a29e93bc90f4b8e36c23ee3059bfa",
   "test_hashes": {
-    "tests/ci/test_claude_sync.py": "sha256-pyast:866eef83a0b92c47a2b7cb647c7542523502fb53df2f3cc2eb056e325a43d3bd",
-    "tests/test_agent_payload_distribution.py": "sha256-pyast:0f0983482a2286b9c2811b843effb4bc913b5c62e2000e9faec8676651d1fe2c",
-    "tests/test_coverage_recommendation_guidance.py": "sha256-pyast:511525bbff53e74a118a835c7c5c6429dcdf405495e845e9ef7d709e047e6eeb",
-    "tests/test_brownfield_onboarding_docs.py": "sha256-pyast:ddba3c6e92c53bb8c99b55b924a38f2bcdd4261ab9cb4070aa27a9b15f737c68"
+    "tests/ci/test_claude_sync.py": "sha256-pyast:v2:dd725b112d49b41e4cfd445c297ddc3501f7ffeb650e3f710508fac09f2bc4c4",
+    "tests/test_agent_payload_distribution.py": "sha256-pyast:v2:a95404b58b1be8cc25b059b8c8b2c737d33130e5b1d0394c02721cefa9d1a667",
+    "tests/test_coverage_recommendation_guidance.py": "sha256-pyast:v2:b1130c7c69ec58da8e679fd413122eec2ed952a12b7dbd7cab7da261e9846805",
+    "tests/test_brownfield_onboarding_docs.py": "sha256-pyast:v2:56ae826bc331d4932a0c7576c3c7de20836532e4ba8aa778fa4513cf58681fa4"
   },
   "created_at": "2026-07-31T01:28:02.946671+00:00",
-  "revision": 4,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:dfb59682caf0305df53cf55abbff738f16ce5dec93ee9dd73e860e26604cec78",
@@ -76,6 +76,26 @@
         "files_added": [
           "edit:maid_runner/instruction_payload.py"
         ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:60fd8bd573de86ea42950ace0a6b78ba6f6a29e93bc90f4b8e36c23ee3059bfa",
+      "prior_test_hashes": {
+        "tests/ci/test_claude_sync.py": "sha256-pyast:866eef83a0b92c47a2b7cb647c7542523502fb53df2f3cc2eb056e325a43d3bd",
+        "tests/test_agent_payload_distribution.py": "sha256-pyast:0f0983482a2286b9c2811b843effb4bc913b5c62e2000e9faec8676651d1fe2c",
+        "tests/test_coverage_recommendation_guidance.py": "sha256-pyast:511525bbff53e74a118a835c7c5c6429dcdf405495e845e9ef7d709e047e6eeb",
+        "tests/test_brownfield_onboarding_docs.py": "sha256-pyast:ddba3c6e92c53bb8c99b55b924a38f2bcdd4261ab9cb4070aa27a9b15f737c68"
+      },
+      "revised_at": "2026-09-02T02:16:56.437847+00:00",
+      "reason": "Refresh shared Codex payload test hashes after adding maid-implement-draft to the distributable skill set",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
         "files_removed": [],
         "validate_commands_added": [],
         "validate_commands_removed": []
@@ -282,6 +302,7 @@
     ],
     "validate_commands": [
       "uv run python -m pytest tests/test_brownfield_onboarding_docs.py tests/test_coverage_recommendation_guidance.py tests/ci/test_claude_sync.py tests/test_agent_payload_distribution.py -v"
-    ]
+    ],
+    "acceptance_commands": []
   }
 }

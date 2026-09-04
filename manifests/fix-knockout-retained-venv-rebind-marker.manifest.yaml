@@ -1,0 +1,117 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Knockout retained-venv rebind must not E712 solely because installed maid_runner contains the rebind marker definition"
+type: fix
+created: "2026-09-02T10:13:27Z"
+metadata:
+  bug_report: ~/.maid/bug-report/20260901-091712-life-dashboard-knockout-reserved-marker.md
+  tags:
+    - knockout
+    - e712
+    - retained-venv
+    - snapshot
+  priority: high
+description: |
+  Retained knockout dependency rebinding scans editable metadata for the
+  reserved placeholder bytes before rewriting project-root paths. The same
+  contiguous ASCII sequence is embedded as a literal in
+  maid_runner/core/_knockout_snapshot.py, so any project virtual environment
+  that installs maid_runner matches the leftover guard and fails with E712
+  before mutation.
+
+  Construct the marker at runtime via bytes.fromhex so neither module source
+  nor marshaled bytecode contains the contiguous sentinel. Keep the three-step
+  rewrite and the fail-closed leftover check so a genuine incomplete rebind
+  still raises.
+temptations:
+  - risk: "Do not delete the leftover-marker guard to silence the self-hit."
+    instead: "Keep if sentinel in content fail-closed behavior for true incomplete rebinds."
+  - risk: "Do not exclude maid_runner paths from the metadata walk as the sole fix."
+    instead: "Remove the contiguous literal from the installed module source via runtime construction."
+  - risk: "Do not use string or bytes concatenation to build the marker."
+    instead: "Use bytes.fromhex because CPython constant-folds concatenated parts into one literal."
+  - risk: "Do not test private helpers without observable rebind success and failure."
+    instead: "Drive _rebind_copied_python_project_root through planted venv fixtures and assert raise or success."
+files:
+  create:
+    - path: tests/core/test_knockout_rebind_marker.py
+      artifacts:
+        - kind: test_function
+          name: test_knockout_snapshot_module_source_does_not_embed_rebind_marker
+          args: []
+          returns: None
+          source_scenario: "The knockout snapshot module is installed in consumer project virtual environments."
+          actions:
+            - type: api_call
+              subject:
+                module: maid_runner.core._knockout_snapshot
+          expected:
+            behavior: "Module source does not contain the contiguous ASCII rebind marker string."
+        - kind: test_function
+          name: test_rebind_succeeds_when_venv_contains_installed_snapshot_module
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "A retained venv site-packages tree contains the installed knockout snapshot module while project roots differ."
+          actions:
+            - type: api_call
+              subject:
+                function: _rebind_copied_python_project_root
+          expected:
+            behavior: "Rebind completes without raising the reserved rebind marker error."
+        - kind: test_function
+          name: test_rebind_fails_closed_on_leftover_runtime_marker
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          source_scenario: "Editable metadata already contains the runtime rebind marker bytes from an incomplete prior rewrite."
+          actions:
+            - type: api_call
+              subject:
+                function: _rebind_copied_python_project_root
+          expected:
+            behavior: "Rebind raises RuntimeError with the reserved rebind marker message."
+  scope:
+    - path: maid_runner/core/_knockout_snapshot.py
+      reason: "Construct the retained-venv rebind marker at runtime and keep the leftover guard."
+  read:
+    - docs/troubleshooting.md
+validate:
+  - ["uv", "run", "python", "-m", "pytest", "-q", "tests/core/test_knockout_rebind_marker.py"]
+outcome:
+  status: completed
+  completed_at: "2026-09-02T10:20:00Z"
+  summary: "Retained-venv knockout rebind no longer self-hits E712 when maid_runner is installed in the project virtual environment, while leftover marker detection remains fail-closed."
+  rationale: "The contiguous ASCII sentinel was embedded in module source and therefore matched its own leftover guard during metadata walks. Constructing the same bytes at runtime via fromhex removes the self-hit without weakening incomplete-rebind detection."
+  lessons:
+    - lesson_type: validation-trust
+      summary: "Reserved rewrite placeholders must not appear as contiguous literals in modules that are themselves scanned during the rewrite preflight."
+      tags: [knockout, e712, retained-venv, self-hit]
+      paths:
+        - maid_runner/core/_knockout_snapshot.py
+        - tests/core/test_knockout_rebind_marker.py
+    - lesson_type: contract-scope
+      summary: "Behavioral tests that call private rebind helpers are acceptable when the manifest documents the internal seam and fixtures reproduce the installed-package self-hit scenario."
+      tags: [knockout, behavioral-tests]
+      paths:
+        - tests/core/test_knockout_rebind_marker.py
+  review_notes:
+    - source: independent-reviewer-knockout-marker
+      severity: ready
+      summary: "Independent review found no blocking issues; advisories were hardcoded python3.13 fixture paths and missing Outcome before capture."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/test_knockout_rebind_marker.py]
+      status: passed
+      summary: "Focused rebind marker suite passed 3 tests."
+    - command: [uv, run, maid, validate, manifests/fix-knockout-retained-venv-rebind-marker.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "Promoted manifest passed implementation validation."
+    - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, 1daf0188e75b888cc8ea8d8568ef9502247ff635]
+      status: passed
+      summary: "Deep task-scoped verify passed 11 stages with only pre-existing E307 warnings."

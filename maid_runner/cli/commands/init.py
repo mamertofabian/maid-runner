@@ -49,6 +49,7 @@ _MAID_GENERATED_IGNORE_PATHS = (
     ".maid/run-review-request.json",
     ".maid/run-review.json",
     ".maid/run-reviews/",
+    ".maid/cache/",
 )
 _CHECKED_AGENT_MANIFESTS = {
     "claude": Path(".claude/manifest.json"),
@@ -1404,7 +1405,10 @@ def _render_claude_md_section(manifest: dict) -> str:
         "For new features, bug fixes, and refactors, plan with "
         "`maid-planner`, review with `maid-plan-review`, implement with "
         "`maid-implementer`, and review the result with "
-        "`maid-implementation-review` before handoff.\n\n"
+        "`maid-implementation-review` before handoff. "
+        "When continuing from `manifests/drafts/*.manifest.yaml`, use "
+        "`maid-implement-draft` to harden, lock, promote, implement, review, "
+        "and capture Outcome.\n\n"
         f"{_render_validator_plugin_guidance()}"
         f"{_render_draft_outcome_guidance()}"
         f"{agent_text}\n"
@@ -1429,7 +1433,10 @@ def _render_agents_md_section(manifest: dict) -> str:
         f"{skills}.\n\n"
         "For new features, bug fixes, and refactors, plan with `maid-planner`, "
         "review with `maid-plan-review`, implement with `maid-implementer`, and "
-        "review the result with `maid-implementation-review` before handoff.\n\n"
+        "review the result with `maid-implementation-review` before handoff. "
+        "When continuing from `manifests/drafts/*.manifest.yaml`, use "
+        "`maid-implement-draft` to harden, lock, promote, implement, review, "
+        "and capture Outcome.\n\n"
         "Before editing a file during an active MAID task, run "
         "`maid hook scope-check --path <file>` and treat exit code 2 as "
         "out-of-scope. This pre-edit hook check is advisory and does not "

@@ -17,6 +17,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 CODEX_DISTRIBUTABLE_SKILLS = [
     "maid-planner",
     "maid-plan-review",
+    "maid-implement-draft",
     "maid-implementer",
     "maid-implementation-review",
     "maid-evolver",

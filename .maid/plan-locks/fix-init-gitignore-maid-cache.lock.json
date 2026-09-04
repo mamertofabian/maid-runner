@@ -1,0 +1,177 @@
+{
+  "manifest_path": "manifests/fix-init-gitignore-maid-cache.manifest.yaml",
+  "manifest_hash": "sha256-contract:fc405a674873462a405a6bacaf70b2bc1af5d430631040b22bd1aec20ba07c50",
+  "test_hashes": {
+    "tests/cli/test_init_payload_portability.py": "sha256-pyast:v2:dd65b53bd7df51414718770fcc73646db987b0d30c782be73dcc31cd10d79ea0"
+  },
+  "created_at": "2026-09-02T03:09:31.458881+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:85d6676dd213f4016f988248c6cf15520738ad26acc3cda358ab49430866da61",
+      "prior_test_hashes": {
+        "tests/cli/test_init_payload_portability.py": "sha256-pyast:v2:dd65b53bd7df51414718770fcc73646db987b0d30c782be73dcc31cd10d79ea0"
+      },
+      "revised_at": "2026-09-02T03:09:32.133054+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-init-gitignore-maid-cache.manifest.yaml -> manifests/fix-init-gitignore-maid-cache.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:afc575dd75ee5dd537169c1b876bf8043941c3a9808ab82fdfb988de5d0a134a",
+      "prior_test_hashes": {
+        "tests/cli/test_init_payload_portability.py": "sha256-pyast:v2:dd65b53bd7df51414718770fcc73646db987b0d30c782be73dcc31cd10d79ea0"
+      },
+      "revised_at": "2026-09-02T03:12:18.678332+00:00",
+      "reason": "E230: run full behavioral test file without -k filter",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/cli/test_init_payload_portability.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/cli/test_init_payload_portability.py -k gitignore"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:fc405a674873462a405a6bacaf70b2bc1af5d430631040b22bd1aec20ba07c50",
+      "prior_test_hashes": {
+        "tests/cli/test_init_payload_portability.py": "sha256-pyast:v2:dd65b53bd7df51414718770fcc73646db987b0d30c782be73dcc31cd10d79ea0"
+      },
+      "revised_at": "2026-09-02T03:14:32.798821+00:00",
+      "reason": "capture Outcome after approved implementation review",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-02T03:12:19.167656+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_init_payload_portability.py",
+        "exit_code": 1,
+        "output_tail": "/home/atomrem/projects/codefrost-dev/maid-runner/tests/cli/test_init_payload_portability.py:87: AssertionError\n----------------------------- Captured stdout call -----------------------------\nInitialized MAID in /tmp/pytest-of-atomrem/pytest-78/test_init_upgrades_managed_git0\n  Created: manifests/\n  Created: manifests/drafts/\n  Created: .maidrc.yaml\n  Created: docs/draft-manifest-workflow.md\n  Created: docs/manifest-outcome-records.md\n  Created: manifests/drafts/README.md\n  Created: .pre-commit-config.yaml\n  Current: .gitignore\n  Ensure your Git hook runner invokes .pre-commit-config.yaml (standard setup: pre-commit install).\n  If core.hooksPath is configured, keep its dispatcher and have it run the project pre-commit configuration.\n\nNext steps:\n  maid howto quickstart\n=========================== short test summary info ============================\nFAILED tests/cli/test_init_payload_portability.py::test_init_adds_generated_advisory_paths_to_gitignore_without_clobbering\nFAILED tests/cli/test_init_payload_portability.py::test_init_upgrades_managed_gitignore_to_include_maid_cache\n2 failed, 4 passed in 0.28s",
+        "classification": "red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/fix-init-payload-portability.lock.json",
+      ".maid/plan-locks/fix-windows-init-portability.lock.json",
+      ".maid/plan-locks/snapshot-cli-commands--main-2.lock.json",
+      "manifests/fix-init-payload-portability.manifest.yaml"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/cli/test_init_payload_portability.py:test_init_adds_generated_advisory_paths_to_gitignore_without_clobbering",
+      "tests/cli/test_init_payload_portability.py:test_init_adds_generated_advisory_paths_to_gitignore_without_clobbering:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_payload_portability.py:test_init_adds_generated_advisory_paths_to_gitignore_without_clobbering:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_payload_portability.py:test_init_adds_generated_advisory_paths_to_gitignore_without_clobbering:kind=test_function",
+      "tests/cli/test_init_payload_portability.py:test_init_adds_generated_advisory_paths_to_gitignore_without_clobbering:returns=None",
+      "tests/cli/test_init_payload_portability.py:test_init_upgrades_managed_gitignore_to_include_maid_cache",
+      "tests/cli/test_init_payload_portability.py:test_init_upgrades_managed_gitignore_to_include_maid_cache:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_payload_portability.py:test_init_upgrades_managed_gitignore_to_include_maid_cache:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_payload_portability.py:test_init_upgrades_managed_gitignore_to_include_maid_cache:kind=test_function",
+      "tests/cli/test_init_payload_portability.py:test_init_upgrades_managed_gitignore_to_include_maid_cache:returns=None"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "tests/cli/test_init_payload_portability.py"
+      ],
+      "read": [],
+      "scope": [
+        "maid_runner/cli/commands/init.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "tests/cli/test_init_payload_portability.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_init_adds_generated_advisory_paths_to_gitignore_without_clobbering",
+              "description": "Init preserves user rules and includes `.maid/cache/` in the bounded MAID-managed ignore block with the other advisory paths.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_upgrades_managed_gitignore_to_include_maid_cache",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A consuming repository already has a MAID-managed ignore block that predates `.maid/cache/`.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "export": "main"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Init updates the existing managed block to include `.maid/cache/` without removing prior advisory paths or user rules outside the markers."
+              }
+            }
+          ]
+        }
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/init.py",
+          "reason": "Extend the private managed gitignore inventory without changing cmd_init's public signature."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_init_payload_portability.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_init_payload_portability.py"
+    ],
+    "acceptance_commands": []
+  }
+}

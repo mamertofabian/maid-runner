@@ -7,6 +7,10 @@ description: Implement code against an approved MAID manifest. Loads only the de
 
 Execute code implementation against an approved MAID manifest. The manifest is the contract.
 
+When the starting point is still `manifests/drafts/*.manifest.yaml`, use
+`maid-implement-draft` to harden, lock, and promote first. This skill implements
+an already-approved (typically promoted) contract.
+
 ## Rules
 
 - Load the manifest first.

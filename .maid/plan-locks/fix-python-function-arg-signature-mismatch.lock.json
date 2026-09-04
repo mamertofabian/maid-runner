@@ -1,0 +1,360 @@
+{
+  "manifest_path": "manifests/fix-python-function-arg-signature-mismatch.manifest.yaml",
+  "manifest_hash": "sha256-contract:461fd9800000c39ec79c14b257740c40e88c9ad1ed81cd7251f741ba1baea373",
+  "test_hashes": {
+    "tests/core/validation/test_implementation_basics.py": "sha256-pyast:v2:7b0c96b8eb84e2e2b39af8e940537febe0384aa41d2cc67c159852f1c6f6ad00",
+    "tests/core/test_type_compare.py": "sha256-pyast:v2:5ed287c46153e44029029e6953c00f0e90be16e33faa01486cec2811991825a7"
+  },
+  "created_at": "2026-09-02T09:29:25.817363+00:00",
+  "revision": 6,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:04f83d5dd3aa488ef81081d238e75ce5883c1ea05af3f16cf3a440931dd52698",
+      "prior_test_hashes": {
+        "tests/core/validation/test_implementation_basics.py": "sha256-pyast:v2:a1fc627b1143e8a677e71c779d9142b1daf253608de33d4c9a550c16fd39c6f5"
+      },
+      "revised_at": "2026-09-02T09:29:33.542732+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-python-function-arg-signature-mismatch.manifest.yaml -> manifests/fix-python-function-arg-signature-mismatch.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2ad7bf0f5f827cefb84e3eee5aa4285abee30fd566ee6b7168c73af93a25767d",
+      "prior_test_hashes": {
+        "tests/core/validation/test_implementation_basics.py": "sha256-pyast:v2:a1fc627b1143e8a677e71c779d9142b1daf253608de33d4c9a550c16fd39c6f5"
+      },
+      "revised_at": "2026-09-02T09:34:19.516413+00:00",
+      "reason": "Include Python keyword-only parameter collection and method self/cls E303 tolerance so historical keyword-only contracts do not false-fail.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_implementation_basics.py:test_keyword_only_python_parameters_match_declared_signature",
+          "tests/core/validation/test_implementation_basics.py:test_keyword_only_python_parameters_match_declared_signature:arg=project:type=None:default=None",
+          "tests/core/validation/test_implementation_basics.py:test_keyword_only_python_parameters_match_declared_signature:kind=test_function",
+          "tests/core/validation/test_implementation_basics.py:test_keyword_only_python_parameters_match_declared_signature:returns=None",
+          "tests/core/validation/test_implementation_basics.py:test_method_self_in_manifest_does_not_report_signature_mismatch",
+          "tests/core/validation/test_implementation_basics.py:test_method_self_in_manifest_does_not_report_signature_mismatch:arg=project:type=None:default=None",
+          "tests/core/validation/test_implementation_basics.py:test_method_self_in_manifest_does_not_report_signature_mismatch:kind=test_function",
+          "tests/core/validation/test_implementation_basics.py:test_method_self_in_manifest_does_not_report_signature_mismatch:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:maid_runner/validators/_python_implementation.py"
+        ],
+        "files_removed": [
+          "read:maid_runner/validators/_python_implementation.py"
+        ],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/core/validation/test_implementation_basics.py -k 'signature_mismatch or extra_implementation_only_python_parameter or matching_python_function_signature or python_signature_type_mismatch or keyword_only_python_parameters or method_self_in_manifest'"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/core/validation/test_implementation_basics.py -k 'signature_mismatch or extra_implementation_only_python_parameter or matching_python_function_signature or python_signature_type_mismatch'"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:0fdcad9ffc7efbf3d85576968059e6f33f800680dfbb14b6a6bb53bd336abc30",
+      "prior_test_hashes": {
+        "tests/core/validation/test_implementation_basics.py": "sha256-pyast:v2:7b0c96b8eb84e2e2b39af8e940537febe0384aa41d2cc67c159852f1c6f6ad00"
+      },
+      "revised_at": "2026-09-02T09:37:42.664914+00:00",
+      "reason": "Flatten nested Union type strings so keyword-only BitOr annotations match pipe-form manifest declarations without false E302.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_type_compare.py:test_nested_union_matches_pipe_union_type_annotation",
+          "tests/core/test_type_compare.py:test_nested_union_matches_pipe_union_type_annotation:kind=test_function",
+          "tests/core/test_type_compare.py:test_nested_union_matches_pipe_union_type_annotation:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:tests/core/test_type_compare.py",
+          "scope:maid_runner/core/_type_compare.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/core/validation/test_implementation_basics.py tests/core/test_type_compare.py -k 'signature_mismatch or extra_implementation_only_python_parameter or matching_python_function_signature or python_signature_type_mismatch or keyword_only_python_parameters or method_self_in_manifest or nested_union_matches_pipe'"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/core/validation/test_implementation_basics.py -k 'signature_mismatch or extra_implementation_only_python_parameter or matching_python_function_signature or python_signature_type_mismatch or keyword_only_python_parameters or method_self_in_manifest'"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:bd8870e101feb752cce2c84a1c50456d237efc83b9cd0bbcab22397c324f7090",
+      "prior_test_hashes": {
+        "tests/core/validation/test_implementation_basics.py": "sha256-pyast:v2:7b0c96b8eb84e2e2b39af8e940537febe0384aa41d2cc67c159852f1c6f6ad00",
+        "tests/core/test_type_compare.py": "sha256-pyast:v2:5ed287c46153e44029029e6953c00f0e90be16e33faa01486cec2811991825a7"
+      },
+      "revised_at": "2026-09-02T09:40:43.203148+00:00",
+      "reason": "Drop pytest -k from validate so E230 recognizes both behavioral test files as executed.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/core/validation/test_implementation_basics.py tests/core/test_type_compare.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/core/validation/test_implementation_basics.py tests/core/test_type_compare.py -k 'signature_mismatch or extra_implementation_only_python_parameter or matching_python_function_signature or python_signature_type_mismatch or keyword_only_python_parameters or method_self_in_manifest or nested_union_matches_pipe'"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:461fd9800000c39ec79c14b257740c40e88c9ad1ed81cd7251f741ba1baea373",
+      "prior_test_hashes": {
+        "tests/core/validation/test_implementation_basics.py": "sha256-pyast:v2:7b0c96b8eb84e2e2b39af8e940537febe0384aa41d2cc67c159852f1c6f6ad00",
+        "tests/core/test_type_compare.py": "sha256-pyast:v2:5ed287c46153e44029029e6953c00f0e90be16e33faa01486cec2811991825a7"
+      },
+      "revised_at": "2026-09-02T09:43:44.995880+00:00",
+      "reason": "Capture completed Outcome after independent implementation review.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-02T09:40:43.684256+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/validation/test_implementation_basics.py tests/core/test_type_compare.py",
+        "exit_code": 1,
+        "output_tail": "        result = engine.validate(manifest_path, mode=ValidationMode.IMPLEMENTATION)\n    \n>       assert result.success is False\nE       AssertionError: assert True is False\nE        +  where True = ValidationResult(success=True, manifest_slug='add-snapshots', manifest_path='/tmp/pytest-of-atomrem/pytest-267/test_sw...tionMode.IMPLEMENTATION: 'implementation'>, errors=[], warnings=[], file_tracking=None, duration_ms=1.7625330001465045).success\n\ntests/core/validation/test_implementation_basics.py:916: AssertionError\n_____________ test_nested_union_matches_pipe_union_type_annotation _____________\n\n    def test_nested_union_matches_pipe_union_type_annotation():\n>       assert types_match(\"int | str | None\", \"Union[Union[int, str], None]\") is True\nE       AssertionError: assert False is True\nE        +  where False = types_match('int | str | None', 'Union[Union[int, str], None]')\n\ntests/core/test_type_compare.py:85: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/validation/test_implementation_basics.py::test_missing_declared_python_parameter_reports_signature_mismatch\nFAILED tests/core/validation/test_implementation_basics.py::test_swapped_python_function_arities_report_signature_mismatch\nFAILED tests/core/test_type_compare.py::test_nested_union_matches_pipe_union_type_annotation\n3 failed, 47 passed in 0.28s",
+        "classification": "red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/snapshot-cli-commands--main-2.lock.json"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/test_type_compare.py:test_nested_union_matches_pipe_union_type_annotation",
+      "tests/core/test_type_compare.py:test_nested_union_matches_pipe_union_type_annotation:kind=test_function",
+      "tests/core/test_type_compare.py:test_nested_union_matches_pipe_union_type_annotation:returns=None",
+      "tests/core/validation/test_implementation_basics.py:test_extra_implementation_only_python_parameter_still_passes",
+      "tests/core/validation/test_implementation_basics.py:test_extra_implementation_only_python_parameter_still_passes:arg=project:type=None:default=None",
+      "tests/core/validation/test_implementation_basics.py:test_extra_implementation_only_python_parameter_still_passes:kind=test_function",
+      "tests/core/validation/test_implementation_basics.py:test_extra_implementation_only_python_parameter_still_passes:returns=None",
+      "tests/core/validation/test_implementation_basics.py:test_keyword_only_python_parameters_match_declared_signature",
+      "tests/core/validation/test_implementation_basics.py:test_keyword_only_python_parameters_match_declared_signature:arg=project:type=None:default=None",
+      "tests/core/validation/test_implementation_basics.py:test_keyword_only_python_parameters_match_declared_signature:kind=test_function",
+      "tests/core/validation/test_implementation_basics.py:test_keyword_only_python_parameters_match_declared_signature:returns=None",
+      "tests/core/validation/test_implementation_basics.py:test_method_self_in_manifest_does_not_report_signature_mismatch",
+      "tests/core/validation/test_implementation_basics.py:test_method_self_in_manifest_does_not_report_signature_mismatch:arg=project:type=None:default=None",
+      "tests/core/validation/test_implementation_basics.py:test_method_self_in_manifest_does_not_report_signature_mismatch:kind=test_function",
+      "tests/core/validation/test_implementation_basics.py:test_method_self_in_manifest_does_not_report_signature_mismatch:returns=None",
+      "tests/core/validation/test_implementation_basics.py:test_missing_declared_python_parameter_reports_signature_mismatch",
+      "tests/core/validation/test_implementation_basics.py:test_missing_declared_python_parameter_reports_signature_mismatch:arg=project:type=None:default=None",
+      "tests/core/validation/test_implementation_basics.py:test_missing_declared_python_parameter_reports_signature_mismatch:kind=test_function",
+      "tests/core/validation/test_implementation_basics.py:test_missing_declared_python_parameter_reports_signature_mismatch:returns=None",
+      "tests/core/validation/test_implementation_basics.py:test_swapped_python_function_arities_report_signature_mismatch",
+      "tests/core/validation/test_implementation_basics.py:test_swapped_python_function_arities_report_signature_mismatch:arg=project:type=None:default=None",
+      "tests/core/validation/test_implementation_basics.py:test_swapped_python_function_arities_report_signature_mismatch:kind=test_function",
+      "tests/core/validation/test_implementation_basics.py:test_swapped_python_function_arities_report_signature_mismatch:returns=None"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "tests/core/test_type_compare.py",
+        "tests/core/validation/test_implementation_basics.py"
+      ],
+      "read": [
+        "docs/troubleshooting.md",
+        "maid_runner/core/result.py"
+      ],
+      "scope": [
+        "maid_runner/core/_implementation_validation.py",
+        "maid_runner/core/_type_compare.py",
+        "maid_runner/validators/_python_implementation.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "tests/core/validation/test_implementation_basics.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_missing_declared_python_parameter_reports_signature_mismatch",
+              "args": [
+                {
+                  "name": "project"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A manifest declares function greet(name: str, title: str) -> str but the implementation only defines greet(name: str) -> str.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "validate"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Implementation validation fails with ErrorCode.SIGNATURE_MISMATCH and a message that names the missing parameter title."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_swapped_python_function_arities_report_signature_mismatch",
+              "args": [
+                {
+                  "name": "project"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A manifest declares load_snapshot(output_dir, snapshot_id, expected_fingerprint) and verify_snapshot(output_dir, snapshot_id), but the implementation has those arities reversed.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "validate"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Implementation validation fails with SIGNATURE_MISMATCH naming the missing expected_fingerprint on load_snapshot."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_extra_implementation_only_python_parameter_still_passes",
+              "args": [
+                {
+                  "name": "project"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A manifest declares greet(name: str) -> str and the implementation defines greet(name: str, ctx: object) -> str.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "validate"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Implementation validation succeeds with no errors because every declared parameter name is present."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_keyword_only_python_parameters_match_declared_signature",
+              "args": [
+                {
+                  "name": "project"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A manifest declares format_message(result: str, *, json_mode: bool) -> str and the implementation defines that exact signature.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "validate"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Implementation validation succeeds because keyword-only json_mode is collected and present."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_method_self_in_manifest_does_not_report_signature_mismatch",
+              "args": [
+                {
+                  "name": "project"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A manifest declares method greet of Greeter with args self and name while the implementation method only exposes name after receiver stripping.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "validate"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Implementation validation succeeds without SIGNATURE_MISMATCH for the conventional self receiver."
+              }
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_type_compare.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_nested_union_matches_pipe_union_type_annotation",
+              "returns": "None",
+              "source_scenario": "One annotation is written as int | str | None and another as Union[Union[int, str], None].",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "types_match"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "types_match returns True in both directions after nested Union flattening."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/result.py",
+        "docs/troubleshooting.md"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_implementation_validation.py",
+          "reason": "Emit E303 from the private comparison seam when a declared parameter name is missing, without expanding the public compare_artifacts API."
+        },
+        {
+          "path": "maid_runner/validators/_python_implementation.py",
+          "reason": "Collect positional-only and keyword-only parameters so declared keyword-only names are visible to E303 comparison."
+        },
+        {
+          "path": "maid_runner/core/_type_compare.py",
+          "reason": "Flatten nested Union members so BitOr-collected keyword-only annotations compare equal to pipe-form manifest types."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_type_compare.py",
+      "tests/core/validation/test_implementation_basics.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/validation/test_implementation_basics.py tests/core/test_type_compare.py"
+    ],
+    "acceptance_commands": []
+  }
+}

@@ -1,0 +1,201 @@
+{
+  "manifest_path": "manifests/fix-knockout-retained-venv-rebind-marker.manifest.yaml",
+  "manifest_hash": "sha256-contract:13d6809de3d922a09f537d9fd775f185615b998a9c69c71b8e4edc77c539e28a",
+  "test_hashes": {
+    "tests/core/test_knockout_rebind_marker.py": "sha256-pyast:v2:b4fd411fdffbabda04f4fc46591633643e3ec2a76c1f40757897c7ac373b6d2b"
+  },
+  "created_at": "2026-09-02T10:13:27.406410+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:ade7885d0d89b301847845c729556202773963e92abfbd92eec89fa29ceb1a43",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:4dc08f1cc7886ba96a6c50cc9f4fbe1b6f20f84bc547b52075afacf361688eb7",
+        "tests/core/test_retained_worker_snapshots.py": "sha256-pyast:v2:1f5d5b222d1b09d0ea1f6abbbbc48978e9f19cea5fef49d6a5452fde1f1c3a74",
+        "tests/core/test_knockout_rebind_marker.py": "sha256-pyast:v2:b4fd411fdffbabda04f4fc46591633643e3ec2a76c1f40757897c7ac373b6d2b"
+      },
+      "revised_at": "2026-09-02T10:13:28.002272+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-knockout-retained-venv-rebind-marker.manifest.yaml -> manifests/fix-knockout-retained-venv-rebind-marker.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:e511c1c79948057dccf9ca8fd6a577f8f92128395ce51f2cf1c5a6d83c168687",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:4dc08f1cc7886ba96a6c50cc9f4fbe1b6f20f84bc547b52075afacf361688eb7",
+        "tests/core/test_retained_worker_snapshots.py": "sha256-pyast:v2:1f5d5b222d1b09d0ea1f6abbbbc48978e9f19cea5fef49d6a5452fde1f1c3a74",
+        "tests/core/test_knockout_rebind_marker.py": "sha256-pyast:v2:b4fd411fdffbabda04f4fc46591633643e3ec2a76c1f40757897c7ac373b6d2b"
+      },
+      "revised_at": "2026-09-02T10:14:57.390142+00:00",
+      "reason": "Drop read-listed behavioral test files from files.read so validate command satisfies E230.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [
+          "read:tests/core/test_knockout_snapshot_template.py",
+          "read:tests/core/test_retained_worker_snapshots.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:13d6809de3d922a09f537d9fd775f185615b998a9c69c71b8e4edc77c539e28a",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_rebind_marker.py": "sha256-pyast:v2:b4fd411fdffbabda04f4fc46591633643e3ec2a76c1f40757897c7ac373b6d2b"
+      },
+      "revised_at": "2026-09-02T10:17:28.615832+00:00",
+      "reason": "Capture completed Outcome after independent implementation review.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-02T10:14:57.733251+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_knockout_rebind_marker.py",
+        "exit_code": 1,
+        "output_tail": "                    continue\n                if not is_launcher_directory and path.suffix not in metadata_suffixes:\n                    continue\n                try:\n                    content = path.read_bytes()\n                except OSError as exc:\n                    raise RuntimeError(\n                        f\"Snapshot could not inspect retained dependency metadata: {path}\"\n                    ) from exc\n                if sentinel in content:\n>                   raise RuntimeError(\n                        \"Retained dependency metadata contains the reserved rebind marker\"\n                    )\nE                   RuntimeError: Retained dependency metadata contains the reserved rebind marker\n\nmaid_runner/core/_knockout_snapshot.py:1039: RuntimeError\n=========================== short test summary info ============================\nFAILED tests/core/test_knockout_rebind_marker.py::test_knockout_snapshot_module_source_does_not_embed_rebind_marker\nFAILED tests/core/test_knockout_rebind_marker.py::test_rebind_succeeds_when_venv_contains_installed_snapshot_module\n2 failed, 1 passed in 0.15s",
+        "classification": "red"
+      }
+    ],
+    "sibling_dirty_paths": []
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/test_knockout_rebind_marker.py:test_knockout_snapshot_module_source_does_not_embed_rebind_marker",
+      "tests/core/test_knockout_rebind_marker.py:test_knockout_snapshot_module_source_does_not_embed_rebind_marker:kind=test_function",
+      "tests/core/test_knockout_rebind_marker.py:test_knockout_snapshot_module_source_does_not_embed_rebind_marker:returns=None",
+      "tests/core/test_knockout_rebind_marker.py:test_rebind_fails_closed_on_leftover_runtime_marker",
+      "tests/core/test_knockout_rebind_marker.py:test_rebind_fails_closed_on_leftover_runtime_marker:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_rebind_marker.py:test_rebind_fails_closed_on_leftover_runtime_marker:kind=test_function",
+      "tests/core/test_knockout_rebind_marker.py:test_rebind_fails_closed_on_leftover_runtime_marker:returns=None",
+      "tests/core/test_knockout_rebind_marker.py:test_rebind_succeeds_when_venv_contains_installed_snapshot_module",
+      "tests/core/test_knockout_rebind_marker.py:test_rebind_succeeds_when_venv_contains_installed_snapshot_module:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_knockout_rebind_marker.py:test_rebind_succeeds_when_venv_contains_installed_snapshot_module:kind=test_function",
+      "tests/core/test_knockout_rebind_marker.py:test_rebind_succeeds_when_venv_contains_installed_snapshot_module:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_knockout_rebind_marker.py"
+      ],
+      "edit": [],
+      "read": [
+        "docs/troubleshooting.md"
+      ],
+      "scope": [
+        "maid_runner/core/_knockout_snapshot.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_knockout_rebind_marker.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_knockout_snapshot_module_source_does_not_embed_rebind_marker",
+              "returns": "None",
+              "source_scenario": "The knockout snapshot module is installed in consumer project virtual environments.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "module": "maid_runner.core._knockout_snapshot"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Module source does not contain the contiguous ASCII rebind marker string."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_rebind_succeeds_when_venv_contains_installed_snapshot_module",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "A retained venv site-packages tree contains the installed knockout snapshot module while project roots differ.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "_rebind_copied_python_project_root"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Rebind completes without raising the reserved rebind marker error."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_rebind_fails_closed_on_leftover_runtime_marker",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None",
+              "source_scenario": "Editable metadata already contains the runtime rebind marker bytes from an incomplete prior rewrite.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "_rebind_copied_python_project_root"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Rebind raises RuntimeError with the reserved rebind marker message."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "docs/troubleshooting.md"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_knockout_snapshot.py",
+          "reason": "Construct the retained-venv rebind marker at runtime and keep the leftover guard."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_knockout_rebind_marker.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_knockout_rebind_marker.py"
+    ],
+    "acceptance_commands": []
+  }
+}

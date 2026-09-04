@@ -41,24 +41,24 @@ class TestPublicAPIImports:
         changelog = root / "CHANGELOG.md"
         roadmap = root / "docs" / "ROADMAP.md"
 
-        assert __version__ == "2.27.3"
-        assert re.search(r'^version = "2\.27\.3"$', pyproject.read_text(), re.M)
+        assert __version__ == "2.27.4"
+        assert re.search(r'^version = "2\.27\.4"$', pyproject.read_text(), re.M)
         assert re.search(
-            r'\[\[package\]\]\nname = "maid-runner"\nversion = "2\.27\.3"',
+            r'\[\[package\]\]\nname = "maid-runner"\nversion = "2\.27\.4"',
             lockfile.read_text(),
         )
         changelog_text = changelog.read_text()
-        assert "## [2.27.3] - 2026-09-01" in changelog_text
+        assert "## [2.27.4] - 2026-09-02" in changelog_text
         assert (
-            "[2.27.3]: https://github.com/mamertofabian/maid-runner/compare/v2.27.2...v2.27.3"
+            "[2.27.4]: https://github.com/mamertofabian/maid-runner/compare/v2.27.3...v2.27.4"
             in changelog_text
         )
-        assert "Cypress spec option paths" in changelog_text
+        assert "Draft-resume skill" in changelog_text
 
         roadmap_text = roadmap.read_text()
-        assert "**Current Version:** 2.27.3" in roadmap_text
-        assert "**Last Updated:** 2026-09-01" in roadmap_text
-        assert "The local CLI reports `maid 2.27.3`." in roadmap_text
+        assert "**Current Version:** 2.27.4" in roadmap_text
+        assert "**Last Updated:** 2026-09-02" in roadmap_text
+        assert "The local CLI reports `maid 2.27.4`." in roadmap_text
         assert "`maid chain merge`" in roadmap_text
         help_result = subprocess.run(
             ["maid", "--help"],

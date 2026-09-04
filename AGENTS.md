@@ -57,7 +57,8 @@ When the split is used here, the roles are:
    self-review and emits a handoff packet (draft path, scope boundaries,
    declared-artifact intent, planned tests and `validate` commands, expected
    red-phase failure, open questions and rationale) instead of locking.
-2. **Contract hardening (implementing agent):** resume from the handoff packet —
+2. **Contract hardening (implementing agent):** use `maid-implement-draft` to
+   resume from the handoff packet —
    write behavioral tests, confirm the intended red phase, run
    `uv run maid validate <manifest> --mode behavioral`, plan-review, and after
    approval `uv run maid plan lock <manifest>` then

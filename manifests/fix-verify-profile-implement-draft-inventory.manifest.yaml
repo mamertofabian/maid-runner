@@ -1,0 +1,102 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Include maid-implement-draft in the packaged verify-payload inventory so CI stays green"
+type: fix
+created: "2026-09-02T02:52:46Z"
+metadata:
+  tags:
+    - agent-payloads
+    - verification
+    - ci
+  priority: high
+description: |
+  Shipping maid-implement-draft added packaged Claude/Codex skill copies that
+  mention `maid verify`, but PACKAGED_VERIFY_PAYLOADS in
+  tests/cli/test_verify_profile_distribution.py was not updated. CI syncs the
+  Claude payload, the inventory assertion fails, and maid test / maid verify /
+  the Python matrix all fail on that single mismatch.
+
+  Update the packaged inventory (and actionable source-copy sync map) so the
+  new skill is an expected verify-bearing payload.
+temptations:
+  - risk: "Do not silence the inventory assertion or exclude maid-implement-draft from scanning."
+    instead: "Add the packaged Claude and Codex skill paths to PACKAGED_VERIFY_PAYLOADS."
+  - risk: "Do not forget the actionable source-to-packaged sync map for the new skill."
+    instead: "Register both Claude and Codex source copies in ACTIONABLE_SOURCE_COPIES."
+files:
+  edit:
+    - path: tests/cli/test_verify_profile_distribution.py
+      artifacts:
+        - kind: test_function
+          name: test_actionable_payload_commands_use_gate_equivalent_profiles
+          args: []
+          returns: None
+          description: "Expects maid verify --profile handoff --since <baseline> in Claude and Codex maid-implement-draft skill sources, and keeps PACKAGED_VERIFY_PAYLOADS plus ACTIONABLE_SOURCE_COPIES registered for those packaged skills."
+        - kind: test_function
+          name: test_verify_payload_inventory_and_generated_copies_are_synchronized
+          args: []
+          returns: None
+          description: "Found packaged verify payloads match PACKAGED_VERIFY_PAYLOADS including maid_runner Claude and Codex maid-implement-draft SKILL.md paths, and actionable source copies stay byte-identical."
+  read:
+    - .claude/skills/maid-implement-draft/SKILL.md
+    - .codex/skills/maid-implement-draft/SKILL.md
+    - maid_runner/claude/skills/maid-implement-draft/SKILL.md
+    - maid_runner/codex/skills/maid-implement-draft/SKILL.md
+    - manifests/add-maid-implement-draft-skill.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/cli/test_verify_profile_distribution.py
+outcome:
+  status: completed
+  completed_at: "2026-09-02T02:55:00Z"
+  summary: >-
+    Registered packaged Claude and Codex maid-implement-draft SKILL.md paths in
+    PACKAGED_VERIFY_PAYLOADS and ACTIONABLE_SOURCE_COPIES, and asserted their
+    handoff verify profile command, clearing the CI inventory mismatch.
+  rationale: >-
+    CI failed solely because packaged copies that mention maid verify were not
+    listed in the verify-payload inventory after shipping maid-implement-draft.
+    Updating that inventory restores maid test, maid verify, and the Python
+    matrix without changing skill text.
+  agent:
+    model: Cursor Grok 4.6
+    provider: SpaceXAI/Cursor
+    client: cursor
+    skills:
+      - maid-planner
+      - maid-implementer
+      - maid-implementation-review
+    source: "Marketing-name self-report; exact runtime slug was unavailable."
+  lessons:
+    - lesson_type: workflow
+      summary: >-
+        Adding a packaged skill that mentions maid verify requires updating
+        PACKAGED_VERIFY_PAYLOADS and ACTIONABLE_SOURCE_COPIES in the same change,
+        or CI sync will invent extra inventory paths the tests reject.
+      tags: [agent-payloads, verification, ci]
+      paths:
+        - tests/cli/test_verify_profile_distribution.py
+        - maid_runner/claude/skills/maid-implement-draft/SKILL.md
+        - maid_runner/codex/skills/maid-implement-draft/SKILL.md
+  review_notes:
+    - source: local-self-review
+      severity: ready
+      summary: >-
+        Local review confirmed scope stayed on the verify-profile distribution
+        test, inventory and source-copy maps include both packaged skills, the
+        handoff profile phrase is present in the skill bodies, sibling locks
+        were revised, and deep verify passed. Independent subagent review was
+        skipped for this Cursor session.
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/cli/test_verify_profile_distribution.py]
+      status: passed
+      summary: "All 7 verify-profile distribution tests passed."
+    - command: [uv, run, maid, validate, manifests/fix-verify-profile-implement-draft-inventory.manifest.yaml, --mode, implementation]
+      status: passed
+      summary: "Implementation validation passed."
+    - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, HEAD]
+      status: passed
+      summary: "Deep verify passed with zero blocking findings."
