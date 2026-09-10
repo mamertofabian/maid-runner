@@ -1,0 +1,156 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Recognize explicit Deno test commands as behavioral test runners"
+type: fix
+created: "2026-09-10T02:41:02Z"
+metadata:
+  bug_report: ~/.maid/bug-report/20260910-014300-hubb-ops-deno-test-classification.md
+  priority: high
+  tags: [deno, test-runner, command-integrity, e230, hubb-ops]
+description: |
+  Fix the E230 false positive reported by HUBB Ops when a manifest declares an
+  explicit `deno test ... <test-file>` command. Recognize only Deno's `test`
+  subcommand as an executing test runner and scan only its post-subcommand
+  arguments for concrete behavioral test paths.
+
+  This is an additive private-scope evolution of the existing test-runner
+  invocation contract. Public validation and test-runner signatures remain
+  unchanged. Existing selector and non-executing-mode guards continue to apply,
+  Deno script arguments after `--` never count as test targets, and supported
+  option values cannot masquerade as executed test paths. Unrecognized Deno
+  options remain fail-closed for target coverage.
+temptations:
+  - risk: "Do not classify every deno command as a test runner just because the executable is named deno."
+    instead: "Require the exact `deno test` subcommand and prove another Deno subcommand remains E230-blocked."
+  - risk: "Do not bypass E230 merely because a manifest mentions a .test.ts path."
+    instead: "Feed only post-subcommand Deno arguments through the existing concrete-path coverage checks."
+  - risk: "Do not special-case the HUBB Ops repository or weaken selector/non-executing guards."
+    instead: "Extend the shared invocation seam with bounded Deno syntax and reuse the existing fail-closed command-integrity pipeline."
+  - risk: "Do not treat every non-flag Deno argument as an input test path."
+    instead: "Stop target scanning at `--`, skip explicitly supported option values, and reject unknown option syntax rather than guessing whether its next token is a path."
+files:
+  scope:
+    - path: maid_runner/core/_test_runner_invocation.py
+      reason: "Recognize the exact Deno test invocation and expose only its arguments to existing target scanning; no public API changes."
+  create:
+    - path: tests/core/validation/test_deno_test_runner.py
+      artifacts:
+        - kind: test_function
+          name: test_command_integrity_accepts_explicit_deno_test_file
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "The reported deno test command covers its explicitly declared TypeScript behavioral test without E230."
+        - kind: test_function
+          name: test_run_manifest_tests_executes_explicit_deno_test_command
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: monkeypatch, type: MonkeyPatch}
+          returns: None
+          description: "maid test executes the accepted Deno command and reports one passing command."
+        - kind: test_function
+          name: test_command_integrity_rejects_non_test_deno_subcommand
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "A Deno subcommand other than test does not satisfy behavioral test command integrity."
+        - kind: test_function
+          name: test_command_integrity_rejects_non_executing_deno_test_mode
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "A Deno test help invocation cannot prove that the behavioral test executed."
+        - kind: test_function
+          name: test_command_integrity_rejects_filtered_deno_test_run
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "A filtered Deno test invocation cannot prove whole-file behavioral coverage."
+        - kind: test_function
+          name: test_command_integrity_rejects_deno_no_run_mode
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "Deno's --no-run cache-only mode cannot prove that the behavioral test executed."
+        - kind: test_function
+          name: test_command_integrity_ignores_deno_script_argument_test_paths
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "A declared test path after Deno's -- separator is a script argument and cannot satisfy behavioral coverage."
+        - kind: test_function
+          name: test_command_integrity_rejects_deno_option_value_test_path
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "A declared test path used only as --junit-path output cannot satisfy behavioral coverage."
+  read:
+    - maid_runner/core/_test_command_targets.py
+    - maid_runner/core/_validation_test_artifacts.py
+    - maid_runner/core/test_runner.py
+    - manifests/038-13-extract-test-runner-invocation-helper.manifest.yaml
+    - manifests/038-14-extract-test-command-targets-helper.manifest.yaml
+    - manifests/fix-registered-django-test-wrapper.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_deno_test_runner.py
+outcome:
+  status: completed
+  completed_at: "2026-09-10T03:00:28Z"
+  summary: "Recognized explicit Deno test commands for E230 coverage while rejecting non-test subcommands, non-executing and filtered modes, script arguments, option-value paths, and unknown option syntax."
+  rationale: "The implementation extends the shared invocation seam only for the exact `deno test` subcommand. A bounded Deno target scanner supports the reported permission flags, skips the JUnit output path, stops at the script-argument separator, and fails closed on unknown options instead of treating arbitrary non-flag tokens as executed tests."
+  agent:
+    model: GPT-5
+    provider: openai
+    client: codex
+    source: "Self-reported model family; exact runtime slug and reasoning effort were unavailable."
+    skills:
+      - maid-planner
+      - maid-evolver
+      - maid-implement-draft
+      - maid-implementer
+      - maid-implementation-review
+  lessons:
+    - lesson_type: validation-trust
+      summary: "Test-runner recognition must model non-executing modes, option-value boundaries, and argument separators together; recognizing only the executable and subcommand can let non-input paths falsely satisfy execution coverage."
+      tags: [deno, e230, command-integrity, maid-runner-feedback]
+      paths:
+        - maid_runner/core/_test_runner_invocation.py
+        - tests/core/validation/test_deno_test_runner.py
+    - lesson_type: test-design
+      summary: "Command-integrity fixtures must ensure the declared test path appears only in the adversarial argument position being tested, or an accidentally appended real positional target can make the negative scenario meaningless."
+      tags: [behavioral-tests, fixture-design, anti-gaming]
+      paths:
+        - tests/core/validation/test_deno_test_runner.py
+  review_notes:
+    - source: independent-implementation-review-round-1
+      severity: needs-changes
+      summary: "Found three blocking Deno integrity gaps: --no-run was treated as execution, post-- script arguments counted as targets, and --junit-path values could masquerade as test inputs."
+    - source: independent-implementation-review-round-2
+      severity: ready
+      summary: "Found no blockers after review-driven contract revision; scope, lock revision, Deno argument semantics, and target scanning matched the approved manifest. Two optional P2 test-hardening advisories remained non-actionable."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/validation/test_deno_test_runner.py, tests/core/validation/test_test_runner_invocation.py, tests/core/validation/test_test_command_targets.py, tests/core/validation/test_registered_django_test_wrapper.py]
+      status: passed
+      summary: "All 33 Deno and adjacent test-runner classification scenarios passed."
+    - command: [uv, run, maid, validate, manifests/fix-deno-test-command-e230.manifest.yaml, --mode, implementation, --packet]
+      status: passed
+      summary: "Implementation validation passed against plan-lock revision 5."
+    - command: [uv, run, maid, test, --manifest, manifests/fix-deno-test-command-e230.manifest.yaml]
+      status: passed
+      summary: "The manifest validation command passed."
+    - command: [uv, run, maid, validate, --packet]
+      status: passed
+      summary: "All 303 active manifests passed; 364 superseded manifests were skipped."
+    - command: [uv, run, maid, test, --fail-fast]
+      status: passed
+      summary: "All 300 repository manifest commands passed."
+    - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, HEAD]
+      status: passed
+      summary: "All 11 deep verification stages passed with zero blockers; the existing ts_compiler_resolver.cjs E307 warning remained non-blocking."
+    - command: [/home/atomrem/projects/codefrost-dev/maid-runner/.venv/bin/maid, test, --manifest, manifests/2026-09-auth-session-reliability-contract-evolution.manifest.yaml]
+      status: passed
+      summary: "The originating report's manifest passed all five commands in situ, including the exact Deno test command."

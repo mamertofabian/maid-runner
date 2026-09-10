@@ -1,0 +1,292 @@
+{
+  "manifest_path": "manifests/fix-deno-test-command-e230.manifest.yaml",
+  "manifest_hash": "sha256-contract:2a1d618af32ea11abb2e5e10a61b700735d286af3b38bfb5bbd39b0e1a487748",
+  "test_hashes": {
+    "tests/core/validation/test_deno_test_runner.py": "sha256-pyast:v2:75da4f388950322ce28748c295f7e18b62e523a734f27c885507b7aff4f3b65d"
+  },
+  "created_at": "2026-09-10T02:41:01.616456+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:92b308b1f676780a440a8f3e8d8db888f16b6ae883e5f845fba3cae3b97b221b",
+      "prior_test_hashes": {
+        "tests/core/validation/test_deno_test_runner.py": "sha256-pyast:v2:dd5f4d62ed1fa80c88d2097004f1e4f01f3f512ffdece3e8eb648a95da139dec"
+      },
+      "revised_at": "2026-09-10T02:41:02.238773+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-deno-test-command-e230.manifest.yaml -> manifests/fix-deno-test-command-e230.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4de7b0581eee47809adda2ea1148e40826eb33ea88b484a1ce82f1ad9eb8589d",
+      "prior_test_hashes": {
+        "tests/core/validation/test_deno_test_runner.py": "sha256-pyast:v2:dd5f4d62ed1fa80c88d2097004f1e4f01f3f512ffdece3e8eb648a95da139dec"
+      },
+      "revised_at": "2026-09-10T02:50:01.728148+00:00",
+      "reason": "Independent review found Deno-specific non-execution, script-argument, and option-value paths that could falsely satisfy E230.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4de7b0581eee47809adda2ea1148e40826eb33ea88b484a1ce82f1ad9eb8589d",
+      "prior_test_hashes": {
+        "tests/core/validation/test_deno_test_runner.py": "sha256-pyast:v2:dd5f4d62ed1fa80c88d2097004f1e4f01f3f512ffdece3e8eb648a95da139dec"
+      },
+      "revised_at": "2026-09-10T02:51:39.434990+00:00",
+      "reason": "Tighten the approved Deno contract after independent review: reject --no-run, ignore script args after --, and prevent --junit-path values from counting as test targets.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_deno_test_runner.py:test_command_integrity_ignores_deno_script_argument_test_paths",
+          "tests/core/validation/test_deno_test_runner.py:test_command_integrity_ignores_deno_script_argument_test_paths:arg=tmp_path:type=Path:default=None",
+          "tests/core/validation/test_deno_test_runner.py:test_command_integrity_ignores_deno_script_argument_test_paths:kind=test_function",
+          "tests/core/validation/test_deno_test_runner.py:test_command_integrity_ignores_deno_script_argument_test_paths:returns=None",
+          "tests/core/validation/test_deno_test_runner.py:test_command_integrity_rejects_deno_no_run_mode",
+          "tests/core/validation/test_deno_test_runner.py:test_command_integrity_rejects_deno_no_run_mode:arg=tmp_path:type=Path:default=None",
+          "tests/core/validation/test_deno_test_runner.py:test_command_integrity_rejects_deno_no_run_mode:kind=test_function",
+          "tests/core/validation/test_deno_test_runner.py:test_command_integrity_rejects_deno_no_run_mode:returns=None",
+          "tests/core/validation/test_deno_test_runner.py:test_command_integrity_rejects_deno_option_value_test_path",
+          "tests/core/validation/test_deno_test_runner.py:test_command_integrity_rejects_deno_option_value_test_path:arg=tmp_path:type=Path:default=None",
+          "tests/core/validation/test_deno_test_runner.py:test_command_integrity_rejects_deno_option_value_test_path:kind=test_function",
+          "tests/core/validation/test_deno_test_runner.py:test_command_integrity_rejects_deno_option_value_test_path:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2a1d618af32ea11abb2e5e10a61b700735d286af3b38bfb5bbd39b0e1a487748",
+      "prior_test_hashes": {
+        "tests/core/validation/test_deno_test_runner.py": "sha256-pyast:v2:db30439cad5f64c2b1e08357207bea926e001e12337d765cb81bfb3d419f1b20"
+      },
+      "revised_at": "2026-09-10T02:53:23.706349+00:00",
+      "reason": "Correct the Deno option-value regression fixture so its declared test path never appears as an executable positional target.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-10T02:53:24.119418+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/validation/test_deno_test_runner.py",
+        "exit_code": 1,
+        "output_tail": "        executable.write_text(\n            \"#!/bin/sh\\nprintf '%s\\\\n' \\\"$@\\\" > deno-args.txt\\n\",\n            encoding=\"utf-8\",\n        )\n        executable.chmod(0o755)\n        monkeypatch.setenv(\"PATH\", f\"{executable.parent}{os.pathsep}{os.environ['PATH']}\")\n    \n        result = run_manifest_tests(manifest_path, project_root=tmp_path)\n    \n>       assert (result.total, result.passed, result.failed) == (1, 1, 0)\nE       assert (0, 0, 0) == (1, 1, 0)\nE         \nE         At index 0 diff: 0 != 1\nE         Use -v to get more diff\n\ntests/core/validation/test_deno_test_runner.py:76: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/validation/test_deno_test_runner.py::test_command_integrity_accepts_explicit_deno_test_file\nFAILED tests/core/validation/test_deno_test_runner.py::test_run_manifest_tests_executes_explicit_deno_test_command\n2 failed, 6 passed in 0.16s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/validation/test_deno_test_runner.py:test_command_integrity_accepts_explicit_deno_test_file",
+      "tests/core/validation/test_deno_test_runner.py:test_command_integrity_accepts_explicit_deno_test_file:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_deno_test_runner.py:test_command_integrity_accepts_explicit_deno_test_file:kind=test_function",
+      "tests/core/validation/test_deno_test_runner.py:test_command_integrity_accepts_explicit_deno_test_file:returns=None",
+      "tests/core/validation/test_deno_test_runner.py:test_command_integrity_ignores_deno_script_argument_test_paths",
+      "tests/core/validation/test_deno_test_runner.py:test_command_integrity_ignores_deno_script_argument_test_paths:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_deno_test_runner.py:test_command_integrity_ignores_deno_script_argument_test_paths:kind=test_function",
+      "tests/core/validation/test_deno_test_runner.py:test_command_integrity_ignores_deno_script_argument_test_paths:returns=None",
+      "tests/core/validation/test_deno_test_runner.py:test_command_integrity_rejects_deno_no_run_mode",
+      "tests/core/validation/test_deno_test_runner.py:test_command_integrity_rejects_deno_no_run_mode:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_deno_test_runner.py:test_command_integrity_rejects_deno_no_run_mode:kind=test_function",
+      "tests/core/validation/test_deno_test_runner.py:test_command_integrity_rejects_deno_no_run_mode:returns=None",
+      "tests/core/validation/test_deno_test_runner.py:test_command_integrity_rejects_deno_option_value_test_path",
+      "tests/core/validation/test_deno_test_runner.py:test_command_integrity_rejects_deno_option_value_test_path:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_deno_test_runner.py:test_command_integrity_rejects_deno_option_value_test_path:kind=test_function",
+      "tests/core/validation/test_deno_test_runner.py:test_command_integrity_rejects_deno_option_value_test_path:returns=None",
+      "tests/core/validation/test_deno_test_runner.py:test_command_integrity_rejects_filtered_deno_test_run",
+      "tests/core/validation/test_deno_test_runner.py:test_command_integrity_rejects_filtered_deno_test_run:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_deno_test_runner.py:test_command_integrity_rejects_filtered_deno_test_run:kind=test_function",
+      "tests/core/validation/test_deno_test_runner.py:test_command_integrity_rejects_filtered_deno_test_run:returns=None",
+      "tests/core/validation/test_deno_test_runner.py:test_command_integrity_rejects_non_executing_deno_test_mode",
+      "tests/core/validation/test_deno_test_runner.py:test_command_integrity_rejects_non_executing_deno_test_mode:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_deno_test_runner.py:test_command_integrity_rejects_non_executing_deno_test_mode:kind=test_function",
+      "tests/core/validation/test_deno_test_runner.py:test_command_integrity_rejects_non_executing_deno_test_mode:returns=None",
+      "tests/core/validation/test_deno_test_runner.py:test_command_integrity_rejects_non_test_deno_subcommand",
+      "tests/core/validation/test_deno_test_runner.py:test_command_integrity_rejects_non_test_deno_subcommand:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_deno_test_runner.py:test_command_integrity_rejects_non_test_deno_subcommand:kind=test_function",
+      "tests/core/validation/test_deno_test_runner.py:test_command_integrity_rejects_non_test_deno_subcommand:returns=None",
+      "tests/core/validation/test_deno_test_runner.py:test_run_manifest_tests_executes_explicit_deno_test_command",
+      "tests/core/validation/test_deno_test_runner.py:test_run_manifest_tests_executes_explicit_deno_test_command:arg=monkeypatch:type=MonkeyPatch:default=None",
+      "tests/core/validation/test_deno_test_runner.py:test_run_manifest_tests_executes_explicit_deno_test_command:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_deno_test_runner.py:test_run_manifest_tests_executes_explicit_deno_test_command:kind=test_function",
+      "tests/core/validation/test_deno_test_runner.py:test_run_manifest_tests_executes_explicit_deno_test_command:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/validation/test_deno_test_runner.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/core/_test_command_targets.py",
+        "maid_runner/core/_validation_test_artifacts.py",
+        "maid_runner/core/test_runner.py",
+        "manifests/038-13-extract-test-runner-invocation-helper.manifest.yaml",
+        "manifests/038-14-extract-test-command-targets-helper.manifest.yaml",
+        "manifests/fix-registered-django-test-wrapper.manifest.yaml"
+      ],
+      "scope": [
+        "maid_runner/core/_test_runner_invocation.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/validation/test_deno_test_runner.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_accepts_explicit_deno_test_file",
+              "description": "The reported deno test command covers its explicitly declared TypeScript behavioral test without E230.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_run_manifest_tests_executes_explicit_deno_test_command",
+              "description": "maid test executes the accepted Deno command and reports one passing command.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_rejects_non_test_deno_subcommand",
+              "description": "A Deno subcommand other than test does not satisfy behavioral test command integrity.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_rejects_non_executing_deno_test_mode",
+              "description": "A Deno test help invocation cannot prove that the behavioral test executed.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_rejects_filtered_deno_test_run",
+              "description": "A filtered Deno test invocation cannot prove whole-file behavioral coverage.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_rejects_deno_no_run_mode",
+              "description": "Deno's --no-run cache-only mode cannot prove that the behavioral test executed.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_ignores_deno_script_argument_test_paths",
+              "description": "A declared test path after Deno's -- separator is a script argument and cannot satisfy behavioral coverage.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_rejects_deno_option_value_test_path",
+              "description": "A declared test path used only as --junit-path output cannot satisfy behavioral coverage.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_test_command_targets.py",
+        "maid_runner/core/_validation_test_artifacts.py",
+        "maid_runner/core/test_runner.py",
+        "manifests/038-13-extract-test-runner-invocation-helper.manifest.yaml",
+        "manifests/038-14-extract-test-command-targets-helper.manifest.yaml",
+        "manifests/fix-registered-django-test-wrapper.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_test_runner_invocation.py",
+          "reason": "Recognize the exact Deno test invocation and expose only its arguments to existing target scanning; no public API changes."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/validation/test_deno_test_runner.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/validation/test_deno_test_runner.py"
+    ],
+    "acceptance_commands": []
+  }
+}

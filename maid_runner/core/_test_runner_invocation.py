@@ -19,6 +19,7 @@ _TEST_RUNNERS = frozenset(
 )
 _PYTHON_MODULE_TEST_RUNNERS = frozenset({"pytest", "py.test"})
 _DJANGO_TEST_RUNNER = "django"
+_DENO_TEST_RUNNER = "deno"
 _DIRECT_TEST_RUNNERS = frozenset({"pytest", "py.test", "jest", "vitest"})
 _PACKAGE_RUNNER_WRAPPERS = frozenset({"npx", "pnpm", "yarn", "bunx"})
 _PACKAGE_RUNNER_CWD_VALUE_FLAGS = frozenset({"-C", "--cwd", "--dir", "--prefix"})
@@ -163,6 +164,11 @@ _NON_EXECUTING_TEST_RUNNER_FLAGS = frozenset(
 _NON_EXECUTING_TEST_RUNNER_SUBCOMMANDS = {
     "vitest": frozenset({"list"}),
 }
+_NON_EXECUTING_TEST_RUNNER_FLAGS_BY_RUNNER = {
+    _DENO_TEST_RUNNER: frozenset({"--no-run"}),
+}
+_DENO_TEST_TARGET_STANDALONE_FLAGS = frozenset({"--allow-env", "--no-check"})
+_DENO_TEST_TARGET_VALUE_FLAGS = frozenset({"--junit-path"})
 _TEST_RUNNER_SELECTOR_FLAGS = frozenset(
     {
         "-k",
@@ -286,6 +292,8 @@ def _has_non_executing_test_runner_mode(
     for part in args:
         flag = part.split("=", 1)[0]
         if flag in _NON_EXECUTING_TEST_RUNNER_FLAGS:
+            return True
+        if flag in _NON_EXECUTING_TEST_RUNNER_FLAGS_BY_RUNNER.get(runner, frozenset()):
             return True
     return False
 
@@ -526,6 +534,9 @@ def _test_runner_invocation(
     if command == "playwright" and len(parts) >= 2 and parts[1] == "test":
         return command, parts[2:]
 
+    if command == "deno" and len(parts) >= 2 and parts[1] == "test":
+        return _DENO_TEST_RUNNER, parts[2:]
+
     if command in _PACKAGE_RUNNER_WRAPPERS and len(parts) >= 2:
         inner_command = _package_runner_inner_command(parts, preserve_cwd_options=False)
         scan_command = _package_runner_inner_command(parts, preserve_cwd_options=True)
@@ -592,7 +603,36 @@ def _test_runner_target_scan_segment(
     if command == "playwright" and len(parts) >= 2 and parts[1] == "test":
         return parts[2:]
 
+    if command == "deno" and len(parts) >= 2 and parts[1] == "test":
+        return _deno_test_target_scan_args(parts[2:])
+
     return parts
+
+
+def _deno_test_target_scan_args(args: list[str]) -> list[str]:
+    targets: list[str] = []
+    index = 0
+    while index < len(args):
+        part = args[index]
+        if part == "--":
+            break
+        flag = part.split("=", 1)[0]
+        if flag in _DENO_TEST_TARGET_STANDALONE_FLAGS:
+            index += 1
+            continue
+        if flag in _DENO_TEST_TARGET_VALUE_FLAGS:
+            if "=" not in part:
+                if index + 1 >= len(args):
+                    return []
+                index += 2
+                continue
+            index += 1
+            continue
+        if part.startswith("-"):
+            return []
+        targets.append(part)
+        index += 1
+    return targets
 
 
 def _registered_test_runner_wrapper(
