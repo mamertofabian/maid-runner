@@ -40,8 +40,8 @@ def test_draft_inventory_diagnostic_names_copyable_marker_choices(
     ]
     suggestion = diagnostics[0].suggestion
     assert suggestion is not None
-    assert "# draft-kind: implementation" in suggestion
-    assert "# draft-kind: epic" in suggestion
+    assert "# manifest-kind: implementation" in suggestion
+    assert "# manifest-kind: epic" in suggestion
 
 
 def test_archive_inventory_diagnostic_names_copyable_archive_marker(

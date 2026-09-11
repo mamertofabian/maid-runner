@@ -2,11 +2,11 @@
   "manifest_path": "manifests/fix-manifest-promote-output-routing.manifest.yaml",
   "manifest_hash": "sha256-contract:4ecb33728a55d14aa9e397e2ad1f3d7bca4c7930aeecbac09089c038ae2fc7c5",
   "test_hashes": {
-    "tests/cli/test_manifest_cmd.py": "sha256-pyast:v2:c087e9f24e05539f5b1f126b1ab3a2317e752243bf11b3870860cfa7a095f719",
+    "tests/cli/test_manifest_cmd.py": "sha256-pyast:v2:ad0f3f26159b41a1887f4b0c86f21fb8719e7824f0b4887e030160284bff8ca0",
     "tests/cli/test_manifest_promote_output_routing.py": "sha256-pyast:v2:cc76086403437c1f63a0524c98f8808f41c47d9db81422cc003637389883f4a9"
   },
   "created_at": "2026-08-25T00:13:52.504082+00:00",
-  "revision": 2,
+  "revision": 3,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:69c8451c03fbd69a2294fea7ca9a9915dfec900a95eed36f5af2aa820d73b509",
@@ -16,6 +16,24 @@
       },
       "revised_at": "2026-08-25T00:13:53.540152+00:00",
       "reason": "Migrated by maid manifest promote: manifests/drafts/fix-manifest-promote-output-routing.manifest.yaml -> manifests/fix-manifest-promote-output-routing.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4ecb33728a55d14aa9e397e2ad1f3d7bca4c7930aeecbac09089c038ae2fc7c5",
+      "prior_test_hashes": {
+        "tests/cli/test_manifest_cmd.py": "sha256-pyast:v2:c087e9f24e05539f5b1f126b1ab3a2317e752243bf11b3870860cfa7a095f719",
+        "tests/cli/test_manifest_promote_output_routing.py": "sha256-pyast:v2:cc76086403437c1f63a0524c98f8808f41c47d9db81422cc003637389883f4a9"
+      },
+      "revised_at": "2026-09-11T01:00:49.162685+00:00",
+      "reason": "accept approved shared-test change",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
@@ -161,6 +179,7 @@
     "validate_commands": [
       "uv run python -m pytest -q tests/cli/test_manifest_promote_output_routing.py tests/cli/test_manifest_cmd.py",
       "uv run maid validate manifests/fix-manifest-promote-output-routing.manifest.yaml --mode behavioral --quiet"
-    ]
+    ],
+    "acceptance_commands": []
   }
 }

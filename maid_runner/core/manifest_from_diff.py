@@ -163,7 +163,8 @@ def write_from_diff_manifest(
         )
 
     rendered = prepend_manifest_header(
-        yaml.safe_dump(data, default_flow_style=False, sort_keys=False)
+        "# manifest-kind: implementation\n"
+        + yaml.safe_dump(data, default_flow_style=False, sort_keys=False)
     )
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(rendered)

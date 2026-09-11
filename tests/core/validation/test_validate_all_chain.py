@@ -247,7 +247,7 @@ def test_validate_all_empty_active_manifest_directory_fails_by_default(tmp_path)
     manifest_dir = tmp_path / "manifests"
     (manifest_dir / "drafts").mkdir(parents=True)
     (manifest_dir / "drafts" / "future.manifest.yaml").write_text(
-        """# draft-kind: implementation
+        """# manifest-kind: implementation
 schema: "2"
 goal: "Future draft"
 files:

@@ -1,0 +1,317 @@
+{
+  "manifest_path": "manifests/rename-draft-kind-marker.manifest.yaml",
+  "manifest_hash": "sha256-contract:4bfc8309a82102b68237feb3d9d6fb8b8f713cdd2587e0333735f6089109f216",
+  "test_hashes": {
+    "tests/core/test_manifest_header.py": "sha256-pyast:v2:5446ff8d1deae8100d7a6f9b481b8c6c31c3dd3126e411f9efda3b98256b353e",
+    "tests/core/test_manifest_chain_discovery.py": "sha256-pyast:v2:153081ba5050b9482f91dda4623b32a8fe375ea9e6b7e158a92b18e513f97aa7",
+    "tests/core/test_inactive_manifest_repair_guidance.py": "sha256-pyast:v2:3ec3a56455a240e3e1a23023e06c58383f158a0be5b401d593b98aeb8decc952",
+    "tests/cli/test_manifest_create_draft_marker_cmd.py": "sha256-pyast:v2:eb3ae961c7efac34c4ff0a84ea5cb5bad47dcbac5a33aee7328dccd9ba613423",
+    "tests/cli/test_manifest_header_backfill.py": "sha256-pyast:v2:0febc8957f6f2f2cd4eaf1a86cfc709dd4f34772c6d0535bad5d901b2132a830",
+    "tests/cli/test_manifest_cmd.py": "sha256-pyast:v2:ad0f3f26159b41a1887f4b0c86f21fb8719e7824f0b4887e030160284bff8ca0",
+    "tests/core/validation/test_validate_all_chain.py": "sha256-pyast:v2:7002c4ebcd9e940603d6c109c1674be94caf8cea4a9c1f31623ef44d20958a35",
+    "tests/core/test_manifest_from_diff.py": "sha256-pyast:v2:2cdbc6794b2e89453a085eb0ed134056c9408a3e810ffd0e20e8543ad54b399f",
+    "tests/cli/test_manifest_from_diff_cmd.py": "sha256-pyast:v2:99e8e5e6a3327e4277f941c1fb0cb48d4330766f444209d470f10678ebfd1725"
+  },
+  "created_at": "2026-09-11T00:52:52.609963+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:e50115e8cfc9336ae3fcc6a5d1d1015a29b6d2de21434c898ee934933208d14f",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_header.py": "sha256-pyast:v2:5446ff8d1deae8100d7a6f9b481b8c6c31c3dd3126e411f9efda3b98256b353e",
+        "tests/core/test_manifest_chain_discovery.py": "sha256-pyast:v2:153081ba5050b9482f91dda4623b32a8fe375ea9e6b7e158a92b18e513f97aa7",
+        "tests/core/test_inactive_manifest_repair_guidance.py": "sha256-pyast:v2:3ec3a56455a240e3e1a23023e06c58383f158a0be5b401d593b98aeb8decc952",
+        "tests/cli/test_manifest_create_draft_marker_cmd.py": "sha256-pyast:v2:eb3ae961c7efac34c4ff0a84ea5cb5bad47dcbac5a33aee7328dccd9ba613423",
+        "tests/cli/test_manifest_header_backfill.py": "sha256-pyast:v2:0febc8957f6f2f2cd4eaf1a86cfc709dd4f34772c6d0535bad5d901b2132a830",
+        "tests/cli/test_manifest_cmd.py": "sha256-pyast:v2:ad0f3f26159b41a1887f4b0c86f21fb8719e7824f0b4887e030160284bff8ca0",
+        "tests/core/validation/test_validate_all_chain.py": "sha256-pyast:v2:7002c4ebcd9e940603d6c109c1674be94caf8cea4a9c1f31623ef44d20958a35"
+      },
+      "revised_at": "2026-09-11T00:53:01.375363+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/rename-draft-kind-marker.manifest.yaml -> manifests/rename-draft-kind-marker.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/rename-draft-kind-marker.manifest.yaml --mode behavioral --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/rename-draft-kind-marker.manifest.yaml --mode behavioral --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:37fc316b26e7e4e3a598e7411282c9f01869cb04b119aad30d002693f4525dbf",
+      "prior_test_hashes": {
+        "tests/core/test_manifest_header.py": "sha256-pyast:v2:5446ff8d1deae8100d7a6f9b481b8c6c31c3dd3126e411f9efda3b98256b353e",
+        "tests/core/test_manifest_chain_discovery.py": "sha256-pyast:v2:153081ba5050b9482f91dda4623b32a8fe375ea9e6b7e158a92b18e513f97aa7",
+        "tests/core/test_inactive_manifest_repair_guidance.py": "sha256-pyast:v2:3ec3a56455a240e3e1a23023e06c58383f158a0be5b401d593b98aeb8decc952",
+        "tests/cli/test_manifest_create_draft_marker_cmd.py": "sha256-pyast:v2:eb3ae961c7efac34c4ff0a84ea5cb5bad47dcbac5a33aee7328dccd9ba613423",
+        "tests/cli/test_manifest_header_backfill.py": "sha256-pyast:v2:0febc8957f6f2f2cd4eaf1a86cfc709dd4f34772c6d0535bad5d901b2132a830",
+        "tests/cli/test_manifest_cmd.py": "sha256-pyast:v2:ad0f3f26159b41a1887f4b0c86f21fb8719e7824f0b4887e030160284bff8ca0",
+        "tests/core/validation/test_validate_all_chain.py": "sha256-pyast:v2:7002c4ebcd9e940603d6c109c1674be94caf8cea4a9c1f31623ef44d20958a35"
+      },
+      "revised_at": "2026-09-11T01:06:51.336585+00:00",
+      "reason": "include from-diff draft marker writer gap found in implementation review",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/core/manifest_from_diff.py:function:write_from_diff_manifest",
+          "maid_runner/core/manifest_from_diff.py:function:write_from_diff_manifest:arg=data:type=dict:default=None",
+          "maid_runner/core/manifest_from_diff.py:function:write_from_diff_manifest:arg=force:type=bool:default=False",
+          "maid_runner/core/manifest_from_diff.py:function:write_from_diff_manifest:arg=output_path:type=Union[str, Path]:default=None",
+          "maid_runner/core/manifest_from_diff.py:function:write_from_diff_manifest:kind=function",
+          "maid_runner/core/manifest_from_diff.py:function:write_from_diff_manifest:returns=Path"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:maid_runner/core/manifest_from_diff.py",
+          "scope:tests/cli/test_manifest_from_diff_cmd.py",
+          "scope:tests/core/test_manifest_from_diff.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/core/test_manifest_header.py tests/core/test_manifest_chain_discovery.py tests/core/test_inactive_manifest_repair_guidance.py tests/cli/test_manifest_create_draft_marker_cmd.py tests/cli/test_manifest_header_backfill.py tests/cli/test_manifest_cmd.py tests/core/validation/test_validate_all_chain.py tests/core/test_manifest_from_diff.py tests/cli/test_manifest_from_diff_cmd.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/core/test_manifest_header.py tests/core/test_manifest_chain_discovery.py tests/core/test_inactive_manifest_repair_guidance.py tests/cli/test_manifest_create_draft_marker_cmd.py tests/cli/test_manifest_header_backfill.py tests/cli/test_manifest_cmd.py tests/core/validation/test_validate_all_chain.py"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-11T01:06:57.475126+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_manifest_header.py tests/core/test_manifest_chain_discovery.py tests/core/test_inactive_manifest_repair_guidance.py tests/cli/test_manifest_create_draft_marker_cmd.py tests/cli/test_manifest_header_backfill.py tests/cli/test_manifest_cmd.py tests/core/validation/test_validate_all_chain.py tests/core/test_manifest_from_diff.py tests/cli/test_manifest_from_diff_cmd.py",
+        "exit_code": 1,
+        "output_tail": "        assert result[\"path\"] == \"manifests/drafts/demo.manifest.yaml\"\n        output = tmp_path / result[\"path\"]\n>       assert output.read_text().splitlines()[0] == \"# manifest-kind: implementation\"\nE       AssertionError: assert '# MAID manif...r one change.' == '# manifest-k...mplementation'\nE         \nE         - # manifest-kind: implementation\nE         + # MAID manifest - a machine-checked contract for one change.\n\n/home/atomrem/projects/codefrost-dev/maid-runner/tests/cli/test_manifest_from_diff_cmd.py:139: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_manifest_header.py::TestPrependManifestHeader::test_manifest_kind_marker_keeps_line_one\nFAILED tests/core/test_manifest_header.py::TestPrependManifestHeader::test_marker_detection_survives_the_banner\nFAILED tests/core/test_manifest_chain_discovery.py::test_manifest_chain_discovers_nested_active_manifests_and_skips_inactive_dirs\nFAILED tests/core/test_inactive_manifest_repair_guidance.py::test_draft_inventory_diagnostic_names_copyable_marker_choices\nFAILED tests/cli/test_manifest_create_draft_marker_cmd.py::test_manifest_create_under_drafts_writes_required_lifecycle_marker\nFAILED tests/cli/test_manifest_header_backfill.py::TestPromoteManifestHeaderBackfill::test_manifest_promote_backfills_header_and_keeps_manifest_marker_line_one\nFAILED tests/core/validation/test_validate_all_chain.py::test_validate_all_empty_active_manifest_directory_fails_by_default\nFAILED tests/core/test_manifest_from_diff.py::test_write_from_diff_manifest_writes_self_describing_header\nFAILED tests/cli/test_manifest_from_diff_cmd.py::test_manifest_from_diff_writes_default_draft_and_json_result\n9 failed, 102 passed in 1.27s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/rename-draft-kind-marker.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/fix-manifest-promote-output-routing.lock.json",
+      ".maid/plan-locks/snapshot-cli-commands--main-2.lock.json"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/manifest.py:function:cmd_manifest",
+      "maid_runner/cli/commands/manifest.py:function:cmd_manifest:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/manifest.py:function:cmd_manifest:kind=function",
+      "maid_runner/cli/commands/manifest.py:function:cmd_manifest:returns=int",
+      "maid_runner/core/chain.py:class:ManifestChain",
+      "maid_runner/core/chain.py:class:ManifestChain:kind=class",
+      "maid_runner/core/chain.py:method:ManifestChain.inactive_manifest_diagnostics",
+      "maid_runner/core/chain.py:method:ManifestChain.inactive_manifest_diagnostics:kind=method",
+      "maid_runner/core/chain.py:method:ManifestChain.inactive_manifest_diagnostics:of=ManifestChain",
+      "maid_runner/core/chain.py:method:ManifestChain.inactive_manifest_diagnostics:returns=list[ValidationError]",
+      "maid_runner/core/manifest.py:function:prepend_manifest_header",
+      "maid_runner/core/manifest.py:function:prepend_manifest_header:arg=rendered:type=str:default=None",
+      "maid_runner/core/manifest.py:function:prepend_manifest_header:kind=function",
+      "maid_runner/core/manifest.py:function:prepend_manifest_header:returns=str",
+      "maid_runner/core/manifest_from_diff.py:function:write_from_diff_manifest",
+      "maid_runner/core/manifest_from_diff.py:function:write_from_diff_manifest:arg=data:type=dict:default=None",
+      "maid_runner/core/manifest_from_diff.py:function:write_from_diff_manifest:arg=force:type=bool:default=False",
+      "maid_runner/core/manifest_from_diff.py:function:write_from_diff_manifest:arg=output_path:type=Union[str, Path]:default=None",
+      "maid_runner/core/manifest_from_diff.py:function:write_from_diff_manifest:kind=function",
+      "maid_runner/core/manifest_from_diff.py:function:write_from_diff_manifest:returns=Path"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "maid_runner/cli/commands/manifest.py",
+        "maid_runner/core/chain.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/manifest_from_diff.py"
+      ],
+      "read": [
+        "manifests/086-01-self-describing-manifest-header.manifest.yaml",
+        "manifests/fix-inactive-manifest-repair-guidance.manifest.yaml"
+      ],
+      "scope": [
+        "docs/draft-manifest-workflow.md",
+        "maid_runner/docs/draft-manifest-workflow.md",
+        "maid_runner/manifests/drafts/README.md",
+        "manifests/drafts/README.md",
+        "tests/cli/test_manifest_cmd.py",
+        "tests/cli/test_manifest_create_draft_marker_cmd.py",
+        "tests/cli/test_manifest_from_diff_cmd.py",
+        "tests/cli/test_manifest_header_backfill.py",
+        "tests/core/test_inactive_manifest_repair_guidance.py",
+        "tests/core/test_manifest_chain_discovery.py",
+        "tests/core/test_manifest_from_diff.py",
+        "tests/core/test_manifest_header.py",
+        "tests/core/validation/test_validate_all_chain.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "maid_runner/core/manifest.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "prepend_manifest_header",
+              "description": "Returns rendered manifest YAML with the canonical banner inserted after a leading manifest-kind, legacy draft-kind, or archive-kind marker, preserving the lifecycle marker as line one.",
+              "args": [
+                {
+                  "name": "rendered",
+                  "type": "str"
+                }
+              ],
+              "returns": "str"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/chain.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "ManifestChain",
+              "description": "Manifest chain reader whose inactive-manifest diagnostics accept legacy draft-kind markers and canonical manifest-kind markers."
+            },
+            {
+              "kind": "method",
+              "name": "inactive_manifest_diagnostics",
+              "description": "Reports E109 with copyable manifest-kind marker choices for draft inventory while retaining archive guidance for archives.",
+              "of": "ManifestChain",
+              "returns": "list[ValidationError]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/manifest.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_manifest",
+              "description": "Creates implementation drafts with '# manifest-kind: implementation' when output is under a drafts directory, and promotion preserves that marker.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/manifest_from_diff.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "write_from_diff_manifest",
+              "description": "Validates and writes a from-diff draft under manifests/drafts with '# manifest-kind: implementation' as the first line, followed by the canonical self-describing header and unchanged YAML body.",
+              "args": [
+                {
+                  "name": "data",
+                  "type": "dict"
+                },
+                {
+                  "name": "output_path",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "force",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "Path"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/086-01-self-describing-manifest-header.manifest.yaml",
+        "manifests/fix-inactive-manifest-repair-guidance.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "tests/core/test_manifest_header.py",
+          "reason": "Update banner insertion behavior expectations for canonical and legacy lifecycle markers."
+        },
+        {
+          "path": "tests/core/test_manifest_chain_discovery.py",
+          "reason": "Cover inactive-manifest marker compatibility through ManifestChain discovery."
+        },
+        {
+          "path": "tests/core/test_inactive_manifest_repair_guidance.py",
+          "reason": "Assert E109 suggests the new copyable marker syntax."
+        },
+        {
+          "path": "tests/cli/test_manifest_create_draft_marker_cmd.py",
+          "reason": "Assert generated draft manifests use manifest-kind."
+        },
+        {
+          "path": "tests/cli/test_manifest_header_backfill.py",
+          "reason": "Assert promotion preserves manifest-kind as line one."
+        },
+        {
+          "path": "tests/cli/test_manifest_cmd.py",
+          "reason": "Update promote fixture to the canonical marker spelling."
+        },
+        {
+          "path": "tests/core/validation/test_validate_all_chain.py",
+          "reason": "Update validation-chain fixture marker spelling."
+        },
+        {
+          "path": "tests/core/test_manifest_from_diff.py",
+          "reason": "Assert the from-diff writer emits the canonical manifest-kind marker while preserving parseable YAML."
+        },
+        {
+          "path": "tests/cli/test_manifest_from_diff_cmd.py",
+          "reason": "Assert the CLI from-diff path writes a draft accepted by parent-chain inactive inventory diagnostics."
+        },
+        {
+          "path": "manifests/drafts/README.md",
+          "reason": "Document the canonical implementation and epic marker values."
+        },
+        {
+          "path": "maid_runner/manifests/drafts/README.md",
+          "reason": "Keep packaged draft README synchronized."
+        },
+        {
+          "path": "docs/draft-manifest-workflow.md",
+          "reason": "Document the canonical marker key and compatibility note."
+        },
+        {
+          "path": "maid_runner/docs/draft-manifest-workflow.md",
+          "reason": "Keep packaged workflow documentation synchronized."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_manifest_cmd.py",
+      "tests/cli/test_manifest_create_draft_marker_cmd.py",
+      "tests/cli/test_manifest_from_diff_cmd.py",
+      "tests/cli/test_manifest_header_backfill.py",
+      "tests/core/test_inactive_manifest_repair_guidance.py",
+      "tests/core/test_manifest_chain_discovery.py",
+      "tests/core/test_manifest_from_diff.py",
+      "tests/core/test_manifest_header.py",
+      "tests/core/validation/test_validate_all_chain.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_manifest_header.py tests/core/test_manifest_chain_discovery.py tests/core/test_inactive_manifest_repair_guidance.py tests/cli/test_manifest_create_draft_marker_cmd.py tests/cli/test_manifest_header_backfill.py tests/cli/test_manifest_cmd.py tests/core/validation/test_validate_all_chain.py tests/core/test_manifest_from_diff.py tests/cli/test_manifest_from_diff_cmd.py",
+      "uv run maid validate manifests/rename-draft-kind-marker.manifest.yaml --mode behavioral --quiet"
+    ],
+    "acceptance_commands": []
+  }
+}

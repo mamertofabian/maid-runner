@@ -1,0 +1,217 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Rename draft-kind lifecycle comments to manifest-kind while preserving legacy marker compatibility"
+type: fix
+created: "2026-09-11T00:53:01Z"
+metadata:
+  tags:
+    - developer-experience
+    - manifest-lifecycle
+    - compatibility
+  priority: medium
+description: |
+  The inactive manifest marker currently uses the comment key
+  `# draft-kind: implementation`, and promotion preserves that comment in the
+  active manifest. The behavior is functionally safe, but the word "draft"
+  reads stale once a manifest has been promoted or implemented.
+
+  Keep the lifecycle value vocabulary unchanged and rename only the marker key:
+  child implementation drafts use `# manifest-kind: implementation`; epic
+  planning inventory uses `# manifest-kind: epic`. Existing `# draft-kind: ...`
+  comments remain accepted so repos upgrading from older MAID versions continue
+  to validate without rewriting historical manifests. Archive inventory keeps
+  `# archive-kind: ...`; unifying archive markers is out of scope for this
+  narrow copy fix.
+
+  Expected red phase: focused tests fail because manifest creation, header
+  insertion, inactive diagnostics, and promotion examples still expect or emit
+  `# draft-kind: implementation`.
+temptations:
+  - risk: "Do not reject legacy '# draft-kind:' comments while renaming the emitted marker."
+    instead: "Accept both legacy draft-kind and new manifest-kind in reader paths, and emit only manifest-kind from create and from-diff writers and diagnostics."
+  - risk: "Do not collapse implementation drafts and epic planning inventory into one vague draft value."
+    instead: "Keep the values implementation and epic; the fix is the marker key, not the lifecycle taxonomy."
+  - risk: "Do not widen this into archive marker migration or historical manifest churn."
+    instead: "Leave archive-kind and existing committed marker comments alone except where tests and docs describe the canonical future spelling."
+files:
+  edit:
+    - path: maid_runner/core/manifest.py
+      artifacts:
+        - kind: function
+          name: prepend_manifest_header
+          args:
+            - name: rendered
+              type: str
+          returns: str
+          description: "Returns rendered manifest YAML with the canonical banner inserted after a leading manifest-kind, legacy draft-kind, or archive-kind marker, preserving the lifecycle marker as line one."
+    - path: maid_runner/core/chain.py
+      artifacts:
+        - kind: class
+          name: ManifestChain
+          description: "Manifest chain reader whose inactive-manifest diagnostics accept legacy draft-kind markers and canonical manifest-kind markers."
+        - kind: method
+          name: inactive_manifest_diagnostics
+          of: ManifestChain
+          args: []
+          returns: list[ValidationError]
+          description: "Reports E109 with copyable manifest-kind marker choices for draft inventory while retaining archive guidance for archives."
+    - path: maid_runner/cli/commands/manifest.py
+      artifacts:
+        - kind: function
+          name: cmd_manifest
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Creates implementation drafts with '# manifest-kind: implementation' when output is under a drafts directory, and promotion preserves that marker."
+    - path: maid_runner/core/manifest_from_diff.py
+      artifacts:
+        - kind: function
+          name: write_from_diff_manifest
+          args:
+            - name: data
+              type: dict
+            - name: output_path
+              type: Union[str, Path]
+            - name: force
+              type: bool
+              default: "False"
+          returns: Path
+          description: "Validates and writes a from-diff draft under manifests/drafts with '# manifest-kind: implementation' as the first line, followed by the canonical self-describing header and unchanged YAML body."
+  scope:
+    - path: tests/core/test_manifest_header.py
+      reason: "Update banner insertion behavior expectations for canonical and legacy lifecycle markers."
+    - path: tests/core/test_manifest_chain_discovery.py
+      reason: "Cover inactive-manifest marker compatibility through ManifestChain discovery."
+    - path: tests/core/test_inactive_manifest_repair_guidance.py
+      reason: "Assert E109 suggests the new copyable marker syntax."
+    - path: tests/cli/test_manifest_create_draft_marker_cmd.py
+      reason: "Assert generated draft manifests use manifest-kind."
+    - path: tests/cli/test_manifest_header_backfill.py
+      reason: "Assert promotion preserves manifest-kind as line one."
+    - path: tests/cli/test_manifest_cmd.py
+      reason: "Update promote fixture to the canonical marker spelling."
+    - path: tests/core/validation/test_validate_all_chain.py
+      reason: "Update validation-chain fixture marker spelling."
+    - path: tests/core/test_manifest_from_diff.py
+      reason: "Assert the from-diff writer emits the canonical manifest-kind marker while preserving parseable YAML."
+    - path: tests/cli/test_manifest_from_diff_cmd.py
+      reason: "Assert the CLI from-diff path writes a draft accepted by parent-chain inactive inventory diagnostics."
+    - path: manifests/drafts/README.md
+      reason: "Document the canonical implementation and epic marker values."
+    - path: maid_runner/manifests/drafts/README.md
+      reason: "Keep packaged draft README synchronized."
+    - path: docs/draft-manifest-workflow.md
+      reason: "Document the canonical marker key and compatibility note."
+    - path: maid_runner/docs/draft-manifest-workflow.md
+      reason: "Keep packaged workflow documentation synchronized."
+  read:
+    - manifests/086-01-self-describing-manifest-header.manifest.yaml
+    - manifests/fix-inactive-manifest-repair-guidance.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/test_manifest_header.py tests/core/test_manifest_chain_discovery.py tests/core/test_inactive_manifest_repair_guidance.py tests/cli/test_manifest_create_draft_marker_cmd.py tests/cli/test_manifest_header_backfill.py tests/cli/test_manifest_cmd.py tests/core/validation/test_validate_all_chain.py tests/core/test_manifest_from_diff.py tests/cli/test_manifest_from_diff_cmd.py
+  - uv run maid validate manifests/rename-draft-kind-marker.manifest.yaml --mode behavioral --quiet
+outcome:
+  status: completed
+  completed_at: "2026-09-11T09:23:00Z"
+  summary: "Renamed newly emitted draft lifecycle markers from '# draft-kind: implementation' to '# manifest-kind: implementation' while keeping legacy '# draft-kind:' markers readable. Draft creation and from-diff writers now emit the canonical marker, inactive-manifest diagnostics suggest manifest-kind values, and documentation describes implementation and epic marker values with legacy compatibility notes."
+  rationale: "The old marker key was functionally safe but confusing after promotion because active manifests preserved a comment containing the word draft. The change keeps the value vocabulary intact: implementation drafts and epic planning inventory remain distinct values, while the marker key becomes lifecycle-neutral. Existing repositories remain readable because the chain and header insertion paths still recognize legacy draft-kind comments."
+  lessons:
+    - lesson_type: test-design
+      summary: "When a behavior is described as a writer contract, cover every public writer path, not only the first CLI branch that motivated the change. The initial implementation updated manifest create but missed manifest from-diff; independent review caught that the from-diff writer still produced unmarked inactive inventory. The fix added direct write_from_diff_manifest coverage and CLI from-diff coverage that both assert the line-one marker and parent-chain inactive diagnostics."
+      tags:
+        - manifest-lifecycle
+        - cli
+        - implementation-review
+      paths:
+        - maid_runner/core/manifest_from_diff.py
+        - tests/core/test_manifest_from_diff.py
+        - tests/cli/test_manifest_from_diff_cmd.py
+    - lesson_type: compatibility
+      summary: "Marker migrations can be backward-compatible for upgraded readers without being forward-compatible for older binaries. This change intentionally makes new MAID accept legacy draft-kind comments, but older MAID versions may reject newly generated manifest-kind drafts until upgraded."
+      tags:
+        - manifest-lifecycle
+        - compatibility
+      paths:
+        - maid_runner/core/chain.py
+        - maid_runner/core/manifest.py
+  review_notes:
+    - source: maid-implementation-reviewer-round-1
+      severity: needs-changes
+      summary: "Found that manifest from-diff still wrote drafts without a lifecycle marker and that the active task pointer remained untracked local state. The writer gap was valid and fixed through a plan revision with fresh red evidence; the active pointer is lifecycle state to clear after Outcome capture."
+    - source: maid-implementation-reviewer-round-2
+      severity: ready
+      summary: "No blocking findings after the from-diff fix. The reviewer reran implementation validation, focused tests, manifest tests, and ruff; residual advisory was only to clear the active task pointer before final handoff."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/core/test_manifest_header.py
+        - tests/core/test_manifest_chain_discovery.py
+        - tests/core/test_inactive_manifest_repair_guidance.py
+        - tests/cli/test_manifest_create_draft_marker_cmd.py
+        - tests/cli/test_manifest_header_backfill.py
+        - tests/cli/test_manifest_cmd.py
+        - tests/core/validation/test_validate_all_chain.py
+        - tests/core/test_manifest_from_diff.py
+        - tests/cli/test_manifest_from_diff_cmd.py
+      status: passed
+      summary: "Focused behavioral suite passed with 111 tests after implementation."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/rename-draft-kind-marker.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: "Implementation validation passed for declared production artifacts."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/rename-draft-kind-marker.manifest.yaml
+      status: passed
+      summary: "Manifest validation commands passed, including focused pytest and behavioral validation."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "Full manifest validation passed: 670 manifests, 306 passed, 364 skipped as superseded."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: passed
+      summary: "Full MAID test suite passed: 301 commands passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --profile
+        - deep
+        - --manifest-dir
+        - manifests
+        - --test-scope
+        - task
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+      status: passed
+      summary: "Deep handoff verify passed with 0 blocking findings and 11 stages passed; remaining E307 entries were non-blocking validator-availability warnings."

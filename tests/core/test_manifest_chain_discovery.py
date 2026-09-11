@@ -40,7 +40,7 @@ def _write_manifest(
     if path.suffix == ".json":
         path.write_text(json.dumps(manifest))
     else:
-        prefix = "# draft-kind: implementation\n" if draft_marker else ""
+        prefix = "# manifest-kind: implementation\n" if draft_marker else ""
         path.write_text(prefix + yaml.dump(manifest))
 
 
@@ -277,6 +277,39 @@ def test_manifest_chain_reports_unmarked_manifest_hidden_under_inactive_dir(
         str(manifest_dir / "drafts" / "hidden-active.manifest.yaml"),
         str(manifest_dir / "v1-archive" / "hidden-active.manifest.yaml"),
     ]
+
+
+def test_inactive_directory_accepts_legacy_draft_kind_marker(
+    tmp_path: Path,
+) -> None:
+    manifest_dir = tmp_path / "manifests"
+    _write_manifest(
+        manifest_dir / "top-level.manifest.yaml",
+        goal="Top-level active manifest",
+        source_path="src/top_level.py",
+        artifact="top_level",
+    )
+    legacy_draft = manifest_dir / "drafts" / "legacy-draft.manifest.yaml"
+    legacy_draft.parent.mkdir(parents=True, exist_ok=True)
+    legacy_draft.write_text(
+        """# draft-kind: implementation
+schema: "2"
+goal: "Legacy draft marker"
+type: fix
+files:
+  create:
+    - path: src/legacy_draft.py
+      artifacts:
+        - kind: function
+          name: legacy_draft
+validate:
+  - pytest tests/test_legacy_draft.py -q
+"""
+    )
+
+    chain = ManifestChain(manifest_dir, tmp_path)
+
+    assert chain.inactive_manifest_diagnostics() == []
 
 
 def test_validate_all_fails_when_inactive_dir_contains_unmarked_v2_manifest(
