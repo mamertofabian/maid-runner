@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.27.5] - 2026-09-11
+
+### Fixed
+- **Deno test command recognition** — Recognize explicit `deno test` commands with project-relative test targets as behavioral runners for `E230` coverage, while rejecting non-test subcommands, help/no-run/filter-only modes, script arguments, and option-value lookalikes that do not prove behavioral execution.
+- **Python unittest command recognition** — Recognize direct `python -m unittest <file>` and `uv run python -m unittest <file>` commands as behavioral runners, while rejecting discovery mode, dotted selectors, non-file targets, escaping paths, non-test Python modules, and shell cwd escapes.
+- **Merge-aware HEAD baselines** — Resolve explicit `--since HEAD` changed-scope baselines against Git's single `MERGE_HEAD` during conflict resolution, avoiding unrelated incoming-branch widening while leaving literal commit, base-ref, metadata, octopus-merge, and ordinary non-merge baselines unchanged.
+- **Draft manifest-kind marker** — Rename draft lifecycle marker comments from `draft-kind` to `manifest-kind` across creation, promotion, repair guidance, generated docs, and fixtures while retaining backward-compatible reads of older `draft-kind` comments.
+
 ## [2.27.4] - 2026-09-02
 
 ### Added
@@ -1326,6 +1334,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
+[2.27.5]: https://github.com/mamertofabian/maid-runner/compare/v2.27.4...v2.27.5
 [2.27.4]: https://github.com/mamertofabian/maid-runner/compare/v2.27.3...v2.27.4
 [2.27.3]: https://github.com/mamertofabian/maid-runner/compare/v2.27.2...v2.27.3
 [2.27.2]: https://github.com/mamertofabian/maid-runner/compare/v2.27.1...v2.27.2

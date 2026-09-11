@@ -41,24 +41,44 @@ class TestPublicAPIImports:
         changelog = root / "CHANGELOG.md"
         roadmap = root / "docs" / "ROADMAP.md"
 
-        assert __version__ == "2.27.4"
-        assert re.search(r'^version = "2\.27\.4"$', pyproject.read_text(), re.M)
+        assert __version__ == "2.27.5"
+        assert re.search(r'^version = "2\.27\.5"$', pyproject.read_text(), re.M)
         assert re.search(
-            r'\[\[package\]\]\nname = "maid-runner"\nversion = "2\.27\.4"',
+            r'\[\[package\]\]\nname = "maid-runner"\nversion = "2\.27\.5"',
             lockfile.read_text(),
         )
         changelog_text = changelog.read_text()
-        assert "## [2.27.4] - 2026-09-02" in changelog_text
+        assert "## [2.27.5] - 2026-09-11" in changelog_text
         assert (
-            "[2.27.4]: https://github.com/mamertofabian/maid-runner/compare/v2.27.3...v2.27.4"
+            "[2.27.5]: https://github.com/mamertofabian/maid-runner/compare/v2.27.4...v2.27.5"
             in changelog_text
         )
-        assert "Draft-resume skill" in changelog_text
+        assert (
+            "**Deno test command recognition** — Recognize explicit `deno test` commands "
+            "with project-relative test targets as behavioral runners for `E230` coverage, "
+            "while rejecting non-test subcommands, help/no-run/filter-only modes, script "
+            "arguments, and option-value lookalikes that do not prove behavioral execution."
+            in changelog_text
+        )
+        assert (
+            "**Python unittest command recognition** — Recognize direct `python -m unittest <file>` "
+            "and `uv run python -m unittest <file>` commands as behavioral runners, while "
+            "rejecting discovery mode, dotted selectors, non-file targets, escaping paths, "
+            "non-test Python modules, and shell cwd escapes." in changelog_text
+        )
+        assert (
+            "**Merge-aware HEAD baselines** — Resolve explicit `--since HEAD` changed-scope "
+            "baselines against Git's single `MERGE_HEAD` during conflict resolution, avoiding "
+            "unrelated incoming-branch widening while leaving literal commit, base-ref, metadata, "
+            "octopus-merge, and ordinary non-merge baselines unchanged."
+            in changelog_text
+        )
+        assert "Draft manifest-kind marker" in changelog_text
 
         roadmap_text = roadmap.read_text()
-        assert "**Current Version:** 2.27.4" in roadmap_text
-        assert "**Last Updated:** 2026-09-02" in roadmap_text
-        assert "The local CLI reports `maid 2.27.4`." in roadmap_text
+        assert "**Current Version:** 2.27.5" in roadmap_text
+        assert "**Last Updated:** 2026-09-11" in roadmap_text
+        assert "The local CLI reports `maid 2.27.5`." in roadmap_text
         assert "`maid chain merge`" in roadmap_text
         help_result = subprocess.run(
             ["maid", "--help"],

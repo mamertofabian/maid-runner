@@ -1,0 +1,160 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Prepare maid-runner 2.27.5 release metadata and changelog"
+type: fix
+created: "2026-09-11T01:34:59Z"
+supersedes:
+  - bump-version-2.27.4
+metadata:
+  planning_state: behavioral_contract
+  promotion_ready: true
+  tests_status: red_confirmed
+  tags:
+    - release
+    - version
+    - changelog
+  priority: high
+description: |
+  Bump maid-runner from published 2.27.4 to patch release 2.27.5 and
+  synchronize package metadata, editable lock metadata, changelog, roadmap,
+  and the shared release-metadata assertion.
+
+  The v2.27.4..HEAD inventory contains four post-release fixes: Deno test
+  commands are recognized as behavioral runners, explicit Python unittest
+  commands are recognized as behavioral runners, changed-scope HEAD baselines
+  become merge-aware, and draft lifecycle marker text moves from draft-kind to
+  manifest-kind while retaining backward-compatible reads.
+
+  This task prepares local release metadata only. Tagging, publishing, pushing,
+  merging to main, and creating a GitHub release remain separate actions.
+temptations:
+  - risk: "Do not update only pyproject.toml while leaving release mirrors stale."
+    instead: "Synchronize pyproject.toml, uv.lock, changelog, roadmap, and the runtime metadata assertion together."
+  - risk: "Do not collapse the release inventory into a generic validation-hardening line."
+    instead: "Name Deno command recognition, Python unittest recognition, merge-aware HEAD baselines, and the draft marker rename separately."
+  - risk: "Do not include commits already released in v2.27.4."
+    instead: "Derive the patch inventory from the exact v2.27.4..HEAD range."
+  - risk: "Do not tag, publish, push, merge to main, or create a GitHub release."
+    instead: "Stop after local metadata, validation, review, Outcome capture, and release-prep handoff."
+files:
+  scope:
+    - path: pyproject.toml
+      reason: "Package version metadata has no analyzer-visible public artifact."
+    - path: uv.lock
+      reason: "Editable package lock metadata must mirror pyproject and be regenerated through uv."
+    - path: CHANGELOG.md
+      reason: "Release notes document the 2.27.5 fixes, date, boundary, and comparison link."
+    - path: docs/ROADMAP.md
+      reason: "Roadmap current-version references mirror the prepared CLI release."
+  edit:
+    - path: tests/integration/test_library_api.py
+      artifacts:
+        - kind: test_function
+          name: test_release_metadata_is_current_version
+          of: TestPublicAPIImports
+          args:
+            - name: self
+              type: TestPublicAPIImports
+          returns: None
+          description: "Runtime version, package metadata, editable lock metadata, changelog heading and compare link, roadmap, and release inventory all report 2.27.5."
+  read:
+    - maid_runner/__version__.py
+    - manifests/bump-version-2.27.4.manifest.yaml
+    - manifests/fix-deno-test-command-e230.manifest.yaml
+    - manifests/fix-python-unittest-command-e230.manifest.yaml
+    - manifests/fix-merge-aware-head-baseline.manifest.yaml
+    - manifests/rename-draft-kind-marker.manifest.yaml
+    - tests/core/validation/test_deno_test_runner.py
+    - tests/core/validation/test_python_unittest_runner.py
+    - tests/core/validation/test_merge_head_since_baseline.py
+    - tests/core/test_manifest_header.py
+validate:
+  - uv run python -m pytest -q tests/integration/test_library_api.py tests/core/validation/test_deno_test_runner.py tests/core/validation/test_python_unittest_runner.py tests/core/validation/test_merge_head_since_baseline.py tests/core/test_manifest_header.py
+outcome:
+  status: completed
+  completed_at: "2026-09-11T02:45:00Z"
+  summary: >-
+    Prepared maid-runner 2.27.5 by synchronizing package metadata, editable
+    lock metadata, changelog heading/date/compare link, roadmap references,
+    release metadata assertions, shared plan-lock hashes, and built
+    wheel/source distributions for the four post-2.27.4 fixes.
+  rationale: >-
+    The exact v2.27.4..HEAD range contains Deno test-command recognition,
+    Python unittest command recognition, merge-aware HEAD baseline handling,
+    and the draft manifest-kind marker rename. The release contract advances
+    one patch version, supersedes bump-version-2.27.4, and names each fix with
+    behaviorally accurate boundaries. Tagging, publishing, pushing, merging to
+    main, and creating a GitHub release remain separate.
+  agent:
+    model: gpt-5
+    provider: openai
+    client: codex
+    source: "System-provided model family; exact runtime slug and reasoning effort were unavailable."
+    skills:
+      - maid-planner
+      - maid-plan-review
+      - maid-implement-draft
+      - maid-implementer
+      - maid-implementation-review
+  lessons:
+    - lesson_type: release-safety
+      summary: >-
+        Release notes for validator behavior must describe the exact supported
+        and rejected command boundaries, not broad ecosystem labels; the shared
+        release metadata test should pin those details so packaging can fail
+        before publication if notes overclaim behavior.
+      tags: [release, changelog, validation-trust, maid-runner-feedback]
+      paths:
+        - CHANGELOG.md
+        - tests/integration/test_library_api.py
+    - lesson_type: plan-lock
+      summary: >-
+        Tightening a shared release metadata assertion after implementation
+        review requires a stash-backed revision for the current release lock
+        and preserved-evidence revisions for sibling locks that pin the same
+        shared test file.
+      tags: [release, plan-lock, shared-tests]
+      paths:
+        - tests/integration/test_library_api.py
+        - .maid/plan-locks/bump-version-2.27.5.lock.json
+  review_notes:
+    - source: independent-read-only-implementation-review
+      severity: needs-changes
+      summary: >-
+        First review found release-fidelity blockers: Deno and unittest
+        changelog entries overclaimed supported command forms, the merge-aware
+        baseline note named AUTO_MERGE while the implemented contract uses
+        MERGE_HEAD, and the active task marker remained in the worktree.
+    - source: independent-read-only-implementation-review
+      severity: ready
+      summary: >-
+        Fresh re-review found no blocking findings after bounded release-note
+        corrections, stronger release metadata assertions, lock revisions, and
+        active-task cleanup. Remaining advisories were the legacy manifest
+        marker comment and a stale historical delegated test name.
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/integration/test_library_api.py, tests/core/validation/test_deno_test_runner.py, tests/core/validation/test_python_unittest_runner.py, tests/core/validation/test_merge_head_since_baseline.py, tests/core/test_manifest_header.py]
+      status: passed
+      summary: "All 113 focused release and underlying-fix tests passed after review-driven release-note assertion tightening."
+    - command: [uv, run, maid, validate, manifests/bump-version-2.27.5.manifest.yaml, --mode, implementation, --packet]
+      status: passed
+      summary: "The promoted 2.27.5 release manifest passed implementation validation."
+    - command: [uv, run, maid, validate, --packet]
+      status: passed
+      summary: "All 306 active manifests passed; 365 superseded manifests were skipped."
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: "All 301 active manifest command groups passed."
+    - command: [make, build]
+      status: passed
+      summary: "Built maid_runner-2.27.5 source and wheel distributions after final changelog corrections."
+    - command: [uv, run, twine, check, dist/maid_runner-2.27.5.tar.gz, dist/maid_runner-2.27.5-py3-none-any.whl]
+      status: passed
+      summary: "Twine accepted both artifacts; wheel METADATA and sdist pyproject reported 2.27.5."
+    - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, v2.27.4]
+      status: passed
+      summary: "Deep verify passed all 11 stages with zero blocking findings; only non-blocking E307 validator-availability warnings remained."

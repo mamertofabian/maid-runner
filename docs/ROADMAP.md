@@ -2,8 +2,8 @@
 
 **Project:** MAID Runner - validation framework for Manifest-driven AI Development
 **Status:** Active v2 development
-**Current Version:** 2.27.4
-**Last Updated:** 2026-09-02
+**Current Version:** 2.27.5
+**Last Updated:** 2026-09-11
 
 ## Purpose
 
@@ -18,7 +18,7 @@ agent orchestration, code generation, or product workflows outside validation.
 ## Current State
 
 MAID Runner is now a v2 YAML-manifest package published as `maid-runner`.
-The local CLI reports `maid 2.27.4`.
+The local CLI reports `maid 2.27.5`.
 
 Supported languages:
 
