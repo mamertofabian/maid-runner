@@ -642,8 +642,8 @@ class ManifestChain:
                     location=Location(file=str(path)),
                     suggestion=(
                         "For an implementation draft, add "
-                        "'# draft-kind: implementation' as the first line; "
-                        "for an epic planning draft, add '# draft-kind: epic'. "
+                        "'# manifest-kind: implementation' as the first line; "
+                        "for an epic planning draft, add '# manifest-kind: epic'. "
                         "Otherwise promote or move the manifest outside "
                         "manifests/drafts/."
                         if inactive_dir == "drafts"
@@ -812,7 +812,7 @@ def _has_leading_inactive_marker_comment(source: str) -> bool:
             continue
         if not line.startswith("#"):
             return False
-        if line.startswith(("# draft-kind:", "# archive-kind:")):
+        if line.startswith(("# manifest-kind:", "# draft-kind:", "# archive-kind:")):
             return True
     return False
 

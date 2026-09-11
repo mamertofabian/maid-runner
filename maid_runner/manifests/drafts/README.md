@@ -16,15 +16,18 @@ Child implementation drafts must begin with the following marker so normal
 validation recognizes them as intentional inactive planning inventory:
 
 ```yaml
-# draft-kind: implementation
+# manifest-kind: implementation
 ```
 
 Drafts marked with the following comments are epic planning drafts:
 
 ```yaml
-# draft-kind: epic
+# manifest-kind: epic
 # promotion: split-before-promote
 ```
+
+Older `# draft-kind: ...` comments remain accepted for compatibility, but new
+draft inventory should use `# manifest-kind: ...`.
 
 Do not promote or implement epic drafts directly. Treat them as
 split-before-promote inventory: split them into smaller implementation-sized

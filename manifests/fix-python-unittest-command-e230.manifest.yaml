@@ -1,0 +1,244 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Recognize explicit Python unittest file commands as behavioral test runners"
+type: fix
+created: "2026-09-10T06:12:32Z"
+metadata:
+  bug_report: ~/.maid/bug-report/20260910-104500-articulearn-api-unittest-classification.md
+  priority: high
+  tags: [python, unittest, test-runner, command-integrity, e230]
+description: |
+  Fix the current E230 false positive for an explicit
+  `uv run python -m unittest <test-file>` command. Recognize Python's standard
+  unittest module as a test runner without applying pytest-only configuration
+  semantics, and expose its concrete file arguments to the existing target
+  coverage checks.
+
+  This contract intentionally supports explicit unittest file targets only.
+  Help mode, dotted class/method selectors, and `unittest discover` remain
+  fail-closed because they do not prove whole-file execution through the same
+  bounded path syntax. Shell-wrapped unittest commands also remain fail-closed
+  because shell quoting and expansions cannot be reconstructed safely after
+  tokenization. Public validation and test-runner signatures remain unchanged.
+temptations:
+  - risk: "Do not add unittest to the pytest-specific runner set and accidentally apply PYTEST_ADDOPTS or pytest override-ini semantics."
+    instead: "Separate Python module runner recognition from pytest-only effective-argument normalization."
+  - risk: "Do not treat every `python -m <module>` command as behavioral test execution."
+    instead: "Recognize only the exact unittest module alongside the existing pytest module runners."
+  - risk: "Do not accept unittest discovery or dotted selectors merely because they may eventually run the declared file."
+    instead: "Contract concrete file targets now and keep unsupported unittest target syntax fail-closed under E230."
+  - risk: "Do not partially interpret shell expansion syntax to make wrapped unittest commands pass."
+    instead: "Reject shell-wrapped unittest commands and support the reported direct and uv-run forms through argv-preserving paths."
+files:
+  scope:
+    - path: maid_runner/core/_test_runner_invocation.py
+      reason: "Recognize the exact Python unittest module runner, isolate pytest-only normalization, and expose only bounded explicit-file arguments; no public API changes."
+    - path: maid_runner/core/_test_command_targets.py
+      reason: "Require unittest targets to resolve to regular files inside the effective project working directory before they can satisfy E230 coverage; no public API changes."
+  create:
+    - path: tests/core/validation/test_python_unittest_runner.py
+      artifacts:
+        - kind: test_function
+          name: test_command_integrity_accepts_uv_python_module_unittest_file
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "The reported uv-run Python unittest command covers its explicitly declared behavioral test file without E230."
+        - kind: test_function
+          name: test_run_manifest_tests_executes_python_module_unittest_file
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "maid test executes an accepted Python unittest file command and reports one passing command."
+        - kind: test_function
+          name: test_command_integrity_ignores_pytest_addopts_for_unittest_file
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "PYTEST_ADDOPTS does not apply pytest-only non-executing or selector semantics to a Python unittest file command."
+        - kind: test_function
+          name: test_command_integrity_rejects_unittest_help_mode
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "Python unittest help mode cannot prove that the declared behavioral test executed."
+        - kind: test_function
+          name: test_command_integrity_rejects_unittest_discovery_mode
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "Uncontracted unittest discovery syntax remains fail-closed even when its start directory contains the declared test."
+        - kind: test_function
+          name: test_command_integrity_rejects_unittest_dotted_selector
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "A dotted unittest class or method selector cannot prove whole-file behavioral coverage."
+        - kind: test_function
+          name: test_command_integrity_rejects_non_test_python_module
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "A different Python module command that mentions the test file remains rejected as non-test execution."
+        - kind: test_function
+          name: test_command_integrity_rejects_unittest_non_file_target
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: target, type: str}
+          returns: None
+          description: "Directory, project-root, and glob targets cannot satisfy the explicit unittest file contract."
+        - kind: test_function
+          name: test_command_integrity_rejects_unittest_module_path_lookalike
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "A path ending in unittest is not the exact Python unittest module and remains rejected."
+        - kind: test_function
+          name: test_command_integrity_rejects_unittest_py_suffixed_directory
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "A .py-suffixed directory containing the declared test cannot masquerade as a concrete unittest file target."
+        - kind: test_function
+          name: test_command_integrity_rejects_unittest_escaping_file_target
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: target, type: str}
+          returns: None
+          description: "Absolute and parent-escaping unittest paths cannot normalize onto an in-project declared test."
+        - kind: test_function
+          name: test_command_integrity_rejects_unittest_shell_cwd_escape
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "A shell cd outside the project cannot receive E230 credit from an identically named external unittest file."
+        - kind: test_function
+          name: test_command_integrity_rejects_unittest_wrapper_cwd_parent_target
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "A package-runner cwd change cannot combine with a parent-relative unittest target to escape the effective working directory."
+        - kind: test_function
+          name: test_command_integrity_rejects_shell_wrapped_unittest
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: command, type: str}
+            - {name: test_path, type: str}
+          returns: None
+          description: "Shell-wrapped unittest commands remain fail-closed across special cd operands, tilde and brace expansion, and command substitution."
+        - kind: test_function
+          name: test_command_integrity_rejects_non_uv_unittest_wrapper
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: command, type: str}
+          returns: None
+          description: "Docker, package-manager, environment, coverage, Poetry, and PDM wrappers cannot inherit direct unittest authorization."
+        - kind: test_function
+          name: test_command_integrity_rejects_nested_uv_unittest_wrapper
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: command, type: str}
+          returns: None
+          description: "Repeated uv-run and uv-run-plus-env stacks cannot inherit the single uv-run unittest authorization."
+        - kind: test_function
+          name: test_command_integrity_rejects_uv_module_unittest_lookalike
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: command, type: str}
+          returns: None
+          description: "uv module-execution forms cannot masquerade as a single uv wrapper around the Python executable."
+        - kind: test_function
+          name: test_command_integrity_rejects_python_interpreter_lookalike
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: command, type: str}
+          returns: None
+          description: "Path-qualified and suffix-lookalike Python executables cannot inherit direct unittest authorization."
+        - kind: test_function
+          name: test_command_integrity_rejects_unittest_symlink_target
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "A lexical unittest target that is a symlink cannot satisfy the concrete-file coverage contract."
+        - kind: test_function
+          name: test_command_integrity_rejects_unittest_symlink_ancestor
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "A unittest target beneath a lexical symlink directory cannot satisfy the non-symlink file contract."
+        - kind: test_function
+          name: test_non_unittest_runner_preserves_symlinked_cwd_identity
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "Existing non-unittest runners preserve their lexical package-runner cwd identity instead of being rewritten to the symlink destination."
+  read:
+    - maid_runner/core/_test_command_targets.py
+    - maid_runner/core/_validation_test_artifacts.py
+    - maid_runner/core/test_runner.py
+    - manifests/038-13-extract-test-runner-invocation-helper.manifest.yaml
+    - manifests/043-05-recognize-uv-run-options-for-test-command-integrity.manifest.yaml
+    - manifests/fix-deno-test-command-e230.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_python_unittest_runner.py
+outcome:
+  status: completed
+  completed_at: "2026-09-10T08:30:58Z"
+  summary: "Recognized exact direct and single-uv Python unittest file commands for E230 while preserving fail-closed runner, wrapper, environment, filesystem, and path identity boundaries."
+  rationale: "The reported standard-library unittest command now uses the shared runner classifier without inheriting pytest configuration. Authorization is deliberately limited to exact Python interpreter tokens and one literal uv wrapper, concrete non-symlink in-project `.py` files, and argv forms whose execution identity can be proven without shell or generic-wrapper interpretation."
+  agent:
+    model: GPT-5
+    provider: openai
+    client: codex
+    source: "Self-reported model family; exact runtime slug and reasoning effort were unavailable."
+    skills:
+      - maid-planner
+      - maid-implement-draft
+      - maid-implementer
+      - maid-implementation-review
+  lessons:
+    - lesson_type: validation-trust
+      summary: "Recognizing a test runner requires preserving executable, wrapper, environment, cwd, and lexical file identity together; basename normalization or generic recursive unwrapping can credit a different executable or file than the command actually runs."
+      tags: [unittest, e230, command-integrity, maid-runner-feedback]
+      paths:
+        - maid_runner/core/_test_runner_invocation.py
+        - maid_runner/core/_test_command_targets.py
+        - tests/core/validation/test_python_unittest_runner.py
+    - lesson_type: test-design
+      summary: "Adversarial command fixtures should cover module and interpreter lookalikes, wrapper order and depth, shell expansion, symlink ancestors, path normalization aliases, and non-ASCII regex behavior when execution evidence depends on exact argv identity."
+      tags: [behavioral-tests, provenance, anti-gaming]
+      paths:
+        - tests/core/validation/test_python_unittest_runner.py
+  review_notes:
+    - source: independent-implementation-review-iterations
+      severity: needs-changes
+      summary: "Broad independent reviews identified and drove fixes for non-file targets, module/interpreter lookalikes, wrapper inheritance, cwd and symlink aliases, shell expansion ambiguity, uv module/depth semantics, environment-prefix provenance, trailing path aliases, and Unicode digit matching."
+    - source: independent-delta-review-final
+      severity: ready
+      summary: "A user-directed gpt-5.5 medium focused review found no blocking or advisory findings in the final Unicode-digit hardening delta and returned ready."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/validation/test_python_unittest_runner.py, tests/core/validation/test_deno_test_runner.py, tests/core/validation/test_test_runner_invocation.py, tests/core/validation/test_test_command_targets.py, tests/core/validation/test_registered_django_test_wrapper.py, tests/core/validation/test_shell_wrapped_vitest_e230.py]
+      status: passed
+      summary: "All 94 unittest and adjacent runner/target scenarios passed after final hardening."
+    - command: [uv, run, maid, validate, manifests/fix-python-unittest-command-e230.manifest.yaml, --mode, implementation, --packet]
+      status: passed
+      summary: "Implementation validation passed against plan-lock revision 15."
+    - command: [uv, run, maid, test, --manifest, manifests/fix-python-unittest-command-e230.manifest.yaml]
+      status: passed
+      summary: "The manifest validation command passed."
+    - command: [uv, run, maid, validate, --packet]
+      status: passed
+      summary: "All 304 active manifests passed; 364 superseded manifests were skipped."
+    - command: [uv, run, maid, test, --fail-fast]
+      status: passed
+      summary: "All 300 repository manifest commands passed."
+    - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, HEAD]
+      status: passed
+      summary: "All 11 deep verification stages passed with zero blockers; the existing ts_compiler_resolver.cjs E307 warning remained non-blocking."
+    - command: [/home/atomrem/projects/codefrost-dev/maid-runner/.venv/bin/maid, test, --manifest, manifests/016-email-password-registration-kill-switch.manifest.yaml]
+      status: passed
+      summary: "The originating Articulearn manifest passed all three commands in situ, including the exact uv-run Python unittest file command."

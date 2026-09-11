@@ -139,7 +139,7 @@ def _cmd_create(args: argparse.Namespace) -> int:
             return 2
 
         leading_marker = (
-            "# draft-kind: implementation" if "drafts" in output_dir.parts else None
+            "# manifest-kind: implementation" if "drafts" in output_dir.parts else None
         )
         output_path.write_text(_dump_manifest_yaml(data, leading_marker=leading_marker))
         if args.json:

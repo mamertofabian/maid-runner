@@ -1,0 +1,144 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Make an explicit HEAD task baseline merge-aware during an in-progress Git merge"
+type: fix
+created: "2026-09-10T09:25:47Z"
+metadata:
+  bug_report: ~/.maid/bug-report/20260904-211047-tma-studio-marker-manager.md
+  priority: high
+  tags: [git, merge, baseline, pre-commit, file-tracking, tma]
+description: |
+  Fix the pre-commit false positive produced by `maid verify --profile
+  pre-commit --since HEAD` during an in-progress merge. When the resolved
+  baseline source is `since`, its commitish is exactly the symbolic `HEAD`, and
+  Git exposes a valid `MERGE_HEAD`, compare tracked task paths against
+  `MERGE_HEAD`. This preserves the current branch's authored contributions and
+  conflict resolution while excluding files that arrive unchanged from the
+  incoming side.
+
+  This is deliberately narrower than the existing AUTO_MERGE worktree-scope
+  behavior. AUTO_MERGE identifies post-automatic-merge edits; MERGE_HEAD is the
+  correct task baseline for distinguishing branch-authored content from
+  incoming-only content. Explicit hashes, HEAD-relative expressions, base-ref
+  and metadata baselines, invalid MERGE_HEAD state, and ordinary non-merge
+  behavior remain unchanged. Multi-head (octopus) merges also retain literal
+  HEAD semantics because no single MERGE_HEAD represents the complete incoming
+  side; this conservative fallback avoids silently excluding only a subset.
+temptations:
+  - risk: "Do not reuse AUTO_MERGE as the task baseline and accidentally reduce task scope to conflict-resolution edits only."
+    instead: "Use a valid MERGE_HEAD only for the exact symbolic since=HEAD case; keep AUTO_MERGE limited to worktree-scope dirt."
+  - risk: "Do not rewrite hashes, HEAD~n, base-ref, or metadata baselines merely because a merge is in progress."
+    instead: "Gate substitution on baseline.source == since and baseline.commitish == HEAD, with negative tests for literal non-HEAD baselines."
+  - risk: "Do not suppress incoming paths through filename, status, or content heuristics."
+    instead: "Let Git compute the diff from the incoming commit and preserve existing fail-closed fallback when MERGE_HEAD is absent or invalid."
+files:
+  scope:
+    - path: maid_runner/core/worktree.py
+      reason: "Resolve the exact symbolic HEAD baseline to MERGE_HEAD during a valid in-progress merge without changing public signatures."
+  create:
+    - path: tests/core/validation/test_merge_head_since_baseline.py
+      artifacts:
+        - kind: test_function
+          name: test_head_since_uses_merge_head_during_in_progress_merge
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "An exact since=HEAD baseline includes branch-authored and resolved files while excluding unchanged incoming-only files during a merge."
+        - kind: test_function
+          name: test_literal_commit_baseline_is_not_rewritten_during_merge
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "An explicit commit hash equal to the current HEAD remains literal and retains the existing local-side diff semantics."
+        - kind: test_function
+          name: test_non_since_head_baseline_is_not_rewritten_during_merge
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: source, type: str}
+          returns: None
+          description: "HEAD text from base-ref or metadata sources retains its existing semantics; merge substitution is exclusive to source=since."
+        - kind: test_function
+          name: test_head_since_remains_literal_outside_merge
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "Outside a merge, since=HEAD continues to report ordinary tracked worktree changes."
+        - kind: test_function
+          name: test_invalid_merge_head_falls_back_to_literal_head
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "An invalid MERGE_HEAD cannot change baseline semantics and falls back to literal HEAD."
+        - kind: test_function
+          name: test_multiple_merge_heads_fall_back_to_literal_head
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "An octopus merge with multiple incoming heads retains literal HEAD semantics instead of using only the first incoming commit as a partial baseline."
+  read:
+    - maid_runner/cli/commands/verify.py
+    - maid_runner/core/verify_profiles.py
+    - manifests/fix-merge-aware-worktree-scope.manifest.yaml
+    - manifests/fix-pre-commit-task-scoped-plan-locks.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_merge_head_since_baseline.py
+outcome:
+  status: completed
+  completed_at: "2026-09-10T09:40:48Z"
+  summary: "Made the exact explicit since=HEAD task baseline use a valid single MERGE_HEAD during ordinary in-progress merges, excluding unchanged incoming-only paths while retaining branch-authored and conflict-resolution paths."
+  rationale: "MERGE_HEAD represents the incoming side needed to distinguish current-branch contributions during a two-parent merge; AUTO_MERGE remains reserved for post-automatic-merge worktree edits. Substitution is limited to source=since with exact HEAD. Invalid, missing, and multi-head MERGE_HEAD states conservatively retain literal HEAD semantics."
+  agent:
+    model: GPT-5
+    provider: openai
+    client: codex
+    source: "Self-reported model family; exact runtime slug and reasoning effort were unavailable."
+    skills:
+      - maid-planner
+      - maid-implement-draft
+      - maid-implementer
+      - maid-implementation-review
+  lessons:
+    - lesson_type: validation-trust
+      summary: "Merge-aware task scope and merge-aware worktree dirt require different Git baselines: MERGE_HEAD separates current-branch contributions from incoming content, while AUTO_MERGE isolates edits made after Git's automatic merge result."
+      tags: [git, merge, baseline, file-tracking, maid-runner-feedback]
+      paths:
+        - maid_runner/core/worktree.py
+        - tests/core/validation/test_merge_head_since_baseline.py
+    - lesson_type: test-design
+      summary: "Symbolic-baseline tests must pin both the baseline text and its provenance source, and multi-head merge fixtures are needed to prevent a single-ref implementation from silently handling only part of an octopus merge."
+      tags: [git, behavioral-tests, merge-head, anti-gaming]
+      paths:
+        - tests/core/validation/test_merge_head_since_baseline.py
+  review_notes:
+    - source: gpt-5.5-medium-complete-diff-review-round-1
+      severity: needs-changes
+      summary: "Found that octopus MERGE_HEAD state resolved only the first incoming commit, leaving later incoming-only paths attributed to the task."
+    - source: gpt-5.5-medium-delta-review-round-2
+      severity: ready
+      summary: "Found no issues in the multi-head fail-closed delta; confirmed single-head behavior and Git-path handling remained correct."
+    - source: review-ceiling
+      severity: advisory
+      summary: "The user capped review at three rounds: one complete-diff review and at most two latest-delta reviews. The implementation converged in two rounds, so the third was not used."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/validation/test_merge_head_since_baseline.py, tests/core/validation/test_merge_worktree_scope.py, tests/core/test_changed_scope.py, tests/cli/test_verify_task_scoped_file_tracking.py]
+      status: passed
+      summary: "All 29 contract and adjacent merge/baseline/file-tracking scenarios passed after octopus hardening."
+    - command: [uv, run, maid, validate, manifests/fix-merge-aware-head-baseline.manifest.yaml, --mode, implementation, --packet]
+      status: passed
+      summary: "Implementation validation passed against plan-lock revision 4."
+    - command: [uv, run, maid, test, --manifest, manifests/fix-merge-aware-head-baseline.manifest.yaml]
+      status: passed
+      summary: "The manifest validation command passed."
+    - command: [uv, run, maid, validate, --packet]
+      status: passed
+      summary: "All 305 active manifests passed; 364 superseded manifests were skipped."
+    - command: [uv, run, maid, test, --fail-fast]
+      status: passed
+      summary: "All 300 repository manifest commands passed."
+    - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, HEAD]
+      status: passed
+      summary: "All 11 deep verification stages passed with zero blockers; the existing ts_compiler_resolver.cjs E307 warning remained non-blocking."

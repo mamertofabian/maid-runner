@@ -1,0 +1,174 @@
+{
+  "manifest_path": "manifests/bump-version-2.27.5.manifest.yaml",
+  "manifest_hash": "sha256-contract:bbfcbcd89c85d1db6bbd629dbf22eee416bd7f4901be20c36e158fa40b73e16e",
+  "test_hashes": {
+    "tests/core/validation/test_deno_test_runner.py": "sha256-pyast:v2:75da4f388950322ce28748c295f7e18b62e523a734f27c885507b7aff4f3b65d",
+    "tests/core/validation/test_python_unittest_runner.py": "sha256-pyast:v2:0014f56954018710438a399a6c82de0c1061a2f593e49c47cbc463e66fba874d",
+    "tests/core/validation/test_merge_head_since_baseline.py": "sha256-pyast:v2:48f12a37018e4635923fc506fb8d6627eefa93539d5a91336f69e1b2b7d6a152",
+    "tests/core/test_manifest_header.py": "sha256-pyast:v2:5446ff8d1deae8100d7a6f9b481b8c6c31c3dd3126e411f9efda3b98256b353e",
+    "tests/integration/test_library_api.py": "sha256-pyast:v2:61f405ace7ed150f8e3fb5194956ddf9a14b4d4bf8c3afade4d1d0e8808dfbd7"
+  },
+  "created_at": "2026-09-11T01:34:54.287302+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:6db0eb67d73e29e8fcc2a49e0ac23f96eab61d8dc3f543459bbf2a787410440d",
+      "prior_test_hashes": {
+        "tests/core/validation/test_deno_test_runner.py": "sha256-pyast:v2:75da4f388950322ce28748c295f7e18b62e523a734f27c885507b7aff4f3b65d",
+        "tests/core/validation/test_python_unittest_runner.py": "sha256-pyast:v2:0014f56954018710438a399a6c82de0c1061a2f593e49c47cbc463e66fba874d",
+        "tests/core/validation/test_merge_head_since_baseline.py": "sha256-pyast:v2:48f12a37018e4635923fc506fb8d6627eefa93539d5a91336f69e1b2b7d6a152",
+        "tests/core/test_manifest_header.py": "sha256-pyast:v2:5446ff8d1deae8100d7a6f9b481b8c6c31c3dd3126e411f9efda3b98256b353e",
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:a10806b831fd31f0d1a04cb68b17db37219ba7aefc232853468c2447eab88d4e"
+      },
+      "revised_at": "2026-09-11T01:34:59.492656+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/bump-version-2.27.5.manifest.yaml -> manifests/bump-version-2.27.5.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:bbfcbcd89c85d1db6bbd629dbf22eee416bd7f4901be20c36e158fa40b73e16e",
+      "prior_test_hashes": {
+        "tests/core/validation/test_deno_test_runner.py": "sha256-pyast:v2:75da4f388950322ce28748c295f7e18b62e523a734f27c885507b7aff4f3b65d",
+        "tests/core/validation/test_python_unittest_runner.py": "sha256-pyast:v2:0014f56954018710438a399a6c82de0c1061a2f593e49c47cbc463e66fba874d",
+        "tests/core/validation/test_merge_head_since_baseline.py": "sha256-pyast:v2:48f12a37018e4635923fc506fb8d6627eefa93539d5a91336f69e1b2b7d6a152",
+        "tests/core/test_manifest_header.py": "sha256-pyast:v2:5446ff8d1deae8100d7a6f9b481b8c6c31c3dd3126e411f9efda3b98256b353e",
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:a10806b831fd31f0d1a04cb68b17db37219ba7aefc232853468c2447eab88d4e"
+      },
+      "revised_at": "2026-09-11T01:46:20.201241+00:00",
+      "reason": "tighten release-note assertions after implementation review",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-11T01:46:21.601194+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/integration/test_library_api.py tests/core/validation/test_deno_test_runner.py tests/core/validation/test_python_unittest_runner.py tests/core/validation/test_merge_head_since_baseline.py tests/core/test_manifest_header.py",
+        "exit_code": 1,
+        "output_tail": "        roadmap = root / \"docs\" / \"ROADMAP.md\"\n    \n>       assert __version__ == \"2.27.5\"\nE       AssertionError: assert '2.27.4' == '2.27.5'\nE         \nE         - 2.27.5\nE         ?      ^\nE         + 2.27.4\nE         ?      ^\n\ntests/integration/test_library_api.py:44: AssertionError\n=========================== short test summary info ============================\nFAILED tests/integration/test_library_api.py::TestPublicAPIImports::test_release_metadata_is_current_version\nFAILED tests/integration/test_library_api.py::TestPublicAPIImports::test_release_metadata_is_2_21_0\n2 failed, 111 passed in 0.68s\n\n   Building maid-runner @ file:///home/atomrem/projects/codefrost-dev/maid-runner\n      Built maid-runner @ file:///home/atomrem/projects/codefrost-dev/maid-runner\nUninstalled 1 package in 0.32ms\nInstalled 1 package in 0.64ms",
+        "classification": "red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/065-01-add-error-code-rule-registry-export.lock.json",
+      ".maid/plan-locks/089-01-honor-output-suffix-in-save-manifest.lock.json",
+      ".maid/plan-locks/snapshot-cli-commands--main-2.lock.json"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version",
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version:arg=self:type=TestPublicAPIImports:default=None",
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version:kind=test_function",
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version:of=TestPublicAPIImports",
+      "tests/integration/test_library_api.py:test_release_metadata_is_current_version:returns=None"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "tests/integration/test_library_api.py"
+      ],
+      "read": [
+        "maid_runner/__version__.py",
+        "manifests/bump-version-2.27.4.manifest.yaml",
+        "manifests/fix-deno-test-command-e230.manifest.yaml",
+        "manifests/fix-merge-aware-head-baseline.manifest.yaml",
+        "manifests/fix-python-unittest-command-e230.manifest.yaml",
+        "manifests/rename-draft-kind-marker.manifest.yaml",
+        "tests/core/test_manifest_header.py",
+        "tests/core/validation/test_deno_test_runner.py",
+        "tests/core/validation/test_merge_head_since_baseline.py",
+        "tests/core/validation/test_python_unittest_runner.py"
+      ],
+      "scope": [
+        "CHANGELOG.md",
+        "docs/ROADMAP.md",
+        "pyproject.toml",
+        "uv.lock"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "tests/integration/test_library_api.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_release_metadata_is_current_version",
+              "description": "Runtime version, package metadata, editable lock metadata, changelog heading and compare link, roadmap, and release inventory all report 2.27.5.",
+              "of": "TestPublicAPIImports",
+              "args": [
+                {
+                  "name": "self",
+                  "type": "TestPublicAPIImports"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/__version__.py",
+        "manifests/bump-version-2.27.4.manifest.yaml",
+        "manifests/fix-deno-test-command-e230.manifest.yaml",
+        "manifests/fix-python-unittest-command-e230.manifest.yaml",
+        "manifests/fix-merge-aware-head-baseline.manifest.yaml",
+        "manifests/rename-draft-kind-marker.manifest.yaml",
+        "tests/core/validation/test_deno_test_runner.py",
+        "tests/core/validation/test_python_unittest_runner.py",
+        "tests/core/validation/test_merge_head_since_baseline.py",
+        "tests/core/test_manifest_header.py"
+      ],
+      "scope": [
+        {
+          "path": "pyproject.toml",
+          "reason": "Package version metadata has no analyzer-visible public artifact."
+        },
+        {
+          "path": "uv.lock",
+          "reason": "Editable package lock metadata must mirror pyproject and be regenerated through uv."
+        },
+        {
+          "path": "CHANGELOG.md",
+          "reason": "Release notes document the 2.27.5 fixes, date, boundary, and comparison link."
+        },
+        {
+          "path": "docs/ROADMAP.md",
+          "reason": "Roadmap current-version references mirror the prepared CLI release."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_manifest_header.py",
+      "tests/core/validation/test_deno_test_runner.py",
+      "tests/core/validation/test_merge_head_since_baseline.py",
+      "tests/core/validation/test_python_unittest_runner.py",
+      "tests/integration/test_library_api.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/integration/test_library_api.py tests/core/validation/test_deno_test_runner.py tests/core/validation/test_python_unittest_runner.py tests/core/validation/test_merge_head_since_baseline.py tests/core/test_manifest_header.py"
+    ],
+    "acceptance_commands": []
+  }
+}

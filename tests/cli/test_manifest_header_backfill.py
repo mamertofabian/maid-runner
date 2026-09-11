@@ -96,7 +96,7 @@ def _write_draft(project_root: Path, *, headed: bool = False) -> Path:
     (project_root / "tests").mkdir(exist_ok=True)
     (project_root / "tests" / "test_demo.py").write_text(_TEST_BODY)
     draft_path = draft_dir / "demo-task.manifest.yaml"
-    body = "# draft-kind: implementation\n" + _MANIFEST_BODY
+    body = "# manifest-kind: implementation\n" + _MANIFEST_BODY
     draft_path.write_text(prepend_manifest_header(body) if headed else body)
     return draft_path
 
@@ -263,7 +263,7 @@ class TestPlanGateManifestHeaderBackfill:
 
 
 class TestPromoteManifestHeaderBackfill:
-    def test_manifest_promote_backfills_header_and_keeps_draft_marker_line_one(
+    def test_manifest_promote_backfills_header_and_keeps_manifest_marker_line_one(
         self, tmp_path: Path, capsys: pytest.CaptureFixture
     ):
         draft_path = _write_draft(tmp_path)
@@ -275,7 +275,7 @@ class TestPromoteManifestHeaderBackfill:
         assert exit_code == 0
         promoted = tmp_path / "manifests" / "demo-task.manifest.yaml"
         lines = promoted.read_text().splitlines()
-        assert lines[0] == "# draft-kind: implementation"
+        assert lines[0] == "# manifest-kind: implementation"
         assert lines[1] == MANIFEST_HEADER_COMMENT.splitlines()[0]
 
         lock = json.loads(lock_path.read_text())

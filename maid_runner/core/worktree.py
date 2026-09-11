@@ -278,9 +278,39 @@ def changed_files_since(
     """Return files changed from the task baseline to the current worktree."""
     root = Path(project_root)
     commitish = _baseline_commitish(root, baseline)
+    if (
+        baseline.source == "since"
+        and baseline.commitish == "HEAD"
+        and _single_merge_head_exists(root)
+    ):
+        commitish = "MERGE_HEAD"
     tracked = _changed_tracked_paths_since(root, commitish)
     untracked = _untracked_paths(root)
     return tuple(dict.fromkeys((*tracked, *untracked)))
+
+
+def _single_merge_head_exists(root: Path) -> bool:
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--git-path", "MERGE_HEAD"],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return False
+    if result.returncode != 0 or not result.stdout.strip():
+        return False
+
+    merge_head_path = Path(result.stdout.strip())
+    if not merge_head_path.is_absolute():
+        merge_head_path = root / merge_head_path
+    try:
+        heads = [line for line in merge_head_path.read_text().splitlines() if line]
+    except OSError:
+        return False
+    return len(heads) == 1 and _git_object_exists(root, "MERGE_HEAD")
 
 
 def validate_changed_scope(

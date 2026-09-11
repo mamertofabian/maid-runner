@@ -1,0 +1,772 @@
+{
+  "manifest_path": "manifests/fix-python-unittest-command-e230.manifest.yaml",
+  "manifest_hash": "sha256-contract:1bb7515c940e496ec958ce911324ee7e6f561be24916821668a8c6f182bf4c93",
+  "test_hashes": {
+    "tests/core/validation/test_python_unittest_runner.py": "sha256-pyast:v2:0014f56954018710438a399a6c82de0c1061a2f593e49c47cbc463e66fba874d"
+  },
+  "created_at": "2026-09-10T06:12:32.350646+00:00",
+  "revision": 15,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:320ff9c689a038309cdff73230d198a8ab1483ea2ef1fa8009e38399ee63deee",
+      "prior_test_hashes": {
+        "tests/core/validation/test_python_unittest_runner.py": "sha256-pyast:v2:896a892be4de7f5a65d88e9e568674ad9c3b88ae3ece1184cacaae5241007090"
+      },
+      "revised_at": "2026-09-10T06:12:32.964567+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-python-unittest-command-e230.manifest.yaml -> manifests/fix-python-unittest-command-e230.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:124abc60c06636c780a1a3e172cc2402b1c96551d7c3658baffd8dd3565fa634",
+      "prior_test_hashes": {
+        "tests/core/validation/test_python_unittest_runner.py": "sha256-pyast:v2:896a892be4de7f5a65d88e9e568674ad9c3b88ae3ece1184cacaae5241007090"
+      },
+      "revised_at": "2026-09-10T06:18:21.184053+00:00",
+      "reason": "Move E230 assertions into each declared behavioral test after deep verification reported E210 for helper-delegated assertions.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:124abc60c06636c780a1a3e172cc2402b1c96551d7c3658baffd8dd3565fa634",
+      "prior_test_hashes": {
+        "tests/core/validation/test_python_unittest_runner.py": "sha256-pyast:v2:025858e033b86f645ce729f8bfb5f0e970f7c26ad9ddd1d348fb9842051baa54"
+      },
+      "revised_at": "2026-09-10T06:28:02.414691+00:00",
+      "reason": "Independent review found explicit-file E230 could be satisfied by unittest directory/glob targets and path-suffixed unittest module lookalikes.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_module_path_lookalike",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_module_path_lookalike:arg=tmp_path:type=Path:default=None",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_module_path_lookalike:kind=test_function",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_module_path_lookalike:returns=None",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_non_file_target",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_non_file_target:arg=target:type=str:default=None",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_non_file_target:arg=tmp_path:type=Path:default=None",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_non_file_target:kind=test_function",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_non_file_target:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6558bc0c663dba8d7a03b60854b36e08ab25aecf525a47a48e3c5c2334a7f832",
+      "prior_test_hashes": {
+        "tests/core/validation/test_python_unittest_runner.py": "sha256-pyast:v2:3ef171ba0045aba6f6b72cb26440f33579b6eb284ba0dcac9274909358f32a13"
+      },
+      "revised_at": "2026-09-10T06:38:02.450178+00:00",
+      "reason": "Independent review found .py-suffixed directories and absolute or parent-escaping unittest targets could falsely normalize onto declared in-project test files.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_escaping_file_target",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_escaping_file_target:arg=target:type=str:default=None",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_escaping_file_target:arg=tmp_path:type=Path:default=None",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_escaping_file_target:kind=test_function",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_escaping_file_target:returns=None",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_py_suffixed_directory",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_py_suffixed_directory:arg=tmp_path:type=Path:default=None",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_py_suffixed_directory:kind=test_function",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_py_suffixed_directory:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:maid_runner/core/_test_command_targets.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ff0fc6b60ffc4764745298ff54df421c53d969abaeb453102f577f1703061e32",
+      "prior_test_hashes": {
+        "tests/core/validation/test_python_unittest_runner.py": "sha256-pyast:v2:ec7ea7525ae3b49beee379ec5f1ccb70f194988554ae9661c3d048a401b6f61b"
+      },
+      "revised_at": "2026-09-10T06:48:53.879957+00:00",
+      "reason": "Independent review found shell and package-runner cwd normalization could erase parent escapes and credit an identically named external unittest file.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_shell_cwd_escape",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_shell_cwd_escape:arg=tmp_path:type=Path:default=None",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_shell_cwd_escape:kind=test_function",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_shell_cwd_escape:returns=None",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_wrapper_cwd_parent_target",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_wrapper_cwd_parent_target:arg=tmp_path:type=Path:default=None",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_wrapper_cwd_parent_target:kind=test_function",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_wrapper_cwd_parent_target:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:914c390168b51c006f03f0a3f58bafb68d5ddd1751a2e437a618ab6e84b0c189",
+      "prior_test_hashes": {
+        "tests/core/validation/test_python_unittest_runner.py": "sha256-pyast:v2:e0ba0403cd36f9f533b75310b7f9cfa0e15a8dd2802c892bbeb1c8b8786fe2d9"
+      },
+      "revised_at": "2026-09-10T07:06:16.711991+00:00",
+      "reason": "Independent review found shell tokenization cannot safely preserve unittest cwd, tilde, brace, or command-substitution semantics, so shell-wrapped unittest commands are now explicitly fail-closed.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_shell_wrapped_unittest",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_shell_wrapped_unittest:arg=command:type=str:default=None",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_shell_wrapped_unittest:arg=test_path:type=str:default=None",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_shell_wrapped_unittest:arg=tmp_path:type=Path:default=None",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_shell_wrapped_unittest:kind=test_function",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_shell_wrapped_unittest:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9e78dcfba4185d500242fc44ec40caeb4d4a8ce58e5569b33955caffc1fc6812",
+      "prior_test_hashes": {
+        "tests/core/validation/test_python_unittest_runner.py": "sha256-pyast:v2:0f2aaa980c345502b5ccd25ef4cf3fe2a98a9022fd0d58c1c25f52615c3a5a06"
+      },
+      "revised_at": "2026-09-10T07:06:45.488764+00:00",
+      "reason": "Correct nested shell-expansion fixtures so red evidence records command-integrity failures rather than directory setup errors.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9e78dcfba4185d500242fc44ec40caeb4d4a8ce58e5569b33955caffc1fc6812",
+      "prior_test_hashes": {
+        "tests/core/validation/test_python_unittest_runner.py": "sha256-pyast:v2:a58bc53811c8c5c5dc6ee756e305debabfc0976554287e4b014bade0d03d65d4"
+      },
+      "revised_at": "2026-09-10T07:16:25.053020+00:00",
+      "reason": "Independent review found generic wrapper recursion granted direct unittest authorization to Docker, package, environment, Poetry, and PDM execution contexts.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_non_uv_unittest_wrapper",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_non_uv_unittest_wrapper:arg=command:type=str:default=None",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_non_uv_unittest_wrapper:arg=tmp_path:type=Path:default=None",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_non_uv_unittest_wrapper:kind=test_function",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_non_uv_unittest_wrapper:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:deeffd41ddfe707b4a39c1627c7718e051a7d1ffe110b9f5a2960fd80cc636a3",
+      "prior_test_hashes": {
+        "tests/core/validation/test_python_unittest_runner.py": "sha256-pyast:v2:f805e89c90ac4d3954a537febe198c5dd961d71696fd5076ba758f78ca000496"
+      },
+      "revised_at": "2026-09-10T07:26:01.688735+00:00",
+      "reason": "Independent review found repeated uv-run and uv-run-plus-env stacks inherited the single uv-run unittest authorization.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_nested_uv_unittest_wrapper",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_nested_uv_unittest_wrapper:arg=command:type=str:default=None",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_nested_uv_unittest_wrapper:arg=tmp_path:type=Path:default=None",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_nested_uv_unittest_wrapper:kind=test_function",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_nested_uv_unittest_wrapper:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:fd7359458982762109d4d8b446e89366f62e08b17cbbff3fde3b739e62d4ecfa",
+      "prior_test_hashes": {
+        "tests/core/validation/test_python_unittest_runner.py": "sha256-pyast:v2:befa6cbc8137cf95711409fab1d6badeac27753be5bde2719ef52d24042291fd"
+      },
+      "revised_at": "2026-09-10T07:36:31.009298+00:00",
+      "reason": "Independent review found outer environment prefixes bypassed the uv-depth boundary and uv --module was misparsed as an executable invocation.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_uv_module_unittest_lookalike",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_uv_module_unittest_lookalike:arg=tmp_path:type=Path:default=None",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_uv_module_unittest_lookalike:kind=test_function",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_uv_module_unittest_lookalike:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:fe7ec41fdcdee4d04d6d4dbf0b59818e3cdd2c2174216c630f60ae553ecbd1a0",
+      "prior_test_hashes": {
+        "tests/core/validation/test_python_unittest_runner.py": "sha256-pyast:v2:2afbfa7cb1364588b1ad34db55c618d29dfc73a89638ca74e6ca497ded1ab4f2"
+      },
+      "revised_at": "2026-09-10T07:49:21.031230+00:00",
+      "reason": "Independent review found uv module forms, interpreter basename lookalikes, and lexical symlinks could inherit exact unittest authorization.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_python_interpreter_lookalike",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_python_interpreter_lookalike:arg=command:type=str:default=None",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_python_interpreter_lookalike:arg=tmp_path:type=Path:default=None",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_python_interpreter_lookalike:kind=test_function",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_python_interpreter_lookalike:returns=None",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_symlink_target",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_symlink_target:arg=tmp_path:type=Path:default=None",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_symlink_target:kind=test_function",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_symlink_target:returns=None",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_uv_module_unittest_lookalike:arg=command:type=str:default=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:61e3895d1ec161f6d3ec99fea8f5f99418c7a927470e71d730391a502a50a09f",
+      "prior_test_hashes": {
+        "tests/core/validation/test_python_unittest_runner.py": "sha256-pyast:v2:d8662f704327f689655c8f35ba5bcee3fdf8f42d1fa736425208b6d2b4e99ea1"
+      },
+      "revised_at": "2026-09-10T08:01:55.890239+00:00",
+      "reason": "Independent review found symlink ancestors remained accepted and global cwd resolution regressed lexical symlink cwd identity for existing non-unittest runners.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_symlink_ancestor",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_symlink_ancestor:arg=tmp_path:type=Path:default=None",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_symlink_ancestor:kind=test_function",
+          "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_symlink_ancestor:returns=None",
+          "tests/core/validation/test_python_unittest_runner.py:test_non_unittest_runner_preserves_symlinked_cwd_identity",
+          "tests/core/validation/test_python_unittest_runner.py:test_non_unittest_runner_preserves_symlinked_cwd_identity:arg=tmp_path:type=Path:default=None",
+          "tests/core/validation/test_python_unittest_runner.py:test_non_unittest_runner_preserves_symlinked_cwd_identity:kind=test_function",
+          "tests/core/validation/test_python_unittest_runner.py:test_non_unittest_runner_preserves_symlinked_cwd_identity:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:1bb7515c940e496ec958ce911324ee7e6f561be24916821668a8c6f182bf4c93",
+      "prior_test_hashes": {
+        "tests/core/validation/test_python_unittest_runner.py": "sha256-pyast:v2:3154caa03da5ef6894202b5afb55eed4a1ee575a509055fbffdeeed5d58571fb"
+      },
+      "revised_at": "2026-09-10T08:14:32.872777+00:00",
+      "reason": "Independent review found bare assignments, path-qualified uv/env lookalikes, and trailing slash or dot file aliases could receive false unittest E230 credit.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:1bb7515c940e496ec958ce911324ee7e6f561be24916821668a8c6f182bf4c93",
+      "prior_test_hashes": {
+        "tests/core/validation/test_python_unittest_runner.py": "sha256-pyast:v2:da212b93e2e1ff39b05f0daa9e003dfff1d50754098aa8d0481b902d7c3ba408"
+      },
+      "revised_at": "2026-09-10T08:25:12.520397+00:00",
+      "reason": "Independent review found Unicode decimal digits matched the trusted python3.<version> executable regex.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-10T08:25:13.047087+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/validation/test_python_unittest_runner.py",
+        "exit_code": 1,
+        "output_tail": "            (\n                \"env PYTEST_ADDOPTS=--collect-only \"\n                \"python -m unittest tests/test_registration_runbook.py\"\n            ),\n        )\n    \n        errors = validate_manifest_test_commands(load_manifest(manifest_path), tmp_path)\n    \n>       assert errors == []\nE       assert [ValidationEr... directory.')] == []\nE         \nE         Left contains one more item: ValidationError(code=<ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS: 'E230'>, message=\"VALIDATE_COMMAND_DOES_NOT_RUN_T...ion='Run the behavioral tests with a recognized test runner and target each test file or a containing test directory.')\nE         Use -v to get more diff\n\ntests/core/validation/test_python_unittest_runner.py:95: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/validation/test_python_unittest_runner.py::test_command_integrity_accepts_uv_python_module_unittest_file\nFAILED tests/core/validation/test_python_unittest_runner.py::test_run_manifest_tests_executes_python_module_unittest_file\nFAILED tests/core/validation/test_python_unittest_runner.py::test_command_integrity_ignores_pytest_addopts_for_unittest_file\n3 failed, 52 passed in 0.24s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_accepts_uv_python_module_unittest_file",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_accepts_uv_python_module_unittest_file:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_accepts_uv_python_module_unittest_file:kind=test_function",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_accepts_uv_python_module_unittest_file:returns=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_ignores_pytest_addopts_for_unittest_file",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_ignores_pytest_addopts_for_unittest_file:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_ignores_pytest_addopts_for_unittest_file:kind=test_function",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_ignores_pytest_addopts_for_unittest_file:returns=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_nested_uv_unittest_wrapper",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_nested_uv_unittest_wrapper:arg=command:type=str:default=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_nested_uv_unittest_wrapper:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_nested_uv_unittest_wrapper:kind=test_function",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_nested_uv_unittest_wrapper:returns=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_non_test_python_module",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_non_test_python_module:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_non_test_python_module:kind=test_function",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_non_test_python_module:returns=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_non_uv_unittest_wrapper",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_non_uv_unittest_wrapper:arg=command:type=str:default=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_non_uv_unittest_wrapper:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_non_uv_unittest_wrapper:kind=test_function",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_non_uv_unittest_wrapper:returns=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_python_interpreter_lookalike",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_python_interpreter_lookalike:arg=command:type=str:default=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_python_interpreter_lookalike:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_python_interpreter_lookalike:kind=test_function",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_python_interpreter_lookalike:returns=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_shell_wrapped_unittest",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_shell_wrapped_unittest:arg=command:type=str:default=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_shell_wrapped_unittest:arg=test_path:type=str:default=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_shell_wrapped_unittest:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_shell_wrapped_unittest:kind=test_function",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_shell_wrapped_unittest:returns=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_discovery_mode",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_discovery_mode:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_discovery_mode:kind=test_function",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_discovery_mode:returns=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_dotted_selector",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_dotted_selector:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_dotted_selector:kind=test_function",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_dotted_selector:returns=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_escaping_file_target",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_escaping_file_target:arg=target:type=str:default=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_escaping_file_target:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_escaping_file_target:kind=test_function",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_escaping_file_target:returns=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_help_mode",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_help_mode:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_help_mode:kind=test_function",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_help_mode:returns=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_module_path_lookalike",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_module_path_lookalike:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_module_path_lookalike:kind=test_function",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_module_path_lookalike:returns=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_non_file_target",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_non_file_target:arg=target:type=str:default=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_non_file_target:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_non_file_target:kind=test_function",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_non_file_target:returns=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_py_suffixed_directory",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_py_suffixed_directory:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_py_suffixed_directory:kind=test_function",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_py_suffixed_directory:returns=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_shell_cwd_escape",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_shell_cwd_escape:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_shell_cwd_escape:kind=test_function",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_shell_cwd_escape:returns=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_symlink_ancestor",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_symlink_ancestor:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_symlink_ancestor:kind=test_function",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_symlink_ancestor:returns=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_symlink_target",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_symlink_target:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_symlink_target:kind=test_function",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_symlink_target:returns=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_wrapper_cwd_parent_target",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_wrapper_cwd_parent_target:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_wrapper_cwd_parent_target:kind=test_function",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_unittest_wrapper_cwd_parent_target:returns=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_uv_module_unittest_lookalike",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_uv_module_unittest_lookalike:arg=command:type=str:default=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_uv_module_unittest_lookalike:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_uv_module_unittest_lookalike:kind=test_function",
+      "tests/core/validation/test_python_unittest_runner.py:test_command_integrity_rejects_uv_module_unittest_lookalike:returns=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_non_unittest_runner_preserves_symlinked_cwd_identity",
+      "tests/core/validation/test_python_unittest_runner.py:test_non_unittest_runner_preserves_symlinked_cwd_identity:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_non_unittest_runner_preserves_symlinked_cwd_identity:kind=test_function",
+      "tests/core/validation/test_python_unittest_runner.py:test_non_unittest_runner_preserves_symlinked_cwd_identity:returns=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_run_manifest_tests_executes_python_module_unittest_file",
+      "tests/core/validation/test_python_unittest_runner.py:test_run_manifest_tests_executes_python_module_unittest_file:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_python_unittest_runner.py:test_run_manifest_tests_executes_python_module_unittest_file:kind=test_function",
+      "tests/core/validation/test_python_unittest_runner.py:test_run_manifest_tests_executes_python_module_unittest_file:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/validation/test_python_unittest_runner.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/core/_test_command_targets.py",
+        "maid_runner/core/_validation_test_artifacts.py",
+        "maid_runner/core/test_runner.py",
+        "manifests/038-13-extract-test-runner-invocation-helper.manifest.yaml",
+        "manifests/043-05-recognize-uv-run-options-for-test-command-integrity.manifest.yaml",
+        "manifests/fix-deno-test-command-e230.manifest.yaml"
+      ],
+      "scope": [
+        "maid_runner/core/_test_command_targets.py",
+        "maid_runner/core/_test_runner_invocation.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/validation/test_python_unittest_runner.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_accepts_uv_python_module_unittest_file",
+              "description": "The reported uv-run Python unittest command covers its explicitly declared behavioral test file without E230.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_run_manifest_tests_executes_python_module_unittest_file",
+              "description": "maid test executes an accepted Python unittest file command and reports one passing command.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_ignores_pytest_addopts_for_unittest_file",
+              "description": "PYTEST_ADDOPTS does not apply pytest-only non-executing or selector semantics to a Python unittest file command.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_rejects_unittest_help_mode",
+              "description": "Python unittest help mode cannot prove that the declared behavioral test executed.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_rejects_unittest_discovery_mode",
+              "description": "Uncontracted unittest discovery syntax remains fail-closed even when its start directory contains the declared test.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_rejects_unittest_dotted_selector",
+              "description": "A dotted unittest class or method selector cannot prove whole-file behavioral coverage.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_rejects_non_test_python_module",
+              "description": "A different Python module command that mentions the test file remains rejected as non-test execution.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_rejects_unittest_non_file_target",
+              "description": "Directory, project-root, and glob targets cannot satisfy the explicit unittest file contract.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "target",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_rejects_unittest_module_path_lookalike",
+              "description": "A path ending in unittest is not the exact Python unittest module and remains rejected.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_rejects_unittest_py_suffixed_directory",
+              "description": "A .py-suffixed directory containing the declared test cannot masquerade as a concrete unittest file target.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_rejects_unittest_escaping_file_target",
+              "description": "Absolute and parent-escaping unittest paths cannot normalize onto an in-project declared test.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "target",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_rejects_unittest_shell_cwd_escape",
+              "description": "A shell cd outside the project cannot receive E230 credit from an identically named external unittest file.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_rejects_unittest_wrapper_cwd_parent_target",
+              "description": "A package-runner cwd change cannot combine with a parent-relative unittest target to escape the effective working directory.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_rejects_shell_wrapped_unittest",
+              "description": "Shell-wrapped unittest commands remain fail-closed across special cd operands, tilde and brace expansion, and command substitution.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "command",
+                  "type": "str"
+                },
+                {
+                  "name": "test_path",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_rejects_non_uv_unittest_wrapper",
+              "description": "Docker, package-manager, environment, coverage, Poetry, and PDM wrappers cannot inherit direct unittest authorization.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "command",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_rejects_nested_uv_unittest_wrapper",
+              "description": "Repeated uv-run and uv-run-plus-env stacks cannot inherit the single uv-run unittest authorization.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "command",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_rejects_uv_module_unittest_lookalike",
+              "description": "uv module-execution forms cannot masquerade as a single uv wrapper around the Python executable.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "command",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_rejects_python_interpreter_lookalike",
+              "description": "Path-qualified and suffix-lookalike Python executables cannot inherit direct unittest authorization.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "command",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_rejects_unittest_symlink_target",
+              "description": "A lexical unittest target that is a symlink cannot satisfy the concrete-file coverage contract.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_rejects_unittest_symlink_ancestor",
+              "description": "A unittest target beneath a lexical symlink directory cannot satisfy the non-symlink file contract.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_non_unittest_runner_preserves_symlinked_cwd_identity",
+              "description": "Existing non-unittest runners preserve their lexical package-runner cwd identity instead of being rewritten to the symlink destination.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_test_command_targets.py",
+        "maid_runner/core/_validation_test_artifacts.py",
+        "maid_runner/core/test_runner.py",
+        "manifests/038-13-extract-test-runner-invocation-helper.manifest.yaml",
+        "manifests/043-05-recognize-uv-run-options-for-test-command-integrity.manifest.yaml",
+        "manifests/fix-deno-test-command-e230.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_test_runner_invocation.py",
+          "reason": "Recognize the exact Python unittest module runner, isolate pytest-only normalization, and expose only bounded explicit-file arguments; no public API changes."
+        },
+        {
+          "path": "maid_runner/core/_test_command_targets.py",
+          "reason": "Require unittest targets to resolve to regular files inside the effective project working directory before they can satisfy E230 coverage; no public API changes."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/validation/test_python_unittest_runner.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/validation/test_python_unittest_runner.py"
+    ],
+    "acceptance_commands": []
+  }
+}

@@ -11,6 +11,7 @@ from maid_runner.core.config import TestRunnerWrapperConfig
 from maid_runner.core._file_discovery import is_test_file
 from maid_runner.core._test_runner_invocation import (
     _TEST_RUNNER_VALUE_FLAGS,
+    _UNITTEST_TEST_RUNNER,
     _has_non_executing_test_runner_mode,
     _has_test_runner_selector,
     _is_django_test_runner_value_flag,
@@ -91,6 +92,10 @@ def test_paths_from_validate_command(
             segment, test_runner_wrappers
         )
         scan_segment = _test_runner_target_scan_segment(segment, test_runner_wrappers)
+        invocation = _test_runner_invocation(segment, test_runner_wrappers)
+        unittest_runner = (
+            invocation is not None and invocation[0] == _UNITTEST_TEST_RUNNER
+        )
         index = 0
         while index < len(scan_segment):
             part = scan_segment[index]
@@ -111,6 +116,10 @@ def test_paths_from_validate_command(
                 continue
 
             if not django_runner:
+                if unittest_runner and not _is_concrete_unittest_test_file(
+                    part, project_root, cwd
+                ):
+                    return []
                 candidate = _normalize_relative_path(cwd / part)
                 if _looks_like_test_path(
                     candidate,
@@ -191,6 +200,7 @@ def test_paths_from_executing_validate_command(
     django_runner = _runs_django_test_runner(segment, test_runner_wrappers)
     scan_segment = _test_runner_target_scan_segment(segment, test_runner_wrappers)
     invocation = _test_runner_invocation(segment, test_runner_wrappers)
+    unittest_runner = invocation is not None and invocation[0] == _UNITTEST_TEST_RUNNER
     if invocation is not None and invocation[0] == "playwright":
         scan_segment = _playwright_target_scan_segment(scan_segment)
     index = 0
@@ -213,6 +223,10 @@ def test_paths_from_executing_validate_command(
             continue
 
         if not django_runner:
+            if unittest_runner and not _is_concrete_unittest_test_file(
+                part, project_root, cwd
+            ):
+                return []
             raw_candidate = _normalize_relative_path(cwd / part)
             if "::" in raw_candidate and not allow_selectors:
                 index += 1
@@ -274,6 +288,9 @@ def _test_paths_from_executing_shell_segments(
         segment = _expand_shell_path_tokens(segment, variables)
         if not _runs_known_test_runner(segment, test_runner_wrappers):
             return []
+        invocation = _test_runner_invocation(segment, test_runner_wrappers)
+        if invocation is not None and invocation[0] == _UNITTEST_TEST_RUNNER:
+            return []
         if _has_non_executing_test_runner_mode(segment, test_runner_wrappers):
             return []
         if not allow_selectors and _has_test_runner_selector(
@@ -309,6 +326,7 @@ def _test_paths_from_executing_runner_segment(
     django_runner = _runs_django_test_runner(segment, test_runner_wrappers)
     scan_segment = _test_runner_target_scan_segment(segment, test_runner_wrappers)
     invocation = _test_runner_invocation(segment, test_runner_wrappers)
+    unittest_runner = invocation is not None and invocation[0] == _UNITTEST_TEST_RUNNER
     if invocation is not None and invocation[0] == "playwright":
         scan_segment = _playwright_target_scan_segment(scan_segment)
     index = 0
@@ -331,6 +349,10 @@ def _test_paths_from_executing_runner_segment(
             continue
 
         if not django_runner:
+            if unittest_runner and not _is_concrete_unittest_test_file(
+                part, project_root, cwd
+            ):
+                return []
             raw_candidate = _normalize_relative_path(cwd / part)
             if "::" in raw_candidate and not allow_selectors:
                 index += 1
@@ -354,6 +376,29 @@ def _test_paths_from_executing_runner_segment(
         )
 
     return paths
+
+
+def _is_concrete_unittest_test_file(
+    target: str,
+    project_root: Path,
+    cwd: Path,
+) -> bool:
+    target_path = Path(target)
+    if target_path.is_absolute() or ".." in target_path.parts:
+        return False
+
+    root = project_root.resolve()
+    lexical_candidate = project_root / cwd
+    for part in target_path.parts:
+        lexical_candidate /= part
+        if lexical_candidate.is_symlink():
+            return False
+    candidate = lexical_candidate.resolve()
+    try:
+        candidate.relative_to(root)
+    except ValueError:
+        return False
+    return candidate.is_file()
 
 
 def _shell_wrapped_command_segments(command: tuple[str, ...]) -> list[list[str]] | None:

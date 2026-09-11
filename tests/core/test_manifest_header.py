@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from maid_runner.core.chain import _has_leading_inactive_marker_comment
+from maid_runner.core.chain import ManifestChain
 from maid_runner.core.plan_lock import compute_manifest_contract_hash
 
 
@@ -58,8 +58,22 @@ class TestPrependManifestHeader:
         assert result.startswith(MANIFEST_HEADER_COMMENT)
         assert result.endswith(_MANIFEST_BODY)
 
-    def test_draft_kind_marker_keeps_line_one(self):
-        """Existing drafts and drafts/README.md put the marker on line 1."""
+    def test_manifest_kind_marker_keeps_line_one(self):
+        """Drafts and drafts/README.md put the lifecycle marker on line 1."""
+        from maid_runner.core.manifest import (
+            MANIFEST_HEADER_COMMENT,
+            prepend_manifest_header,
+        )
+
+        source = f"# manifest-kind: implementation\n{_MANIFEST_BODY}"
+
+        result = prepend_manifest_header(source)
+
+        assert result.splitlines()[0] == "# manifest-kind: implementation"
+        assert MANIFEST_HEADER_COMMENT.splitlines()[0] in result
+
+    def test_legacy_draft_kind_marker_keeps_line_one(self):
+        """Existing repositories keep validating after upgrading MAID."""
         from maid_runner.core.manifest import (
             MANIFEST_HEADER_COMMENT,
             prepend_manifest_header,
@@ -81,15 +95,23 @@ class TestPrependManifestHeader:
 
         assert result.splitlines()[0] == "# archive-kind: consumed-draft-epic"
 
-    def test_marker_detection_survives_the_banner(self):
+    def test_marker_detection_survives_the_banner(self, tmp_path: Path):
         """chain.py bails at the first non-comment line; banner must be transparent."""
         from maid_runner.core.manifest import prepend_manifest_header
 
-        source = f"# draft-kind: epic\n{_MANIFEST_BODY}"
+        source = f"# manifest-kind: epic\n{_MANIFEST_BODY}"
 
         result = prepend_manifest_header(source)
+        draft_path = tmp_path / "manifests" / "drafts" / "future.manifest.yaml"
+        draft_path.parent.mkdir(parents=True)
+        draft_path.write_text(result)
 
-        assert _has_leading_inactive_marker_comment(result) is True
+        assert (
+            ManifestChain(
+                tmp_path / "manifests", tmp_path
+            ).inactive_manifest_diagnostics()
+            == []
+        )
 
     def test_applying_twice_matches_applying_once(self):
         from maid_runner.core.manifest import prepend_manifest_header

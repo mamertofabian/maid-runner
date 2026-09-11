@@ -1,0 +1,238 @@
+{
+  "manifest_path": "manifests/fix-merge-aware-head-baseline.manifest.yaml",
+  "manifest_hash": "sha256-contract:4a3e55bdadd3aed3ac8b1fbb6d6c5250ba936de91c061c41f2aa0b9a58411499",
+  "test_hashes": {
+    "tests/core/validation/test_merge_head_since_baseline.py": "sha256-pyast:v2:48f12a37018e4635923fc506fb8d6627eefa93539d5a91336f69e1b2b7d6a152"
+  },
+  "created_at": "2026-09-10T09:25:47.230779+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:cf9b675f0427d90d0284612b138344a6ca0e5f5354e1b872b4937adffb62d9c8",
+      "prior_test_hashes": {
+        "tests/core/validation/test_merge_worktree_scope.py": "sha256-pyast:v2:4f3d86e7aa8d273a7d2cb0cdbdbfc226c8f856a9ee0efb964f4d30464fb84ae7",
+        "tests/cli/test_verify_task_scoped_file_tracking.py": "sha256-pyast:v2:c5f4455b43f583c911448398dd923dcd324455616cd2cde19cec0e8ef79a61d1",
+        "tests/core/validation/test_merge_head_since_baseline.py": "sha256-pyast:v2:32b6f7a3079182d987dd6cca0e4d771d954d24d3543cc1abc9acfa9faff6473a"
+      },
+      "revised_at": "2026-09-10T09:25:48.024494+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-merge-aware-head-baseline.manifest.yaml -> manifests/fix-merge-aware-head-baseline.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9ffd37e9543ce57d305886853bae7f5edbf58c63e555b7533d16c19445de7d7f",
+      "prior_test_hashes": {
+        "tests/core/validation/test_merge_worktree_scope.py": "sha256-pyast:v2:4f3d86e7aa8d273a7d2cb0cdbdbfc226c8f856a9ee0efb964f4d30464fb84ae7",
+        "tests/cli/test_verify_task_scoped_file_tracking.py": "sha256-pyast:v2:c5f4455b43f583c911448398dd923dcd324455616cd2cde19cec0e8ef79a61d1",
+        "tests/core/validation/test_merge_head_since_baseline.py": "sha256-pyast:v2:32b6f7a3079182d987dd6cca0e4d771d954d24d3543cc1abc9acfa9faff6473a"
+      },
+      "revised_at": "2026-09-10T09:26:16.349431+00:00",
+      "reason": "Remove contextual shared test files from files.read so this plan lock owns only its dedicated behavioral test.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [
+          "read:tests/cli/test_verify_task_scoped_file_tracking.py",
+          "read:tests/core/validation/test_merge_worktree_scope.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ff1de3ceb92074dc582bf4250d8e5fe08c547f4a228a54982016d051191e5b3d",
+      "prior_test_hashes": {
+        "tests/core/validation/test_merge_head_since_baseline.py": "sha256-pyast:v2:32b6f7a3079182d987dd6cca0e4d771d954d24d3543cc1abc9acfa9faff6473a"
+      },
+      "revised_at": "2026-09-10T09:35:13.653985+00:00",
+      "reason": "Round-1 review found octopus MERGE_HEAD state could apply only the first incoming head; make multi-head merges retain literal HEAD semantics.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_merge_head_since_baseline.py:test_multiple_merge_heads_fall_back_to_literal_head",
+          "tests/core/validation/test_merge_head_since_baseline.py:test_multiple_merge_heads_fall_back_to_literal_head:arg=tmp_path:type=Path:default=None",
+          "tests/core/validation/test_merge_head_since_baseline.py:test_multiple_merge_heads_fall_back_to_literal_head:kind=test_function",
+          "tests/core/validation/test_merge_head_since_baseline.py:test_multiple_merge_heads_fall_back_to_literal_head:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-10T09:35:14.198006+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/validation/test_merge_head_since_baseline.py",
+        "exit_code": 1,
+        "output_tail": "        _conflicted_merge(tmp_path)\n    \n        paths = changed_files_since(\n            tmp_path,\n            ChangedScopeBaseline(source=\"since\", commitish=\"HEAD\"),\n        )\n    \n>       assert set(paths) == {\"src/conflict.py\", \"src/current.py\"}\nE       AssertionError: assert {'src/conflic.../incoming.py'} == {'src/conflic...c/current.py'}\nE         \nE         Extra items in the left set:\nE         'src/incoming.py'\nE         Extra items in the right set:\nE         'src/current.py'\nE         Use -v to get more diff\n\ntests/core/validation/test_merge_head_since_baseline.py:104: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/validation/test_merge_head_since_baseline.py::test_head_since_uses_merge_head_during_in_progress_merge\n1 failed, 6 passed in 0.33s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/validation/test_merge_head_since_baseline.py:test_head_since_remains_literal_outside_merge",
+      "tests/core/validation/test_merge_head_since_baseline.py:test_head_since_remains_literal_outside_merge:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_merge_head_since_baseline.py:test_head_since_remains_literal_outside_merge:kind=test_function",
+      "tests/core/validation/test_merge_head_since_baseline.py:test_head_since_remains_literal_outside_merge:returns=None",
+      "tests/core/validation/test_merge_head_since_baseline.py:test_head_since_uses_merge_head_during_in_progress_merge",
+      "tests/core/validation/test_merge_head_since_baseline.py:test_head_since_uses_merge_head_during_in_progress_merge:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_merge_head_since_baseline.py:test_head_since_uses_merge_head_during_in_progress_merge:kind=test_function",
+      "tests/core/validation/test_merge_head_since_baseline.py:test_head_since_uses_merge_head_during_in_progress_merge:returns=None",
+      "tests/core/validation/test_merge_head_since_baseline.py:test_invalid_merge_head_falls_back_to_literal_head",
+      "tests/core/validation/test_merge_head_since_baseline.py:test_invalid_merge_head_falls_back_to_literal_head:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_merge_head_since_baseline.py:test_invalid_merge_head_falls_back_to_literal_head:kind=test_function",
+      "tests/core/validation/test_merge_head_since_baseline.py:test_invalid_merge_head_falls_back_to_literal_head:returns=None",
+      "tests/core/validation/test_merge_head_since_baseline.py:test_literal_commit_baseline_is_not_rewritten_during_merge",
+      "tests/core/validation/test_merge_head_since_baseline.py:test_literal_commit_baseline_is_not_rewritten_during_merge:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_merge_head_since_baseline.py:test_literal_commit_baseline_is_not_rewritten_during_merge:kind=test_function",
+      "tests/core/validation/test_merge_head_since_baseline.py:test_literal_commit_baseline_is_not_rewritten_during_merge:returns=None",
+      "tests/core/validation/test_merge_head_since_baseline.py:test_multiple_merge_heads_fall_back_to_literal_head",
+      "tests/core/validation/test_merge_head_since_baseline.py:test_multiple_merge_heads_fall_back_to_literal_head:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_merge_head_since_baseline.py:test_multiple_merge_heads_fall_back_to_literal_head:kind=test_function",
+      "tests/core/validation/test_merge_head_since_baseline.py:test_multiple_merge_heads_fall_back_to_literal_head:returns=None",
+      "tests/core/validation/test_merge_head_since_baseline.py:test_non_since_head_baseline_is_not_rewritten_during_merge",
+      "tests/core/validation/test_merge_head_since_baseline.py:test_non_since_head_baseline_is_not_rewritten_during_merge:arg=source:type=str:default=None",
+      "tests/core/validation/test_merge_head_since_baseline.py:test_non_since_head_baseline_is_not_rewritten_during_merge:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_merge_head_since_baseline.py:test_non_since_head_baseline_is_not_rewritten_during_merge:kind=test_function",
+      "tests/core/validation/test_merge_head_since_baseline.py:test_non_since_head_baseline_is_not_rewritten_during_merge:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/validation/test_merge_head_since_baseline.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/core/verify_profiles.py",
+        "manifests/fix-merge-aware-worktree-scope.manifest.yaml",
+        "manifests/fix-pre-commit-task-scoped-plan-locks.manifest.yaml"
+      ],
+      "scope": [
+        "maid_runner/core/worktree.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/validation/test_merge_head_since_baseline.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_head_since_uses_merge_head_during_in_progress_merge",
+              "description": "An exact since=HEAD baseline includes branch-authored and resolved files while excluding unchanged incoming-only files during a merge.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_literal_commit_baseline_is_not_rewritten_during_merge",
+              "description": "An explicit commit hash equal to the current HEAD remains literal and retains the existing local-side diff semantics.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_non_since_head_baseline_is_not_rewritten_during_merge",
+              "description": "HEAD text from base-ref or metadata sources retains its existing semantics; merge substitution is exclusive to source=since.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "source",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_head_since_remains_literal_outside_merge",
+              "description": "Outside a merge, since=HEAD continues to report ordinary tracked worktree changes.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_invalid_merge_head_falls_back_to_literal_head",
+              "description": "An invalid MERGE_HEAD cannot change baseline semantics and falls back to literal HEAD.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_multiple_merge_heads_fall_back_to_literal_head",
+              "description": "An octopus merge with multiple incoming heads retains literal HEAD semantics instead of using only the first incoming commit as a partial baseline.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/core/verify_profiles.py",
+        "manifests/fix-merge-aware-worktree-scope.manifest.yaml",
+        "manifests/fix-pre-commit-task-scoped-plan-locks.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/worktree.py",
+          "reason": "Resolve the exact symbolic HEAD baseline to MERGE_HEAD during a valid in-progress merge without changing public signatures."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/validation/test_merge_head_since_baseline.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/validation/test_merge_head_since_baseline.py"
+    ],
+    "acceptance_commands": []
+  }
+}

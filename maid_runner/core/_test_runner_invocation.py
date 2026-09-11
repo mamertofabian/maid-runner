@@ -17,8 +17,10 @@ _TEST_RUNNERS = frozenset(
         "playwright",
     }
 )
-_PYTHON_MODULE_TEST_RUNNERS = frozenset({"pytest", "py.test"})
+_PYTEST_TEST_RUNNERS = frozenset({"pytest", "py.test"})
 _DJANGO_TEST_RUNNER = "django"
+_DENO_TEST_RUNNER = "deno"
+_UNITTEST_TEST_RUNNER = "unittest"
 _DIRECT_TEST_RUNNERS = frozenset({"pytest", "py.test", "jest", "vitest"})
 _PACKAGE_RUNNER_WRAPPERS = frozenset({"npx", "pnpm", "yarn", "bunx"})
 _PACKAGE_RUNNER_CWD_VALUE_FLAGS = frozenset({"-C", "--cwd", "--dir", "--prefix"})
@@ -64,7 +66,6 @@ _UV_RUN_STANDALONE_FLAGS = frozenset(
         "--isolated",
         "--locked",
         "--managed-python",
-        "--module",
         "--native-tls",
         "--no-build",
         "--no-build-isolation",
@@ -89,6 +90,7 @@ _UV_RUN_STANDALONE_FLAGS = frozenset(
         "-v",
     }
 )
+_UV_RUN_MODULE_FLAGS = frozenset({"-m", "--module"})
 _DJANGO_TEST_RUNNER_VALUE_FLAGS = frozenset(
     {
         "-p",
@@ -163,6 +165,26 @@ _NON_EXECUTING_TEST_RUNNER_FLAGS = frozenset(
 _NON_EXECUTING_TEST_RUNNER_SUBCOMMANDS = {
     "vitest": frozenset({"list"}),
 }
+_NON_EXECUTING_TEST_RUNNER_FLAGS_BY_RUNNER = {
+    _DENO_TEST_RUNNER: frozenset({"--no-run"}),
+}
+_DENO_TEST_TARGET_STANDALONE_FLAGS = frozenset({"--allow-env", "--no-check"})
+_DENO_TEST_TARGET_VALUE_FLAGS = frozenset({"--junit-path"})
+_UNITTEST_TARGET_STANDALONE_FLAGS = frozenset(
+    {
+        "-b",
+        "-c",
+        "-f",
+        "-q",
+        "-v",
+        "--buffer",
+        "--catch",
+        "--failfast",
+        "--locals",
+        "--quiet",
+        "--verbose",
+    }
+)
 _TEST_RUNNER_SELECTOR_FLAGS = frozenset(
     {
         "-k",
@@ -287,6 +309,8 @@ def _has_non_executing_test_runner_mode(
         flag = part.split("=", 1)[0]
         if flag in _NON_EXECUTING_TEST_RUNNER_FLAGS:
             return True
+        if flag in _NON_EXECUTING_TEST_RUNNER_FLAGS_BY_RUNNER.get(runner, frozenset()):
+            return True
     return False
 
 
@@ -397,7 +421,7 @@ def _effective_test_runner_invocation(
         return None
 
     runner, args = invocation
-    if runner not in _PYTHON_MODULE_TEST_RUNNERS:
+    if runner not in _PYTEST_TEST_RUNNERS:
         return runner, args
 
     args = [*_pytest_addopts_args(segment), *args]
@@ -455,8 +479,16 @@ def _pytest_ini_addopts_args(value: str) -> list[str]:
 def _test_runner_invocation(
     segment: list[str],
     test_runner_wrappers: tuple[TestRunnerWrapperConfig, ...] = (),
+    *,
+    allow_unittest: bool = True,
+    unittest_uv_depth: int = 0,
 ) -> tuple[str, list[str]] | None:
-    parts = _strip_environment_prefix(segment)
+    raw_parts = list(segment)
+    parts = _strip_environment_prefix(raw_parts)
+    if parts != raw_parts:
+        allow_unittest = allow_unittest and _allows_direct_unittest_env_prefix(
+            raw_parts, parts, unittest_uv_depth
+        )
     if not parts:
         return None
 
@@ -469,24 +501,40 @@ def _test_runner_invocation(
     if command == "uv" and len(parts) >= 3 and parts[1] == "run":
         inner_command = _uv_run_inner_command(parts)
         if inner_command is not None:
-            return _test_runner_invocation(inner_command, test_runner_wrappers)
+            return _test_runner_invocation(
+                inner_command,
+                test_runner_wrappers,
+                allow_unittest=(
+                    allow_unittest
+                    and unittest_uv_depth == 0
+                    and parts[0] == "uv"
+                    and not _uv_run_uses_module_mode(parts)
+                ),
+                unittest_uv_depth=unittest_uv_depth + 1,
+            )
         return None
 
     if command in {"poetry", "pdm"} and len(parts) >= 3 and parts[1] == "run":
-        return _test_runner_invocation(parts[2:], test_runner_wrappers)
+        return _test_runner_invocation(
+            parts[2:], test_runner_wrappers, allow_unittest=False
+        )
 
     if command == "docker":
         inner_command = _docker_exec_inner_command(parts)
         if inner_command is not None:
-            return _test_runner_invocation(inner_command)
+            return _test_runner_invocation(inner_command, allow_unittest=False)
 
     if command == "coverage" and len(parts) >= 4 and parts[1:3] == ["run", "-m"]:
-        return _test_runner_invocation(parts[3:], test_runner_wrappers)
+        return _test_runner_invocation(
+            parts[3:], test_runner_wrappers, allow_unittest=False
+        )
 
     if command == "dotenv":
         inner_command = _dotenv_inner_command(parts)
         if inner_command is not None:
-            return _test_runner_invocation(inner_command, test_runner_wrappers)
+            return _test_runner_invocation(
+                inner_command, test_runner_wrappers, allow_unittest=False
+            )
 
     if (
         _is_python_command(command)
@@ -513,10 +561,19 @@ def _test_runner_invocation(
             return _DJANGO_TEST_RUNNER, django_args
 
     if (
-        _is_python_command(command)
-        and len(parts) >= 3
+        len(parts) >= 3
         and parts[1] == "-m"
-        and _command_name(parts[2]) in _PYTHON_MODULE_TEST_RUNNERS
+        and (
+            (
+                allow_unittest
+                and parts[2] == _UNITTEST_TEST_RUNNER
+                and _is_exact_python_executable(parts[0])
+            )
+            or (
+                _is_python_command(command)
+                and _command_name(parts[2]) in _PYTEST_TEST_RUNNERS
+            )
+        )
     ):
         return _command_name(parts[2]), parts[3:]
 
@@ -526,16 +583,23 @@ def _test_runner_invocation(
     if command == "playwright" and len(parts) >= 2 and parts[1] == "test":
         return command, parts[2:]
 
+    if command == "deno" and len(parts) >= 2 and parts[1] == "test":
+        return _DENO_TEST_RUNNER, parts[2:]
+
     if command in _PACKAGE_RUNNER_WRAPPERS and len(parts) >= 2:
         inner_command = _package_runner_inner_command(parts, preserve_cwd_options=False)
         scan_command = _package_runner_inner_command(parts, preserve_cwd_options=True)
         if inner_command is not None and scan_command is not None:
             preserved_options = scan_command[: len(scan_command) - len(inner_command)]
             inner_wrappers = () if preserved_options else test_runner_wrappers
-            return _test_runner_invocation(inner_command, inner_wrappers)
+            return _test_runner_invocation(
+                inner_command, inner_wrappers, allow_unittest=False
+            )
 
     if command == "npm" and len(parts) >= 3 and parts[1] == "exec":
-        return _test_runner_invocation(parts[2:], test_runner_wrappers)
+        return _test_runner_invocation(
+            parts[2:], test_runner_wrappers, allow_unittest=False
+        )
 
     return None
 
@@ -592,7 +656,62 @@ def _test_runner_target_scan_segment(
     if command == "playwright" and len(parts) >= 2 and parts[1] == "test":
         return parts[2:]
 
+    if command == "deno" and len(parts) >= 2 and parts[1] == "test":
+        return _deno_test_target_scan_args(parts[2:])
+
+    if (
+        _is_python_command(command)
+        and len(parts) >= 3
+        and parts[1] == "-m"
+        and parts[2] == _UNITTEST_TEST_RUNNER
+    ):
+        return _unittest_test_target_scan_args(parts[3:])
+
     return parts
+
+
+def _deno_test_target_scan_args(args: list[str]) -> list[str]:
+    targets: list[str] = []
+    index = 0
+    while index < len(args):
+        part = args[index]
+        if part == "--":
+            break
+        flag = part.split("=", 1)[0]
+        if flag in _DENO_TEST_TARGET_STANDALONE_FLAGS:
+            index += 1
+            continue
+        if flag in _DENO_TEST_TARGET_VALUE_FLAGS:
+            if "=" not in part:
+                if index + 1 >= len(args):
+                    return []
+                index += 2
+                continue
+            index += 1
+            continue
+        if part.startswith("-"):
+            return []
+        targets.append(part)
+        index += 1
+    return targets
+
+
+def _unittest_test_target_scan_args(args: list[str]) -> list[str]:
+    if "discover" in args:
+        return []
+
+    targets: list[str] = []
+    for part in args:
+        if part.endswith(("/", "/.", "\\", "\\.")):
+            return []
+        if part in _UNITTEST_TARGET_STANDALONE_FLAGS:
+            continue
+        if part.startswith("-"):
+            return []
+        if Path(part).suffix != ".py" or any(marker in part for marker in "*?["):
+            return []
+        targets.append(part)
+    return targets
 
 
 def _registered_test_runner_wrapper(
@@ -646,6 +765,16 @@ def _uv_run_inner_command(parts: list[str]) -> list[str] | None:
         part = parts[index]
         if part == "--":
             return parts[index + 1 :] or None
+        if part in _UV_RUN_MODULE_FLAGS:
+            if index + 1 >= len(parts) or parts[index + 1].startswith("-"):
+                return None
+            return ["python", "-m", parts[index + 1], *parts[index + 2 :]]
+        if part.startswith("--module="):
+            module = part.split("=", 1)[1]
+            return ["python", "-m", module, *parts[index + 1 :]] if module else None
+        if part.startswith("-m") and part != "-m" and not part.startswith("--"):
+            module = part[2:]
+            return ["python", "-m", module, *parts[index + 1 :]] if module else None
         if _is_attached_uv_run_value_option(part):
             index += 1
             continue
@@ -662,6 +791,57 @@ def _uv_run_inner_command(parts: list[str]) -> list[str] | None:
         return parts[index:]
 
     return None
+
+
+def _uv_run_uses_module_mode(parts: list[str]) -> bool:
+    index = 2
+    while index < len(parts):
+        part = parts[index]
+        if part in _UV_RUN_MODULE_FLAGS:
+            return True
+        if part.startswith("--module=") or (
+            part.startswith("-m") and part != "-m" and not part.startswith("--")
+        ):
+            return True
+        if part == "--":
+            return False
+        if _is_attached_uv_run_value_option(part):
+            index += 1
+            continue
+        if part in _UV_RUN_VALUE_FLAGS:
+            index += 2
+            continue
+        if part in _UV_RUN_STANDALONE_FLAGS:
+            index += 1
+            continue
+        return False
+    return False
+
+
+def _is_exact_python_executable(command: str) -> bool:
+    if Path(command).name != command:
+        return False
+    return command in {"python", "python3", "py"} or bool(
+        re.fullmatch(r"python3\.[0-9]+", command)
+    )
+
+
+def _allows_direct_unittest_env_prefix(
+    raw_parts: list[str],
+    stripped_parts: list[str],
+    unittest_uv_depth: int,
+) -> bool:
+    if unittest_uv_depth != 0 or not stripped_parts:
+        return False
+    if not _is_python_command(_command_name(stripped_parts[0])):
+        return False
+
+    prefix = raw_parts[: len(raw_parts) - len(stripped_parts)]
+    return (
+        len(prefix) == 2
+        and prefix[0] == "env"
+        and prefix[1].startswith("PYTEST_ADDOPTS=")
+    )
 
 
 def _dotenv_inner_command(parts: list[str]) -> list[str] | None:

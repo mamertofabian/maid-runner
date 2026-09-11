@@ -10,6 +10,7 @@ from pathlib import Path
 import pytest
 import yaml
 
+from maid_runner.core.chain import ManifestChain
 from maid_runner.core.diff_scope import (
     DiffScopeBaseline,
     DiffScopeResult,
@@ -256,8 +257,12 @@ def test_write_from_diff_manifest_writes_self_describing_header(tmp_path, monkey
     write_from_diff_manifest(data, output)
 
     source = output.read_text()
-    assert source.startswith("#")
+    assert source.splitlines()[0] == "# manifest-kind: implementation"
     assert "github.com/mamertofabian/maid-runner" in source
+    assert (
+        ManifestChain(tmp_path / "manifests", tmp_path).inactive_manifest_diagnostics()
+        == []
+    )
     # The banner is a comment, so the draft still parses to the same contract.
     assert yaml.safe_load(source)["metadata"]["needs_review"] is True
 

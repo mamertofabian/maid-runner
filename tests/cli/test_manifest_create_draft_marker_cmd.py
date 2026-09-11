@@ -30,7 +30,7 @@ def test_manifest_create_under_drafts_writes_required_lifecycle_marker(
 
     assert exit_code == 0
     created_path = output_dir / "add-example.manifest.yaml"
-    assert created_path.read_text().splitlines()[0] == "# draft-kind: implementation"
+    assert created_path.read_text().splitlines()[0] == "# manifest-kind: implementation"
     assert (
         ManifestChain(
             project_root / "manifests", project_root
@@ -61,4 +61,4 @@ def test_manifest_create_in_active_directory_keeps_generic_header(
     created_path = output_dir / "add-active-example.manifest.yaml"
     first_line = created_path.read_text().splitlines()[0]
     assert first_line.startswith("# MAID manifest")
-    assert first_line != "# draft-kind: implementation"
+    assert first_line != "# manifest-kind: implementation"

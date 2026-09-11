@@ -3,10 +3,10 @@
   "manifest_hash": "sha256-contract:c7f3236ed66eed1ca345d712bcfdb3f963bbe7de3662c71fc31be30112d4351e",
   "test_hashes": {
     "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:d9428231f4f91827521a818c261dca44a3eaa08aaa343a14aa9ed13a48badb4b",
-    "tests/integration/test_library_api.py": "sha256-pyast:v2:049449742ca9f55bb97db01210640785fb68abd594fdec901791e17f01956dbe"
+    "tests/integration/test_library_api.py": "sha256-pyast:v2:61f405ace7ed150f8e3fb5194956ddf9a14b4d4bf8c3afade4d1d0e8808dfbd7"
   },
   "created_at": "2026-06-17T07:27:27.229629+00:00",
-  "revision": 38,
+  "revision": 40,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:20b2f891dfaf7ebf2f67da732733d904d18d9ec16e59c223d56f193f3869af75",
@@ -585,6 +585,42 @@
       },
       "revised_at": "2026-09-02T02:31:58.959122+00:00",
       "reason": "Refresh shared release-metadata test hashes after preparing maid-runner 2.27.4",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c7f3236ed66eed1ca345d712bcfdb3f963bbe7de3662c71fc31be30112d4351e",
+      "prior_test_hashes": {
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:d9428231f4f91827521a818c261dca44a3eaa08aaa343a14aa9ed13a48badb4b",
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:049449742ca9f55bb97db01210640785fb68abd594fdec901791e17f01956dbe"
+      },
+      "revised_at": "2026-09-11T01:36:09.331982+00:00",
+      "reason": "accept approved shared-test release metadata update for 2.27.5",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c7f3236ed66eed1ca345d712bcfdb3f963bbe7de3662c71fc31be30112d4351e",
+      "prior_test_hashes": {
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:d9428231f4f91827521a818c261dca44a3eaa08aaa343a14aa9ed13a48badb4b",
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:a10806b831fd31f0d1a04cb68b17db37219ba7aefc232853468c2447eab88d4e"
+      },
+      "revised_at": "2026-09-11T01:46:32.216570+00:00",
+      "reason": "accept approved shared-test release-note assertion update for 2.27.5",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

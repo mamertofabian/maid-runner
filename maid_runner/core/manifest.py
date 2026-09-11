@@ -54,7 +54,7 @@ _RFC3339_DATE_TIME_RE = re.compile(
 # ASCII-only and flush-left on purpose: writers call Path.write_text without an
 # explicit encoding, and chain._has_leading_inactive_marker_comment tests
 # startswith("#") on the raw line, so an indented banner line would hide a
-# following draft-kind marker.
+# following manifest-kind marker.
 MANIFEST_HEADER_COMMENT = (
     "# MAID manifest - a machine-checked contract for one change.\n"
     "# Declares the intent, the files it may touch, and the commands that verify it.\n"
@@ -62,7 +62,11 @@ MANIFEST_HEADER_COMMENT = (
     "# What it is: https://github.com/mamertofabian/maid-runner\n"
 )
 _HEADER_SENTINEL = MANIFEST_HEADER_COMMENT.splitlines()[0]
-_LEADING_MARKER_PREFIXES = ("# draft-kind:", "# archive-kind:")
+_LEADING_MARKER_PREFIXES = (
+    "# manifest-kind:",
+    "# draft-kind:",
+    "# archive-kind:",
+)
 
 
 class ManifestLoadError(Exception):
@@ -138,8 +142,9 @@ def prepend_manifest_header(rendered: str) -> str:
 
     A committed manifest often lands in a repository where nobody else uses
     MAID, so it has to introduce itself. Insertion is idempotent, and a leading
-    ``# draft-kind:`` or ``# archive-kind:`` marker keeps line 1 so draft
-    classification is unaffected. Nothing else in ``rendered`` is modified.
+    ``# manifest-kind:``, legacy ``# draft-kind:``, or ``# archive-kind:``
+    marker keeps line 1 so draft classification is unaffected. Nothing else in
+    ``rendered`` is modified.
     """
     # Scoped to the leading comment block, not the whole document: a manifest
     # that quotes the banner in its description must still receive one. Compared

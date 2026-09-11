@@ -380,7 +380,7 @@ class TestCmdManifestPromote:
         draft_dir.mkdir(parents=True)
         draft_path = draft_dir / "add-example.manifest.yaml"
         draft_path.write_text(
-            """# draft-kind: implementation
+            """# manifest-kind: implementation
 schema: "2"
 goal: "Add example"
 type: feature

@@ -9,6 +9,8 @@ from pathlib import Path
 
 import yaml
 
+from maid_runner.core.chain import ManifestChain
+
 
 def _git(project_dir: Path, *argv: str) -> str:
     result = subprocess.run(
@@ -134,9 +136,14 @@ def test_manifest_from_diff_writes_default_draft_and_json_result(
     result = json.loads(capsys.readouterr().out)
     assert result["path"] == "manifests/drafts/demo.manifest.yaml"
     output = tmp_path / result["path"]
+    assert output.read_text().splitlines()[0] == "# manifest-kind: implementation"
     data = yaml.safe_load(output.read_text())
     assert data["goal"] == "TODO: describe this change"
     assert data["files"]["create"][0]["path"] == "src/new.py"
+    assert (
+        ManifestChain(tmp_path / "manifests", tmp_path).inactive_manifest_diagnostics()
+        == []
+    )
 
 
 def test_manifest_from_diff_default_output_preserves_evidenced_validate_suggestion(
