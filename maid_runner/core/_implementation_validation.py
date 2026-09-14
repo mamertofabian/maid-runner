@@ -124,6 +124,7 @@ class ImplementationFileValidator:
                     collection.artifacts,
                     fs.path,
                     default_hook_artifacts=default_hook_artifacts,
+                    type_matcher=validator.types_match,
                 )
             )
 
@@ -207,14 +208,20 @@ def _compare_artifacts(
     errors: list[ValidationError] = []
     found = _project_canonical_artifacts(expected, found)
 
-    found_by_key: dict[str, FoundArtifact] = {}
+    found_by_key: dict[str, list[FoundArtifact]] = {}
     found_by_contract_key: dict[str, FoundArtifact] = {}
     for found_art in found:
-        found_by_key[found_art.merge_key()] = found_art
+        found_by_key.setdefault(found_art.merge_key(), []).append(found_art)
         found_by_contract_key[found_art.contract_key()] = found_art
 
     for spec in expected:
-        fa = _found_artifact_for_spec(spec, found_by_key, found_by_contract_key)
+        fa, comparison = _found_artifact_for_spec(
+            spec,
+            found_by_key,
+            found_by_contract_key,
+            file_path,
+            type_matcher=type_matcher,
+        )
         if fa is None:
             errors.append(
                 ValidationError(
@@ -225,7 +232,11 @@ def _compare_artifacts(
             )
             continue
 
-        errors.extend(_compare_single(spec, fa, file_path, type_matcher=type_matcher))
+        errors.extend(
+            comparison
+            if comparison is not None
+            else _compare_single(spec, fa, file_path, type_matcher=type_matcher)
+        )
 
     if is_strict:
         representative_keys = {
@@ -310,12 +321,36 @@ def _project_canonical_artifacts(
 
 def _found_artifact_for_spec(
     spec: ArtifactSpec,
-    found_by_key: dict[str, FoundArtifact],
+    found_by_key: dict[str, list[FoundArtifact]],
     found_by_contract_key: dict[str, FoundArtifact],
-) -> Optional[FoundArtifact]:
-    if spec.signature is None:
-        return found_by_key.get(spec.merge_key())
-    return found_by_contract_key.get(spec.contract_key())
+    file_path: str,
+    *,
+    type_matcher: _TypeMatcher,
+) -> tuple[Optional[FoundArtifact], Optional[list[ValidationError]]]:
+    if spec.signature is not None:
+        return found_by_contract_key.get(spec.contract_key()), None
+
+    candidates = found_by_key.get(spec.merge_key(), [])
+    if not candidates:
+        return None, None
+    signatures = [candidate.signature for candidate in candidates]
+    if (
+        len(candidates) == 1
+        or any(signature is None for signature in signatures)
+        or len(set(signatures)) != len(signatures)
+    ):
+        return candidates[-1], None
+
+    last_errors: Optional[list[ValidationError]] = None
+    for candidate in reversed(candidates):
+        candidate_errors = _compare_single(
+            spec, candidate, file_path, type_matcher=type_matcher
+        )
+        if last_errors is None:
+            last_errors = candidate_errors
+        if not candidate_errors:
+            return candidate, []
+    return candidates[-1], last_errors
 
 
 def _found_artifact_is_declared(
@@ -462,13 +497,22 @@ def _check_stub_artifacts(
     file_path: str,
     *,
     default_hook_artifacts: set[tuple[str, str]] | None = None,
+    type_matcher: _TypeMatcher = types_match,
 ) -> list[ValidationError]:
     errors: list[ValidationError] = []
     default_hook_artifacts = default_hook_artifacts or set()
-    found_by_key = {fa.merge_key(): fa for fa in found}
+    found_by_key: dict[str, list[FoundArtifact]] = {}
+    for artifact in found:
+        found_by_key.setdefault(artifact.merge_key(), []).append(artifact)
     found_by_contract_key = {fa.contract_key(): fa for fa in found}
     for spec in expected:
-        fa = _found_artifact_for_spec(spec, found_by_key, found_by_contract_key)
+        fa, _ = _found_artifact_for_spec(
+            spec,
+            found_by_key,
+            found_by_contract_key,
+            file_path,
+            type_matcher=type_matcher,
+        )
         if fa and (
             (file_path, fa.contract_key()) in default_hook_artifacts
             or (file_path, fa.merge_key()) in default_hook_artifacts
