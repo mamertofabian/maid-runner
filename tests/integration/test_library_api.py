@@ -41,14 +41,26 @@ class TestPublicAPIImports:
         changelog = root / "CHANGELOG.md"
         roadmap = root / "docs" / "ROADMAP.md"
 
-        assert __version__ == "2.27.5"
-        assert re.search(r'^version = "2\.27\.5"$', pyproject.read_text(), re.M)
         assert re.search(
-            r'\[\[package\]\]\nname = "maid-runner"\nversion = "2\.27\.5"',
+            r'^version = "' + re.escape(__version__) + r'"$',
+            pyproject.read_text(),
+            re.M,
+        )
+        assert re.search(
+            r'\[\[package\]\]\nname = "maid-runner"\nversion = "'
+            + re.escape(__version__)
+            + r'"',
             lockfile.read_text(),
         )
         changelog_text = changelog.read_text()
+        assert "## [Unreleased]" in changelog_text
+        assert "Unsigned C# overload validation" in changelog_text
         assert "## [2.27.5] - 2026-09-11" in changelog_text
+        assert re.search(
+            r"^\[Unreleased\]: https://.+/compare/v[\d.]+\.\.\.HEAD$",
+            changelog_text,
+            re.M,
+        )
         assert (
             "[2.27.5]: https://github.com/mamertofabian/maid-runner/compare/v2.27.4...v2.27.5"
             in changelog_text
@@ -76,9 +88,9 @@ class TestPublicAPIImports:
         assert "Draft manifest-kind marker" in changelog_text
 
         roadmap_text = roadmap.read_text()
-        assert "**Current Version:** 2.27.5" in roadmap_text
-        assert "**Last Updated:** 2026-09-11" in roadmap_text
-        assert "The local CLI reports `maid 2.27.5`." in roadmap_text
+        assert f"**Current Version:** {__version__}" in roadmap_text
+        assert re.search(r"\*\*Last Updated:\*\* \d{4}-\d{2}-\d{2}", roadmap_text)
+        assert f"The local CLI reports `maid {__version__}`." in roadmap_text
         assert "`maid chain merge`" in roadmap_text
         help_result = subprocess.run(
             ["maid", "--help"],
