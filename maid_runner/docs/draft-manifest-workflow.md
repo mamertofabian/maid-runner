@@ -63,20 +63,26 @@ that makes them not promotion-ready, but it is not by itself a planning defect.
 
 Downstream repos that ran `maid init` can use `maid-implement-draft` to resume
 from a child draft: harden tests, lock, promote, implement, review, and capture
-Outcome. Already-promoted contracts stay on `maid-implementer`.
+Outcome. Already-promoted contracts with no contract change stay on
+`maid-implementer`; contract changes use `maid plan revise` while unmerged.
 
-Drafts may be edited freely before promotion. After promotion, do not silently
-rewrite the contract. Use the normal MAID evolution path instead. For
+Unlocked drafts may be edited before promotion. Do not silently rewrite a locked
+draft or promoted contract: use `maid plan revise` for the current unmerged
+task, and use normal MAID evolution for durable history on main/master. For
 metadata-only reference cleanup on locked active manifests, use
 `uv run maid plan revise <manifest> --reason "<text>" --preserve-red-evidence`
 so valid red evidence remains attached to the revised contract.
 If review changes behavioral tests after implementation is already present, use
 `uv run maid plan revise <manifest> --reason "<text>" --stash-implementation`
 instead so MAID temporarily removes only declared implementation changes,
-including non-test wiring paths declared under `files.read` for contracted
-implementation plans, while the revised behavioral tests stay in place for
-fresh red evidence capture. Undeclared dirty paths still fail closed, and
-scope-only manifests still reject separate dirty `files.read` context paths.
+while the revised behavioral tests stay in place for fresh red evidence
+capture. For legacy contracted plans that listed non-test wiring under
+`files.read`, stash-backed revision can hide those paths during recovery, but
+`files.read` does not authorize production edits. Move such paths to
+`files.scope` for narrow no-artifact wiring or `files.edit` for changed public
+artifacts before implementation continues. Undeclared dirty paths still fail
+closed. Scope-only manifests also reject separate dirty `files.read` context
+paths.
 
 Recall is advisory planning context only. It can inform selected-draft
 hardening, test focus, and implementation risks, but it does not expand the
@@ -329,13 +335,18 @@ preserves valid evidence. Use `--test-only-green` for test-only contracts. Use
 ## Evolution During Implementation
 
 Implementation will expose gaps sometimes. Handle them based on whether the
-affected contract is still a draft or already promoted:
+affected contract belongs to the current unmerged task or is durable history:
 
-- Before promotion: edit the draft and rerun behavioral validation.
-- After promotion, additive change: create a new manifest that adds the new
-  artifact or file and let chain merging combine the active contracts.
-- After promotion, breaking change: create a superseding manifest that declares
-  the complete replacement contract.
+- Before promotion: edit an unlocked draft and rerun behavioral validation. For
+  a locked draft, use `maid plan revise` so the lock and red evidence stay valid.
+- After promotion but before the affected contract is merged into main/master:
+  revise the same promoted manifest with `maid plan revise`, then review the
+  revised behavioral contract and confirm its updated lock. Do not create a
+  follow-on or superseding manifest just to revise this unmerged task.
+- For a durable contract on main/master, an additive change needs a new
+  manifest that adds the artifact or file; chain merging combines the active
+  contracts. A breaking change needs a superseding manifest that declares the
+  complete replacement contract.
 - If a selected draft depends on unimplemented work, stop the pass as blocked
   or add/refine the prerequisite draft rather than implementing outside scope.
 
