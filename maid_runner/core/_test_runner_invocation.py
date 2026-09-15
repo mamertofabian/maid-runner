@@ -20,6 +20,7 @@ _TEST_RUNNERS = frozenset(
 _PYTEST_TEST_RUNNERS = frozenset({"pytest", "py.test"})
 _DJANGO_TEST_RUNNER = "django"
 _DENO_TEST_RUNNER = "deno"
+_BUN_TEST_RUNNER = "bun"
 _UNITTEST_TEST_RUNNER = "unittest"
 _DIRECT_TEST_RUNNERS = frozenset({"pytest", "py.test", "jest", "vitest"})
 _PACKAGE_RUNNER_WRAPPERS = frozenset({"npx", "pnpm", "yarn", "bunx"})
@@ -170,6 +171,45 @@ _NON_EXECUTING_TEST_RUNNER_FLAGS_BY_RUNNER = {
 }
 _DENO_TEST_TARGET_STANDALONE_FLAGS = frozenset({"--allow-env", "--no-check"})
 _DENO_TEST_TARGET_VALUE_FLAGS = frozenset({"--junit-path"})
+_BUN_TEST_SELECTOR_FLAGS = frozenset(
+    {"--changed", "--only", "--shard", "--test-name-pattern"}
+)
+_BUN_TEST_TARGET_STANDALONE_FLAGS = frozenset(
+    {
+        "--concurrent",
+        "--coverage",
+        "--dots",
+        "--isolate",
+        "--no-orphans",
+        "--only-failures",
+        "--pass-with-no-tests",
+        "--randomize",
+        "--todo",
+        "--update-snapshots",
+        "-u",
+    }
+)
+_BUN_TEST_TARGET_VALUE_FLAGS = frozenset(
+    {
+        "--changed",
+        "--coverage-dir",
+        "--coverage-reporter",
+        "--max-concurrency",
+        "--parallel",
+        "--parallel-delay",
+        "--path-ignore-patterns",
+        "--reporter",
+        "--reporter-outfile",
+        "--rerun-each",
+        "--retry",
+        "--seed",
+        "--shard",
+        "--test-name-pattern",
+        "--timeout",
+        "-t",
+    }
+)
+_BUN_TEST_TARGET_OPTIONAL_VALUE_FLAGS = frozenset({"--bail"})
 _UNITTEST_TARGET_STANDALONE_FLAGS = frozenset(
     {
         "-b",
@@ -329,6 +369,11 @@ def _has_test_runner_selector(
         )
 
     for part in args:
+        if (
+            runner == _BUN_TEST_RUNNER
+            and part.split("=", 1)[0] in _BUN_TEST_SELECTOR_FLAGS
+        ):
+            return True
         if _is_test_runner_selector_flag(part):
             return True
     return False
@@ -586,6 +631,9 @@ def _test_runner_invocation(
     if command == "deno" and len(parts) >= 2 and parts[1] == "test":
         return _DENO_TEST_RUNNER, parts[2:]
 
+    if command == "bun" and len(parts) >= 2 and parts[1] == "test":
+        return _BUN_TEST_RUNNER, parts[2:]
+
     if command in _PACKAGE_RUNNER_WRAPPERS and len(parts) >= 2:
         inner_command = _package_runner_inner_command(parts, preserve_cwd_options=False)
         scan_command = _package_runner_inner_command(parts, preserve_cwd_options=True)
@@ -659,6 +707,9 @@ def _test_runner_target_scan_segment(
     if command == "deno" and len(parts) >= 2 and parts[1] == "test":
         return _deno_test_target_scan_args(parts[2:])
 
+    if command == "bun" and len(parts) >= 2 and parts[1] == "test":
+        return _bun_test_target_scan_args(parts[2:])
+
     if (
         _is_python_command(command)
         and len(parts) >= 3
@@ -682,6 +733,33 @@ def _deno_test_target_scan_args(args: list[str]) -> list[str]:
             index += 1
             continue
         if flag in _DENO_TEST_TARGET_VALUE_FLAGS:
+            if "=" not in part:
+                if index + 1 >= len(args):
+                    return []
+                index += 2
+                continue
+            index += 1
+            continue
+        if part.startswith("-"):
+            return []
+        targets.append(part)
+        index += 1
+    return targets
+
+
+def _bun_test_target_scan_args(args: list[str]) -> list[str]:
+    targets: list[str] = []
+    index = 0
+    while index < len(args):
+        part = args[index]
+        flag = part.split("=", 1)[0]
+        if flag in _BUN_TEST_TARGET_STANDALONE_FLAGS:
+            index += 1
+            continue
+        if flag in _BUN_TEST_TARGET_OPTIONAL_VALUE_FLAGS:
+            index += 1
+            continue
+        if flag in _BUN_TEST_TARGET_VALUE_FLAGS:
             if "=" not in part:
                 if index + 1 >= len(args):
                     return []

@@ -1,0 +1,151 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Recognize explicit Bun test commands as behavioral test runners"
+type: fix
+created: "2026-09-15T05:20:09Z"
+metadata:
+  bug_report: ~/.maid/bug-report/20260915-131500-adc-fix-support-hub-bun-test-e230.md
+  priority: high
+  tags: [bun, test-runner, command-integrity, e230, adc-fix-support-hub]
+description: |
+  Fix the E230 false positive reported by adc-fix-support-hub when a manifest
+  declares an explicit `bun test <test-file>` command. Recognize only Bun's
+  `test` subcommand as an executing test runner and expose only its positional
+  test patterns to the existing concrete-path coverage checks.
+
+  This is a private-scope extension of the durable test-runner classification
+  contract; no public signatures change, so existing manifests remain active
+  through chain merging. Help mode and test-selection flags remain fail-closed,
+  while Bun option values such as reporter output paths cannot masquerade as
+  executed behavioral tests. The bounded option model follows Bun 1.3.14's
+  documented `bun test --help` surface and rejects unknown flags rather than
+  guessing their argument semantics.
+temptations:
+  - risk: "Do not classify every bun command as a test runner merely because the executable is named bun."
+    instead: "Require the exact `bun test` subcommand and prove a non-test Bun subcommand remains E230-blocked."
+  - risk: "Do not bypass E230 merely because a Bun option value contains the declared test path."
+    instead: "Scan only positional Bun test patterns and explicitly consume supported option values before applying concrete-path coverage."
+  - risk: "Do not accept filtered or non-executing Bun test modes as whole-file behavioral evidence."
+    instead: "Route help and Bun-specific selection flags through the existing E230 non-executing and selector guards."
+  - risk: "Do not special-case the originating repository or replace direct Bun execution with Vitest."
+    instead: "Extend the shared runner-classification seam for portable `bun test` argv and verify the originating command shape."
+files:
+  scope:
+    - path: maid_runner/core/_test_runner_invocation.py
+      reason: "Recognize exact direct Bun test invocations and scan their bounded option syntax without changing public API."
+  create:
+    - path: tests/core/validation/test_bun_test_runner.py
+      artifacts:
+        - kind: test_function
+          name: test_command_integrity_accepts_explicit_bun_test_file
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "The reported direct Bun test command covers its explicitly declared TypeScript behavioral test without E230."
+        - kind: test_function
+          name: test_run_manifest_tests_executes_explicit_bun_test_command
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: monkeypatch, type: MonkeyPatch}
+          returns: None
+          description: "maid test executes the accepted Bun command unchanged and reports one passing command."
+        - kind: test_function
+          name: test_command_integrity_rejects_non_test_bun_subcommand
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "A Bun subcommand other than test does not satisfy behavioral test command integrity."
+        - kind: test_function
+          name: test_command_integrity_rejects_non_executing_bun_test_mode
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "A Bun test help invocation cannot prove that the behavioral test executed."
+        - kind: test_function
+          name: test_command_integrity_rejects_filtered_bun_test_run
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: selector, type: str}
+          returns: None
+          description: "Bun test-name, only, changed, and shard selectors cannot prove whole-file behavioral coverage."
+        - kind: test_function
+          name: test_command_integrity_rejects_bun_option_value_test_path
+          args:
+            - {name: tmp_path, type: Path}
+            - {name: option, type: str}
+          returns: None
+          description: "A declared test path used only as a Bun reporter, coverage, or ignore option value cannot satisfy behavioral coverage."
+        - kind: test_function
+          name: test_command_integrity_rejects_unknown_bun_test_option
+          args:
+            - {name: tmp_path, type: Path}
+          returns: None
+          description: "Unknown Bun test option syntax remains fail-closed even when its following value names the declared test file."
+  read:
+    - maid_runner/core/_test_command_targets.py
+    - maid_runner/core/_validation_test_artifacts.py
+    - maid_runner/core/test_runner.py
+    - manifests/038-13-extract-test-runner-invocation-helper.manifest.yaml
+    - manifests/fix-deno-test-command-e230.manifest.yaml
+    - manifests/fix-python-unittest-command-e230.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/core/validation/test_bun_test_runner.py
+outcome:
+  status: completed
+  completed_at: "2026-09-15T05:34:31Z"
+  summary: "Recognized direct `bun test <test-file>` commands for E230 coverage while rejecting non-test subcommands, non-executing and filtered modes, option-value path lookalikes, and unknown Bun test options."
+  rationale: "The implementation extends the shared invocation seam only for the exact Bun test subcommand and uses a bounded Bun 1.3.14 option model. Positional test patterns reach the existing concrete-path checks, selector modes remain blocked, documented option values are consumed without earning test coverage, and unknown flags fail closed."
+  agent:
+    model: GPT-5
+    provider: openai
+    client: codex
+    source: "Self-reported model family; exact runtime slug and reasoning effort were unavailable."
+    skills:
+      - maid-planner
+      - maid-evolver
+      - maid-implement-draft
+      - maid-implementer
+      - maid-plan-review
+      - maid-implementation-review
+  lessons:
+    - lesson_type: validation-trust
+      summary: "Direct test-runner recognition needs a bounded option scanner alongside executable/subcommand detection so output paths and unknown option values cannot masquerade as executed behavioral tests."
+      tags: [bun, e230, command-integrity, maid-runner-feedback]
+      paths:
+        - maid_runner/core/_test_runner_invocation.py
+        - tests/core/validation/test_bun_test_runner.py
+    - lesson_type: test-design
+      summary: "Behavioral assertions must remain visible inside each declared test function; hiding E230 assertions behind a helper can pass pytest while triggering MAID E210 during deep verification."
+      tags: [behavioral-tests, e210, plan-revision, maid-runner-feedback]
+      paths:
+        - tests/core/validation/test_bun_test_runner.py
+  review_notes:
+    - source: independent-implementation-review
+      severity: ready
+      summary: "The fresh read-only reviewer found no blocking findings, confirmed manifest scope and all seven declared test artifacts, and reported two non-actionable P2 advisories about conservative selector-like option values and optional positive flag coverage."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/core/validation/test_bun_test_runner.py, tests/core/validation/test_deno_test_runner.py, tests/core/validation/test_python_unittest_runner.py, tests/core/validation/test_test_runner_invocation.py, tests/core/validation/test_test_command_targets.py]
+      status: passed
+      summary: "All 90 Bun and adjacent test-runner classification scenarios passed."
+    - command: [uv, run, maid, validate, manifests/fix-bun-test-command-e230.manifest.yaml, --mode, implementation, --packet]
+      status: passed
+      summary: "Manifest implementation validation passed against plan-lock revision 3."
+    - command: [uv, run, maid, test, --manifest, manifests/fix-bun-test-command-e230.manifest.yaml]
+      status: passed
+      summary: "The manifest validation command passed."
+    - command: [uv, run, maid, validate, --packet]
+      status: passed
+      summary: "All 309 active manifests passed; 365 superseded manifests were skipped."
+    - command: [uv, run, maid, test, --fail-fast]
+      status: passed
+      summary: "All 301 repository manifest commands passed."
+    - command: [uv, run, python, -m, pytest, tests/, -q]
+      status: passed
+      summary: "The full pytest suite passed with 4,829 tests and 14 expected skips."
+    - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, HEAD]
+      status: passed
+      summary: "All 11 deep verification stages passed; the existing ts_compiler_resolver.cjs E307 warning remained non-blocking."
