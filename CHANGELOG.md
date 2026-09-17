@@ -7,8 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Portable contract lifecycle guidance** — Teach distributed planner and evolver skills to distinguish current unmerged work from contracts accepted into shared history, revise the current task's contract in place, and choose evidence recovery based on committed versus uncommitted implementation state without assuming repository-specific branch names or commands.
+- **Touched-file MAID coverage guidance** — Require distributed agents to declare every touched source file as writable and add artifact plus behavioral coverage for public behavior, while retaining `files.scope` for narrow wiring changes that do not expose a contract.
+
 ### Fixed
 - **Unsigned C# overload validation** — Match a declared callable shape against distinct plugin-signed overloads instead of failing against a later sibling, while preserving exact-signature matching, stub detection, and Python last-definition behavior.
+- **Bun test command recognition** — Recognize direct `bun test` commands with explicit project-relative test targets as behavioral runners for `E230`, while conservatively rejecting selectors, non-executing forms, unknown options, and option values that do not prove behavioral execution.
 
 ## [2.27.5] - 2026-09-11
 
