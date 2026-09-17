@@ -1,0 +1,244 @@
+{
+  "manifest_path": "manifests/portable-contract-lifecycle-guidance.manifest.yaml",
+  "manifest_hash": "sha256-contract:83bb03c9ffba28fe808b37a5ad83cb6419f9dc63e102c14a1dad17038ff7bdc4",
+  "test_hashes": {
+    "tests/cli/test_init_contract_revision_coverage_guidance.py": "sha256-pyast:v2:eb922158793a8a379e387fac55683f95be75919ce71b1de53d37dad9f88882d5",
+    "tests/test_cross_tool_skill_parity.py": "sha256-pyast:v2:031d5eb4ce9ff9a1a2cf3b7557ef5e216693916caee620282fb311593fae7596",
+    "tests/cli/test_init_portable_contract_lifecycle.py": "sha256-pyast:v2:ac522c8546115934b27233b920b96ec632ea2e30c4d2d1b83eeaaf8abf3ecf0b"
+  },
+  "created_at": "2026-09-17T22:22:33.411945+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:dd29f4d485a73432abd3ef931be6560d543ec6bc4ddd09e5164992d2cfb8886b",
+      "prior_test_hashes": {
+        "tests/cli/test_init_contract_revision_coverage_guidance.py": "sha256-pyast:v2:eb922158793a8a379e387fac55683f95be75919ce71b1de53d37dad9f88882d5",
+        "tests/test_cross_tool_skill_parity.py": "sha256-pyast:v2:031d5eb4ce9ff9a1a2cf3b7557ef5e216693916caee620282fb311593fae7596",
+        "tests/cli/test_init_portable_contract_lifecycle.py": "sha256-pyast:v2:ac522c8546115934b27233b920b96ec632ea2e30c4d2d1b83eeaaf8abf3ecf0b"
+      },
+      "revised_at": "2026-09-17T22:22:52.789816+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/portable-contract-lifecycle-guidance.manifest.yaml -> manifests/portable-contract-lifecycle-guidance.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:86a9080476754a338e2b1966dd9ba8b8b253783db33a2bdd7932172dbb3dba71",
+      "prior_test_hashes": {
+        "tests/cli/test_init_contract_revision_coverage_guidance.py": "sha256-pyast:v2:eb922158793a8a379e387fac55683f95be75919ce71b1de53d37dad9f88882d5",
+        "tests/test_cross_tool_skill_parity.py": "sha256-pyast:v2:031d5eb4ce9ff9a1a2cf3b7557ef5e216693916caee620282fb311593fae7596",
+        "tests/cli/test_init_portable_contract_lifecycle.py": "sha256-pyast:v2:ac522c8546115934b27233b920b96ec632ea2e30c4d2d1b83eeaaf8abf3ecf0b"
+      },
+      "revised_at": "2026-09-17T22:23:26.332277+00:00",
+      "reason": "Correct the module-level attribute declaration and recapture evidence for the user-requested post-hoc MAID adoption",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION",
+          "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:kind=attribute",
+          "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:type=str"
+        ],
+        "artifacts_removed": [
+          "maid_runner/instruction_payload.py:attribute:module.INSTRUCTION_PAYLOAD_VERSION",
+          "maid_runner/instruction_payload.py:attribute:module.INSTRUCTION_PAYLOAD_VERSION:kind=attribute",
+          "maid_runner/instruction_payload.py:attribute:module.INSTRUCTION_PAYLOAD_VERSION:of=module",
+          "maid_runner/instruction_payload.py:attribute:module.INSTRUCTION_PAYLOAD_VERSION:type=str"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-17T22:23:27.281049+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_init_portable_contract_lifecycle.py",
+        "exit_code": 1,
+        "output_tail": "  maid howto quickstart\n____ test_portable_lifecycle_payload_advances_the_prior_instruction_version ____\n\n    def test_portable_lifecycle_payload_advances_the_prior_instruction_version() -> None:\n>       assert tuple(map(int, INSTRUCTION_PAYLOAD_VERSION.split(\".\"))) > (2026, 9, 14, 1)\nE       AssertionError: assert (2026, 9, 14, 1) > (2026, 9, 14, 1)\nE        +  where (2026, 9, 14, 1) = tuple(<map object at 0x77073addee60>)\nE        +    where <map object at 0x77073addee60> = map(int, ['2026', '09', '14', '1'])\nE        +      where ['2026', '09', '14', '1'] = <built-in method split of str object at 0x77073a57aff0>('.')\nE        +        where <built-in method split of str object at 0x77073a57aff0> = '2026.09.14.1'.split\n\ntests/cli/test_init_portable_contract_lifecycle.py:82: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_init_portable_contract_lifecycle.py::test_installed_policy_uses_shared_acceptance_instead_of_branch_name[codex-AGENTS.md]\nFAILED tests/cli/test_init_portable_contract_lifecycle.py::test_installed_policy_uses_shared_acceptance_instead_of_branch_name[claude-CLAUDE.md]\nFAILED tests/cli/test_init_portable_contract_lifecycle.py::test_installed_policy_routes_committed_implementation_evidence[codex-AGENTS.md]\nFAILED tests/cli/test_init_portable_contract_lifecycle.py::test_installed_policy_routes_committed_implementation_evidence[claude-CLAUDE.md]\nFAILED tests/cli/test_init_portable_contract_lifecycle.py::test_codex_evolver_prompt_retains_portable_lifecycle_decisions\nFAILED tests/cli/test_init_portable_contract_lifecycle.py::test_portable_lifecycle_payload_advances_the_prior_instruction_version\n6 failed in 0.28s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_init_contract_revision_coverage_guidance.py tests/test_cross_tool_skill_parity.py",
+        "exit_code": 0,
+        "output_tail": ".........                                                                [100%]\n9 passed in 0.23s",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:kind=attribute",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:type=str",
+      "tests/cli/test_init_portable_contract_lifecycle.py:test_codex_evolver_prompt_retains_portable_lifecycle_decisions",
+      "tests/cli/test_init_portable_contract_lifecycle.py:test_codex_evolver_prompt_retains_portable_lifecycle_decisions:kind=test_function",
+      "tests/cli/test_init_portable_contract_lifecycle.py:test_codex_evolver_prompt_retains_portable_lifecycle_decisions:returns=None",
+      "tests/cli/test_init_portable_contract_lifecycle.py:test_installed_policy_routes_committed_implementation_evidence",
+      "tests/cli/test_init_portable_contract_lifecycle.py:test_installed_policy_routes_committed_implementation_evidence:kind=test_function",
+      "tests/cli/test_init_portable_contract_lifecycle.py:test_installed_policy_routes_committed_implementation_evidence:returns=None",
+      "tests/cli/test_init_portable_contract_lifecycle.py:test_installed_policy_uses_shared_acceptance_instead_of_branch_name",
+      "tests/cli/test_init_portable_contract_lifecycle.py:test_installed_policy_uses_shared_acceptance_instead_of_branch_name:kind=test_function",
+      "tests/cli/test_init_portable_contract_lifecycle.py:test_installed_policy_uses_shared_acceptance_instead_of_branch_name:returns=None",
+      "tests/cli/test_init_portable_contract_lifecycle.py:test_portable_lifecycle_payload_advances_the_prior_instruction_version",
+      "tests/cli/test_init_portable_contract_lifecycle.py:test_portable_lifecycle_payload_advances_the_prior_instruction_version:kind=test_function",
+      "tests/cli/test_init_portable_contract_lifecycle.py:test_portable_lifecycle_payload_advances_the_prior_instruction_version:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_init_portable_contract_lifecycle.py"
+      ],
+      "edit": [
+        "maid_runner/instruction_payload.py"
+      ],
+      "read": [
+        "scripts/sync_claude_files.py",
+        "tests/cli/test_init_contract_revision_coverage_guidance.py",
+        "tests/test_cross_tool_skill_parity.py"
+      ],
+      "scope": [
+        ".claude/skills/maid-evolver/SKILL.md",
+        ".claude/skills/maid-planner/SKILL.md",
+        ".codex/skills/maid-evolver/SKILL.md",
+        ".codex/skills/maid-evolver/agents/openai.yaml",
+        ".codex/skills/maid-planner/SKILL.md",
+        "docs/draft-manifest-workflow.md",
+        "maid_runner/claude/skills/maid-evolver/SKILL.md",
+        "maid_runner/claude/skills/maid-planner/SKILL.md",
+        "maid_runner/cli/commands/init.py",
+        "maid_runner/codex/skills/maid-evolver/SKILL.md",
+        "maid_runner/codex/skills/maid-evolver/agents/openai.yaml",
+        "maid_runner/codex/skills/maid-planner/SKILL.md",
+        "maid_runner/docs/draft-manifest-workflow.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_init_portable_contract_lifecycle.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_installed_policy_uses_shared_acceptance_instead_of_branch_name",
+              "description": "Both installed agents distinguish accepted shared history from a local task commit without assuming a default branch name.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_installed_policy_routes_committed_implementation_evidence",
+              "description": "Both installed agents receive the committed-code evidence decision path and its baseline-recovery limits.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_codex_evolver_prompt_retains_portable_lifecycle_decisions",
+              "description": "Installed Codex metadata agrees with the lifecycle and evidence policy.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_portable_lifecycle_payload_advances_the_prior_instruction_version",
+              "description": "Instruction payload version advances beyond 2026.09.14.1.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/instruction_payload.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "INSTRUCTION_PAYLOAD_VERSION",
+              "description": "Payload version advances beyond the prior lifecycle guidance so downstream installs can detect the update.",
+              "type": "str"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "scripts/sync_claude_files.py",
+        "tests/cli/test_init_contract_revision_coverage_guidance.py",
+        "tests/test_cross_tool_skill_parity.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/init.py",
+          "reason": "Narrow rendered policy text change, tested through the public init CLI; no public API changes."
+        },
+        {
+          "path": ".claude/skills/maid-evolver/SKILL.md",
+          "reason": "Source Claude lifecycle and evidence routing guidance."
+        },
+        {
+          "path": ".claude/skills/maid-planner/SKILL.md",
+          "reason": "Source Claude planner lifecycle and evidence routing guidance."
+        },
+        {
+          "path": ".codex/skills/maid-evolver/SKILL.md",
+          "reason": "Source Codex lifecycle and evidence routing guidance."
+        },
+        {
+          "path": ".codex/skills/maid-planner/SKILL.md",
+          "reason": "Source Codex planner lifecycle and evidence routing guidance."
+        },
+        {
+          "path": ".codex/skills/maid-evolver/agents/openai.yaml",
+          "reason": "Codex evolver invocation metadata uses the same policy."
+        },
+        {
+          "path": "docs/draft-manifest-workflow.md",
+          "reason": "Shared evidence decision path and acceptance criteria."
+        },
+        {
+          "path": "maid_runner/claude/skills/maid-evolver/SKILL.md",
+          "reason": "Generated Claude evolver payload."
+        },
+        {
+          "path": "maid_runner/claude/skills/maid-planner/SKILL.md",
+          "reason": "Generated Claude planner payload."
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-evolver/SKILL.md",
+          "reason": "Packaged Codex evolver payload."
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-planner/SKILL.md",
+          "reason": "Packaged Codex planner payload."
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-evolver/agents/openai.yaml",
+          "reason": "Packaged Codex evolver invocation metadata."
+        },
+        {
+          "path": "maid_runner/docs/draft-manifest-workflow.md",
+          "reason": "Packaged shared workflow document."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_init_contract_revision_coverage_guidance.py",
+      "tests/cli/test_init_portable_contract_lifecycle.py",
+      "tests/test_cross_tool_skill_parity.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_init_portable_contract_lifecycle.py",
+      "uv run python -m pytest -q tests/cli/test_init_contract_revision_coverage_guidance.py tests/test_cross_tool_skill_parity.py"
+    ],
+    "acceptance_commands": []
+  }
+}

@@ -10,7 +10,8 @@ description: Evolve an existing MAID manifest contract intentionally. Handles si
 - NEVER silently rewrite a locked manifest. For a contract in the current
   unmerged task, revise the existing draft or promoted manifest in place; use
   `maid plan revise` for a locked plan so its lock and red evidence remain valid.
-- Treat a contract merged into main/master as durable history. Intentional
+- Treat a contract accepted into shared project history as durable, regardless
+  of branch name (including integration and release branches). Intentional
   changes to a durable contract require a new manifest; do not create follow-on
   or superseding manifests just to revise unmerged work.
 - ALWAYS choose the least disruptive evolution strategy (chain merge before supersede).
@@ -21,12 +22,27 @@ description: Evolve an existing MAID manifest contract intentionally. Handles si
 
 ## The Core Question
 
-First check whether the affected manifest belongs to the current unmerged task.
-If it does, revise that contract in place. For a locked plan, run `maid plan
-revise <manifest> --reason "<text>"`; choose the evidence-preserving or
+First check repository policy and history to determine whether the affected
+manifest belongs to the current unmerged task or is already accepted shared
+history. A local task commit alone does not make the contract durable; a
+contract accepted from an earlier task is not mutable just because it has not
+reached the default branch. If acceptance is unclear, clarify it before rewriting.
+For the current task's unaccepted contract, revise it in place. For a locked
+plan, run `maid plan revise <manifest> --reason "<text>"`; choose the evidence-preserving or
 stash-backed option appropriate to the change. Review the revised contract and
-confirm the updated lock before implementation continues. The two evolution
-paths below apply to durable contracts already merged into main/master:
+confirm the updated lock before implementation continues.
+
+`--stash-implementation` hides uncommitted implementation changes only; it
+cannot remove implementation already committed on a task branch. If revised
+tests expose missing behavior in committed code, plain `maid plan revise` can
+capture that failure before the fix. If they already pass and the revision
+cannot preserve valid evidence, stop and report the evidence blocker with the
+pre-implementation baseline needed for recovery. Do not reset shared history,
+weaken tests, or bypass evidence requirements. See
+`docs/draft-manifest-workflow.md`, "Revision Evidence After Implementation",
+for the evidence decision path.
+
+The two evolution paths below apply to durable contracts in accepted shared history:
 
 ```
 Does the change ADD to the contract, or ALTER it?
@@ -319,7 +335,7 @@ Present the evolution summary to the user:
 ```
 Need to change something a manifest declared?
   ├─ Current unmerged task? → Revise the same contract; use maid plan revise if locked
-  └─ Durable history on main/master?
+  └─ Durable contract in accepted shared history (any branch)?
       ├─ Add a compatible artifact? → Chain merge in a new manifest
       └─ Rename, remove, move, or break an artifact? → Supersede in a new manifest
 ```
