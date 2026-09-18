@@ -7,8 +7,13 @@ description: Evolve an existing MAID manifest contract intentionally. Handles si
 
 ## Rules
 
-- NEVER modify an existing manifest directly. Manifests are immutable after approval.
-- NEVER silently break a contract. Every intentional change must be documented in a new manifest.
+- NEVER silently rewrite a locked manifest. For a contract in the current
+  unmerged task, revise the existing draft or promoted manifest in place; use
+  `maid plan revise` for a locked plan so its lock and red evidence remain valid.
+- Treat a contract accepted into shared project history as durable, regardless
+  of branch name (including integration and release branches). Intentional
+  changes to a durable contract require a new manifest; do not create follow-on
+  or superseding manifests just to revise unmerged work.
 - ALWAYS choose the least disruptive evolution strategy (chain merge before supersede).
 - ALWAYS validate that the evolution does not break dependent manifests.
 - ALWAYS update behavioral tests to match the new contract.
@@ -17,7 +22,27 @@ description: Evolve an existing MAID manifest contract intentionally. Handles si
 
 ## The Core Question
 
-When you need to change something a prior manifest declared, there are two paths:
+First check repository policy and history to determine whether the affected
+manifest belongs to the current unmerged task or is already accepted shared
+history. A local task commit alone does not make the contract durable; a
+contract accepted from an earlier task is not mutable just because it has not
+reached the default branch. If acceptance is unclear, clarify it before rewriting.
+For the current task's unaccepted contract, revise it in place. For a locked
+plan, run `maid plan revise <manifest> --reason "<text>"`; choose the evidence-preserving or
+stash-backed option appropriate to the change. Review the revised contract and
+confirm the updated lock before implementation continues.
+
+`--stash-implementation` hides uncommitted implementation changes only; it
+cannot remove implementation already committed on a task branch. If revised
+tests expose missing behavior in committed code, plain `maid plan revise` can
+capture that failure before the fix. If they already pass and the revision
+cannot preserve valid evidence, stop and report the evidence blocker with the
+pre-implementation baseline needed for recovery. Do not reset shared history,
+weaken tests, or bypass evidence requirements. See
+`docs/draft-manifest-workflow.md`, "Revision Evidence After Implementation",
+for the evidence decision path.
+
+The two evolution paths below apply to durable contracts in accepted shared history:
 
 ```
 Does the change ADD to the contract, or ALTER it?
@@ -56,13 +81,16 @@ Read the affected manifest(s) to understand the current contract.
 
 ### Decision Rule
 
-**If the old artifact must stop existing, you MUST supersede.** Chain merging is additive only — it combines artifacts from all active manifests. It cannot remove or rename.
+**If an old artifact in a durable contract must stop existing, you MUST
+supersede.** Chain merging is additive only — it combines artifacts from all
+active manifests. It cannot remove or rename. For the current unmerged task,
+revise the existing contract instead.
 
 ---
 
 ## Phase 2A — Chain Merge Path (Additive Changes)
 
-Use this when the change **adds** to the contract without removing anything.
+Use this when the change **adds** to a durable contract without removing anything.
 
 ### Steps
 
@@ -113,7 +141,7 @@ Chain merging combines this with the original `add-auth.manifest.yaml`:
 
 ## Phase 2B — Supersede Path (Breaking Changes)
 
-Use this when the change **alters or removes** existing artifacts.
+Use this when the change **alters or removes** artifacts from a durable contract.
 
 ### Steps
 
@@ -306,24 +334,10 @@ Present the evolution summary to the user:
 
 ```
 Need to change something a manifest declared?
-  │
-  ├─ Adding a new artifact (method, class, function)?
-  │   └─→ Chain merge: new manifest with files.edit, no supersedes
-  │
-  ├─ Adding an optional parameter (backward compatible)?
-  │   └─→ Chain merge: update signature in new manifest
-  │
-  ├─ Renaming an artifact?
-  │   └─→ Supersede: old name must disappear
-  │
-  ├─ Changing a signature (breaking)?
-  │   └─→ Supersede: old signature must disappear
-  │
-  ├─ Removing an artifact?
-  │   └─→ Supersede: it must be declared gone
-  │
-  └─ Moving an artifact between files?
-      └─→ Supersede: location changed, old declaration must go
+  ├─ Current unmerged task? → Revise the same contract; use maid plan revise if locked
+  └─ Durable contract in accepted shared history (any branch)?
+      ├─ Add a compatible artifact? → Chain merge in a new manifest
+      └─ Rename, remove, move, or break an artifact? → Supersede in a new manifest
 ```
 
 ### When to Use This Skill
@@ -338,6 +352,9 @@ Need to change something a manifest declared?
 ### When NOT to Use This Skill
 
 - Adding a completely new module (use `maid-planner`)
-- Private-only refactors (no manifest needed, update tests directly)
-- Fixing a bug without changing the public API (no manifest needed)
-- The manifest hasn't been implemented yet (use `maid-implementer`)
+- Private-only refactors (use `maid-planner` for the scoped change; use this skill
+  only when a prior contract changes)
+- Fixing a bug without changing the public API (use `maid-planner` for the scoped
+  fix; use this skill only when a prior contract changes)
+- An unimplemented draft whose contract does not need revision (continue with
+  `maid-implement-draft`; revise the same draft if its contract changes)

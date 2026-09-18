@@ -1,0 +1,157 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Clarify distributed contract revision and touched-file coverage guidance
+type: fix
+created: '2026-09-14T14:59:19Z'
+description: |
+  Downstream agents can treat an approved but unmerged MAID contract as immutable
+  and create unnecessary superseding manifests. The installed guidance also
+  does not explicitly connect each touched source file to a writable manifest
+  declaration and appropriate behavioral coverage. Clarify that work still in
+  an unmerged task should revise its existing contract through the sanctioned
+  plan-revise workflow, while durable contracts use maid-evolver. Require
+  artifact declarations and behavioral tests when a touched file changes public
+  behavior, but retain files.scope for narrow no-artifact wiring covered by tests.
+  Keep Claude and Codex distributions aligned and advance the instruction
+  payload version so downstream init --check can detect the update. Keep the
+  installed evolver agent prompt and workflow document consistent with the
+  rendered guidance and source skills.
+temptations:
+- risk: Treat every touched brownfield file as requiring a complete public-surface snapshot.
+  instead: Declare every touched source path, but require artifact contracts for changed public behavior and allow files.scope for narrow no-artifact wiring with behavioral tests.
+- risk: Continue to supersede a contract that only exists in an unmerged task.
+  instead: Revise its current draft or promoted manifest in place using maid plan revise when locked; reserve supersession for durable history.
+- risk: Update only the source skills or generated prose while leaving the packaged install stale.
+  instead: Sync packaged skills and workflow docs, bump the instruction version, and test actual Claude and Codex init output, including Codex skill agent metadata.
+files:
+  edit:
+  - path: maid_runner/cli/commands/init.py
+    artifacts:
+    - kind: function
+      name: _render_draft_outcome_guidance
+      args: []
+      returns: str
+      description: Rendered agent guidance tells downstream agents to revise unmerged contracts and declare touched source paths with appropriate artifact and test coverage.
+  - path: maid_runner/instruction_payload.py
+    artifacts:
+    - kind: attribute
+      name: INSTRUCTION_PAYLOAD_VERSION
+      type: str
+      description: Date-stamped version advances so downstream init --check detects changed installed guidance.
+  scope:
+  - path: .claude/skills/maid-evolver/SKILL.md
+    reason: Explain the pre-durable in-place revision path before evolution decisions.
+  - path: .codex/skills/maid-evolver/SKILL.md
+    reason: Keep Codex evolution guidance aligned with Claude.
+  - path: maid_runner/codex/skills/maid-evolver/SKILL.md
+    reason: Package the synchronized Codex evolution guidance.
+  - path: maid_runner/claude/skills/maid-evolver/SKILL.md
+    reason: Package the synchronized Claude evolution guidance.
+  - path: .codex/skills/maid-evolver/agents/openai.yaml
+    reason: Keep the installed Codex evolver agent prompt aligned with the skill's pre-durable revision rule.
+  - path: maid_runner/codex/skills/maid-evolver/agents/openai.yaml
+    reason: Package the synchronized Codex evolver agent prompt.
+  - path: docs/draft-manifest-workflow.md
+    reason: Clarify pre-promotion, unmerged promoted, and durable evolution paths in the installed workflow document.
+  - path: maid_runner/docs/draft-manifest-workflow.md
+    reason: Package the synchronized workflow document.
+  - path: .claude/skills/maid-planner/SKILL.md
+    reason: Route implementation-discovered gaps in the current unmerged task to in-place plan revision.
+  - path: .codex/skills/maid-planner/SKILL.md
+    reason: Keep Codex planner guidance aligned with Claude and the installed evolver.
+  - path: maid_runner/claude/skills/maid-planner/SKILL.md
+    reason: Package the synchronized Claude planner guidance.
+  - path: maid_runner/codex/skills/maid-planner/SKILL.md
+    reason: Package the synchronized Codex planner guidance.
+  read:
+  - scripts/sync_claude_files.py
+  - .codex/skills/maid-plan-review/SKILL.md
+  - maid_runner/codex/manifest.json
+  create:
+  - path: tests/cli/test_init_contract_revision_coverage_guidance.py
+    artifacts:
+    - kind: test_function
+      name: test_codex_init_guides_pre_durable_revision_and_touched_file_coverage
+      args: []
+      returns: None
+      description: A newly initialized Codex project receives consistent pre-durable revision and touched-file guidance in AGENTS.md, evolver and planner skills, agent metadata, and workflow document.
+    - kind: test_function
+      name: test_claude_init_matches_contract_revision_and_coverage_guidance
+      args: []
+      returns: None
+      description: A newly initialized Claude project receives the same contract-revision and touched-file policy in CLAUDE.md, evolver and planner skills, and workflow document.
+    - kind: test_function
+      name: test_instruction_payload_version_advances_for_guidance_change
+      args: []
+      returns: None
+      description: The distributed instruction version advances beyond the previous payload version.
+validate:
+- uv run python -m pytest -q tests/cli/test_init_contract_revision_coverage_guidance.py
+- uv run python -m pytest -q tests/test_cross_tool_skill_parity.py
+outcome:
+  status: completed
+  completed_at: '2026-09-14T15:30:05Z'
+  summary: >-
+    Distributed Claude and Codex guidance now revises the current unmerged
+    contract in place, reserves chain merging and supersession for durable
+    contracts, and declares touched source paths with artifact and behavioral
+    coverage appropriate to the change. The installed planner, evolver, Codex
+    agent prompt, workflow document, and payload version are synchronized.
+  rationale: >-
+    Fresh MAID installations previously gave contradictory evolution advice
+    across installed surfaces. Focused init tests now inspect the generated
+    guidance and installed skills, agent metadata, and workflow document for
+    both tools, including the files.scope and files.read boundary.
+  lessons:
+  - lesson_type: guidance-contract
+    summary: >-
+      A distributed instruction change must reconcile the generated guidance,
+      skill bodies, agent default prompts, and installed workflow documents;
+      updating one surface leaves actionable contradictions in fresh installs.
+    tags:
+    - init-payload
+    - agent-guidance
+    - manifest-revision
+    paths:
+    - maid_runner/cli/commands/init.py
+    - .codex/skills/maid-evolver/agents/openai.yaml
+    - docs/draft-manifest-workflow.md
+  - lesson_type: validation
+    summary: >-
+      Declare a changed exported instruction version as a files.edit artifact,
+      and test actual maid init output instead of checking source prose alone.
+    tags:
+    - artifact-coverage
+    - installed-output
+    paths:
+    - maid_runner/instruction_payload.py
+    - tests/cli/test_init_contract_revision_coverage_guidance.py
+  review_notes:
+  - source: independent-maid-implementation-review
+    severity: medium
+    summary: >-
+      Review identified and resolved conflicting evolver, planner, agent prompt,
+      workflow-document, and files.read guidance, plus a scope-only declaration
+      for the exported instruction version.
+  - source: independent-maid-implementation-review-final
+    severity: info
+    summary: >-
+      Final read-only review found no blocking findings. Its pending deep
+      verification advisory was closed by the passing 11-stage verify run.
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/cli/test_init_contract_revision_coverage_guidance.py, tests/test_cross_tool_skill_parity.py]
+    status: passed
+    summary: 'Nine focused installed-output and parity tests passed.'
+  - command: [uv, run, maid, validate]
+    status: passed
+    summary: '673 manifests: 308 passed, 0 failed, 365 superseded.'
+  - command: [uv, run, maid, test, --manifest, manifests/clarify-distributed-contract-revision-and-touched-file-coverage.manifest.yaml]
+    status: passed
+    summary: 'Both declared manifest test commands passed.'
+  - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, cfc1ce97fcd050a014f2248c318772bc20f78b5a]
+    status: passed
+    summary: 'All 11 deep verify stages passed; only existing E307 missing-validator warnings remained.'

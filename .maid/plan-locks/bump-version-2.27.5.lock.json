@@ -6,10 +6,10 @@
     "tests/core/validation/test_python_unittest_runner.py": "sha256-pyast:v2:0014f56954018710438a399a6c82de0c1061a2f593e49c47cbc463e66fba874d",
     "tests/core/validation/test_merge_head_since_baseline.py": "sha256-pyast:v2:48f12a37018e4635923fc506fb8d6627eefa93539d5a91336f69e1b2b7d6a152",
     "tests/core/test_manifest_header.py": "sha256-pyast:v2:5446ff8d1deae8100d7a6f9b481b8c6c31c3dd3126e411f9efda3b98256b353e",
-    "tests/integration/test_library_api.py": "sha256-pyast:v2:61f405ace7ed150f8e3fb5194956ddf9a14b4d4bf8c3afade4d1d0e8808dfbd7"
+    "tests/integration/test_library_api.py": "sha256-pyast:v2:afd9ea020575cd6aecfe8ba433c05196578fdb978f9c0102608ce850b669feb0"
   },
   "created_at": "2026-09-11T01:34:54.287302+00:00",
-  "revision": 3,
+  "revision": 4,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:6db0eb67d73e29e8fcc2a49e0ac23f96eab61d8dc3f543459bbf2a787410440d",
@@ -43,6 +43,27 @@
       },
       "revised_at": "2026-09-11T01:46:20.201241+00:00",
       "reason": "tighten release-note assertions after implementation review",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:bbfcbcd89c85d1db6bbd629dbf22eee416bd7f4901be20c36e158fa40b73e16e",
+      "prior_test_hashes": {
+        "tests/core/validation/test_deno_test_runner.py": "sha256-pyast:v2:75da4f388950322ce28748c295f7e18b62e523a734f27c885507b7aff4f3b65d",
+        "tests/core/validation/test_python_unittest_runner.py": "sha256-pyast:v2:0014f56954018710438a399a6c82de0c1061a2f593e49c47cbc463e66fba874d",
+        "tests/core/validation/test_merge_head_since_baseline.py": "sha256-pyast:v2:48f12a37018e4635923fc506fb8d6627eefa93539d5a91336f69e1b2b7d6a152",
+        "tests/core/test_manifest_header.py": "sha256-pyast:v2:5446ff8d1deae8100d7a6f9b481b8c6c31c3dd3126e411f9efda3b98256b353e",
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:61f405ace7ed150f8e3fb5194956ddf9a14b4d4bf8c3afade4d1d0e8808dfbd7"
+      },
+      "revised_at": "2026-09-14T14:09:21.942445+00:00",
+      "reason": "Make shared release metadata test follow the local patch version without new release manifests",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

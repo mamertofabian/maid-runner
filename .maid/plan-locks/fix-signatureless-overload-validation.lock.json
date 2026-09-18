@@ -1,0 +1,205 @@
+{
+  "manifest_path": "manifests/fix-signatureless-overload-validation.manifest.yaml",
+  "manifest_hash": "sha256-contract:b4844e18004c3b0d52122171a318e7a79e70dc2290bb5c283a7a79da243e8753",
+  "test_hashes": {
+    "tests/validators/test_signatureless_overload_matching.py": "sha256-pyast:v2:6076f1531a8570db452d39a004f8782dbf5b93a20dc18f7e2d367e0229bc66d8"
+  },
+  "created_at": "2026-09-14T13:28:38.748319+00:00",
+  "revision": 6,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:72eb1c91d08b3df50a5017a8f9d26d26209d7f5c68ae1b0f531f6f72d78382db",
+      "prior_test_hashes": {
+        "tests/validators/test_signatureless_overload_matching.py": "sha256-pyast:v2:d1767edc036a3786a328492197fbe12b58851d3ecc8ccbfd9cd3af2d976b157f"
+      },
+      "revised_at": "2026-09-14T13:28:42.118411+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-signatureless-overload-validation.manifest.yaml -> manifests/fix-signatureless-overload-validation.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:61962a06e74845b91dd74077c84ae3812bc03c972e1dd28d87d06f4de7f064bc",
+      "prior_test_hashes": {
+        "tests/validators/test_signatureless_overload_matching.py": "sha256-pyast:v2:d1767edc036a3786a328492197fbe12b58851d3ecc8ccbfd9cd3af2d976b157f"
+      },
+      "revised_at": "2026-09-14T13:29:23.503936+00:00",
+      "reason": "Include matching-overload stub detection in the red behavioral contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/validators/test_signatureless_overload_matching.py:test_stub_check_uses_matching_unsigned_overload",
+          "tests/validators/test_signatureless_overload_matching.py:test_stub_check_uses_matching_unsigned_overload:kind=test_function",
+          "tests/validators/test_signatureless_overload_matching.py:test_stub_check_uses_matching_unsigned_overload:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:e4259051715066f93c6ff5c411c40134199af855784809dc022b4accb7fb097f",
+      "prior_test_hashes": {
+        "tests/validators/test_signatureless_overload_matching.py": "sha256-pyast:v2:8e36f4159744c939fbb0e3971e61712e474767136cc329303a2f582fed229413"
+      },
+      "revised_at": "2026-09-14T13:38:44.994900+00:00",
+      "reason": "Constrain overload search to distinct plugin signatures; retain Python runtime shadowing",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/validators/test_signatureless_overload_matching.py:test_unsigned_same_name_definitions_keep_last_runtime_definition",
+          "tests/validators/test_signatureless_overload_matching.py:test_unsigned_same_name_definitions_keep_last_runtime_definition:kind=test_function",
+          "tests/validators/test_signatureless_overload_matching.py:test_unsigned_same_name_definitions_keep_last_runtime_definition:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b4844e18004c3b0d52122171a318e7a79e70dc2290bb5c283a7a79da243e8753",
+      "prior_test_hashes": {
+        "tests/validators/test_signatureless_overload_matching.py": "sha256-pyast:v2:964eb841c746a9a05b6198235a6cdecf4241c62900b62c526132cf47d56edf02"
+      },
+      "revised_at": "2026-09-14T13:39:28.099477+00:00",
+      "reason": "Keep stub regression scoped to distinctly signed overloads",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b4844e18004c3b0d52122171a318e7a79e70dc2290bb5c283a7a79da243e8753",
+      "prior_test_hashes": {
+        "tests/validators/test_signatureless_overload_matching.py": "sha256-pyast:v2:a9f4e07a3ba65328fe77b09f20874e224f722c3b5b39d6663eff7df0359f1991"
+      },
+      "revised_at": "2026-09-14T13:42:56.003163+00:00",
+      "reason": "Exercise all-mismatch diagnostics across distinct signed C# overloads",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-14T13:42:56.350831+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/validators/test_signatureless_overload_matching.py",
+        "exit_code": 1,
+        "output_tail": "                of=\"ScheduleManagerService\",\n                args=(ArgSpec(name=\"shift\", type=\"ShiftDto\"),),\n                signature=\"AddAssignment(ShiftDto)\",\n                line=321,\n            ),\n        ]\n    \n        errors = _check_stub_artifacts([expected], found, \"ScheduleManagerService.cs\")\n    \n>       assert [error.code for error in errors] == [ErrorCode.STUB_FUNCTION_DETECTED]\nE       AssertionError: assert [] == [<ErrorCode.S...CTED: 'E310'>]\nE         \nE         Right contains one more item: <ErrorCode.STUB_FUNCTION_DETECTED: 'E310'>\nE         Use -v to get more diff\n\ntests/validators/test_signatureless_overload_matching.py:129: AssertionError\n=========================== short test summary info ============================\nFAILED tests/validators/test_signatureless_overload_matching.py::test_unsigned_declaration_accepts_earlier_matching_overload\nFAILED tests/validators/test_signatureless_overload_matching.py::test_stub_check_uses_matching_unsigned_overload\n2 failed, 3 passed in 0.13s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/validators/test_signatureless_overload_matching.py:test_signed_declaration_still_requires_exact_overload",
+      "tests/validators/test_signatureless_overload_matching.py:test_signed_declaration_still_requires_exact_overload:kind=test_function",
+      "tests/validators/test_signatureless_overload_matching.py:test_signed_declaration_still_requires_exact_overload:returns=None",
+      "tests/validators/test_signatureless_overload_matching.py:test_stub_check_uses_matching_unsigned_overload",
+      "tests/validators/test_signatureless_overload_matching.py:test_stub_check_uses_matching_unsigned_overload:kind=test_function",
+      "tests/validators/test_signatureless_overload_matching.py:test_stub_check_uses_matching_unsigned_overload:returns=None",
+      "tests/validators/test_signatureless_overload_matching.py:test_unsigned_declaration_accepts_earlier_matching_overload",
+      "tests/validators/test_signatureless_overload_matching.py:test_unsigned_declaration_accepts_earlier_matching_overload:kind=test_function",
+      "tests/validators/test_signatureless_overload_matching.py:test_unsigned_declaration_accepts_earlier_matching_overload:returns=None",
+      "tests/validators/test_signatureless_overload_matching.py:test_unsigned_declaration_rejects_all_mismatching_overloads",
+      "tests/validators/test_signatureless_overload_matching.py:test_unsigned_declaration_rejects_all_mismatching_overloads:kind=test_function",
+      "tests/validators/test_signatureless_overload_matching.py:test_unsigned_declaration_rejects_all_mismatching_overloads:returns=None",
+      "tests/validators/test_signatureless_overload_matching.py:test_unsigned_same_name_definitions_keep_last_runtime_definition",
+      "tests/validators/test_signatureless_overload_matching.py:test_unsigned_same_name_definitions_keep_last_runtime_definition:kind=test_function",
+      "tests/validators/test_signatureless_overload_matching.py:test_unsigned_same_name_definitions_keep_last_runtime_definition:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/validators/test_signatureless_overload_matching.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/core/types.py",
+        "maid_runner/validators/base.py",
+        "manifests/093-03-add-exact-artifact-signatures.manifest.yaml"
+      ],
+      "scope": [
+        "maid_runner/core/_implementation_validation.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/validators/test_signatureless_overload_matching.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_unsigned_declaration_accepts_earlier_matching_overload",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unsigned_declaration_rejects_all_mismatching_overloads",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_signed_declaration_still_requires_exact_overload",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_stub_check_uses_matching_unsigned_overload",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unsigned_same_name_definitions_keep_last_runtime_definition",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/types.py",
+        "maid_runner/validators/base.py",
+        "manifests/093-03-add-exact-artifact-signatures.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_implementation_validation.py",
+          "reason": "Select an existing overload that satisfies the unsigned declared shape without changing public APIs."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/validators/test_signatureless_overload_matching.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/validators/test_signatureless_overload_matching.py"
+    ],
+    "acceptance_commands": []
+  }
+}

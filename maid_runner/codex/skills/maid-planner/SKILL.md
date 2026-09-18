@@ -15,7 +15,15 @@ Replace free-form markdown planning with a machine-checkable MAID manifest contr
   pass `maid validate --mode behavioral` before approval, promotion, or
   immediate implementation. Early draft inventory may be schema-only or mention
   planned tests, but must be labeled and reported as not promotion-ready yet.
-- NEVER go off-manifest. If new work is discovered during implementation, stop and create a new manifest.
+- NEVER go off-manifest. If implementation reveals a gap in the current unmerged task,
+  stop and revise the same draft or promoted contract; use
+  `maid plan revise` for a locked plan and refresh its evidence. Create a new
+  manifest for genuinely separate work or evolution of durable contracts
+  accepted into shared project history, including integration or release
+  branches regardless of name. A local task commit alone is not acceptance.
+  For committed implementation, follow "Revision Evidence After Implementation"
+  in `docs/draft-manifest-workflow.md`; `--stash-implementation` only hides
+  uncommitted changes.
 - NEVER approve a manifest with generic artifact declarations. The manifest must declare exact public symbols, signatures, return types, and field types.
 - ALWAYS include task-specific `temptations` when the work has likely shortcuts. Each entry must pair a concrete risk with the procedure to use instead.
 - ALWAYS record rationale for important design decisions in the manifest description or artifact descriptions.

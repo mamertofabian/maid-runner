@@ -1,0 +1,99 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Validate an unsigned callable declaration against a matching overload rather than only the last definition"
+type: fix
+created: "2026-09-14T13:28:42Z"
+metadata:
+  bug_report: ~/.maid/bug-report/20260914-213500-deckhand-csharp-merge-validation.md
+  tags: [csharp, overloads, implementation-validation, e303]
+description: |
+  Deckhand declares the eight-parameter AddAssignment overload without an exact
+  signature because syntax-only C# calls cannot provide behavioral signature
+  evidence. The collector also sees a later three-parameter overload, which
+  currently replaces the former under the unsigned merge key and causes false
+  E303 errors. For an unsigned declaration with asserted shape, accept any
+  same-identity collected overload whose public contract satisfies the stated
+  arguments and return type. Retain the last-collected diagnostic if none
+  match, preserving a useful failure rather than silently accepting drift.
+  Keep plugin-owned exact signature matching and strict sibling coverage as-is.
+  A collector without distinct exact definition signatures may be reporting
+  runtime shadowing (as in Python), so it retains last-definition semantics.
+temptations:
+  - risk: "Do not make the unsigned declaration pass merely because a same-name overload exists."
+    instead: "Run the full existing signature comparison on each candidate and accept only a zero-error match."
+  - risk: "Do not let an unsigned overload fallback weaken explicit exact signatures."
+    instead: "Keep signed declarations on the exact contract-key lookup and cover that rule in regression tests."
+  - risk: "Do not treat Python shadowed definitions as callable overloads."
+    instead: "Search candidates only when every same-name definition has a distinct exact plugin signature; otherwise compare the last definition."
+files:
+  scope:
+    - path: maid_runner/core/_implementation_validation.py
+      reason: "Select an existing overload that satisfies the unsigned declared shape without changing public APIs."
+  create:
+    - path: tests/validators/test_signatureless_overload_matching.py
+      artifacts:
+        - kind: test_function
+          name: test_unsigned_declaration_accepts_earlier_matching_overload
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_unsigned_declaration_rejects_all_mismatching_overloads
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_signed_declaration_still_requires_exact_overload
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_stub_check_uses_matching_unsigned_overload
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_unsigned_same_name_definitions_keep_last_runtime_definition
+          args: []
+          returns: None
+  read:
+    - maid_runner/core/types.py
+    - maid_runner/validators/base.py
+    - manifests/093-03-add-exact-artifact-signatures.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/validators/test_signatureless_overload_matching.py
+outcome:
+  status: completed
+  completed_at: "2026-09-14T13:47:00Z"
+  summary: "Unsigned callable declarations now validate against any matching distinct signed overload instead of failing against the last collected sibling; unsigned shadowed definitions retain last-definition behavior."
+  rationale: "C# emits distinct plugin-owned exact definition signatures, while Python same-name definitions without signatures can shadow earlier runtime definitions. The selector uses the existing full comparison only for the former and shares its choice with stub detection."
+  lessons:
+    - lesson_type: validation-trust
+      summary: "Overload selection must require plugin evidence that candidates are distinct signatures; same-name syntax alone can represent Python runtime shadowing."
+      tags: [overloads, csharp, python, e303]
+      paths:
+        - maid_runner/core/_implementation_validation.py
+        - tests/validators/test_signatureless_overload_matching.py
+  review_notes:
+    - source: independent-review-round-1
+      severity: needs-changes
+      summary: "Found that searching unsigned same-name candidates could validate a Python definition shadowed at runtime; the selector was constrained to distinct plugin signatures and a regression was added."
+    - source: independent-review-round-2
+      severity: needs-changes
+      summary: "Found that the all-mismatch fixture lacked signatures and missed the new candidate path; signed fixtures were added."
+    - source: independent-review-final
+      severity: ready
+      summary: "Found no blocking correctness or scope issues after the fixes; advised retaining the live Deckhand reproduction as integration evidence."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/validators/test_signatureless_overload_matching.py, tests/validators/test_type_comparison_hook.py, tests/validators/test_artifact_signature_contract.py, tests/core/test_implementation_validation.py]
+      status: passed
+      summary: "59 focused overload, type-hook, and implementation-validation tests passed."
+    - command: [uv, run, maid, validate, --quiet]
+      status: passed
+      summary: "All active manifests validated."
+    - command: [uv, run, maid, test, --fail-fast]
+      status: passed
+      summary: "All 301 manifest test commands passed."
+    - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, HEAD]
+      status: passed
+      summary: "All 11 deep gates passed with the existing non-blocking E307 warning for the CJS resolver."

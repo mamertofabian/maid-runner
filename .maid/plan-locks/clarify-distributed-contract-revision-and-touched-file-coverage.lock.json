@@ -1,0 +1,360 @@
+{
+  "manifest_path": "manifests/clarify-distributed-contract-revision-and-touched-file-coverage.manifest.yaml",
+  "manifest_hash": "sha256-contract:637a3cb0a5444d406b25432efe2f32769ce481fad819aa05ce6e572a78e32f2e",
+  "test_hashes": {
+    "tests/cli/test_init_contract_revision_coverage_guidance.py": "sha256-pyast:v2:eb922158793a8a379e387fac55683f95be75919ce71b1de53d37dad9f88882d5",
+    "tests/test_cross_tool_skill_parity.py": "sha256-pyast:v2:031d5eb4ce9ff9a1a2cf3b7557ef5e216693916caee620282fb311593fae7596"
+  },
+  "created_at": "2026-09-14T14:59:15.652997+00:00",
+  "revision": 9,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:fb63a18b52a37113a32283e485fad8906409a5754072ff8de4d8af9a4b142f8d",
+      "prior_test_hashes": {
+        "tests/cli/test_init_contract_revision_coverage_guidance.py": "sha256-pyast:v2:e6c0056fc5c470ad2c298e7819cb57ba8a13796a3f0358ca45a0cd7471681dd9",
+        "tests/test_cross_tool_skill_parity.py": "sha256-pyast:v2:031d5eb4ce9ff9a1a2cf3b7557ef5e216693916caee620282fb311593fae7596"
+      },
+      "revised_at": "2026-09-14T14:59:19.803708+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/clarify-distributed-contract-revision-and-touched-file-coverage.manifest.yaml -> manifests/clarify-distributed-contract-revision-and-touched-file-coverage.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:e87fed886167bac8bb1a8ef6fcfcbbac83b004e123077c21b01d64ccf159e6d1",
+      "prior_test_hashes": {
+        "tests/cli/test_init_contract_revision_coverage_guidance.py": "sha256-pyast:v2:e6c0056fc5c470ad2c298e7819cb57ba8a13796a3f0358ca45a0cd7471681dd9",
+        "tests/test_cross_tool_skill_parity.py": "sha256-pyast:v2:031d5eb4ce9ff9a1a2cf3b7557ef5e216693916caee620282fb311593fae7596"
+      },
+      "revised_at": "2026-09-14T15:01:05.756960+00:00",
+      "reason": "Format new behavioral test without changing assertions",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:e87fed886167bac8bb1a8ef6fcfcbbac83b004e123077c21b01d64ccf159e6d1",
+      "prior_test_hashes": {
+        "tests/cli/test_init_contract_revision_coverage_guidance.py": "sha256-pyast:v2:e6c0056fc5c470ad2c298e7819cb57ba8a13796a3f0358ca45a0cd7471681dd9",
+        "tests/test_cross_tool_skill_parity.py": "sha256-pyast:v2:031d5eb4ce9ff9a1a2cf3b7557ef5e216693916caee620282fb311593fae7596"
+      },
+      "revised_at": "2026-09-14T15:09:39.135270+00:00",
+      "reason": "Strengthen installed guidance tests after independent review",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:e87fed886167bac8bb1a8ef6fcfcbbac83b004e123077c21b01d64ccf159e6d1",
+      "prior_test_hashes": {
+        "tests/cli/test_init_contract_revision_coverage_guidance.py": "sha256-pyast:v2:ceff88f1925fbede6b7f0b74e4b75107c14e2ebbef9b1dae8d191123a1d06916",
+        "tests/test_cross_tool_skill_parity.py": "sha256-pyast:v2:031d5eb4ce9ff9a1a2cf3b7557ef5e216693916caee620282fb311593fae7596"
+      },
+      "revised_at": "2026-09-14T15:13:34.461475+00:00",
+      "reason": "Align installed evolver agent and workflow docs with unmerged contract revision",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:.codex/skills/maid-evolver/agents/openai.yaml",
+          "scope:docs/draft-manifest-workflow.md",
+          "scope:maid_runner/codex/skills/maid-evolver/agents/openai.yaml",
+          "scope:maid_runner/docs/draft-manifest-workflow.md"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:1a47d807b8e912a482bb2f00b6af32cf5631f185155df3eee59fa40faae9b120",
+      "prior_test_hashes": {
+        "tests/cli/test_init_contract_revision_coverage_guidance.py": "sha256-pyast:v2:c38dc1707398111d192cd003cf0223440bf0d77a4c4ce9afca7b93e2b89546e1",
+        "tests/test_cross_tool_skill_parity.py": "sha256-pyast:v2:031d5eb4ce9ff9a1a2cf3b7557ef5e216693916caee620282fb311593fae7596"
+      },
+      "revised_at": "2026-09-14T15:14:31.771660+00:00",
+      "reason": "Remove remaining promoted-contract contradiction in installed workflow doc",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:1a47d807b8e912a482bb2f00b6af32cf5631f185155df3eee59fa40faae9b120",
+      "prior_test_hashes": {
+        "tests/cli/test_init_contract_revision_coverage_guidance.py": "sha256-pyast:v2:1868101b309e417d12edc13b901f7ec8443bb93e7c92c436d93f42db435db329",
+        "tests/test_cross_tool_skill_parity.py": "sha256-pyast:v2:031d5eb4ce9ff9a1a2cf3b7557ef5e216693916caee620282fb311593fae7596"
+      },
+      "revised_at": "2026-09-14T15:18:15.944902+00:00",
+      "reason": "Declare changed instruction payload version as a public artifact",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION",
+          "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:kind=attribute",
+          "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:type=str"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:maid_runner/instruction_payload.py"
+        ],
+        "files_removed": [
+          "scope:maid_runner/instruction_payload.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:7823375aed80a889319eb94b7acaf309ba4db3ba53cb449820aeb0717ac1d94a",
+      "prior_test_hashes": {
+        "tests/cli/test_init_contract_revision_coverage_guidance.py": "sha256-pyast:v2:1868101b309e417d12edc13b901f7ec8443bb93e7c92c436d93f42db435db329",
+        "tests/test_cross_tool_skill_parity.py": "sha256-pyast:v2:031d5eb4ce9ff9a1a2cf3b7557ef5e216693916caee620282fb311593fae7596"
+      },
+      "revised_at": "2026-09-14T15:22:10.229089+00:00",
+      "reason": "Align installed planner gap handling with unmerged contract revision",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:.claude/skills/maid-planner/SKILL.md",
+          "scope:.codex/skills/maid-planner/SKILL.md",
+          "scope:maid_runner/claude/skills/maid-planner/SKILL.md",
+          "scope:maid_runner/codex/skills/maid-planner/SKILL.md"
+        ],
+        "files_removed": [
+          "read:.codex/skills/maid-planner/SKILL.md"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:637a3cb0a5444d406b25432efe2f32769ce481fad819aa05ce6e572a78e32f2e",
+      "prior_test_hashes": {
+        "tests/cli/test_init_contract_revision_coverage_guidance.py": "sha256-pyast:v2:0e351ce1470f29aa597367cdd6839d926d2700264228564f4fde9a61025d5692",
+        "tests/test_cross_tool_skill_parity.py": "sha256-pyast:v2:031d5eb4ce9ff9a1a2cf3b7557ef5e216693916caee620282fb311593fae7596"
+      },
+      "revised_at": "2026-09-14T15:27:36.383115+00:00",
+      "reason": "Clarify legacy files.read stash recovery without authorizing new writable scope",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-14T15:27:37.058924+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_init_contract_revision_coverage_guidance.py",
+        "exit_code": 1,
+        "output_tail": "\n    def test_instruction_payload_version_advances_for_guidance_change() -> None:\n>       assert tuple(map(int, INSTRUCTION_PAYLOAD_VERSION.split(\".\"))) > (\n            2026,\n            9,\n            2,\n            1,\n        )\nE       AssertionError: assert (2026, 9, 2, 1) > (2026, 9, 2, 1)\nE        +  where (2026, 9, 2, 1) = tuple(<map object at 0x71f1916b4fd0>)\nE        +    where <map object at 0x71f1916b4fd0> = map(int, ['2026', '09', '02', '1'])\nE        +      where ['2026', '09', '02', '1'] = <built-in method split of str object at 0x71f191979db0>('.')\nE        +        where <built-in method split of str object at 0x71f191979db0> = '2026.09.02.1'.split\n\ntests/cli/test_init_contract_revision_coverage_guidance.py:86: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_init_contract_revision_coverage_guidance.py::test_codex_init_guides_pre_durable_revision_and_touched_file_coverage\nFAILED tests/cli/test_init_contract_revision_coverage_guidance.py::test_claude_init_matches_contract_revision_and_coverage_guidance\nFAILED tests/cli/test_init_contract_revision_coverage_guidance.py::test_instruction_payload_version_advances_for_guidance_change\n3 failed in 0.24s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest -q tests/test_cross_tool_skill_parity.py",
+        "exit_code": 0,
+        "output_tail": "......                                                                   [100%]\n6 passed in 0.02s",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/init.py:function:_render_draft_outcome_guidance",
+      "maid_runner/cli/commands/init.py:function:_render_draft_outcome_guidance:kind=function",
+      "maid_runner/cli/commands/init.py:function:_render_draft_outcome_guidance:returns=str",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:kind=attribute",
+      "maid_runner/instruction_payload.py:attribute:INSTRUCTION_PAYLOAD_VERSION:type=str",
+      "tests/cli/test_init_contract_revision_coverage_guidance.py:test_claude_init_matches_contract_revision_and_coverage_guidance",
+      "tests/cli/test_init_contract_revision_coverage_guidance.py:test_claude_init_matches_contract_revision_and_coverage_guidance:kind=test_function",
+      "tests/cli/test_init_contract_revision_coverage_guidance.py:test_claude_init_matches_contract_revision_and_coverage_guidance:returns=None",
+      "tests/cli/test_init_contract_revision_coverage_guidance.py:test_codex_init_guides_pre_durable_revision_and_touched_file_coverage",
+      "tests/cli/test_init_contract_revision_coverage_guidance.py:test_codex_init_guides_pre_durable_revision_and_touched_file_coverage:kind=test_function",
+      "tests/cli/test_init_contract_revision_coverage_guidance.py:test_codex_init_guides_pre_durable_revision_and_touched_file_coverage:returns=None",
+      "tests/cli/test_init_contract_revision_coverage_guidance.py:test_instruction_payload_version_advances_for_guidance_change",
+      "tests/cli/test_init_contract_revision_coverage_guidance.py:test_instruction_payload_version_advances_for_guidance_change:kind=test_function",
+      "tests/cli/test_init_contract_revision_coverage_guidance.py:test_instruction_payload_version_advances_for_guidance_change:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_init_contract_revision_coverage_guidance.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/init.py",
+        "maid_runner/instruction_payload.py"
+      ],
+      "read": [
+        ".codex/skills/maid-plan-review/SKILL.md",
+        "maid_runner/codex/manifest.json",
+        "scripts/sync_claude_files.py"
+      ],
+      "scope": [
+        ".claude/skills/maid-evolver/SKILL.md",
+        ".claude/skills/maid-planner/SKILL.md",
+        ".codex/skills/maid-evolver/SKILL.md",
+        ".codex/skills/maid-evolver/agents/openai.yaml",
+        ".codex/skills/maid-planner/SKILL.md",
+        "docs/draft-manifest-workflow.md",
+        "maid_runner/claude/skills/maid-evolver/SKILL.md",
+        "maid_runner/claude/skills/maid-planner/SKILL.md",
+        "maid_runner/codex/skills/maid-evolver/SKILL.md",
+        "maid_runner/codex/skills/maid-evolver/agents/openai.yaml",
+        "maid_runner/codex/skills/maid-planner/SKILL.md",
+        "maid_runner/docs/draft-manifest-workflow.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_init_contract_revision_coverage_guidance.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_codex_init_guides_pre_durable_revision_and_touched_file_coverage",
+              "description": "A newly initialized Codex project receives consistent pre-durable revision and touched-file guidance in AGENTS.md, evolver and planner skills, agent metadata, and workflow document.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_claude_init_matches_contract_revision_and_coverage_guidance",
+              "description": "A newly initialized Claude project receives the same contract-revision and touched-file policy in CLAUDE.md, evolver and planner skills, and workflow document.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_instruction_payload_version_advances_for_guidance_change",
+              "description": "The distributed instruction version advances beyond the previous payload version.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/init.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "_render_draft_outcome_guidance",
+              "description": "Rendered agent guidance tells downstream agents to revise unmerged contracts and declare touched source paths with appropriate artifact and test coverage.",
+              "returns": "str"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/instruction_payload.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "INSTRUCTION_PAYLOAD_VERSION",
+              "description": "Date-stamped version advances so downstream init --check detects changed installed guidance.",
+              "type": "str"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "scripts/sync_claude_files.py",
+        ".codex/skills/maid-plan-review/SKILL.md",
+        "maid_runner/codex/manifest.json"
+      ],
+      "scope": [
+        {
+          "path": ".claude/skills/maid-evolver/SKILL.md",
+          "reason": "Explain the pre-durable in-place revision path before evolution decisions."
+        },
+        {
+          "path": ".codex/skills/maid-evolver/SKILL.md",
+          "reason": "Keep Codex evolution guidance aligned with Claude."
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-evolver/SKILL.md",
+          "reason": "Package the synchronized Codex evolution guidance."
+        },
+        {
+          "path": "maid_runner/claude/skills/maid-evolver/SKILL.md",
+          "reason": "Package the synchronized Claude evolution guidance."
+        },
+        {
+          "path": ".codex/skills/maid-evolver/agents/openai.yaml",
+          "reason": "Keep the installed Codex evolver agent prompt aligned with the skill's pre-durable revision rule."
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-evolver/agents/openai.yaml",
+          "reason": "Package the synchronized Codex evolver agent prompt."
+        },
+        {
+          "path": "docs/draft-manifest-workflow.md",
+          "reason": "Clarify pre-promotion, unmerged promoted, and durable evolution paths in the installed workflow document."
+        },
+        {
+          "path": "maid_runner/docs/draft-manifest-workflow.md",
+          "reason": "Package the synchronized workflow document."
+        },
+        {
+          "path": ".claude/skills/maid-planner/SKILL.md",
+          "reason": "Route implementation-discovered gaps in the current unmerged task to in-place plan revision."
+        },
+        {
+          "path": ".codex/skills/maid-planner/SKILL.md",
+          "reason": "Keep Codex planner guidance aligned with Claude and the installed evolver."
+        },
+        {
+          "path": "maid_runner/claude/skills/maid-planner/SKILL.md",
+          "reason": "Package the synchronized Claude planner guidance."
+        },
+        {
+          "path": "maid_runner/codex/skills/maid-planner/SKILL.md",
+          "reason": "Package the synchronized Codex planner guidance."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_init_contract_revision_coverage_guidance.py",
+      "tests/test_cross_tool_skill_parity.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_init_contract_revision_coverage_guidance.py",
+      "uv run python -m pytest -q tests/test_cross_tool_skill_parity.py"
+    ],
+    "acceptance_commands": []
+  }
+}

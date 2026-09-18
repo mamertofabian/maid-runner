@@ -1,0 +1,256 @@
+{
+  "manifest_path": "manifests/fix-bun-test-command-e230.manifest.yaml",
+  "manifest_hash": "sha256-contract:96912d23da111c15e4831f89ad520eb7af0e0ebc9cd096bbe83cb2eba116da7b",
+  "test_hashes": {
+    "tests/core/validation/test_bun_test_runner.py": "sha256-pyast:v2:e758e40ff654c18eb4c0f20f658bea27ece4d6b0566b2e8bc06f1e7b719eea17"
+  },
+  "created_at": "2026-09-15T05:20:08.243907+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:b0ea2c2c5abe8f963abb0b6714f7b1af9aece989865b509dbca8c8eefc0e1e5c",
+      "prior_test_hashes": {
+        "tests/core/validation/test_bun_test_runner.py": "sha256-pyast:v2:b1e774965018f389584bd8a934c84c6ee3690c9940f84cc58ecff59da9594f33"
+      },
+      "revised_at": "2026-09-15T05:20:09.062086+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-bun-test-command-e230.manifest.yaml -> manifests/fix-bun-test-command-e230.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:96912d23da111c15e4831f89ad520eb7af0e0ebc9cd096bbe83cb2eba116da7b",
+      "prior_test_hashes": {
+        "tests/core/validation/test_bun_test_runner.py": "sha256-pyast:v2:b1e774965018f389584bd8a934c84c6ee3690c9940f84cc58ecff59da9594f33"
+      },
+      "revised_at": "2026-09-15T05:29:39.869689+00:00",
+      "reason": "Inline E230 assertions so behavioral validation observes each negative contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:96912d23da111c15e4831f89ad520eb7af0e0ebc9cd096bbe83cb2eba116da7b",
+      "prior_test_hashes": {
+        "tests/core/validation/test_bun_test_runner.py": "sha256-pyast:v2:e758e40ff654c18eb4c0f20f658bea27ece4d6b0566b2e8bc06f1e7b719eea17"
+      },
+      "revised_at": "2026-09-15T05:35:03.613820+00:00",
+      "reason": "Capture evidence-backed Outcome after ready implementation review",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-15T05:29:41.742888+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/validation/test_bun_test_runner.py",
+        "exit_code": 1,
+        "output_tail": "        executable.write_text(\n            \"#!/bin/sh\\nprintf '%s\\\\n' \\\"$@\\\" > bun-args.txt\\n\",\n            encoding=\"utf-8\",\n        )\n        executable.chmod(0o755)\n        monkeypatch.setenv(\"PATH\", f\"{executable.parent}{os.pathsep}{os.environ['PATH']}\")\n    \n        result = run_manifest_tests(manifest_path, project_root=tmp_path)\n    \n>       assert (result.total, result.passed, result.failed) == (1, 1, 0)\nE       assert (0, 0, 0) == (1, 1, 0)\nE         \nE         At index 0 diff: 0 != 1\nE         Use -v to get more diff\n\ntests/core/validation/test_bun_test_runner.py:83: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/validation/test_bun_test_runner.py::test_command_integrity_accepts_explicit_bun_test_file\nFAILED tests/core/validation/test_bun_test_runner.py::test_run_manifest_tests_executes_explicit_bun_test_command\n2 failed, 10 passed in 0.16s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/validation/test_bun_test_runner.py:test_command_integrity_accepts_explicit_bun_test_file",
+      "tests/core/validation/test_bun_test_runner.py:test_command_integrity_accepts_explicit_bun_test_file:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_bun_test_runner.py:test_command_integrity_accepts_explicit_bun_test_file:kind=test_function",
+      "tests/core/validation/test_bun_test_runner.py:test_command_integrity_accepts_explicit_bun_test_file:returns=None",
+      "tests/core/validation/test_bun_test_runner.py:test_command_integrity_rejects_bun_option_value_test_path",
+      "tests/core/validation/test_bun_test_runner.py:test_command_integrity_rejects_bun_option_value_test_path:arg=option:type=str:default=None",
+      "tests/core/validation/test_bun_test_runner.py:test_command_integrity_rejects_bun_option_value_test_path:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_bun_test_runner.py:test_command_integrity_rejects_bun_option_value_test_path:kind=test_function",
+      "tests/core/validation/test_bun_test_runner.py:test_command_integrity_rejects_bun_option_value_test_path:returns=None",
+      "tests/core/validation/test_bun_test_runner.py:test_command_integrity_rejects_filtered_bun_test_run",
+      "tests/core/validation/test_bun_test_runner.py:test_command_integrity_rejects_filtered_bun_test_run:arg=selector:type=str:default=None",
+      "tests/core/validation/test_bun_test_runner.py:test_command_integrity_rejects_filtered_bun_test_run:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_bun_test_runner.py:test_command_integrity_rejects_filtered_bun_test_run:kind=test_function",
+      "tests/core/validation/test_bun_test_runner.py:test_command_integrity_rejects_filtered_bun_test_run:returns=None",
+      "tests/core/validation/test_bun_test_runner.py:test_command_integrity_rejects_non_executing_bun_test_mode",
+      "tests/core/validation/test_bun_test_runner.py:test_command_integrity_rejects_non_executing_bun_test_mode:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_bun_test_runner.py:test_command_integrity_rejects_non_executing_bun_test_mode:kind=test_function",
+      "tests/core/validation/test_bun_test_runner.py:test_command_integrity_rejects_non_executing_bun_test_mode:returns=None",
+      "tests/core/validation/test_bun_test_runner.py:test_command_integrity_rejects_non_test_bun_subcommand",
+      "tests/core/validation/test_bun_test_runner.py:test_command_integrity_rejects_non_test_bun_subcommand:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_bun_test_runner.py:test_command_integrity_rejects_non_test_bun_subcommand:kind=test_function",
+      "tests/core/validation/test_bun_test_runner.py:test_command_integrity_rejects_non_test_bun_subcommand:returns=None",
+      "tests/core/validation/test_bun_test_runner.py:test_command_integrity_rejects_unknown_bun_test_option",
+      "tests/core/validation/test_bun_test_runner.py:test_command_integrity_rejects_unknown_bun_test_option:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_bun_test_runner.py:test_command_integrity_rejects_unknown_bun_test_option:kind=test_function",
+      "tests/core/validation/test_bun_test_runner.py:test_command_integrity_rejects_unknown_bun_test_option:returns=None",
+      "tests/core/validation/test_bun_test_runner.py:test_run_manifest_tests_executes_explicit_bun_test_command",
+      "tests/core/validation/test_bun_test_runner.py:test_run_manifest_tests_executes_explicit_bun_test_command:arg=monkeypatch:type=MonkeyPatch:default=None",
+      "tests/core/validation/test_bun_test_runner.py:test_run_manifest_tests_executes_explicit_bun_test_command:arg=tmp_path:type=Path:default=None",
+      "tests/core/validation/test_bun_test_runner.py:test_run_manifest_tests_executes_explicit_bun_test_command:kind=test_function",
+      "tests/core/validation/test_bun_test_runner.py:test_run_manifest_tests_executes_explicit_bun_test_command:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/validation/test_bun_test_runner.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/core/_test_command_targets.py",
+        "maid_runner/core/_validation_test_artifacts.py",
+        "maid_runner/core/test_runner.py",
+        "manifests/038-13-extract-test-runner-invocation-helper.manifest.yaml",
+        "manifests/fix-deno-test-command-e230.manifest.yaml",
+        "manifests/fix-python-unittest-command-e230.manifest.yaml"
+      ],
+      "scope": [
+        "maid_runner/core/_test_runner_invocation.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/validation/test_bun_test_runner.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_accepts_explicit_bun_test_file",
+              "description": "The reported direct Bun test command covers its explicitly declared TypeScript behavioral test without E230.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_run_manifest_tests_executes_explicit_bun_test_command",
+              "description": "maid test executes the accepted Bun command unchanged and reports one passing command.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_rejects_non_test_bun_subcommand",
+              "description": "A Bun subcommand other than test does not satisfy behavioral test command integrity.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_rejects_non_executing_bun_test_mode",
+              "description": "A Bun test help invocation cannot prove that the behavioral test executed.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_rejects_filtered_bun_test_run",
+              "description": "Bun test-name, only, changed, and shard selectors cannot prove whole-file behavioral coverage.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "selector",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_rejects_bun_option_value_test_path",
+              "description": "A declared test path used only as a Bun reporter, coverage, or ignore option value cannot satisfy behavioral coverage.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "option",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_rejects_unknown_bun_test_option",
+              "description": "Unknown Bun test option syntax remains fail-closed even when its following value names the declared test file.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_test_command_targets.py",
+        "maid_runner/core/_validation_test_artifacts.py",
+        "maid_runner/core/test_runner.py",
+        "manifests/038-13-extract-test-runner-invocation-helper.manifest.yaml",
+        "manifests/fix-deno-test-command-e230.manifest.yaml",
+        "manifests/fix-python-unittest-command-e230.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_test_runner_invocation.py",
+          "reason": "Recognize exact direct Bun test invocations and scan their bounded option syntax without changing public API."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/validation/test_bun_test_runner.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/validation/test_bun_test_runner.py"
+    ],
+    "acceptance_commands": []
+  }
+}

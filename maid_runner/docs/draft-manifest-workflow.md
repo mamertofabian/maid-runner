@@ -63,20 +63,31 @@ that makes them not promotion-ready, but it is not by itself a planning defect.
 
 Downstream repos that ran `maid init` can use `maid-implement-draft` to resume
 from a child draft: harden tests, lock, promote, implement, review, and capture
-Outcome. Already-promoted contracts stay on `maid-implementer`.
+Outcome. Already-promoted contracts with no contract change stay on
+`maid-implementer`; contract changes use `maid plan revise` while still part
+of the current unmerged task, before acceptance into shared project history.
 
-Drafts may be edited freely before promotion. After promotion, do not silently
-rewrite the contract. Use the normal MAID evolution path instead. For
+Unlocked drafts may be edited before promotion. Do not silently rewrite a locked
+draft or promoted contract: use `maid plan revise` for the current unmerged
+task, and use normal MAID evolution for durable contracts accepted into shared
+project history, regardless of branch name. For
 metadata-only reference cleanup on locked active manifests, use
 `uv run maid plan revise <manifest> --reason "<text>" --preserve-red-evidence`
 so valid red evidence remains attached to the revised contract.
-If review changes behavioral tests after implementation is already present, use
+If review changes behavioral tests while implementation is still uncommitted, use
 `uv run maid plan revise <manifest> --reason "<text>" --stash-implementation`
 instead so MAID temporarily removes only declared implementation changes,
-including non-test wiring paths declared under `files.read` for contracted
-implementation plans, while the revised behavioral tests stay in place for
-fresh red evidence capture. Undeclared dirty paths still fail closed, and
-scope-only manifests still reject separate dirty `files.read` context paths.
+while the revised behavioral tests stay in place for fresh red evidence
+capture. This does not remove committed implementation; follow
+[Revision Evidence After Implementation](#revision-evidence-after-implementation)
+when implementation has already been committed. For legacy contracted plans
+that listed non-test wiring under
+`files.read`, stash-backed revision can hide those paths during recovery, but
+`files.read` does not authorize production edits. Move such paths to
+`files.scope` for narrow no-artifact wiring or `files.edit` for changed public
+artifacts before implementation continues. Undeclared dirty paths still fail
+closed. Scope-only manifests also reject separate dirty `files.read` context
+paths.
 
 Recall is advisory planning context only. It can inform selected-draft
 hardening, test focus, and implementation risks, but it does not expand the
@@ -323,19 +334,67 @@ Keep review rounds convergent and task-scoped:
 
 For revision evidence, a contract-preserving plain revise automatically
 preserves valid evidence. Use `--test-only-green` for test-only contracts. Use
-`--stash-implementation` when tests were tightened after implementation, with
-`--allow-sibling-dirty` only for an intentional multi-manifest session.
+`--stash-implementation` when tests were tightened after uncommitted
+implementation, with `--allow-sibling-dirty` only for an intentional
+multi-manifest session. For committed implementation, use the decision path below.
+
+## Revision Evidence After Implementation
+
+Contract acceptance and evidence recovery are separate decisions. A commit on
+an unfinished task branch does not by itself make its contract durable, but
+`--stash-implementation` only hides dirty implementation paths, not commits.
+Even a partly uncommitted implementation can leave the revised tests green
+after stashing if the behavior they exercise is already in `HEAD`.
+
+- For a contract-preserving revision, plain
+  `maid plan revise <manifest> --reason "<text>"` automatically preserves
+  valid evidence when MAID determines it is compatible. Use
+  `--preserve-red-evidence` for metadata-only cleanup, not changed behavioral
+  tests or commands.
+- If revised tests expose missing behavior in the current committed code,
+  run plain `maid plan revise <manifest> --reason "<text>"` before fixing it
+  to capture fresh red evidence. Confirm the failure is the intended behavior
+  failure, not an environment or dependency error.
+- If the relevant implementation is uncommitted, use
+  `maid plan revise <manifest> --reason "<text>" --stash-implementation`.
+  Confirm it captures valid red evidence and restores the implementation;
+  an unmerged branch alone does not establish those conditions.
+- If revised tests already pass against committed implementation and valid
+  evidence cannot be preserved, stop before implementation or handoff and
+  report the manifest, changed tests, current commit, and the verified
+  pre-implementation commit needed for recovery (or state that it is unknown).
+  Baseline recovery needs a separately verified procedure in an isolated
+  worktree that retains the revised tests, demonstrates the intended red
+  failure, and validates the resulting lock and restored implementation.
+  The stash command does not perform that recovery. Do not reset shared
+  history, weaken tests, hand-edit lock evidence, or use `--no-run`,
+  `--test-only-green`, or legacy-baseline adoption to bypass a changed
+  implementation contract's red requirement. A diagnostic baseline test run
+  alone is not a valid replacement plan lock.
 
 ## Evolution During Implementation
 
 Implementation will expose gaps sometimes. Handle them based on whether the
-affected contract is still a draft or already promoted:
+affected contract belongs to the current unmerged task or is durable history:
 
-- Before promotion: edit the draft and rerun behavioral validation.
-- After promotion, additive change: create a new manifest that adds the new
-  artifact or file and let chain merging combine the active contracts.
-- After promotion, breaking change: create a superseding manifest that declares
-  the complete replacement contract.
+Determine acceptance from repository policy and history, not branch spelling.
+A contract accepted into an integration branch such as `develop` or
+`release/v2.next`, a release, or another shared project baseline is durable
+even before it reaches the default branch. A local commit in the current
+unfinished task alone is not acceptance. If acceptance is unclear, clarify
+it before rewriting the contract.
+
+- Before promotion: edit an unlocked draft and rerun behavioral validation. For
+  a locked draft, use `maid plan revise` so the lock and red evidence stay valid.
+- After promotion, while the contract still belongs to the current unfinished
+  task and has not been accepted into shared project history:
+  revise the same promoted manifest with `maid plan revise`, then review the
+  revised behavioral contract and confirm its updated lock. Do not create a
+  follow-on or superseding manifest just to revise this unmerged task.
+- For a durable contract in accepted shared history, an additive change needs
+  a new manifest that adds the artifact or file; chain merging combines the active
+  contracts. A breaking change needs a superseding manifest that declares the
+  complete replacement contract.
 - If a selected draft depends on unimplemented work, stop the pass as blocked
   or add/refine the prerequisite draft rather than implementing outside scope.
 

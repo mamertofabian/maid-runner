@@ -1,0 +1,159 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Distribute branch-independent contract acceptance and committed-code evidence guidance
+type: fix
+created: '2026-09-17T22:22:52Z'
+description: |
+  Refine the accepted distributed guidance without replacing its existing
+  contracts or changing their behavioral tests. Durable contracts are based
+  on acceptance into shared project history, including integration and release
+  branches. Unfinished local commits remain revisable but cannot be hidden by
+  stash-backed revision. Explain compatible evidence preservation, fresh red
+  evidence for failing revised tests, and an explicit recovery blocker when
+  committed implementation already passes strengthened tests.
+  The implementation was initially completed under an explicit user MAID skip.
+  The user subsequently requested MAID compliance before committing. Temporarily
+  shelve only this task's uncommitted implementation, sync the baseline payload,
+  and capture regression evidence against HEAD 3183778cee9f3bfae017acefc968ad26bf74733d
+  before restoring it. This is post-hoc baseline verification, not a claim of
+  original test-first development. Existing accepted contracts remain intact.
+temptations:
+- risk: Rewrite accepted manifests or shared tests to conceal the workflow transition.
+  instead: Add this compatible follow-on contract and dedicated installed-output tests; preserve prior locks and tests.
+- risk: Present reconstructed red evidence as having preceded the initial implementation.
+  instead: Record the explicit MAID skip and subsequent baseline capture in this contract and Outcome; restore only the task changes after locking.
+- risk: Cover repository prose while downstream agent payloads remain stale.
+  instead: Exercise real Codex and Claude init output, including skill metadata and installed workflow docs; sync generated assets before red and green runs.
+files:
+  edit:
+  - path: maid_runner/instruction_payload.py
+    artifacts:
+    - kind: attribute
+      name: INSTRUCTION_PAYLOAD_VERSION
+      type: str
+      description: Payload version advances beyond the prior lifecycle guidance so downstream installs can detect the update.
+  scope:
+  - path: maid_runner/cli/commands/init.py
+    reason: Narrow rendered policy text change, tested through the public init CLI; no public API changes.
+  - path: .claude/skills/maid-evolver/SKILL.md
+    reason: Source Claude lifecycle and evidence routing guidance.
+  - path: .claude/skills/maid-planner/SKILL.md
+    reason: Source Claude planner lifecycle and evidence routing guidance.
+  - path: .codex/skills/maid-evolver/SKILL.md
+    reason: Source Codex lifecycle and evidence routing guidance.
+  - path: .codex/skills/maid-planner/SKILL.md
+    reason: Source Codex planner lifecycle and evidence routing guidance.
+  - path: .codex/skills/maid-evolver/agents/openai.yaml
+    reason: Codex evolver invocation metadata uses the same policy.
+  - path: docs/draft-manifest-workflow.md
+    reason: Shared evidence decision path and acceptance criteria.
+  - path: maid_runner/claude/skills/maid-evolver/SKILL.md
+    reason: Generated Claude evolver payload.
+  - path: maid_runner/claude/skills/maid-planner/SKILL.md
+    reason: Generated Claude planner payload.
+  - path: maid_runner/codex/skills/maid-evolver/SKILL.md
+    reason: Packaged Codex evolver payload.
+  - path: maid_runner/codex/skills/maid-planner/SKILL.md
+    reason: Packaged Codex planner payload.
+  - path: maid_runner/codex/skills/maid-evolver/agents/openai.yaml
+    reason: Packaged Codex evolver invocation metadata.
+  - path: maid_runner/docs/draft-manifest-workflow.md
+    reason: Packaged shared workflow document.
+  create:
+  - path: tests/cli/test_init_portable_contract_lifecycle.py
+    artifacts:
+    - kind: test_function
+      name: test_installed_policy_uses_shared_acceptance_instead_of_branch_name
+      args: []
+      returns: None
+      description: Both installed agents distinguish accepted shared history from a local task commit without assuming a default branch name.
+    - kind: test_function
+      name: test_installed_policy_routes_committed_implementation_evidence
+      args: []
+      returns: None
+      description: Both installed agents receive the committed-code evidence decision path and its baseline-recovery limits.
+    - kind: test_function
+      name: test_codex_evolver_prompt_retains_portable_lifecycle_decisions
+      args: []
+      returns: None
+      description: Installed Codex metadata agrees with the lifecycle and evidence policy.
+    - kind: test_function
+      name: test_portable_lifecycle_payload_advances_the_prior_instruction_version
+      args: []
+      returns: None
+      description: Instruction payload version advances beyond 2026.09.14.1.
+  read:
+  - scripts/sync_claude_files.py
+  - tests/cli/test_init_contract_revision_coverage_guidance.py
+  - tests/test_cross_tool_skill_parity.py
+validate:
+- uv run python -m pytest -q tests/cli/test_init_portable_contract_lifecycle.py
+- uv run python -m pytest -q tests/cli/test_init_contract_revision_coverage_guidance.py tests/test_cross_tool_skill_parity.py
+outcome:
+  status: completed
+  completed_at: '2026-09-17T22:25:53Z'
+  summary: >-
+    Added a locked follow-on contract and six dedicated installed-output
+    regression cases for portable acceptance and committed-code evidence
+    guidance. Restored the previously implemented changes under the promoted
+    contract without modifying earlier manifests, plan locks, or tests.
+    Repository validation, all declared test commands, and assessed deep
+    verification passed; independent implementation review found no findings.
+  rationale: >-
+    The user explicitly skipped MAID for the original edits, then requested
+    compliance before committing. New tests first passed on the implementation
+    and then failed in all six cases against the real HEAD baseline with this
+    task's changes shelved and generated payloads synchronized. Locking and
+    promotion preceded restoration. This records post-hoc baseline evidence,
+    not original test-first development. A module-attribute declaration was
+    corrected through stash-backed plan revision, which recaptured evidence
+    and restored the implementation. No legacy-baseline or no-run bypass was used.
+  lessons:
+  - lesson_type: guidance-contract
+    summary: >-
+      Preserve accepted instruction contracts and their locked tests when
+      extending distributed policy. Dedicated real-init output tests cover
+      both agent payloads and prevent shared-test hash churn.
+    tags: [init-payload, contract-revision]
+    paths:
+    - tests/cli/test_init_portable_contract_lifecycle.py
+  - lesson_type: validation
+    summary: >-
+      When the user requests MAID after explicitly skipped implementation,
+      disclose the chronology and verify regressions against the actual
+      baseline. A reconstructed failure must not be represented as original
+      pre-implementation evidence.
+    tags: [plan-lock, red-phase]
+    paths:
+    - manifests/portable-contract-lifecycle-guidance.manifest.yaml
+  review_notes:
+  - source: independent-maid-implementation-review
+    severity: info
+    summary: >-
+      Reviewer review_maid_lifecycle_contract returned Ready to merge with no
+      blocking or advisory findings after inspecting the full baseline delta,
+      manifest, lock, tests, and CLI evidence behavior. Reviewer independently
+      ran all 15 declared tests and implementation validation successfully.
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/cli/test_init_portable_contract_lifecycle.py]
+    status: failed
+    summary: Six expected failures against baseline 3183778cee9f3bfae017acefc968ad26bf74733d with task implementation shelved; missing portable policy, committed-code guidance, metadata, and version bump.
+  - command: [uv, run, maid, validate, manifests/portable-contract-lifecycle-guidance.manifest.yaml, --mode, implementation, --packet]
+    status: passed
+    summary: Corrected and revised contract passed implementation validation.
+  - command: [uv, run, maid, test, --manifest, manifests/portable-contract-lifecycle-guidance.manifest.yaml]
+    status: passed
+    summary: Both declared commands passed, covering six new and nine existing tests.
+  - command: [uv, run, maid, validate]
+    status: passed
+    summary: '675 manifests: 310 passed, 0 failed, 365 superseded.'
+  - command: [uv, run, maid, test]
+    status: passed
+    summary: All 301 declared commands passed; none failed.
+  - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, 3183778cee9f3bfae017acefc968ad26bf74733d]
+    status: passed
+    summary: All 11 gates passed, including artifact coverage, knockout, changed scope, and plan-lock/red-evidence checks. Only the existing E307 missing-validator warning remained.
