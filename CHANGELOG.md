@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.27.6] - 2026-09-18
 
 ### Changed
 - **Portable contract lifecycle guidance** — Teach distributed planner and evolver skills to distinguish current unmerged work from contracts accepted into shared history, revise the current task's contract in place, and choose evidence recovery based on committed versus uncommitted implementation state without assuming repository-specific branch names or commands.
