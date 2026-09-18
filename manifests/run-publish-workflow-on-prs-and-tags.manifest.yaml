@@ -1,0 +1,115 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Run the Publish Python workflow for pull requests and version tags without ordinary branch-push runs"
+type: fix
+created: "2026-09-18T01:33:00Z"
+supersedes:
+  - fix-publish-matrix-diagnostics
+description: |
+  Replace the release-branch diagnostic trigger with pull-request validation
+  and retain v* tag execution for the build, trusted PyPI publication, signing,
+  and GitHub Release path. Ordinary pushes to main, dev, release/v2.next, and
+  other release branches must not start the workflow. Preserve the existing
+  non-fail-fast Python matrix, setup-python interpreter binding, bounded failure
+  diagnostics, and all publication safeguards from the superseded contract.
+temptations:
+  - risk: "Do not remove the v* tag trigger while stopping release-branch runs."
+    instead: "Keep push.tags as the only push trigger and test its exact v* value."
+  - risk: "Do not move PyPI publication onto pull_request events."
+    instead: "Retain the existing refs/tags/v job condition so only version tags can publish."
+  - risk: "Do not weaken the matrix or diagnostic behavior while changing events."
+    instead: "Keep the Python versions, fail-fast setting, interpreter binding, and bounded failure output unchanged."
+files:
+  edit:
+    - path: .github/workflows/publish.yml
+      artifacts:
+        - kind: attribute
+          name: _publish_release_branch_python_diagnostics
+          of: github_actions
+          type: workflow command wiring
+          description: "Pull requests and v* tags run the non-fail-fast Python matrix with uv bound to setup-python; only v* tag pushes can reach publication."
+    - path: maid_runner/cli/commands/_format.py
+      artifacts:
+        - kind: function
+          name: _append_test_command_output
+          args:
+            - name: lines
+              type: list[str]
+            - name: result
+              type: TestRunResult
+            - name: verbose
+              type: bool
+          returns: None
+          description: "Appends full verbose output or bounded failure-only stdout and stderr tails to normal MAID test output."
+    - path: tests/ci/test_publish_workflow.py
+      artifacts:
+        - kind: function
+          name: _workflow_triggers
+          args:
+            - name: workflow_path
+              type: Path
+          returns: dict[str, object]
+          description: "Reads GitHub workflow triggers across PyYAML on-key parsing behavior."
+        - kind: test_function
+          name: test_publish_workflow_exercises_release_branches_with_matrix_python
+          args: []
+          returns: None
+          description: "Pull requests and v* tags retain every matrix lane, disable fail-fast, and sync with the selected setup-python interpreter while ordinary branch pushes are absent."
+    - path: tests/cli/test_failed_test_output_json.py
+      artifacts:
+        - kind: test_function
+          name: test_failed_text_result_includes_only_bounded_output_tails
+          args: []
+          returns: None
+          description: "Normal text output exposes bounded failed stdout and stderr tails while successful output remains private."
+  read:
+    - .python-version
+    - .github/workflows/maid-test.yml
+    - manifests/fix-publish-python-311-maid-tests.manifest.yaml
+    - manifests/include-failed-test-output-tails.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/ci/test_publish_workflow.py tests/cli/test_failed_test_output_json.py tests/cli/test_format.py
+  - uv run maid validate manifests/run-publish-workflow-on-prs-and-tags.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/run-publish-workflow-on-prs-and-tags.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  summary: "Publish Python now validates pull requests and publishes from v* tags without running on ordinary branch pushes."
+  rationale: "The exact trigger map contains pull_request and push.tags only, while the PyPI job retains its refs/tags/v guard; focused tests, full manifest validation, deep verification, and independent review confirmed the release boundary."
+  lessons:
+    - lesson_type: ci-cd
+      summary: "Separate validation events from publication authority: pull requests may run the matrix, while an exact tag-ref condition keeps trusted publishing unreachable from PRs and branch pushes."
+      tags:
+        - github-actions
+        - release
+        - trusted-publishing
+      paths:
+        - .github/workflows/publish.yml
+        - tests/ci/test_publish_workflow.py
+  review_notes:
+    - source: implementation-review-subagent
+      severity: info
+      summary: "No blocking findings; reviewer verdict was ready."
+    - source: implementation-review-subagent
+      severity: info
+      summary: "Internal marker and test names still mention release branches, but current assertions and manifest descriptions enforce pull-request and tag-only behavior; renaming is cosmetic future evolution."
+    - source: implementation-review-subagent
+      severity: info
+      summary: "Residual risk is limited to PyYAML trigger inspection rather than actionlint or live dispatch; tag-only publication is also protected transitively through job dependencies."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/ci/test_publish_workflow.py, tests/cli/test_failed_test_output_json.py, tests/cli/test_format.py]
+      status: passed
+      summary: "All 54 focused publish workflow and bounded-diagnostic tests passed."
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: "All 310 active manifests passed; 367 superseded manifests were skipped."
+    - command: [uv, run, maid, test, --manifest, manifests/run-publish-workflow-on-prs-and-tags.manifest.yaml]
+      status: passed
+      summary: "All three commands declared by the active contract passed."
+    - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, b5c74cff]
+      status: passed
+      summary: "All 11 deep verification stages passed, including artifact coverage, knockout, plan locks, scope, and tests."
+  completed_at: "2026-09-18T09:35:59+08:00"

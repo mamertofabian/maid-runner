@@ -1,0 +1,198 @@
+{
+  "manifest_path": "manifests/run-publish-workflow-on-prs-and-tags.manifest.yaml",
+  "manifest_hash": "sha256-contract:db74558b6578945587679a040c11ad9a110a4b10ff1b0fc5dc555177be992bf7",
+  "test_hashes": {
+    "tests/ci/test_publish_workflow.py": "sha256-pyast:v2:799ef0c4341901b4622b4b8d0931c6ee70ec6aa3e6949cf29d060b56b9284dd5",
+    "tests/cli/test_failed_test_output_json.py": "sha256-pyast:v2:3a4d9cc67d4144bb479b361c5b082d12dd90f869ac3243f2a1f2c101732f9578",
+    "tests/cli/test_format.py": "sha256-pyast:v2:b3354c98ff05641cd214041fc6bc71a7ab87e9454134445747d275e0e2f0177b"
+  },
+  "created_at": "2026-09-18T01:32:56.065305+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:1e11c89c0fb45188a31844d898e0fa6e29d39bbc792d733f50316cc45bec6ddc",
+      "prior_test_hashes": {
+        "tests/ci/test_publish_workflow.py": "sha256-pyast:v2:799ef0c4341901b4622b4b8d0931c6ee70ec6aa3e6949cf29d060b56b9284dd5",
+        "tests/cli/test_failed_test_output_json.py": "sha256-pyast:v2:3a4d9cc67d4144bb479b361c5b082d12dd90f869ac3243f2a1f2c101732f9578",
+        "tests/cli/test_format.py": "sha256-pyast:v2:b3354c98ff05641cd214041fc6bc71a7ab87e9454134445747d275e0e2f0177b"
+      },
+      "revised_at": "2026-09-18T01:33:00.997118+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/run-publish-workflow-on-prs-and-tags.manifest.yaml -> manifests/run-publish-workflow-on-prs-and-tags.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/run-publish-workflow-on-prs-and-tags.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/run-publish-workflow-on-prs-and-tags.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/run-publish-workflow-on-prs-and-tags.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/run-publish-workflow-on-prs-and-tags.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-18T01:33:05.753202+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/ci/test_publish_workflow.py tests/cli/test_failed_test_output_json.py tests/cli/test_format.py",
+        "exit_code": 1,
+        "output_tail": "..F...................................................                   [100%]\n=================================== FAILURES ===================================\n_____ test_publish_workflow_exercises_release_branches_with_matrix_python ______\n\n    def test_publish_workflow_exercises_release_branches_with_matrix_python() -> None:\n        workflow_path = Path(\".github/workflows/publish.yml\")\n        workflow = yaml.safe_load(workflow_path.read_text())\n        test_job = workflow[\"jobs\"][\"test\"]\n        publish_job = workflow[\"jobs\"][\"publish-to-pypi\"]\n        install_step = _named_step_for_job(workflow_path, \"test\", \"Install dependencies\")\n        triggers = _workflow_triggers(workflow_path)\n    \n>       assert \"pull_request\" in triggers\nE       AssertionError: assert 'pull_request' in {'push': {'branches': ['dev', 'main', 'release/**'], 'tags': ['v*']}}\n\ntests/ci/test_publish_workflow.py:69: AssertionError\n=========================== short test summary info ============================\nFAILED tests/ci/test_publish_workflow.py::test_publish_workflow_exercises_release_branches_with_matrix_python\n1 failed, 53 passed in 0.19s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/run-publish-workflow-on-prs-and-tags.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/run-publish-workflow-on-prs-and-tags.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      ".github/workflows/publish.yml:attribute:github_actions._publish_release_branch_python_diagnostics",
+      ".github/workflows/publish.yml:attribute:github_actions._publish_release_branch_python_diagnostics:kind=attribute",
+      ".github/workflows/publish.yml:attribute:github_actions._publish_release_branch_python_diagnostics:of=github_actions",
+      ".github/workflows/publish.yml:attribute:github_actions._publish_release_branch_python_diagnostics:type=workflow command wiring",
+      "maid_runner/cli/commands/_format.py:function:_append_test_command_output",
+      "maid_runner/cli/commands/_format.py:function:_append_test_command_output:arg=lines:type=list[str]:default=None",
+      "maid_runner/cli/commands/_format.py:function:_append_test_command_output:arg=result:type=TestRunResult:default=None",
+      "maid_runner/cli/commands/_format.py:function:_append_test_command_output:arg=verbose:type=bool:default=None",
+      "maid_runner/cli/commands/_format.py:function:_append_test_command_output:kind=function",
+      "maid_runner/cli/commands/_format.py:function:_append_test_command_output:returns=None",
+      "tests/ci/test_publish_workflow.py:function:_workflow_triggers",
+      "tests/ci/test_publish_workflow.py:function:_workflow_triggers:arg=workflow_path:type=Path:default=None",
+      "tests/ci/test_publish_workflow.py:function:_workflow_triggers:kind=function",
+      "tests/ci/test_publish_workflow.py:function:_workflow_triggers:returns=dict[str, object]",
+      "tests/ci/test_publish_workflow.py:test_publish_workflow_exercises_release_branches_with_matrix_python",
+      "tests/ci/test_publish_workflow.py:test_publish_workflow_exercises_release_branches_with_matrix_python:kind=test_function",
+      "tests/ci/test_publish_workflow.py:test_publish_workflow_exercises_release_branches_with_matrix_python:returns=None",
+      "tests/cli/test_failed_test_output_json.py:test_failed_text_result_includes_only_bounded_output_tails",
+      "tests/cli/test_failed_test_output_json.py:test_failed_text_result_includes_only_bounded_output_tails:kind=test_function",
+      "tests/cli/test_failed_test_output_json.py:test_failed_text_result_includes_only_bounded_output_tails:returns=None"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        ".github/workflows/publish.yml",
+        "maid_runner/cli/commands/_format.py",
+        "tests/ci/test_publish_workflow.py",
+        "tests/cli/test_failed_test_output_json.py"
+      ],
+      "read": [
+        ".github/workflows/maid-test.yml",
+        ".python-version",
+        "manifests/fix-publish-python-311-maid-tests.manifest.yaml",
+        "manifests/include-failed-test-output-tails.manifest.yaml"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": ".github/workflows/publish.yml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_publish_release_branch_python_diagnostics",
+              "description": "Pull requests and v* tags run the non-fail-fast Python matrix with uv bound to setup-python; only v* tag pushes can reach publication.",
+              "of": "github_actions",
+              "type": "workflow command wiring"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/_format.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "_append_test_command_output",
+              "description": "Appends full verbose output or bounded failure-only stdout and stderr tails to normal MAID test output.",
+              "args": [
+                {
+                  "name": "lines",
+                  "type": "list[str]"
+                },
+                {
+                  "name": "result",
+                  "type": "TestRunResult"
+                },
+                {
+                  "name": "verbose",
+                  "type": "bool"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/ci/test_publish_workflow.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "_workflow_triggers",
+              "description": "Reads GitHub workflow triggers across PyYAML on-key parsing behavior.",
+              "args": [
+                {
+                  "name": "workflow_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "dict[str, object]"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_publish_workflow_exercises_release_branches_with_matrix_python",
+              "description": "Pull requests and v* tags retain every matrix lane, disable fail-fast, and sync with the selected setup-python interpreter while ordinary branch pushes are absent.",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_failed_test_output_json.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_failed_text_result_includes_only_bounded_output_tails",
+              "description": "Normal text output exposes bounded failed stdout and stderr tails while successful output remains private.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        ".python-version",
+        ".github/workflows/maid-test.yml",
+        "manifests/fix-publish-python-311-maid-tests.manifest.yaml",
+        "manifests/include-failed-test-output-tails.manifest.yaml"
+      ]
+    },
+    "test_files": [
+      "tests/ci/test_publish_workflow.py",
+      "tests/cli/test_failed_test_output_json.py",
+      "tests/cli/test_format.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/ci/test_publish_workflow.py tests/cli/test_failed_test_output_json.py tests/cli/test_format.py",
+      "uv run maid validate manifests/run-publish-workflow-on-prs-and-tags.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/run-publish-workflow-on-prs-and-tags.manifest.yaml --mode schema --quiet"
+    ],
+    "acceptance_commands": []
+  }
+}
