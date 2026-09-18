@@ -1,0 +1,334 @@
+{
+  "manifest_path": "manifests/run-maid-gates-on-pull-requests-only.manifest.yaml",
+  "manifest_hash": "sha256-contract:cd687ee8e5fae5892d925ffd5b30e7e312912cadada468c2594a3197898905f5",
+  "test_hashes": {
+    "tests/ci/test_maid_workflow_pr_only_triggers.py": "sha256-pyast:v2:108b2c75b4e9a4d96460c9f93fb9cd6096360cf44ab4b4cf5002ee2e2874ab64",
+    "tests/ci/test_github_actions_templates.py": "sha256-pyast:v2:2e64c1d99aa26815c46901baa98d611cd4acb8698814a141d6d84ea5c9af1bab"
+  },
+  "created_at": "2026-09-18T00:59:01.069314+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:66a02a7e13cf447b46d326dc45b45caea60aa0f435e6f693362df243c650bebc",
+      "prior_test_hashes": {
+        "tests/ci/test_github_actions_templates.py": "sha256-pyast:v2:373f23d8bad8cbe5837d49bb80bbf8a0b68a73a560483679a1c00ac6150586dd"
+      },
+      "revised_at": "2026-09-18T00:59:09.136596+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/run-maid-gates-on-pull-requests-only.manifest.yaml -> manifests/run-maid-gates-on-pull-requests-only.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/run-maid-gates-on-pull-requests-only.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/run-maid-gates-on-pull-requests-only.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/run-maid-gates-on-pull-requests-only.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/run-maid-gates-on-pull-requests-only.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:32b7920b5f70401e1ffae02a16ea58718b88afc101fe98afe0c4ca57e8c98ac7",
+      "prior_test_hashes": {
+        "tests/ci/test_github_actions_templates.py": "sha256-pyast:v2:373f23d8bad8cbe5837d49bb80bbf8a0b68a73a560483679a1c00ac6150586dd"
+      },
+      "revised_at": "2026-09-18T01:07:30.819744+00:00",
+      "reason": "isolate PR-only trigger assertions from shared behavioral tests pinned by older locks",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/ci/test_maid_workflow_pr_only_triggers.py:test_maid_test_runs_on_pull_requests_without_push_trigger",
+          "tests/ci/test_maid_workflow_pr_only_triggers.py:test_maid_test_runs_on_pull_requests_without_push_trigger:kind=test_function",
+          "tests/ci/test_maid_workflow_pr_only_triggers.py:test_maid_validation_runs_on_pull_requests_without_push_trigger",
+          "tests/ci/test_maid_workflow_pr_only_triggers.py:test_maid_validation_runs_on_pull_requests_without_push_trigger:kind=test_function",
+          "tests/ci/test_maid_workflow_pr_only_triggers.py:test_setup_guide_distinguishes_repository_and_downstream_triggers",
+          "tests/ci/test_maid_workflow_pr_only_triggers.py:test_setup_guide_distinguishes_repository_and_downstream_triggers:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "create:tests/ci/test_maid_workflow_pr_only_triggers.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/ci/test_github_actions_templates.py tests/ci/test_maid_workflow_pr_only_triggers.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/ci/test_github_actions_templates.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:cd687ee8e5fae5892d925ffd5b30e7e312912cadada468c2594a3197898905f5",
+      "prior_test_hashes": {
+        "tests/ci/test_maid_workflow_pr_only_triggers.py": "sha256-pyast:v2:108b2c75b4e9a4d96460c9f93fb9cd6096360cf44ab4b4cf5002ee2e2874ab64",
+        "tests/ci/test_github_actions_templates.py": "sha256-pyast:v2:35e6dbf0c1ccf224f0697e13e063ddd67bb0daefaf5fcb9eb58497701cc9143d"
+      },
+      "revised_at": "2026-09-18T01:08:38.275709+00:00",
+      "reason": "remove obsolete shared assertion while keeping PR-only behavior in dedicated tests",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-18T01:08:42.704281+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/ci/test_github_actions_templates.py tests/ci/test_maid_workflow_pr_only_triggers.py",
+        "exit_code": 1,
+        "output_tail": "        assert \"pull_request\" in triggers\n>       assert \"push\" not in triggers\nE       AssertionError: assert 'push' not in {'pull_request': None, 'push': {'branches': ['main', 'dev', 'dev/**', 'release/**']}, 'workflow_call': {'inputs': {'co...on': 'Optional pytest-xdist workers override for manifest test commands.', 'required': False, 'type': 'number'}, ...}}}\n\ntests/ci/test_maid_workflow_pr_only_triggers.py:36: AssertionError\n______ test_setup_guide_distinguishes_repository_and_downstream_triggers _______\n\n    def test_setup_guide_distinguishes_repository_and_downstream_triggers() -> None:\n        guide = SETUP_DOC.read_text(encoding=\"utf-8\")\n    \n        assert \"_github_actions_setup_guide\" in guide\n>       assert \"run directly in this repository on `pull_request` only\" in guide\nE       AssertionError: assert 'run directly in this repository on `pull_request` only' in '# GitHub Actions\\n\\n<!-- _github_actions_setup_guide -->\\n\\nMAID Runner ships reusable GitHub Actions workflow templa....\\n\\n`maid-test.yml` also accepts:\\n\\n- `coverage-command`: Follow-up coverage command run after `maid test --json`.\\n'\n\ntests/ci/test_maid_workflow_pr_only_triggers.py:43: AssertionError\n=========================== short test summary info ============================\nFAILED tests/ci/test_maid_workflow_pr_only_triggers.py::test_maid_validation_runs_on_pull_requests_without_push_trigger\nFAILED tests/ci/test_maid_workflow_pr_only_triggers.py::test_maid_test_runs_on_pull_requests_without_push_trigger\nFAILED tests/ci/test_maid_workflow_pr_only_triggers.py::test_setup_guide_distinguishes_repository_and_downstream_triggers\n3 failed, 8 passed in 0.09s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/run-maid-gates-on-pull-requests-only.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/run-maid-gates-on-pull-requests-only.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/plan-locks/065-03-wire-sarif-into-github-actions-templates.lock.json",
+      ".maid/plan-locks/bound-github-pytest-workers.lock.json",
+      ".maid/plan-locks/snapshot-cli-commands--main-2.lock.json",
+      "manifests/065-03-wire-sarif-into-github-actions-templates.manifest.yaml"
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      ".github/workflows/maid-test.yml:attribute:github_actions._maid_test_reusable_workflow",
+      ".github/workflows/maid-test.yml:attribute:github_actions._maid_test_reusable_workflow:kind=attribute",
+      ".github/workflows/maid-test.yml:attribute:github_actions._maid_test_reusable_workflow:of=github_actions",
+      ".github/workflows/maid-test.yml:attribute:github_actions._maid_test_reusable_workflow:type=workflow template",
+      ".github/workflows/maid-validation.yml:attribute:github_actions._maid_validation_reusable_workflow",
+      ".github/workflows/maid-validation.yml:attribute:github_actions._maid_validation_reusable_workflow:kind=attribute",
+      ".github/workflows/maid-validation.yml:attribute:github_actions._maid_validation_reusable_workflow:of=github_actions",
+      ".github/workflows/maid-validation.yml:attribute:github_actions._maid_validation_reusable_workflow:type=workflow template",
+      "docs/github-actions.md:attribute:documentation._github_actions_setup_guide",
+      "docs/github-actions.md:attribute:documentation._github_actions_setup_guide:kind=attribute",
+      "docs/github-actions.md:attribute:documentation._github_actions_setup_guide:of=documentation",
+      "docs/github-actions.md:attribute:documentation._github_actions_setup_guide:type=markdown document",
+      "tests/ci/test_github_actions_templates.py:test_github_actions_docs_show_downstream_setup_and_reporting",
+      "tests/ci/test_github_actions_templates.py:test_github_actions_docs_show_downstream_setup_and_reporting:kind=test_function",
+      "tests/ci/test_github_actions_templates.py:test_maid_test_workflow_runs_contract_tests_and_coverage",
+      "tests/ci/test_github_actions_templates.py:test_maid_test_workflow_runs_contract_tests_and_coverage:kind=test_function",
+      "tests/ci/test_github_actions_templates.py:test_maid_validation_workflow_is_reusable_and_event_driven",
+      "tests/ci/test_github_actions_templates.py:test_maid_validation_workflow_is_reusable_and_event_driven:kind=test_function",
+      "tests/ci/test_github_actions_templates.py:test_maid_validation_workflow_uses_verify_with_explicit_pr_base_ref",
+      "tests/ci/test_github_actions_templates.py:test_maid_validation_workflow_uses_verify_with_explicit_pr_base_ref:kind=test_function",
+      "tests/ci/test_maid_workflow_pr_only_triggers.py:test_maid_test_runs_on_pull_requests_without_push_trigger",
+      "tests/ci/test_maid_workflow_pr_only_triggers.py:test_maid_test_runs_on_pull_requests_without_push_trigger:kind=test_function",
+      "tests/ci/test_maid_workflow_pr_only_triggers.py:test_maid_validation_runs_on_pull_requests_without_push_trigger",
+      "tests/ci/test_maid_workflow_pr_only_triggers.py:test_maid_validation_runs_on_pull_requests_without_push_trigger:kind=test_function",
+      "tests/ci/test_maid_workflow_pr_only_triggers.py:test_setup_guide_distinguishes_repository_and_downstream_triggers",
+      "tests/ci/test_maid_workflow_pr_only_triggers.py:test_setup_guide_distinguishes_repository_and_downstream_triggers:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/ci/test_maid_workflow_pr_only_triggers.py"
+      ],
+      "edit": [
+        ".github/workflows/maid-test.yml",
+        ".github/workflows/maid-validation.yml",
+        "docs/github-actions.md",
+        "tests/ci/test_github_actions_templates.py"
+      ],
+      "read": [],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/ci/test_maid_workflow_pr_only_triggers.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_maid_validation_runs_on_pull_requests_without_push_trigger",
+              "source_scenario": "The repository MAID Validation workflow trigger map is inspected.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "yaml.safe_load"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The workflow preserves workflow_call and pull_request while omitting push."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_maid_test_runs_on_pull_requests_without_push_trigger",
+              "source_scenario": "The repository MAID Test workflow trigger map is inspected.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "yaml.safe_load"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The workflow preserves workflow_call and pull_request while omitting push."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_setup_guide_distinguishes_repository_and_downstream_triggers",
+              "source_scenario": "The reusable workflow setup guide is inspected after repository triggers change.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The guide distinguishes repository pull-request-only runs from downstream pull-request or push callers."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": ".github/workflows/maid-validation.yml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_maid_validation_reusable_workflow",
+              "description": "Reusable workflow_call and pull-request MAID validation workflow without automatic push runs.",
+              "of": "github_actions",
+              "type": "workflow template"
+            }
+          ]
+        },
+        {
+          "path": ".github/workflows/maid-test.yml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_maid_test_reusable_workflow",
+              "description": "Reusable workflow_call and pull-request MAID test and coverage workflow without automatic push runs.",
+              "of": "github_actions",
+              "type": "workflow template"
+            }
+          ]
+        },
+        {
+          "path": "docs/github-actions.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_github_actions_setup_guide",
+              "description": "Setup guide for downstream reusable workflow callers, PR gates, JSON artifacts, and coverage customization.",
+              "of": "documentation",
+              "type": "markdown document"
+            }
+          ]
+        },
+        {
+          "path": "tests/ci/test_github_actions_templates.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_maid_validation_workflow_is_reusable_and_event_driven",
+              "source_scenario": "The MAID validation workflow template is read as GitHub Actions YAML.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "yaml.safe_load"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The workflow exposes workflow_call and pull_request triggers without a push trigger, installs dependencies, and uploads a JSON validation report."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_maid_validation_workflow_uses_verify_with_explicit_pr_base_ref",
+              "source_scenario": "The validation job shell steps are inspected.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Pull request validation fetches the base branch and runs maid verify --base-ref with --json while reusable callers may provide an explicit base ref."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_maid_test_workflow_runs_contract_tests_and_coverage",
+              "source_scenario": "The reusable MAID test workflow is read as GitHub Actions YAML.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "yaml.safe_load"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The workflow exposes workflow_call and pull_request without push, runs maid test --json, runs coverage, and uploads both reports."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_github_actions_docs_show_downstream_setup_and_reporting",
+              "source_scenario": "The GitHub Actions setup guide is read as markdown.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The docs retain downstream setup, reporting, pull-request, and push customization guidance."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "test_files": [
+      "tests/ci/test_github_actions_templates.py",
+      "tests/ci/test_maid_workflow_pr_only_triggers.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/ci/test_github_actions_templates.py tests/ci/test_maid_workflow_pr_only_triggers.py",
+      "uv run maid validate manifests/run-maid-gates-on-pull-requests-only.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/run-maid-gates-on-pull-requests-only.manifest.yaml --mode schema --quiet"
+    ],
+    "acceptance_commands": []
+  }
+}

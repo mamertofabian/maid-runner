@@ -33,12 +33,6 @@ on:
         type: string
         default: "uv run python -m pytest tests/ --cov --cov-report=xml"
   pull_request:
-  push:
-    branches:
-      - main
-      - dev
-      - "dev/**"
-      - "release/**"
 
 jobs:
   maid-test:

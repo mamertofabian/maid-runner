@@ -1,0 +1,188 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Run the repository MAID Validation and MAID Test gates only for pull requests"
+type: fix
+created: "2026-09-18T00:59:09Z"
+supersedes:
+  - 032-issue-github-actions-workflow-templates
+description: |
+  Preserve both workflows as reusable workflow_call entry points and keep their
+  pull_request gates, but remove automatic push triggers so pushes to main,
+  release/v2.next, and other matching branches do not duplicate the PR checks.
+  Restate the original reusable-workflow contract because this intentionally
+  replaces its push-and-PR trigger behavior.
+temptations:
+  - risk: "Do not disable workflow_call while removing repository push runs."
+    instead: "Remove only the push event blocks and assert that workflow_call and pull_request remain present."
+  - risk: "Do not add branch-specific conditions inside jobs to hide unwanted runs."
+    instead: "Express the intended policy directly in each workflow's top-level event triggers."
+  - risk: "Do not change publish.yml or other workflows that still need tag or branch pushes."
+    instead: "Limit implementation scope to the MAID Validation and MAID Test workflow trigger blocks."
+files:
+  edit:
+    - path: .github/workflows/maid-validation.yml
+      artifacts:
+        - kind: attribute
+          name: _maid_validation_reusable_workflow
+          of: github_actions
+          type: workflow template
+          description: "Reusable workflow_call and pull-request MAID validation workflow without automatic push runs."
+    - path: .github/workflows/maid-test.yml
+      artifacts:
+        - kind: attribute
+          name: _maid_test_reusable_workflow
+          of: github_actions
+          type: workflow template
+          description: "Reusable workflow_call and pull-request MAID test and coverage workflow without automatic push runs."
+    - path: docs/github-actions.md
+      artifacts:
+        - kind: attribute
+          name: _github_actions_setup_guide
+          of: documentation
+          type: markdown document
+          description: "Setup guide for downstream reusable workflow callers, PR gates, JSON artifacts, and coverage customization."
+    - path: tests/ci/test_github_actions_templates.py
+      artifacts:
+        - kind: test_function
+          name: test_maid_validation_workflow_is_reusable_and_event_driven
+          source_scenario: "The MAID validation workflow template is read as GitHub Actions YAML."
+          actions:
+            - type: api_call
+              subject:
+                function: yaml.safe_load
+          expected:
+            behavior: "The workflow exposes workflow_call and pull_request triggers without a push trigger, installs dependencies, and uploads a JSON validation report."
+        - kind: test_function
+          name: test_maid_validation_workflow_uses_verify_with_explicit_pr_base_ref
+          source_scenario: "The validation job shell steps are inspected."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "Pull request validation fetches the base branch and runs maid verify --base-ref with --json while reusable callers may provide an explicit base ref."
+        - kind: test_function
+          name: test_maid_test_workflow_runs_contract_tests_and_coverage
+          source_scenario: "The reusable MAID test workflow is read as GitHub Actions YAML."
+          actions:
+            - type: api_call
+              subject:
+                function: yaml.safe_load
+          expected:
+            behavior: "The workflow exposes workflow_call and pull_request without push, runs maid test --json, runs coverage, and uploads both reports."
+        - kind: test_function
+          name: test_github_actions_docs_show_downstream_setup_and_reporting
+          source_scenario: "The GitHub Actions setup guide is read as markdown."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The docs retain downstream setup, reporting, pull-request, and push customization guidance."
+  create:
+    - path: tests/ci/test_maid_workflow_pr_only_triggers.py
+      artifacts:
+        - kind: test_function
+          name: test_maid_validation_runs_on_pull_requests_without_push_trigger
+          source_scenario: "The repository MAID Validation workflow trigger map is inspected."
+          actions:
+            - type: api_call
+              subject:
+                function: yaml.safe_load
+          expected:
+            behavior: "The workflow preserves workflow_call and pull_request while omitting push."
+        - kind: test_function
+          name: test_maid_test_runs_on_pull_requests_without_push_trigger
+          source_scenario: "The repository MAID Test workflow trigger map is inspected."
+          actions:
+            - type: api_call
+              subject:
+                function: yaml.safe_load
+          expected:
+            behavior: "The workflow preserves workflow_call and pull_request while omitting push."
+        - kind: test_function
+          name: test_setup_guide_distinguishes_repository_and_downstream_triggers
+          source_scenario: "The reusable workflow setup guide is inspected after repository triggers change."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The guide distinguishes repository pull-request-only runs from downstream pull-request or push callers."
+validate:
+  - uv run python -m pytest -q tests/ci/test_github_actions_templates.py tests/ci/test_maid_workflow_pr_only_triggers.py
+  - uv run maid validate manifests/run-maid-gates-on-pull-requests-only.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/run-maid-gates-on-pull-requests-only.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  summary: "MAID Validation and MAID Test now run directly only for pull requests while remaining reusable through workflow_call."
+  rationale: "Both workflow trigger maps retain workflow_call and pull_request but omit push; focused tests, repository validation, task-scoped deep verification, and independent review confirmed the behavior and scope."
+  lessons:
+    - lesson_type: ci-cd
+      summary: "When retiring a trigger required by a shared historical test, keep new behavior in a dedicated test and revise every lock that pins the obsolete assertion through MAID's dependent-lock recovery commands."
+      tags:
+        - github-actions
+        - plan-locks
+        - behavioral-tests
+        - maid-runner-feedback
+      paths:
+        - tests/ci/test_github_actions_templates.py
+        - tests/ci/test_maid_workflow_pr_only_triggers.py
+  review_notes:
+    - source: implementation-review-subagent
+      severity: info
+      summary: "No blocking findings; reviewer verdict was ready."
+    - source: implementation-review-subagent
+      severity: info
+      summary: "YAML schema validation remains unavailable, but focused parsing tests cover the requested trigger behavior."
+    - source: implementation-review-subagent
+      severity: info
+      summary: "Unrelated push-driven workflows were preserved through scoped implementation and diff review rather than a broader regression test."
+  validation:
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/ci/test_github_actions_templates.py
+        - tests/ci/test_maid_workflow_pr_only_triggers.py
+      status: passed
+      summary: "All 11 focused workflow and documentation tests passed."
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+      status: passed
+      summary: "All 310 active manifests passed; 366 superseded manifests were skipped."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --profile
+        - deep
+        - --manifest-dir
+        - manifests
+        - --test-scope
+        - task
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - 5e51cace
+      status: passed
+      summary: "All 11 deep verification stages passed, including plan-lock integrity, artifact coverage, knockout, scope, and tests."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+      status: failed-unrelated
+      summary: "300 of 301 commands passed; the sole broad command failure was two release-metadata assertions caused by the pre-task local changelog commit at baseline 5e51cace."
+  completed_at: "2026-09-18T09:12:19+08:00"

@@ -43,12 +43,6 @@ on:
         type: boolean
         default: false
   pull_request:
-  push:
-    branches:
-      - main
-      - dev
-      - "dev/**"
-      - "release/**"
 
 jobs:
   maid-validation:

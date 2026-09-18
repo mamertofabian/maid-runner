@@ -1,11 +1,11 @@
 {
   "manifest_path": "manifests/065-03-wire-sarif-into-github-actions-templates.manifest.yaml",
-  "manifest_hash": "sha256:2b7b47a11eb21f3beb2a3ab3c74863710f5790f2d12da1ae4cb926f7cf1bb889",
+  "manifest_hash": "sha256-contract:e07f104cf1e8d31c9146cabcd33483b4e5025c941e6b83b2f96dcc87727c6ee8",
   "test_hashes": {
-    "tests/ci/test_github_actions_templates.py": "sha256:668e71848f4ba400666162816ddaaec8519153367a6d51c146e9acfdf680714d"
+    "tests/ci/test_github_actions_templates.py": "sha256-pyast:v2:2e64c1d99aa26815c46901baa98d611cd4acb8698814a141d6d84ea5c9af1bab"
   },
   "created_at": "2026-06-17T09:57:53.660528+00:00",
-  "revision": 4,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:d7ccaed95a2869b56fe143b38ecefdb01daebd90e71a95b5a0ed474829b0abf3",
@@ -13,7 +13,9 @@
         "tests/ci/test_github_actions_templates.py": "sha256:c1a777270504b6d5345bdf59ead349b223a70396be173e60a264785c2d82382b"
       },
       "revised_at": "2026-06-17T09:57:59.224491+00:00",
-      "reason": "Migrated by maid manifest promote: manifests/drafts/065-03-wire-sarif-into-github-actions-templates.manifest.yaml -> manifests/065-03-wire-sarif-into-github-actions-templates.manifest.yaml"
+      "reason": "Migrated by maid manifest promote: manifests/drafts/065-03-wire-sarif-into-github-actions-templates.manifest.yaml -> manifests/065-03-wire-sarif-into-github-actions-templates.manifest.yaml",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:110bc94a89b3051bc51d9ae9c0ea081137171b808b9951d212d5ec0e894ebb16",
@@ -21,7 +23,9 @@
         "tests/ci/test_github_actions_templates.py": "sha256:c1a777270504b6d5345bdf59ead349b223a70396be173e60a264785c2d82382b"
       },
       "revised_at": "2026-06-17T10:06:47.817982+00:00",
-      "reason": "Black formatting refreshed behavioral test hash after valid red lock; SARIF assertions unchanged"
+      "reason": "Black formatting refreshed behavioral test hash after valid red lock; SARIF assertions unchanged",
+      "agent": null,
+      "contract_delta": null
     },
     {
       "prior_manifest_hash": "sha256:110bc94a89b3051bc51d9ae9c0ea081137171b808b9951d212d5ec0e894ebb16",
@@ -29,7 +33,32 @@
         "tests/ci/test_github_actions_templates.py": "sha256:668e71848f4ba400666162816ddaaec8519153367a6d51c146e9acfdf680714d"
       },
       "revised_at": "2026-06-17T10:19:38.576744+00:00",
-      "reason": "Capture post-review Outcome section with validation and reviewer evidence"
+      "reason": "Capture post-review Outcome section with validation and reviewer evidence",
+      "agent": null,
+      "contract_delta": null
+    },
+    {
+      "prior_manifest_hash": "sha256:2b7b47a11eb21f3beb2a3ab3c74863710f5790f2d12da1ae4cb926f7cf1bb889",
+      "prior_test_hashes": {
+        "tests/ci/test_github_actions_templates.py": "sha256:668e71848f4ba400666162816ddaaec8519153367a6d51c146e9acfdf680714d"
+      },
+      "revised_at": "2026-09-18T01:08:20.870501+00:00",
+      "reason": "accept approved shared-test removal of obsolete push-trigger assertion",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:.github/workflows/maid-validation.yml",
+          "edit:docs/github-actions.md",
+          "read:docs/ci-cd-integration.md",
+          "read:maid_runner/cli/commands/verify.py",
+          "read:tests/ci/test_github_actions_templates.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -56,6 +85,8 @@
       }
     ]
   },
+  "legacy_baseline": null,
+  "agent": null,
   "_manifest_contract": {
     "artifacts": [
       ".github/workflows/maid-validation.yml:attribute:workflow._sarif_upload_wiring",
@@ -67,6 +98,54 @@
       "docs/github-actions.md:attribute:documentation._sarif_upload_guidance:of=documentation",
       "docs/github-actions.md:attribute:documentation._sarif_upload_guidance:type=markdown section"
     ],
+    "files": {
+      "create": [],
+      "edit": [
+        ".github/workflows/maid-validation.yml",
+        "docs/github-actions.md"
+      ],
+      "read": [
+        "docs/ci-cd-integration.md",
+        "maid_runner/cli/commands/verify.py",
+        "tests/ci/test_github_actions_templates.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": ".github/workflows/maid-validation.yml",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_sarif_upload_wiring",
+              "description": "Opt-in upload-sarif workflow_call input (default false) that adds --sarif output to the verify step, preserves the default validation job permissions when disabled, and uses an if: always() gated github/codeql-action/upload-sarif path with security-events: write only for upload.",
+              "of": "workflow",
+              "type": "github actions workflow section"
+            }
+          ]
+        },
+        {
+          "path": "docs/github-actions.md",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "_sarif_upload_guidance",
+              "description": "Documents the upload-sarif input, a caller example with the required permissions block, upload-on-failure behavior, and private-repo GitHub Advanced Security limitations.",
+              "of": "documentation",
+              "type": "markdown section"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "docs/ci-cd-integration.md",
+        "maid_runner/cli/commands/verify.py",
+        "tests/ci/test_github_actions_templates.py"
+      ]
+    },
     "test_files": [
       "tests/ci/test_github_actions_templates.py"
     ],
@@ -74,6 +153,7 @@
       "uv run python -m pytest -q tests/ci/test_github_actions_templates.py",
       "uv run maid validate manifests/065-03-wire-sarif-into-github-actions-templates.manifest.yaml --mode behavioral --quiet",
       "uv run maid validate manifests/065-03-wire-sarif-into-github-actions-templates.manifest.yaml --mode schema --quiet"
-    ]
+    ],
+    "acceptance_commands": []
   }
 }

@@ -34,7 +34,6 @@ def test_maid_validation_workflow_is_reusable_and_event_driven() -> None:
 
     assert "workflow_call" in triggers
     assert "pull_request" in triggers
-    assert "push" in triggers
     assert "base-ref" in triggers["workflow_call"]["inputs"]
     assert "test-jobs" in triggers["workflow_call"]["inputs"]
     assert "install-command" in triggers["workflow_call"]["inputs"]
