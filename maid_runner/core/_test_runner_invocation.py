@@ -741,12 +741,24 @@ def _test_runner_target_scan_segment(
 
 def _deno_test_target_scan_args(args: list[str]) -> list[str]:
     targets: list[str] = []
+    all_permissions = False
+    env_permissions = False
     index = 0
     while index < len(args):
         part = args[index]
         if part == "--":
             break
+        if part in {"--allow-all", "-A"}:
+            if all_permissions or env_permissions:
+                return []
+            all_permissions = True
+            index += 1
+            continue
         flag = part.split("=", 1)[0]
+        if flag == "--allow-env":
+            if all_permissions:
+                return []
+            env_permissions = True
         if flag in _DENO_TEST_TARGET_STANDALONE_FLAGS:
             index += 1
             continue

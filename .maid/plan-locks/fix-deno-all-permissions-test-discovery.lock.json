@@ -1,0 +1,115 @@
+{
+  "manifest_path": "manifests/fix-deno-all-permissions-test-discovery.manifest.yaml",
+  "manifest_hash": "sha256-contract:4bef9474899c48a8afaf03c5b5d84134c19611ac1d7de726b09efe4e8e1a2bb6",
+  "test_hashes": {
+    "tests/core/validation/test_deno_all_permissions.py": "sha256-pyast:v2:478523f9c83a701eedff793a8eaebd6e0db5393bfa52d9dfca888901e7400c8f"
+  },
+  "created_at": "2026-09-28T10:59:49.320504+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:553de40a41eec87aca0307f1f3867b3e6237917d64d519bd1226dfecac066a9c",
+      "prior_test_hashes": {
+        "tests/core/validation/test_deno_all_permissions.py": "sha256-pyast:v2:ff89d9f673b71ad52784df9c255c1c380fa428a4ba5d4567388c3e59b6ed0de7"
+      },
+      "revised_at": "2026-09-28T10:59:49.966597+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-deno-all-permissions-test-discovery.manifest.yaml -> manifests/fix-deno-all-permissions-test-discovery.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:730937cbfcba8ff904196abe8b49c80451af884719b89e4f5f972cd74808133f",
+      "prior_test_hashes": {
+        "tests/core/validation/test_deno_all_permissions.py": "sha256-pyast:v2:ff89d9f673b71ad52784df9c255c1c380fa428a4ba5d4567388c3e59b6ed0de7"
+      },
+      "revised_at": "2026-09-28T11:00:57.918356+00:00",
+      "reason": "Use native-valid no-check combination; Deno rejects allow-all together with allow-env",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:0295e320bab80c5fe0b73148660e34bdf6d181d324d2a19188d69634fba97bf3",
+      "prior_test_hashes": {
+        "tests/core/validation/test_deno_all_permissions.py": "sha256-pyast:v2:305d695935faf7d7371adb9e180cb0cce74498ea3850fc414888519b183c460b"
+      },
+      "revised_at": "2026-09-28T11:03:33.087593+00:00",
+      "reason": "Reject native-proven conflicting permission flags instead of treating CLI failure as test execution",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-28T11:03:33.602836+00:00",
+    "commands": [
+      {
+        "command": "uv run pytest tests/core/validation/test_deno_all_permissions.py -q",
+        "exit_code": 1,
+        "output_tail": "=========================== short test summary info ============================\nFAILED tests/core/validation/test_deno_all_permissions.py::test_permission_flags_preserve_explicit_deno_target_coverage[before---allow-all]\nFAILED tests/core/validation/test_deno_all_permissions.py::test_permission_flags_preserve_explicit_deno_target_coverage[before--A]\nFAILED tests/core/validation/test_deno_all_permissions.py::test_permission_flags_preserve_explicit_deno_target_coverage[after---allow-all]\nFAILED tests/core/validation/test_deno_all_permissions.py::test_permission_flags_preserve_explicit_deno_target_coverage[after--A]\nFAILED tests/core/validation/test_deno_all_permissions.py::test_permission_flags_preserve_explicit_deno_target_coverage[combined---allow-all]\nFAILED tests/core/validation/test_deno_all_permissions.py::test_permission_flags_preserve_explicit_deno_target_coverage[combined--A]\nFAILED tests/core/validation/test_deno_all_permissions.py::test_native_deno_permission_test_executes_and_reports_its_result[before-True---allow-all]\nFAILED tests/core/validation/test_deno_all_permissions.py::test_native_deno_permission_test_executes_and_reports_its_result[before-True--A]\nFAILED tests/core/validation/test_deno_all_permissions.py::test_native_deno_permission_test_executes_and_reports_its_result[before-False---allow-all]\nFAILED tests/core/validation/test_deno_all_permissions.py::test_native_deno_permission_test_executes_and_reports_its_result[before-False--A]\nFAILED tests/core/validation/test_deno_all_permissions.py::test_native_deno_permission_test_executes_and_reports_its_result[after-True---allow-all]\nFAILED tests/core/validation/test_deno_all_permissions.py::test_native_deno_permission_test_executes_and_reports_its_result[after-True--A]\nFAILED tests/core/validation/test_deno_all_permissions.py::test_native_deno_permission_test_executes_and_reports_its_result[after-False---allow-all]\nFAILED tests/core/validation/test_deno_all_permissions.py::test_native_deno_permission_test_executes_and_reports_its_result[after-False--A]\nFAILED tests/core/validation/test_deno_all_permissions.py::test_native_deno_permission_test_executes_and_reports_its_result[combined-True---allow-all]\nFAILED tests/core/validation/test_deno_all_permissions.py::test_native_deno_permission_test_executes_and_reports_its_result[combined-True--A]\nFAILED tests/core/validation/test_deno_all_permissions.py::test_native_deno_permission_test_executes_and_reports_its_result[combined-False---allow-all]\nFAILED tests/core/validation/test_deno_all_permissions.py::test_native_deno_permission_test_executes_and_reports_its_result[combined-False--A]\n18 failed, 32 passed in 0.30s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [],
+    "files": {
+      "create": [],
+      "edit": [],
+      "read": [
+        "maid_runner/core/_validation_test_artifacts.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/test_runner.py",
+        "tests/core/validation/test_deno_all_permissions.py"
+      ],
+      "scope": [
+        "maid_runner/core/_test_runner_invocation.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "read": [
+        "tests/core/validation/test_deno_all_permissions.py",
+        "maid_runner/core/_validation_test_artifacts.py",
+        "maid_runner/core/test_runner.py",
+        "maid_runner/core/manifest.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_test_runner_invocation.py",
+          "reason": "Recognize exact Deno full-permission flags in the private bounded target scanner."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/validation/test_deno_all_permissions.py"
+    ],
+    "validate_commands": [
+      "uv run pytest tests/core/validation/test_deno_all_permissions.py -q"
+    ],
+    "acceptance_commands": []
+  }
+}

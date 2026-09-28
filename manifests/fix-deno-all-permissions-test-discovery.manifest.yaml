@@ -1,0 +1,127 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Recognize full-permission Deno test commands without weakening command-integrity checks.
+type: fix
+created: '2026-09-28T10:59:49Z'
+metadata:
+  priority: high
+description: |
+  The HUBB Ops report reproduces E230 for a concrete behavioral test selected by
+  deno test --allow-all. Deno 2.3.6 documents --allow-all and -A as flag-only
+  permission aliases; neither filters tests nor consumes a positional target.
+  Recognize these exact tokens in the existing bounded Deno target scanner,
+  including alongside --no-check and after a test path. Keep all existing
+  selector, no-run, unknown-option, option-value and script-argument boundaries.
+  Reject duplicate full-permission tokens and combinations with supported
+  --allow-env forms, which native Deno rejects before running tests.
+  Do not infer attached values or clustered short options. Native regressions
+  exercise real file permissions and both passing and failing test results,
+  skipping only native execution when Deno is absent. This is a private helper
+  fix; public APIs and other runner syntax remain unchanged.
+temptations:
+- risk: Do not treat every permission-looking argument as harmless.
+  instead: Accept only the two exact documented flag-only tokens and reject guessed value/cluster syntax.
+- risk: Do not bypass E230 merely because an allowed permission flag or test path appears.
+  instead: Retain the existing executing-runner, target, selector and delimiter checks and exercise negative combinations.
+files:
+  scope:
+  - path: maid_runner/core/_test_runner_invocation.py
+    reason: Recognize exact Deno full-permission flags in the private bounded target scanner.
+  read:
+  - tests/core/validation/test_deno_all_permissions.py
+  - maid_runner/core/_validation_test_artifacts.py
+  - maid_runner/core/test_runner.py
+  - maid_runner/core/manifest.py
+validate:
+- [uv, run, pytest, tests/core/validation/test_deno_all_permissions.py, -q]
+
+outcome:
+  status: completed
+  completed_at: '2026-09-28T11:08:35Z'
+  summary: Recognized exact --allow-all and -A Deno test permission flags while preserving command-integrity
+    boundaries and rejecting known duplicate or conflicting permission combinations.
+  rationale: The bounded scanner consumes only exact flag-only aliases. Permission state is tracked
+    within the existing scan, so option values and script arguments cannot create false permission
+    conflicts. Native Deno 2.3.6 tests exercise actual file access and passing/failing outcomes.
+    The reported consumer manifest now returns no command-integrity diagnostics. Public APIs and
+    other runner syntax remain unchanged.
+  lessons:
+  - lesson_type: validation-trust
+    summary: Recognizing a permission alias must retain target/option boundaries and account for
+      native-proven incompatible flag combinations; a CLI argument failure is not evidence that behavioral
+      tests ran.
+    tags:
+    - deno
+    - command-integrity
+    - e230
+    - maid-runner-feedback
+    paths:
+    - maid_runner/core/_test_runner_invocation.py
+    - tests/core/validation/test_deno_all_permissions.py
+  - lesson_type: test-design
+    summary: 'Use native runner checks alongside pure command classification: they exposed a mutually
+      exclusive permission combination in a proposed positive fixture and now verify real permission-sensitive
+      passing and failing execution.'
+    tags:
+    - deno
+    - native-execution
+    - behavioral-tests
+    - maid-runner-feedback
+    paths:
+    - tests/core/validation/test_deno_all_permissions.py
+  review_notes:
+  - source: independent-read-only-deno_permission_implementation_review
+    severity: ready
+    summary: No blocking findings or actionable advisories. Reviewer independently ran all 50 new
+      cases, implementation validation and plan-lock checks; confirmed private scope, exact-token
+      recognition, permission conflicts and existing execution guards.
+  validation:
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/fix-deno-all-permissions-test-discovery.manifest.yaml
+    status: passed
+    summary: All 50 contract cases passed, including native Deno execution. The focused adjacent
+      runner/target regression suite passed 190 tests. Ruff, Black and diff checks passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: 313 active manifests passed; 367 superseded manifests skipped.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: failed
+    summary: '302 of 303 commands passed. Batched pytest: 4976 passed, 9 skipped, 2 failed. Both
+      failures are unchanged release-metadata assertions in tests/integration/test_library_api.py
+      expecting a missing Unreleased changelog heading; release inputs and test source match baseline
+      ffc5262f.'
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - ffc5262f
+    status: passed
+    summary: All 11 stages passed with matching plan-lock revision 4 and recorded preimplementation
+      red evidence. Existing E307 ts_compiler_resolver.cjs warning remains nonblocking.
