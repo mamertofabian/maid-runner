@@ -66,7 +66,7 @@ def is_command_integrity_test_file(path: str, project_root: Path) -> bool:
     if any(part.lower() in _TEST_DIRECTORY_NAMES for part in parts[:-1]):
         return True
 
-    return bool(re.search(r"\.(test|spec)\.(ts|tsx|js|jsx)$", name))
+    return bool(re.search(r"\.(test|spec)\.(ts|tsx|js|jsx|mjs|cjs)$", name))
 
 
 def is_python_behavioral_test_file(path: str, project_root: Path) -> bool:

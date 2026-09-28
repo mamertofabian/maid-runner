@@ -540,6 +540,7 @@ def _run_test_command_legacy(
 def _test_command_environment() -> dict[str, str]:
     env = dict(os.environ)
     for name in (
+        "NODE_OPTIONS",
         "PYTEST_ADDOPTS",
         "PYTEST_XDIST_WORKER",
         "PYTEST_XDIST_WORKER_COUNT",

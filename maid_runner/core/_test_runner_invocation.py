@@ -527,10 +527,12 @@ def _test_runner_invocation(
     *,
     allow_unittest: bool = True,
     unittest_uv_depth: int = 0,
+    allow_node: bool = True,
 ) -> tuple[str, list[str]] | None:
     raw_parts = list(segment)
     parts = _strip_environment_prefix(raw_parts)
     if parts != raw_parts:
+        allow_node = False
         allow_unittest = allow_unittest and _allows_direct_unittest_env_prefix(
             raw_parts, parts, unittest_uv_depth
         )
@@ -556,29 +558,35 @@ def _test_runner_invocation(
                     and not _uv_run_uses_module_mode(parts)
                 ),
                 unittest_uv_depth=unittest_uv_depth + 1,
+                allow_node=False,
             )
         return None
 
     if command in {"poetry", "pdm"} and len(parts) >= 3 and parts[1] == "run":
         return _test_runner_invocation(
-            parts[2:], test_runner_wrappers, allow_unittest=False
+            parts[2:], test_runner_wrappers, allow_unittest=False, allow_node=False
         )
 
     if command == "docker":
         inner_command = _docker_exec_inner_command(parts)
         if inner_command is not None:
-            return _test_runner_invocation(inner_command, allow_unittest=False)
+            return _test_runner_invocation(
+                inner_command, allow_unittest=False, allow_node=False
+            )
 
     if command == "coverage" and len(parts) >= 4 and parts[1:3] == ["run", "-m"]:
         return _test_runner_invocation(
-            parts[3:], test_runner_wrappers, allow_unittest=False
+            parts[3:], test_runner_wrappers, allow_unittest=False, allow_node=False
         )
 
     if command == "dotenv":
         inner_command = _dotenv_inner_command(parts)
         if inner_command is not None:
             return _test_runner_invocation(
-                inner_command, test_runner_wrappers, allow_unittest=False
+                inner_command,
+                test_runner_wrappers,
+                allow_unittest=False,
+                allow_node=False,
             )
 
     if (
@@ -625,6 +633,13 @@ def _test_runner_invocation(
     if command in _DIRECT_TEST_RUNNERS:
         return command, parts[1:]
 
+    if allow_node and command == "node" and len(parts) >= 3 and parts[1] == "--test":
+        # Only positional inputs are proven here. Options can filter tests,
+        # prevent execution, or consume a path without executing that file.
+        if all(part and not part.startswith("-") for part in parts[2:]):
+            return command, parts[2:]
+        return None
+
     if command == "playwright" and len(parts) >= 2 and parts[1] == "test":
         return command, parts[2:]
 
@@ -641,12 +656,12 @@ def _test_runner_invocation(
             preserved_options = scan_command[: len(scan_command) - len(inner_command)]
             inner_wrappers = () if preserved_options else test_runner_wrappers
             return _test_runner_invocation(
-                inner_command, inner_wrappers, allow_unittest=False
+                inner_command, inner_wrappers, allow_unittest=False, allow_node=False
             )
 
     if command == "npm" and len(parts) >= 3 and parts[1] == "exec":
         return _test_runner_invocation(
-            parts[2:], test_runner_wrappers, allow_unittest=False
+            parts[2:], test_runner_wrappers, allow_unittest=False, allow_node=False
         )
 
     return None
@@ -702,6 +717,9 @@ def _test_runner_target_scan_segment(
         return _test_runner_target_scan_segment(parts[2:], test_runner_wrappers)
 
     if command == "playwright" and len(parts) >= 2 and parts[1] == "test":
+        return parts[2:]
+
+    if command == "node" and len(parts) >= 2 and parts[1] == "--test":
         return parts[2:]
 
     if command == "deno" and len(parts) >= 2 and parts[1] == "test":

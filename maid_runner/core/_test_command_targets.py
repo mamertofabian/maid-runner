@@ -228,6 +228,18 @@ def test_paths_from_executing_validate_command(
             ):
                 return []
             raw_candidate = _normalize_relative_path(cwd / part)
+            if (
+                invocation is not None
+                and invocation[0] == "node"
+                and (
+                    any(char in part for char in "*?[]{}()!\\")
+                    or not (project_root / raw_candidate).is_file()
+                )
+            ):
+                # Node treats directory arguments as modules, not recursive
+                # test selectors, and expands glob syntax even when a literal
+                # file exists. Only concrete literal files prove coverage here.
+                return []
             if "::" in raw_candidate and not allow_selectors:
                 index += 1
                 continue
@@ -289,7 +301,7 @@ def _test_paths_from_executing_shell_segments(
         if not _runs_known_test_runner(segment, test_runner_wrappers):
             return []
         invocation = _test_runner_invocation(segment, test_runner_wrappers)
-        if invocation is not None and invocation[0] == _UNITTEST_TEST_RUNNER:
+        if invocation is not None and invocation[0] in {_UNITTEST_TEST_RUNNER, "node"}:
             return []
         if _has_non_executing_test_runner_mode(segment, test_runner_wrappers):
             return []

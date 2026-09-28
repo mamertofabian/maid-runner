@@ -31,8 +31,8 @@ _SOURCE_EXTENSIONS = {".py", ".ts", ".tsx", ".js", ".jsx", ".svelte"}
 _TEST_PATTERNS = [
     re.compile(r"test_.*\.py$"),
     re.compile(r".*_test\.py$"),
-    re.compile(r".*\.test\.(ts|tsx|js|jsx)$"),
-    re.compile(r".*\.spec\.(ts|tsx|js|jsx)$"),
+    re.compile(r".*\.test\.(ts|tsx|js|jsx|mjs|cjs)$"),
+    re.compile(r".*\.spec\.(ts|tsx|js|jsx|mjs|cjs)$"),
     re.compile(r".*\.cy\.(ts|tsx|js|jsx)$"),
     re.compile(r".*Tests\.cs$"),
 ]
