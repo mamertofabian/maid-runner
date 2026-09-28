@@ -27,6 +27,7 @@ from maid_runner.core._pytest_config_addopts import (
     _pytest_config_addopts_source,
     pytest_config_addopts_args,
     pytest_config_addopts_errors,
+    requires_native_pytest_config_check,
 )
 from maid_runner.core._test_command_targets import (
     command_segments,
@@ -396,6 +397,7 @@ def validate_manifest_test_commands(
     config_errors = _pytest_config_addopts_integrity_errors(
         manifest,
         project_root,
+        test_files,
     )
     if config_errors:
         return config_errors
@@ -863,9 +865,28 @@ def _is_e2e_script_name(value: str) -> bool:
 def _pytest_config_addopts_integrity_errors(
     manifest: Manifest,
     project_root: Path,
+    test_files: list[str],
 ) -> list[ValidationError]:
     errors: list[ValidationError] = []
     for command in manifest.validate_commands:
+        covered = _test_files_covered_by_validate_command(
+            command, test_files, project_root
+        )
+        if requires_native_pytest_config_check(project_root, command, sorted(covered)):
+            from maid_runner.core._pytest_addopts_selection import (
+                pytest_native_config_collection_error,
+            )
+
+            proof_error = pytest_native_config_collection_error(project_root, command)
+            if proof_error is not None:
+                errors.append(
+                    _validate_command_integrity_error(
+                        manifest,
+                        command,
+                        f"Native pytest config cannot prove complete behavioral test selection: {proof_error}",
+                    )
+                )
+            continue
         inspection_errors = pytest_config_addopts_errors(project_root, command)
         if inspection_errors:
             errors.append(

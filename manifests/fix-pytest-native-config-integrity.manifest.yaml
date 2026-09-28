@@ -1,0 +1,163 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Prevent native pytest TOML configuration from bypassing behavioral command integrity.
+type: fix
+created: '2026-09-28T14:13:29Z'
+metadata:
+  priority: critical
+description: |
+  Pytest 9 can obtain addopts from pytest.toml, .pytest.toml and native
+  [tool.pytest] TOML tables which the legacy inspector does not model.
+  Detect potentially relevant native config from explicit choices and from
+  project/test ancestors, without assuming the host pytest version or deciding
+  consumer precedence. Check only pytest commands; explicit legacy config and
+  CLI addopts overrides retain their existing paths and execution guards.
+  Potential native configuration must enter guarded consumer-interpreter proof
+  before the empty/benign legacy-addopts fast path. Reuse the existing protected
+  pytest loop, final node IDs, runnable mode, environment and command resolver.
+  The baseline overrides addopts only for proof; the configured probe validates
+  native effective option syntax directly rather than matching legacy-inspected
+  options. Identical nonempty selections are required. Actual commands/configs
+  remain unchanged. Unsupported command/option shapes fail with E230.
+  Preserve the legacy selection-proof API behavior and its existing tests.
+  Recognize pytest's --collectonly alias in existing execution guards so explicit
+  overrides cannot disguise nonexecution. Exercise real pytest 8 and 9, including
+  alternate consumer interpreters within the same host test session.
+temptations:
+- risk: Do not read host pytest metadata to decide whether consumer config applies.
+  instead: Treat files as candidates only and let the resolved native process prove behavior.
+- risk: Do not silently skip unknown or nonexecuting native settings.
+  instead: Require complete runnable native evidence or return an explicit E230 diagnostic.
+- risk: Do not treat ignored pytest-9-only files as active in pytest 8.
+  instead: Test both consumer versions, native precedence and explicit config/override behavior.
+files:
+  edit:
+  - path: maid_runner/core/_pytest_config_addopts.py
+    artifacts:
+    - kind: function
+      name: requires_native_pytest_config_check
+      args:
+      - {name: project_root, type: Path}
+      - {name: command, type: 'Sequence[str]'}
+      - {name: test_files, type: 'Sequence[str]'}
+      returns: bool
+  - path: maid_runner/core/_pytest_addopts_selection.py
+    artifacts:
+    - kind: function
+      name: pytest_native_config_collection_error
+      args:
+      - {name: project_root, type: Path}
+      - {name: command, type: 'Sequence[str]'}
+      returns: str | None
+  scope:
+  - path: maid_runner/core/_validation_test_artifacts.py
+    reason: Route potential native configuration to authoritative proof before legacy config shortcuts.
+  - path: maid_runner/core/_test_runner_invocation.py
+    reason: Retain nonexecution protection for the native pytest --collectonly alias, including CLI overrides.
+  - path: docs/troubleshooting.md
+    reason: Document native config proof, interpreter-specific precedence and unsupported shapes.
+  read:
+  - tests/core/validation/test_pytest_native_config_integrity.py
+  - maid_runner/core/_test_command_targets.py
+  - maid_runner/core/_test_command_execution.py
+  - maid_runner/core/test_runner.py
+validate:
+- [uv, run, python, -m, pytest, tests/core/validation/test_pytest_native_config_integrity.py, -q]
+- [uv, run, --with, pytest==9.0.2, python, -m, pytest, tests/core/validation/test_pytest_native_config_integrity.py, -q]
+
+outcome:
+  status: completed
+  completed_at: '2026-09-28T14:26:11Z'
+  summary: Closed the pytest 9 native TOML command-integrity bypass using guarded consumer-native selection
+    proof, retaining pytest 8 compatibility and unchanged actual execution.
+  rationale: Candidate discovery routes native TOML shapes to the resolved consumer interpreter before legacy
+    fast paths. Native effective options, runnable mode and identical nonempty test IDs determine acceptance.
+    Explicit TOML shell wrappers fail closed because their working directory cannot establish config provenance.
+    The existing protected probe and bounded option syntax are reused.
+  lessons:
+  - lesson_type: validation-trust
+    summary: Config format and precedence must be determined by the consumer interpreter. An explicit relative
+      config inside a shell wrapper cannot be resolved against the MAID project root to establish absence
+      of native config.
+    tags:
+    - pytest
+    - e230
+    - maid-runner-feedback
+    paths:
+    - maid_runner/core/_pytest_config_addopts.py
+    - tests/core/validation/test_pytest_native_config_integrity.py
+  review_notes:
+  - source: independent-read-only-native_config_implementation_review
+    severity: needs-changes
+    summary: Found a cwd-changing shell wrapper bypass through relative explicit TOML config. Added four
+      format regressions, recaptured red evidence via sanctioned stash revision, and rejected ambiguous
+      wrapped TOML choices.
+  - source: coordinator-read-only-fallback
+    severity: ready
+    summary: A fresh reviewer spawn failed with agent thread limit reached; no close-agent tool was available.
+      Completed the permitted full-diff self-review for correctness, runtime compatibility, scope, test
+      adequacy and MAID contracts. No remaining blocking findings; wrapper regressions pass on both consumer
+      versions and deep verification passes.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/core/validation/test_pytest_native_config_integrity.py
+    - -q
+    status: passed
+    summary: 32 cases pass on pytest 8.4.2. Final adjacent regression run including these cases had 105 passed, 2
+      skipped; Ruff,Black and diff checks pass.
+  - command:
+    - uv
+    - run
+    - --with
+    - pytest==9.0.2
+    - python
+    - -m
+    - pytest
+    - tests/core/validation/test_pytest_native_config_integrity.py
+    - -q
+    status: passed
+    summary: 32 cases pass on pytest 9.0.2; final combined run with the existing guarded selection-proof
+      suite had 72 passed. Real alternate consumer launchers demonstrate host-version independence.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: 315 active manifests passed, 367 superseded skipped.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: failed
+    summary: 303 of 304 commands passed. Batched pytest had 5046 passed, 11 skipped, 2 failed. Both failures are
+      unchanged release-metadata assertions in tests/integration/test_library_api.py requiring the missing
+      Unreleased CHANGELOG heading; neither file changed in this task.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - a013476d0fd6c9f511a641303c0a0dc0775dec51
+    status: passed
+    summary: All 11 stages pass with plan-lock revision 3 and genuine preimplementation red evidence. Existing
+      E307 ts_compiler_resolver.cjs warning is nonblocking.

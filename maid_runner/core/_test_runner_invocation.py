@@ -145,6 +145,7 @@ _NON_EXECUTING_TEST_RUNNER_FLAGS = frozenset(
         "--help",
         "--version",
         "--collect-only",
+        "--collectonly",
         "--co",
         "--fixtures",
         "--fixtures-per-test",

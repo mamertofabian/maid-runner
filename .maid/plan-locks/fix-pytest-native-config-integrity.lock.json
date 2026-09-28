@@ -1,0 +1,176 @@
+{
+  "manifest_path": "manifests/fix-pytest-native-config-integrity.manifest.yaml",
+  "manifest_hash": "sha256-contract:84e9cffe9189f0cfbb3b9959345500866f60215839ad4e48a262140a40b579b1",
+  "test_hashes": {
+    "tests/core/validation/test_pytest_native_config_integrity.py": "sha256-pyast:v2:ef42cc927532716de94511f261fd9ae69db58a49b81d1e1b19d95aea047abe4f"
+  },
+  "created_at": "2026-09-28T14:13:25.084528+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:da564229f8274c5d5968139ce454162ce0bdb645f645d793aa03d767329f9cf8",
+      "prior_test_hashes": {
+        "tests/core/validation/test_pytest_native_config_integrity.py": "sha256-pyast:v2:3a6287e056c69adad0f17464889a33fde0b20d5e4d15e5bc6697e616e0f63b40"
+      },
+      "revised_at": "2026-09-28T14:13:29.829754+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-pytest-native-config-integrity.manifest.yaml -> manifests/fix-pytest-native-config-integrity.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:84e9cffe9189f0cfbb3b9959345500866f60215839ad4e48a262140a40b579b1",
+      "prior_test_hashes": {
+        "tests/core/validation/test_pytest_native_config_integrity.py": "sha256-pyast:v2:3a6287e056c69adad0f17464889a33fde0b20d5e4d15e5bc6697e616e0f63b40"
+      },
+      "revised_at": "2026-09-28T14:19:18.590639+00:00",
+      "reason": "Cover relative native config behind cwd-changing shell wrappers",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-28T14:19:23.259149+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/validation/test_pytest_native_config_integrity.py -q",
+        "exit_code": 1,
+        "output_tail": "\ntests/core/validation/test_pytest_native_config_integrity.py:352: ImportError\n=========================== short test summary info ============================\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_native_config_candidates_include_test_and_project_ancestors[pytest.toml-nested]\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_native_config_candidates_include_test_and_project_ancestors[pytest.toml-parent]\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_native_config_candidates_include_test_and_project_ancestors[.pytest.toml-nested]\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_native_config_candidates_include_test_and_project_ancestors[.pytest.toml-parent]\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_native_config_candidates_include_test_and_project_ancestors[pyproject.toml-nested]\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_native_config_candidates_include_test_and_project_ancestors[pyproject.toml-parent]\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_native_config_does_not_affect_non_pytest_commands\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_legacy_only_pyproject_keeps_the_existing_inspection_path\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_explicit_addopts_override_retains_execution_checks[--collectonly]\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_native_proof_rejects_empty_collection_and_unsupported_commands\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_native_candidate_forces_wrapped_pytest_to_fail_closed\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_consumer_interpreter_version_is_independent_of_host[9.0.2]\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_cwd_changing_shell_cannot_hide_relative_native_config[pytest.toml]\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_cwd_changing_shell_cannot_hide_relative_native_config[.pytest.toml]\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_cwd_changing_shell_cannot_hide_relative_native_config[pyproject.toml]\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_cwd_changing_shell_cannot_hide_relative_native_config[custom.toml]\n16 failed, 16 passed in 2.51s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run --with pytest==9.0.2 python -m pytest tests/core/validation/test_pytest_native_config_integrity.py -q",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/core/validation/test_pytest_native_config_integrity.py::test_native_config_candidates_include_test_and_project_ancestors[pytest.toml-parent]\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_native_config_candidates_include_test_and_project_ancestors[.pytest.toml-nested]\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_native_config_candidates_include_test_and_project_ancestors[.pytest.toml-parent]\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_native_config_candidates_include_test_and_project_ancestors[pyproject.toml-nested]\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_native_config_candidates_include_test_and_project_ancestors[pyproject.toml-parent]\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_native_config_does_not_affect_non_pytest_commands\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_legacy_only_pyproject_keeps_the_existing_inspection_path\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_explicit_addopts_override_retains_execution_checks[--collectonly]\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_native_selectors_cannot_omit_declared_cases[pytest.toml]\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_native_selectors_cannot_omit_declared_cases[pyproject.toml]\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_native_formats_use_real_precedence_over_legacy_ini\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_malformed_native_file_is_judged_by_the_consumer_parser\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_native_proof_rejects_empty_collection_and_unsupported_commands\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_native_candidate_forces_wrapped_pytest_to_fail_closed\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_consumer_interpreter_version_is_independent_of_host[9.0.2]\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_cwd_changing_shell_cannot_hide_relative_native_config[pytest.toml]\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_cwd_changing_shell_cannot_hide_relative_native_config[.pytest.toml]\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_cwd_changing_shell_cannot_hide_relative_native_config[pyproject.toml]\nFAILED tests/core/validation/test_pytest_native_config_integrity.py::test_cwd_changing_shell_cannot_hide_relative_native_config[custom.toml]\n24 failed, 8 passed in 1.76s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_pytest_addopts_selection.py:function:pytest_native_config_collection_error",
+      "maid_runner/core/_pytest_addopts_selection.py:function:pytest_native_config_collection_error:arg=command:type=Sequence[str]:default=None",
+      "maid_runner/core/_pytest_addopts_selection.py:function:pytest_native_config_collection_error:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_pytest_addopts_selection.py:function:pytest_native_config_collection_error:kind=function",
+      "maid_runner/core/_pytest_addopts_selection.py:function:pytest_native_config_collection_error:returns=str | None",
+      "maid_runner/core/_pytest_config_addopts.py:function:requires_native_pytest_config_check",
+      "maid_runner/core/_pytest_config_addopts.py:function:requires_native_pytest_config_check:arg=command:type=Sequence[str]:default=None",
+      "maid_runner/core/_pytest_config_addopts.py:function:requires_native_pytest_config_check:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_pytest_config_addopts.py:function:requires_native_pytest_config_check:arg=test_files:type=Sequence[str]:default=None",
+      "maid_runner/core/_pytest_config_addopts.py:function:requires_native_pytest_config_check:kind=function",
+      "maid_runner/core/_pytest_config_addopts.py:function:requires_native_pytest_config_check:returns=bool"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "maid_runner/core/_pytest_addopts_selection.py",
+        "maid_runner/core/_pytest_config_addopts.py"
+      ],
+      "read": [
+        "maid_runner/core/_test_command_execution.py",
+        "maid_runner/core/_test_command_targets.py",
+        "maid_runner/core/test_runner.py",
+        "tests/core/validation/test_pytest_native_config_integrity.py"
+      ],
+      "scope": [
+        "docs/troubleshooting.md",
+        "maid_runner/core/_test_runner_invocation.py",
+        "maid_runner/core/_validation_test_artifacts.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "maid_runner/core/_pytest_config_addopts.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "requires_native_pytest_config_check",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "command",
+                  "type": "Sequence[str]"
+                },
+                {
+                  "name": "test_files",
+                  "type": "Sequence[str]"
+                }
+              ],
+              "returns": "bool"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/_pytest_addopts_selection.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "pytest_native_config_collection_error",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "command",
+                  "type": "Sequence[str]"
+                }
+              ],
+              "returns": "str | None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "tests/core/validation/test_pytest_native_config_integrity.py",
+        "maid_runner/core/_test_command_targets.py",
+        "maid_runner/core/_test_command_execution.py",
+        "maid_runner/core/test_runner.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_validation_test_artifacts.py",
+          "reason": "Route potential native configuration to authoritative proof before legacy config shortcuts."
+        },
+        {
+          "path": "maid_runner/core/_test_runner_invocation.py",
+          "reason": "Retain nonexecution protection for the native pytest --collectonly alias, including CLI overrides."
+        },
+        {
+          "path": "docs/troubleshooting.md",
+          "reason": "Document native config proof, interpreter-specific precedence and unsupported shapes."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/validation/test_pytest_native_config_integrity.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/validation/test_pytest_native_config_integrity.py -q",
+      "uv run --with pytest==9.0.2 python -m pytest tests/core/validation/test_pytest_native_config_integrity.py -q"
+    ],
+    "acceptance_commands": []
+  }
+}

@@ -221,6 +221,17 @@ collection errors, empty collection, or changed test IDs retain `E230` with a
 diagnostic. Use explicit test targets and reconcile filters that omit declared
 cases; do not treat a failed collection probe as evidence that tests ran.
 
+Pytest 9 native TOML candidates (`pytest.toml`, `.pytest.toml`, and native
+`[tool.pytest]` tables) trigger this guarded proof before legacy configuration
+shortcuts. Candidates include explicit config choices and project/test
+ancestors. The resolved consumer interpreter decides which configuration
+applies: pytest 8 may ignore a pytest-9-only file. For this path, native evidence
+supplies effective options directly, and nested configuration needs no explicit
+config choice. The same bounded option syntax, nonempty selection comparison,
+and runnable-mode checks apply. Explicit legacy config choices and command-line
+`addopts` overrides retain their existing checks, including `--collectonly`.
+MAID does not use its own pytest version to infer consumer behavior.
+
 ### 18. Declared artifact is not defined (`E300`)
 
 Symptom: `maid validate --mode implementation` reports `E300`.

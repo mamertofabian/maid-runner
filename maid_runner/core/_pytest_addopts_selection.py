@@ -147,11 +147,51 @@ def pytest_addopts_collection_error(
     return None
 
 
+def pytest_native_config_collection_error(
+    project_root: Path, command: Sequence[str]
+) -> str | None:
+    """Prove native effective config preserves a nonempty runnable selection.
+
+    The consumer interpreter owns configuration discovery and precedence. Both
+    probes retain its plugins and collection semantics, but guard dispatch.
+    """
+    from maid_runner.core._test_command_execution import _test_command_environment
+    from maid_runner.core.test_runner import _resolve_command
+
+    root = Path(project_root)
+    command = tuple(command)
+    if not _supported_command(command):
+        return "native config proof does not support this pytest command syntax"
+    try:
+        if not root.is_dir():
+            return "native config proof requires an existing project directory"
+        resolved = _resolve_command(command, cwd=root)
+        environment = _test_command_environment()
+        baseline = _collect_with_config(
+            (*resolved, "-o", "addopts="), root, environment, ()
+        )
+        if baseline.error is not None:
+            return f"unfiltered collection failed: {baseline.error}"
+        if not baseline.nodeids:
+            return "unfiltered collection did not discover any behavioral test cases"
+        effective = _collect_with_config(resolved, root, environment, None)
+        if effective.error is not None:
+            return f"configured collection failed: {effective.error}"
+        if set(baseline.nodeids) != set(effective.nodeids):
+            return (
+                "configured collection changes behavioral test identities "
+                f"(unfiltered {len(baseline.nodeids)}, configured {len(effective.nodeids)})"
+            )
+    except (OSError, ValueError, TypeError) as exc:
+        return f"native pytest config proof failed: {exc}"
+    return None
+
+
 def _collect_with_config(
     command: tuple[str, ...],
     root: Path,
     environment: dict[str, str],
-    expected_addopts: tuple[str, ...],
+    expected_addopts: tuple[str, ...] | None,
 ) -> _CollectionResult:
     from maid_runner.core._pytest_worker_execution import _merged_pytest_plugins
     from maid_runner.core._test_command_execution import _run_test_command
@@ -199,7 +239,13 @@ def _collect_with_config(
             isinstance(arg, str) for arg in actual
         ):
             return _CollectionResult((), "native pytest config addopts are malformed")
-        if tuple(actual) != expected_addopts:
+        if expected_addopts is None and not _supported_options(
+            tuple(actual), config=True
+        ):
+            return _CollectionResult(
+                (), "collection proof does not support native addopts options"
+            )
+        if expected_addopts is not None and tuple(actual) != expected_addopts:
             return _CollectionResult(
                 (), "native pytest addopts differ from the inspected configuration"
             )
