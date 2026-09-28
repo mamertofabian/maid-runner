@@ -1,0 +1,182 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Accept harmless pytest config selectors only when native collection proves the complete test selection is preserved.
+type: fix
+created: '2026-09-28T11:27:00Z'
+metadata:
+  priority: high
+description: |
+  Reproduce the reported -ra --strict-markers -m 'not integration'
+  --ignore=tests/strategies false E230 on an explicit unit-test command.
+  Preserve static rejection of unsupported/nonexecuting syntax. For supported
+  selective config addopts and simple pytest/python -m pytest/uv run commands,
+  reuse the existing consumer-environment subprocess executor twice: once with
+  config addopts neutralized through a command-line override, and once with
+  the original command/config intact. A standalone pytest plugin stops the
+  normal test loop, rejects session.testsfailed before recording proof, and
+  rejects attempted test protocol dispatch, preserving
+  original collection-mode flags rather than injecting --collect-only. Accept only identical nonempty test-node
+  sets, including parametrized cases. A small standalone pytest hook must also
+  record final node IDs, native runnable mode and effective addopts at the test
+  loop boundary for each probe: the baseline must report no
+  addopts and the configured probe must match the inspected eligible options.
+  This binds proof to native version/suffix/section precedence rather than
+  assuming the static config inspector selected the same settings. Missing,
+  malformed or mismatched native config receipts fail closed.
+  Collection errors or incomplete evidence
+  remain E230 with a visible diagnostic; actual test execution remains unchanged.
+  Probes import consumer test modules and conftest but stop normal test bodies
+  or fixtures. It is used only where configuration was already E230-blocked;
+  ordinary benign config keeps the static fast path. Use the existing execution
+  environment cleanup and resolver, preserve consumer plugins, and do not cache
+  approvals across config/source changes. No custom marker-expression or Python
+  control-flow analyzer is introduced.
+  Bound supported config syntax to -m/-k (including attached values), --ignore,
+  --ignore-glob and --deselect plus common presentation/strictness flags.
+  Bound command syntax to explicit file/directory targets, the same benign flags,
+  and a single explicit -c/--config-file choice. Reject argument-file expansion
+  and ambiguous implicit config discovery: nearer config candidates or aliased/
+  outside-root targets require an explicit config choice. Other options/wrappers remain rejected
+  when collection proof would be needed. The probe uses existing timeouts and
+  temporary evidence, without rewriting configuration or replacing a failed
+  probe with a fabricated successful result.
+temptations:
+- risk: Do not assume negative marker expressions or unrelated-looking ignore paths are harmless.
+  instead: Compare exact native collected node identities and reject omitted or changed cases.
+- risk: Do not run test bodies during proof or strip selectors from actual execution.
+  instead: Keep native collection flags unchanged, stop normal pytest dispatch through an owned plugin, and retain the original validate command for execution.
+- risk: Do not infer unknown command flags or use cached proof after inputs change.
+  instead: Keep a bounded syntax allowlist and gather fresh evidence on each eligible check.
+files:
+  create:
+  - path: maid_runner/core/_pytest_addopts_selection.py
+    artifacts:
+    - kind: function
+      name: pytest_addopts_collection_error
+      args:
+      - {name: project_root, type: Path}
+      - {name: command, type: 'Sequence[str]'}
+      returns: str | None
+      description: Return no error only for supported syntax with matching nonempty native collection; otherwise explain why selection cannot be proven.
+  scope:
+  - path: maid_runner/core/_validation_test_artifacts.py
+    reason: Replace blanket config-selector rejection with bounded native collection proof while retaining E230 on failed or unsupported proof.
+  - path: docs/troubleshooting.md
+    reason: Explain native collection proof and conservative supported syntax for pytest config selectors at E230.
+  read:
+  - tests/core/validation/test_pytest_addopts_selection_proof.py
+  - maid_runner/core/_pytest_config_addopts.py
+  - maid_runner/core/_pytest_worker_execution.py
+  - maid_runner/core/_pytest_timing_plugin.py
+  - maid_runner/core/_test_command_execution.py
+  - maid_runner/core/_test_runner_invocation.py
+  - maid_runner/core/test_runner.py
+validate:
+- [uv, run, pytest, tests/core/validation/test_pytest_addopts_selection_proof.py, -q]
+
+outcome:
+  status: completed
+  completed_at: '2026-09-28T12:24:41Z'
+  summary: Accepted harmless supported pytest config selectors using fresh native selection proof,
+    while preserving the original test command and rejecting omitted tests, nonexecuting modes, config
+    mismatches and incomplete evidence.
+  rationale: The reported marker exclusion and unrelated ignored directory now pass when the same
+    nonempty test-node set remains. Probes use the resolved consumer environment and supervised subprocess
+    executor, preserve native collection-mode flags, and stop normal fixture/test dispatch through
+    an owned pytest plugin. Final node IDs, runnable mode, native addopts and collection-error state
+    bind evidence to actual pytest semantics. Syntax limits, config ambiguity checks and fresh per-call
+    evidence keep unsupported cases fail-closed; configuration and actual execution are not rewritten.
+  lessons:
+  - lesson_type: validation-trust
+    summary: 'A native selection proof must bind to effective config and normal runnable mode, not
+      just compare collect-only output: version/suffix precedence and collect-only-specific hooks
+      can otherwise hide skipped execution.'
+    tags:
+    - pytest
+    - e230
+    - native-evidence
+    - maid-runner-feedback
+    paths:
+    - maid_runner/core/_pytest_addopts_selection.py
+    - tests/core/validation/test_pytest_addopts_selection_proof.py
+  - lesson_type: test-design
+    summary: Exercise both preserved and omitted parametrized/dynamically marked cases, config precedence
+      across pytest versions, missing/corrupt evidence, custom dispatch and partial collection failures
+      whose exit code is masked. Assertions should verify that probes never perform normal fixture/test
+      dispatch.
+    tags:
+    - pytest
+    - collection
+    - behavioral-tests
+    - maid-runner-feedback
+    paths:
+    - tests/core/validation/test_pytest_addopts_selection_proof.py
+  review_notes:
+  - source: independent-read-only-addopts_guarded_review
+    severity: ready
+    summary: No blocking findings or actionable advisories. Reviewer independently ran 38 cases with
+      two pytest9-specific skips, implementation validation, and checked complete scope and native
+      proof/dispatch boundaries. The coordinator separately ran all 40 cases on pytest 9.0.2 and
+      reconciled final broad gates.
+  validation:
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/fix-pytest-addopts-selection-proof.manifest.yaml
+    status: passed
+    summary: 38 contract cases passed on pytest 8.4.2, with two version-specific skips. An additional
+      189 config, worker, invocation/target, CLI and documentation regressions passed; Ruff/Black/diff
+      checks passed.
+  - command:
+    - uv
+    - run
+    - --with
+    - pytest==9.0.2
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/validation/test_pytest_addopts_selection_proof.py
+    status: passed
+    summary: All 40 cases passed, including native pytest.toml and .pytest.toml precedence.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: 314 active manifests passed; 367 superseded manifests skipped.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: failed
+    summary: '302 of 303 commands passed. Batched pytest: 5014 passed, 11 skipped, 2 failed. The
+      failures remain the two unchanged release-metadata assertions in tests/integration/test_library_api.py
+      expecting a missing Unreleased changelog heading.'
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - f6eedfca
+    status: passed
+    summary: All 11 stages passed with plan-lock revision 8 and recorded preimplementation red evidence.
+      Existing E307 ts_compiler_resolver.cjs warning remains nonblocking.

@@ -887,29 +887,29 @@ def _pytest_config_addopts_integrity_errors(
         config_source = _pytest_config_addopts_source(project_root, command)
         config_label = config_source or "pytest config"
         synthetic_pytest_segment = ["python", "-m", "pytest", *addopts_args]
-        if _has_non_executing_test_runner_mode(synthetic_pytest_segment):
-            errors.append(
-                _validate_command_integrity_error(
-                    manifest,
-                    command,
-                    (
-                        f"{config_label} pytest addopts put the test runner in a "
-                        f"non-executing mode: {_format_addopts(addopts_args)}"
-                    ),
-                )
-            )
+        if not (
+            _has_non_executing_test_runner_mode(synthetic_pytest_segment)
+            or _has_test_runner_selector(synthetic_pytest_segment)
+        ):
             continue
-        if _has_test_runner_selector(synthetic_pytest_segment):
-            errors.append(
-                _validate_command_integrity_error(
-                    manifest,
-                    command,
-                    (
-                        f"{config_label} pytest addopts can select or deselect "
-                        f"behavioral tests: {_format_addopts(addopts_args)}"
-                    ),
-                )
+        from maid_runner.core._pytest_addopts_selection import (
+            pytest_addopts_collection_error,
+        )
+
+        proof_error = pytest_addopts_collection_error(project_root, command)
+        if proof_error is None:
+            continue
+        errors.append(
+            _validate_command_integrity_error(
+                manifest,
+                command,
+                (
+                    f"{config_label} pytest addopts cannot prove complete "
+                    f"behavioral test selection: {_format_addopts(addopts_args)}. "
+                    f"{proof_error}"
+                ),
             )
+        )
     return errors
 
 

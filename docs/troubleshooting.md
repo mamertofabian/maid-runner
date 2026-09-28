@@ -194,6 +194,33 @@ Fix: Use a real test command such as `uv run python -m pytest -q <tests>`.
 Include every contextual behavioral test file in the manifest's validate
 command.
 
+For pytest configuration `addopts`, marker/name selectors (`-m`, `-k`) and
+path exclusions (`--ignore`, `--ignore-glob`, `--deselect`) may be harmless for
+an explicit test target. MAID accepts supported combinations only when two
+native pytest collection probes produce the same nonempty set of test IDs,
+including parametrized cases. One probe neutralizes `addopts`; the other keeps
+the configured command intact. These probes import test modules and
+`conftest.py`, then stop pytest's normal test/fixture dispatch through an owned
+plugin. They preserve native collection-mode flags so collection hooks see
+the same mode as a real run. The actual test command and configuration are
+not rewritten.
+
+Each probe also reports pytest's native runnable mode and effective `addopts`.
+Collection failures remain blocking even when a consumer changes the exit code.
+If native options differ
+from the inspected options (for example because a pytest version or config
+file suffix changes precedence), or native evidence is unavailable, MAID
+retains `E230` instead of assuming the configuration is safe.
+
+This proof supports simple `pytest`, `python -m pytest`, and `uv run` forms,
+explicit file/directory targets and one config-file choice, and common verbosity
+and strictness flags. A nearer config or an aliased/outside-root target requires
+an explicit `-c`/`--config-file` choice. Argument files (`@file`) and repeated
+config choices are unsupported for this proof. Non-executing modes, unsupported options/wrappers,
+collection errors, empty collection, or changed test IDs retain `E230` with a
+diagnostic. Use explicit test targets and reconcile filters that omit declared
+cases; do not treat a failed collection probe as evidence that tests ran.
+
 ### 18. Declared artifact is not defined (`E300`)
 
 Symptom: `maid validate --mode implementation` reports `E300`.
