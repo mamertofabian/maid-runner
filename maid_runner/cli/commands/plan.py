@@ -924,6 +924,21 @@ def _cmd_plan_revise_with_stashed_implementation(
             if contracted_writable_paths
             else set()
         )
+        if any(
+            spec.path.replace("\\", "/") not in behavioral_test_paths
+            for spec in manifest.files_scope
+        ):
+            # Planning inventory can accompany scope-only implementation, but
+            # ordinary read-only source context must remain ineligible.
+            read_stash_paths.update(
+                normalized_path
+                for path in manifest.files_read
+                for normalized_path in [path.replace("\\", "/")]
+                if len(normalized_path.split("/")) == 3
+                and normalized_path.startswith("manifests/drafts/")
+                and normalized_path.endswith(".epic.yaml")
+                and normalized_path not in behavioral_test_paths
+            )
         read_stash_paths.discard(manifest_rel)
         read_stash_paths.discard(lock_rel)
         target_paths = tuple(
@@ -975,6 +990,14 @@ def _cmd_plan_revise_with_stashed_implementation(
             sibling_dirty_paths if not allow_sibling_dirty else []
         )
         if refused_dirty_paths:
+            declaration_guidance = (
+                "Declare narrow wiring files under files.read to include "
+                "them in the targeted stash"
+                if contracted_writable_paths
+                else "Scope-only contracts keep ordinary files.read context "
+                "read-only. Declare authorized implementation wiring under "
+                "files.scope to include it in the targeted stash"
+            )
             own_surface_detail = (
                 " --allow-sibling-dirty applies only outside the manifest's own "
                 "declared surface."
@@ -984,8 +1007,9 @@ def _cmd_plan_revise_with_stashed_implementation(
             print_error(
                 "--stash-implementation refuses unrelated dirty path(s): "
                 + ", ".join(sorted(refused_dirty_paths))
-                + ". Declare narrow wiring files under files.read to include "
-                "them in the targeted stash, or use --allow-sibling-dirty to "
+                + ". "
+                + declaration_guidance
+                + ", or use --allow-sibling-dirty to "
                 "tolerate and audit sibling-manifest work." + own_surface_detail,
                 json_mode=ctx.json_mode,
             )

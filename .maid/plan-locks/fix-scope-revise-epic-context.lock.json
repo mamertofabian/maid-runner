@@ -1,0 +1,196 @@
+{
+  "manifest_path": "manifests/fix-scope-revise-epic-context.manifest.yaml",
+  "manifest_hash": "sha256-contract:75fb2b55228116600a02b141725aebd4fdeb5c74bc8787947e61ca6ee72c46d9",
+  "test_hashes": {
+    "tests/cli/test_plan_cmd_stash_scope_targets.py": "sha256-pyast:v2:274b7b1f8a2bc7a5189d60cf4446b1edddb94ed6e8362f80197028c539bdb8d3",
+    "tests/cli/test_stash_revise_files_read_targets.py": "sha256-pyast:v2:c3206abb83e16f8031788b2ca0b856463d2b441fbd5d88a3a6e289b59825932e",
+    "tests/cli/test_plan_revise_scope_epic.py": "sha256-pyast:v2:5384246fb52b4c751194cd9e66dfe9573e1d3157bea4395e2ae4b828a9850c01"
+  },
+  "created_at": "2026-09-29T23:41:51.362923+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:df19a6ccc1d7891630efa097ce102dea65af35336eb474e073846f653f032f01",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_scope_targets.py": "sha256-pyast:v2:274b7b1f8a2bc7a5189d60cf4446b1edddb94ed6e8362f80197028c539bdb8d3",
+        "tests/cli/test_stash_revise_files_read_targets.py": "sha256-pyast:v2:c3206abb83e16f8031788b2ca0b856463d2b441fbd5d88a3a6e289b59825932e",
+        "tests/cli/test_plan_revise_scope_epic.py": "sha256-pyast:v2:4b555be810256e185016eaf5efa1c72b262324b5fc6bd85d040295716d138b2a"
+      },
+      "revised_at": "2026-09-29T23:41:56.954241+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-scope-revise-epic-context.manifest.yaml -> manifests/fix-scope-revise-epic-context.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:dd4e30a40dce4bc69dec10f88ada93e1f837825588959afbade723be8368402f",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_scope_targets.py": "sha256-pyast:v2:274b7b1f8a2bc7a5189d60cf4446b1edddb94ed6e8362f80197028c539bdb8d3",
+        "tests/cli/test_stash_revise_files_read_targets.py": "sha256-pyast:v2:c3206abb83e16f8031788b2ca0b856463d2b441fbd5d88a3a6e289b59825932e",
+        "tests/cli/test_plan_revise_scope_epic.py": "sha256-pyast:v2:4b555be810256e185016eaf5efa1c72b262324b5fc6bd85d040295716d138b2a"
+      },
+      "revised_at": "2026-09-29T23:43:04.279709+00:00",
+      "reason": "Correct failed-red-capture assertion to established exit code 1; retain exact capture diagnostics and restoration requirements",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:dd4e30a40dce4bc69dec10f88ada93e1f837825588959afbade723be8368402f",
+      "prior_test_hashes": {
+        "tests/cli/test_plan_cmd_stash_scope_targets.py": "sha256-pyast:v2:274b7b1f8a2bc7a5189d60cf4446b1edddb94ed6e8362f80197028c539bdb8d3",
+        "tests/cli/test_stash_revise_files_read_targets.py": "sha256-pyast:v2:c3206abb83e16f8031788b2ca0b856463d2b441fbd5d88a3a6e289b59825932e",
+        "tests/cli/test_plan_revise_scope_epic.py": "sha256-pyast:v2:5384246fb52b4c751194cd9e66dfe9573e1d3157bea4395e2ae4b828a9850c01"
+      },
+      "revised_at": "2026-09-29T23:44:09.553256+00:00",
+      "reason": "Run all declared behavioral dependency modules as required by test-command integrity; no implementation-scope change",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/cli/test_plan_revise_scope_epic.py tests/cli/test_plan_cmd_stash_scope_targets.py tests/cli/test_stash_revise_files_read_targets.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/cli/test_plan_revise_scope_epic.py"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-29T23:44:12.915886+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_plan_revise_scope_epic.py tests/cli/test_plan_cmd_stash_scope_targets.py tests/cli/test_stash_revise_files_read_targets.py",
+        "exit_code": 1,
+        "output_tail": "    \n        args = _revise_args(manifest, tmp_path, \"context stays protected\")\n        args.allow_sibling_dirty = True\n        result = cmd_plan_revise(args)\n    \n        assert result == 2\n        assert default_plan_lock_path(tmp_path, \"scope-task\").read_bytes() == original_lock\n        assert route.read_text() == \"wired = True\\n\"\n>       assert \"files.scope\" in capsys.readouterr().err\nE       assert 'files.scope' in \"Error: --stash-implementation refuses unrelated dirty path(s): manifests/drafts/scope-task.epic.yaml, src/context.py....ate and audit sibling-manifest work. --allow-sibling-dirty applies only outside the manifest's own declared surface.\\n\"\nE        +  where \"Error: --stash-implementation refuses unrelated dirty path(s): manifests/drafts/scope-task.epic.yaml, src/context.py....ate and audit sibling-manifest work. --allow-sibling-dirty applies only outside the manifest's own declared surface.\\n\" = CaptureResult(out=\"Locked plan 'scope-task' at revision 1 (0 behavioral test file(s), /tmp/pytest-of-atomrem/pytest-14...te and audit sibling-manifest work. --allow-sibling-dirty applies only outside the manifest's own declared surface.\\n\").err\nE        +    where CaptureResult(out=\"Locked plan 'scope-task' at revision 1 (0 behavioral test file(s), /tmp/pytest-of-atomrem/pytest-14...te and audit sibling-manifest work. --allow-sibling-dirty applies only outside the manifest's own declared surface.\\n\") = readouterr()\nE        +      where readouterr = <_pytest.capture.CaptureFixture object at 0x7962ccd7f7a0>.readouterr\n\ntests/cli/test_plan_revise_scope_epic.py:190: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_plan_revise_scope_epic.py::test_scope_revision_stashes_and_restores_declared_untracked_epic\nFAILED tests/cli/test_plan_revise_scope_epic.py::test_scope_revision_restores_tracked_epic_after_failed_red_capture\nFAILED tests/cli/test_plan_revise_scope_epic.py::test_scope_revision_still_rejects_dirty_read_source_with_declared_epic\n3 failed, 8 passed in 3.11s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:kind=function",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:returns=int",
+      "tests/cli/test_plan_revise_scope_epic.py:test_scope_revision_restores_tracked_epic_after_failed_red_capture",
+      "tests/cli/test_plan_revise_scope_epic.py:test_scope_revision_restores_tracked_epic_after_failed_red_capture:kind=test_function",
+      "tests/cli/test_plan_revise_scope_epic.py:test_scope_revision_stashes_and_restores_declared_untracked_epic",
+      "tests/cli/test_plan_revise_scope_epic.py:test_scope_revision_stashes_and_restores_declared_untracked_epic:kind=test_function",
+      "tests/cli/test_plan_revise_scope_epic.py:test_scope_revision_still_rejects_dirty_read_source_with_declared_epic",
+      "tests/cli/test_plan_revise_scope_epic.py:test_scope_revision_still_rejects_dirty_read_source_with_declared_epic:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_plan_revise_scope_epic.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/plan.py"
+      ],
+      "read": [
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/plan_lock.py",
+        "maid_runner/core/types.py",
+        "manifests/082-03-stash-revise-files-read-wiring-paths.manifest.yaml",
+        "manifests/fix-stash-revise-scope-targets.manifest.yaml",
+        "tests/cli/test_plan_cmd_stash_scope_targets.py",
+        "tests/cli/test_stash_revise_files_read_targets.py"
+      ],
+      "scope": [
+        "docs/draft-manifest-workflow.md",
+        "maid_runner/docs/draft-manifest-workflow.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_plan_revise_scope_epic.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_scope_revision_stashes_and_restores_declared_untracked_epic",
+              "description": "Revision captures red only with both route implementation and declared untracked epic hidden, then restores both and leaves no stash."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_scope_revision_restores_tracked_epic_after_failed_red_capture",
+              "description": "Green revised tests refuse capture after stash admission and restore dirty tracked epic and route without changing the old lock."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_scope_revision_still_rejects_dirty_read_source_with_declared_epic",
+              "description": "Epic eligibility does not make ordinary dirty read-only source eligible; refusal preserves all work and the lock."
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/plan.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_plan_revise",
+              "description": "Revise plan locks with targeted stash recovery for declared epic inventory alongside scope-only implementation while preserving read-source refusals.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/types.py",
+        "maid_runner/core/plan_lock.py",
+        "maid_runner/core/manifest.py",
+        "tests/cli/test_plan_cmd_stash_scope_targets.py",
+        "tests/cli/test_stash_revise_files_read_targets.py",
+        "manifests/fix-stash-revise-scope-targets.manifest.yaml",
+        "manifests/082-03-stash-revise-files-read-wiring-paths.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "docs/draft-manifest-workflow.md",
+          "reason": "Document the narrow scope-only epic recovery exception beside the existing read-context refusal."
+        },
+        {
+          "path": "maid_runner/docs/draft-manifest-workflow.md",
+          "reason": "Synchronize packaged workflow guidance with the source document."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_plan_cmd_stash_scope_targets.py",
+      "tests/cli/test_plan_revise_scope_epic.py",
+      "tests/cli/test_stash_revise_files_read_targets.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_plan_revise_scope_epic.py tests/cli/test_plan_cmd_stash_scope_targets.py tests/cli/test_stash_revise_files_read_targets.py"
+    ],
+    "acceptance_commands": []
+  }
+}

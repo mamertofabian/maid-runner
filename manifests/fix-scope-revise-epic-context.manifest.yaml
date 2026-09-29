@@ -1,0 +1,163 @@
+# manifest-kind: draft
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Allow scope-only plan revision to stash declared epic planning context
+type: fix
+created: '2026-09-29T23:41:56Z'
+metadata:
+  priority: high
+  tags: [plan-lock, files-scope, stash-implementation]
+description: |
+  Resolve the scope-only revision report 20260928-152252-scope-only-revision-epic.
+  A child with only files.scope implementation currently rejects its dirty
+  files.read epic before red capture, even with --allow-sibling-dirty.
+  Permit explicitly declared manifests/drafts/*.epic.yaml planning inventory
+  as targeted stash inputs when a non-test writable scope path exists.
+  Keep ordinary dirty read-only source paths rejected for scope-only plans;
+  this extends planning recovery without authorizing production writes.
+  Hide eligible epic changes during red capture and restore byte-identical
+  contents on success and failed capture, including untracked epics.
+  Keep behavioral tests visible and existing staged-target refusals intact.
+  Make dirty-read refusal guidance accurate for scope-only contracts.
+  Existing cmd_plan_revise signatures and previous ordinary read-context
+  rejection contracts remain unchanged; this is an additive recovery case.
+  Outcome lessons from fix-stash-revise-scope-targets and 082-03 informed the
+  isolated test module, exact stash targeting, and preserved context rejection.
+temptations:
+- risk: Treat every files.read entry as stashable for scope-only contracts.
+  instead: Limit the new exception to explicitly declared epic inventory under manifests/drafts with a non-test writable scope target; retain ordinary dirty read-context refusal.
+- risk: Merely tolerate dirty epic content while capturing red evidence.
+  instead: Include eligible epic paths in the exact targeted stash and prove capture sees them hidden before byte-identical restoration.
+- risk: Accept a failed revise as proof of safe restoration without reaching capture.
+  instead: Assert that the failed-capture scenario passes dirty-path admission and preserves both the old lock and restored worktree.
+files:
+  edit:
+  - path: maid_runner/cli/commands/plan.py
+    artifacts:
+    - kind: function
+      name: cmd_plan_revise
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Revise plan locks with targeted stash recovery for declared epic inventory alongside scope-only implementation while preserving read-source refusals.
+  create:
+  - path: tests/cli/test_plan_revise_scope_epic.py
+    artifacts:
+    - kind: test_function
+      name: test_scope_revision_stashes_and_restores_declared_untracked_epic
+      description: Revision captures red only with both route implementation and declared untracked epic hidden, then restores both and leaves no stash.
+    - kind: test_function
+      name: test_scope_revision_restores_tracked_epic_after_failed_red_capture
+      description: Green revised tests refuse capture after stash admission and restore dirty tracked epic and route without changing the old lock.
+    - kind: test_function
+      name: test_scope_revision_still_rejects_dirty_read_source_with_declared_epic
+      description: Epic eligibility does not make ordinary dirty read-only source eligible; refusal preserves all work and the lock.
+  scope:
+  - path: docs/draft-manifest-workflow.md
+    reason: Document the narrow scope-only epic recovery exception beside the existing read-context refusal.
+  - path: maid_runner/docs/draft-manifest-workflow.md
+    reason: Synchronize packaged workflow guidance with the source document.
+  read:
+  - maid_runner/core/types.py
+  - maid_runner/core/plan_lock.py
+  - maid_runner/core/manifest.py
+  - tests/cli/test_plan_cmd_stash_scope_targets.py
+  - tests/cli/test_stash_revise_files_read_targets.py
+  - manifests/fix-stash-revise-scope-targets.manifest.yaml
+  - manifests/082-03-stash-revise-files-read-wiring-paths.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/cli/test_plan_revise_scope_epic.py tests/cli/test_plan_cmd_stash_scope_targets.py tests/cli/test_stash_revise_files_read_targets.py
+outcome:
+  status: completed
+  completed_at: '2026-09-29T23:47:42Z'
+  summary: Scope-only stash-backed revision now admits declared manifests/drafts/*.epic.yaml
+    planning inventory when non-test writable scope exists, hides it during red capture,
+    and restores it afterward. Ordinary dirty read-only source remains refused with
+    actionable files.scope guidance.
+  rationale: The existing artifact-bearing implementation guard intentionally protected
+    scope-only read context but also blocked legitimate same-task epic inventory. A
+    narrow declared-path exception preserves that guard for source context.
+  lessons:
+  - lesson_type: workflow
+    summary: Targeted recovery must distinguish declared planning inventory from ordinary
+      read-only source; eligibility must mean actual stash targeting rather than tolerated
+      dirty evidence input.
+    tags:
+    - plan-lock
+    - stash-implementation
+    paths:
+    - maid_runner/cli/commands/plan.py
+    - tests/cli/test_plan_revise_scope_epic.py
+  review_notes:
+  - source: independent-scope_epic_review
+    severity: ready
+    summary: Read-only explorer reviewer returned ready with no blocking findings or
+      actionable advisories; independently reran 11 tests, implementation validation,
+      and checked documentation synchronization.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/cli/test_plan_revise_scope_epic.py
+    - tests/cli/test_plan_cmd_stash_scope_targets.py
+    - tests/cli/test_stash_revise_files_read_targets.py
+    - tests/cli/test_plan_cmd_stash_implementation.py
+    - tests/cli/test_plan_cmd_stash_import_obstruction.py
+    - tests/cli/test_plan_cmd_stash_declared_sql_tests.py
+    status: passed
+    summary: 37 focused and adjacent stash-revision tests passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --quiet
+    - --packet
+    status: passed
+    summary: Repository-wide validation passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/fix-scope-revise-epic-context.manifest.yaml
+    status: passed
+    summary: Declared command passed all 11 tests.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - 2db5c199437ffd6f70b52add75509fe586b8e865
+    - --summary
+    - --packet
+    status: passed
+    summary: All 11 gates passed with no blockers; existing E307 validator warning remained
+      nonblocking.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: failed-unrelated
+    summary: '303 of 304 commands passed. Baseline release-metadata failures reproduced
+      in tests/integration/test_library_api.py: two assertions require an Unreleased
+      CHANGELOG heading; both test file and CHANGELOG unchanged from baseline.'
