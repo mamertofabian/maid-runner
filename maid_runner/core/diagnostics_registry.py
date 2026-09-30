@@ -130,6 +130,12 @@ _HELP_ANCHORS = {
 }
 
 _DESCRIPTION_OVERRIDES = {
+    ErrorCode.COMPILER_RETURN_CONTRACT_UNAVAILABLE.value: (
+        "Compiler return contract unavailable",
+        "The requested TypeScript return contract could not be proved using the "
+        "local compiler and explicit owning configuration. Inspect the proof "
+        "diagnostics; no syntactic fallback was used.",
+    ),
     ErrorCode.CHANGED_FILE_OUTSIDE_MANIFEST_SCOPE.value: (
         "Changed file is outside manifest scope",
         "The worktree contains a changed file that is not declared by the "

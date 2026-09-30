@@ -20,12 +20,18 @@ from maid_runner.core._validation_test_artifacts import (
     collection_errors_to_validation_errors,
 )
 from maid_runner.core.chain import ManifestChain
+from maid_runner.core.config import load_config
 from maid_runner.core.diagnostic_policy import (
     no_validator_guidance,
     no_validator_severity,
 )
 from maid_runner.core.result import ErrorCode, Location, Severity, ValidationError
 from maid_runner.core.ts_module_paths import resolve_ts_import, resolve_ts_reexport
+from maid_runner.core.ts_return_contracts import (
+    ReturnContractExpectation,
+    ReturnContractResult,
+    check_return_contracts,
+)
 from maid_runner.core.types import ArtifactKind, ArtifactSpec, FileSpec, Manifest
 from maid_runner.validators.base import FoundArtifact
 from maid_runner.validators.registry import UnsupportedLanguageError, ValidatorRegistry
@@ -35,6 +41,10 @@ from maid_runner.validators.registry import UnsupportedLanguageError, ValidatorR
 _STRUCTURAL_KINDS = frozenset({ArtifactKind.TYPE, ArtifactKind.INTERFACE})
 _DEFAULT_HOOK_KINDS = frozenset({ArtifactKind.FUNCTION, ArtifactKind.METHOD})
 _TypeMatcher = Callable[[Optional[str], Optional[str]], bool]
+_ReturnContractChecker = Callable[
+    [Path, str, str, str, tuple[ReturnContractExpectation, ...]], ReturnContractResult
+]
+_ReturnDecisions = dict[tuple[str, Optional[int], str], tuple[ValidationError, ...]]
 
 
 class ImplementationFileValidator:
@@ -46,10 +56,16 @@ class ImplementationFileValidator:
         registry: ValidatorRegistry,
         *,
         check_stubs: bool = False,
+        return_contract_checker: Optional[_ReturnContractChecker] = None,
     ) -> None:
         self._project_root = project_root
         self._registry = registry
         self._check_stubs = check_stubs
+        self._return_contract_checker = (
+            check_return_contracts
+            if return_contract_checker is None
+            else return_contract_checker
+        )
 
     def validate_file_spec(
         self,
@@ -109,12 +125,22 @@ class ImplementationFileValidator:
 
         expected = self._expected_artifacts(fs, chain)
         is_strict = self._is_strict(fs, chain)
+        return_decisions = _compiler_return_decisions(
+            expected,
+            collection.artifacts,
+            fs.path,
+            source,
+            self._project_root,
+            self._return_contract_checker,
+            validator.types_match,
+        )
         errors = _compare_artifacts(
             expected=expected,
             found=collection.artifacts,
             file_path=fs.path,
             is_strict=is_strict,
             type_matcher=validator.types_match,
+            return_decisions=return_decisions,
         )
 
         if self._check_stubs:
@@ -182,6 +208,124 @@ class ImplementationFileValidator:
         return is_strict
 
 
+def _compiler_return_decisions(
+    expected: list[ArtifactSpec],
+    found: list[FoundArtifact],
+    file_path: str,
+    source: str,
+    project_root: Path,
+    checker: _ReturnContractChecker,
+    type_matcher: _TypeMatcher,
+) -> _ReturnDecisions:
+    """Batch proof requests and keep their decisions separate from raw artifacts."""
+    if Path(file_path).suffix not in (".ts", ".tsx"):
+        return {}
+    found = _project_canonical_artifacts(expected, found)
+    by_key: dict[str, list[FoundArtifact]] = {}
+    for artifact in found:
+        by_key.setdefault(artifact.merge_key(), []).append(artifact)
+    by_contract = {artifact.contract_key(): artifact for artifact in found}
+    requested: list[tuple[ArtifactSpec, FoundArtifact]] = []
+    for spec in expected:
+        if not spec.returns or spec.kind not in _DEFAULT_HOOK_KINDS:
+            continue
+        artifact, _ = _found_artifact_for_spec(
+            spec, by_key, by_contract, file_path, type_matcher=type_matcher
+        )
+        if (
+            artifact is not None
+            and artifact.kind == spec.kind
+            and artifact.returns is None
+        ):
+            requested.append((spec, artifact))
+    if not requested:
+        return {}
+    config = load_config(project_root).typescript_return_contracts
+    if config.mode != "compiler":
+        return {}
+
+    decisions: _ReturnDecisions = {}
+    supported: list[tuple[ArtifactSpec, FoundArtifact]] = []
+    for spec, artifact in requested:
+        if (
+            spec.kind != ArtifactKind.FUNCTION
+            or artifact.of is not None
+            or artifact.line is None
+        ):
+            decisions[_return_decision_key(spec, artifact)] = (
+                _return_proof_error(
+                    spec,
+                    artifact,
+                    file_path,
+                    ErrorCode.COMPILER_RETURN_CONTRACT_UNAVAILABLE,
+                    "Only named top-level function declarations support compiler return proofs",
+                ),
+            )
+        else:
+            supported.append((spec, artifact))
+    if not supported:
+        return decisions
+    expectations = tuple(
+        ReturnContractExpectation(spec.name, artifact.line, spec.returns)
+        for spec, artifact in supported
+    )
+    try:
+        # Compiler mode's validated configuration guarantees an explicit path.
+        if config.tsconfig is None:
+            raise ValueError("Compiler mode requires explicit owning tsconfig")
+        proof = checker(project_root, file_path, config.tsconfig, source, expectations)
+        if len(proof.items) != len(supported):
+            raise ValueError("Compiler proof batch count mismatch")
+    except (OSError, TimeoutError, ValueError) as exc:
+        for spec, artifact in supported:
+            decisions[_return_decision_key(spec, artifact)] = (
+                _return_proof_error(
+                    spec,
+                    artifact,
+                    file_path,
+                    ErrorCode.COMPILER_RETURN_CONTRACT_UNAVAILABLE,
+                    str(exc),
+                ),
+            )
+        return decisions
+    for (spec, artifact), item in zip(supported, proof.items):
+        key = _return_decision_key(spec, artifact)
+        if (item.name, item.line) != (spec.name, artifact.line):
+            code = ErrorCode.COMPILER_RETURN_CONTRACT_UNAVAILABLE
+            detail = "Compiler proof declaration identity mismatch"
+        elif item.status == "matched":
+            decisions[key] = ()
+            continue
+        elif item.status == "mismatched":
+            code = ErrorCode.TYPE_MISMATCH
+            detail = f"Expected '{spec.returns}', inferred '{item.inferred_type}'"
+        else:
+            code = ErrorCode.COMPILER_RETURN_CONTRACT_UNAVAILABLE
+            detail = "; ".join(item.diagnostics) or "Compiler return proof unavailable"
+        decisions[key] = (_return_proof_error(spec, artifact, file_path, code, detail),)
+    return decisions
+
+
+def _return_decision_key(
+    spec: ArtifactSpec, artifact: FoundArtifact
+) -> tuple[str, Optional[int], str]:
+    return spec.contract_key(), artifact.line, spec.returns or ""
+
+
+def _return_proof_error(
+    spec: ArtifactSpec,
+    artifact: FoundArtifact,
+    file_path: str,
+    code: ErrorCode,
+    detail: str,
+) -> ValidationError:
+    return ValidationError(
+        code=code,
+        message=f"Compiler return contract for '{spec.qualified_name}': {detail}",
+        location=Location(file=file_path, line=artifact.line),
+    )
+
+
 def compare_artifacts(
     expected: list[ArtifactSpec],
     found: list[FoundArtifact],
@@ -205,6 +349,7 @@ def _compare_artifacts(
     is_strict: bool,
     *,
     type_matcher: _TypeMatcher,
+    return_decisions: Optional[_ReturnDecisions] = None,
 ) -> list[ValidationError]:
     errors: list[ValidationError] = []
     found = _project_canonical_artifacts(expected, found)
@@ -222,6 +367,7 @@ def _compare_artifacts(
             found_by_contract_key,
             file_path,
             type_matcher=type_matcher,
+            return_decisions=return_decisions,
         )
         if fa is None:
             errors.append(
@@ -236,7 +382,13 @@ def _compare_artifacts(
         errors.extend(
             comparison
             if comparison is not None
-            else _compare_single(spec, fa, file_path, type_matcher=type_matcher)
+            else _compare_single(
+                spec,
+                fa,
+                file_path,
+                type_matcher=type_matcher,
+                return_decisions=return_decisions,
+            )
         )
 
     if is_strict:
@@ -327,6 +479,7 @@ def _found_artifact_for_spec(
     file_path: str,
     *,
     type_matcher: _TypeMatcher,
+    return_decisions: Optional[_ReturnDecisions] = None,
 ) -> tuple[Optional[FoundArtifact], Optional[list[ValidationError]]]:
     if spec.signature is not None:
         return found_by_contract_key.get(spec.contract_key()), None
@@ -345,7 +498,11 @@ def _found_artifact_for_spec(
     last_errors: Optional[list[ValidationError]] = None
     for candidate in reversed(candidates):
         candidate_errors = _compare_single(
-            spec, candidate, file_path, type_matcher=type_matcher
+            spec,
+            candidate,
+            file_path,
+            type_matcher=type_matcher,
+            return_decisions=return_decisions,
         )
         if last_errors is None:
             last_errors = candidate_errors
@@ -421,6 +578,7 @@ def _compare_single(
     file_path: str,
     *,
     type_matcher: _TypeMatcher = types_match,
+    return_decisions: Optional[_ReturnDecisions] = None,
 ) -> list[ValidationError]:
     errors: list[ValidationError] = []
 
@@ -515,7 +673,15 @@ def _compare_single(
                     )
                 )
 
-    if spec.returns and found.returns is None:
+    decision_key = (spec.contract_key(), found.line, spec.returns or "")
+    if (
+        spec.returns
+        and found.returns is None
+        and return_decisions is not None
+        and decision_key in return_decisions
+    ):
+        errors.extend(return_decisions[decision_key])
+    elif spec.returns and found.returns is None:
         errors.append(
             ValidationError(
                 code=ErrorCode.MISSING_RETURN_TYPE,
