@@ -1,0 +1,287 @@
+# manifest-kind: draft
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Recognize direct Node execution of the canonical Vitest package entry without
+  weakening command-integrity guards
+type: fix
+created: '2026-09-30T05:36:12Z'
+metadata:
+  priority: high
+  tags:
+  - node
+  - vitest
+  - command-integrity
+  - e230
+  bug_report: 20260928-174321-maid-node-test-command-integrity.md
+description: 'Finish the remaining direct Node-to-Vitest portion of the wallet-copy-bot
+
+  report. Native node --test was already fixed in 2f39a2cd; the literal command
+
+  node node_modules/vitest/vitest.mjs run tests/unit/example.test.ts still emits
+
+  E230 even though the corresponding local Vitest binary is supported.
+
+  Recognize only a direct Node executable invoking a literal canonical package
+
+  entry whose final path components are node_modules/vitest/vitest.mjs, immediately
+
+  followed by the explicit run subcommand. Support relative, ./-relative and
+
+  absolute literal entries, without filesystem identity or arbitrary basename
+
+  claims. Reject traversal components and shell expansion/glob markers. This is
+
+  conventional package-entry recognition, not a cryptographic SDK identity proof;
+
+  runtime test execution and evidence requirements remain unchanged.
+
+  Classify it as Vitest and route post-entry argv through the existing Vitest
+
+  nonexecution, selector and option-value policies. Strip the Node executable and
+
+  package-entry prefix consistently for target scanning, retaining run/options.
+
+  Preserve allow_node restrictions so environment, shell, uv and package-manager
+
+  wrappers or Node eval/preload/import flags do not acquire coverage accidentally.
+
+  Do not broaden native Node --test options or label arbitrary scripts as Vitest.
+
+  No dependency pins, wrapper registrations or SDK code changes are needed.
+
+  The dedicated test module exercises the public command-integrity facade; SDK
+
+  classification cases need no Node/Vitest installation. Optional runtime proof
+
+  uses MAID_TEST_VITEST_ENTRY pointing to an actual installed SDK and an isolated
+
+  temporary project, detects a seeded failing behavior, disables cache, and
+
+  removes inherited NODE_OPTIONS consistently with the existing execution boundary.
+
+  The actual installed wallet-copy-bot SDK is available for local runtime proof;
+
+  the test skips explicitly when no SDK is supplied in other environments.
+
+  Prior native-Node Outcome motivates preservation of VM flags, wrapper and
+
+  selector bounds. The bounded package-entry extension adds behavior without
+
+  changing public signatures; existing contracts and hashed tests remain intact.
+
+  Plan refinement: include the existing shell-target boundary in writable scope to
+  preserve the already-approved direct-Node restriction when the framework label is
+  Vitest. Attached equals-form Node VM flags remain disallowed script entries. Strengthen
+  behavioral coverage for these shapes; scope and tests are revised before fixes using
+  the sanctioned stash workflow.
+
+  '
+temptations:
+- risk: Treat any Node script called vitest.mjs as a known test runner.
+  instead: Require literal canonical package path components, explicit run, and existing
+    direct-Node restrictions; reject wrong layouts and dynamic paths.
+- risk: Forget nonexecution or option-value guards after stripping the Node prefix.
+  instead: Return a Vitest invocation and use existing generic target/mode parsing;
+    prove help/list/config/output cases cannot claim required coverage.
+- risk: Relax native Node VM flags, environment wrappers or inherited NODE_OPTIONS
+    to make the SDK entry pass.
+  instead: Preserve allow_node boundaries and current execution cleanup; keep negative
+    guards and the existing native-Node suite passing.
+- risk: Pretend a synthetic package stub establishes actual Vitest execution.
+  instead: Keep static classification fixtures separate from optional real-SDK execution
+    in a temporary project and require the planted-failure check.
+files:
+  edit:
+  - path: maid_runner/core/_validation_test_artifacts.py
+    artifacts:
+    - kind: function
+      name: validate_manifest_test_commands
+      args:
+      - name: manifest
+        type: Manifest
+      - name: project_root
+        type: Path
+      returns: list[ValidationError]
+      description: Public command-integrity facade accepts the bounded direct Node
+        Vitest entry as executing declared tests while preserving E230 safeguards.
+  scope:
+  - path: maid_runner/core/_test_runner_invocation.py
+    reason: Add narrow direct package-entry recognition and matching target-scan prefix
+      stripping through existing private invocation helpers.
+  - path: docs/troubleshooting.md
+    reason: Document the supported direct Node Vitest entry and its literal-path,
+      explicit-run and wrapper/VM bounds.
+  - path: maid_runner/core/_test_command_targets.py
+    reason: Retain the direct-Node allow_node restriction at the existing shell target
+      boundary even when the identified framework is Vitest; no public signature changes.
+  create:
+  - path: tests/core/validation/test_node_vitest_entry_invocation.py
+    artifacts:
+    - kind: test_function
+      name: test_direct_node_vitest_entry_covers_declared_test_targets
+      description: Canonical package-entry relative, dot-relative and absolute direct
+        Node commands cover literal file/directory selectors.
+    - kind: test_function
+      name: test_arbitrary_or_dynamic_node_scripts_do_not_claim_vitest_coverage
+      description: Arbitrary script basenames, wrong package layouts, dynamic/glob
+        paths and traversal segments retain E230.
+    - kind: test_function
+      name: test_node_vitest_nonexecuting_modes_still_report_e230
+      description: List, help, version and dry modes do not claim executing behavioral
+        tests.
+    - kind: test_function
+      name: test_node_vm_flags_and_unproven_wrappers_remain_rejected
+      description: Node eval/preload/import flags and existing unproven environment/package/uv
+        wrappers remain outside the direct-entry proof.
+    - kind: test_function
+      name: test_node_vitest_option_values_do_not_count_as_executed_test_targets
+      description: Config/output filenames do not masquerade as test selectors and
+        missing required targets retain E230.
+    - kind: test_function
+      name: test_existing_local_vitest_binary_recognition_remains_intact
+      description: Already supported local Vitest binary invocation remains recognized.
+    - kind: test_function
+      name: test_node_vitest_entry_executes_declared_suite_when_sdk_available
+      description: Optional real-SDK proof runs an isolated temporary Vitest suite
+        successfully and then detects a planted behavior failure; no fake SDK execution.
+    - kind: test_function
+      name: test_shell_wrapped_node_vitest_entry_cannot_claim_direct_execution
+      description: Both sh and bash -c/-lc wrappers must retain E230 for direct Node
+        Vitest commands instead of inheriting bare Vitest shell coverage.
+  read:
+  - maid_runner/core/_test_command_targets.py
+  - maid_runner/core/_test_command_execution.py
+  - maid_runner/core/config.py
+  - maid_runner/core/types.py
+  - maid_runner/core/result.py
+  - maid_runner/core/manifest.py
+  - manifests/fix-node-module-test-lock-coverage.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/core/validation/test_node_vitest_entry_invocation.py
+outcome:
+  status: completed
+  completed_at: '2026-09-30T05:57:41Z'
+  summary: Command integrity recognizes direct Node execution of the literal canonical
+    Vitest package entry followed by run. Attached VM options, dynamic/traversal paths,
+    nonexecuting modes, output/config values and unproven wrappers retain E230. Runtime
+    proof executes a real isolated suite and detects a planted failure.
+  rationale: Classifying the package entry as Vitest permits reuse of target and mode
+    parsing, while explicit option-prefix rejection and allow_node=False at the shell
+    boundary retain direct-Node restrictions. The shared outputFile option is consumed
+    as a value instead of a test selector. No fake SDK, dependency pins or wrapper registrations
+    were introduced.
+  lessons:
+  - lesson_type: validation-trust
+    summary: Framework relabeling can bypass guards keyed to executable identity. Preserve
+      direct-Node context at wrapper boundaries and test both split and attached VM-option
+      shapes through the public command-integrity facade; supplement static recognition
+      with real SDK success/failure proof.
+    tags:
+    - node
+    - vitest
+    - command-integrity
+    paths:
+    - maid_runner/core/_test_runner_invocation.py
+    - maid_runner/core/_test_command_targets.py
+    - tests/core/validation/test_node_vitest_entry_invocation.py
+  review_notes:
+  - source: independent-node_vitest_review
+    severity: resolved
+    summary: 'Two P1 findings: attached VM-option entries matched the package suffix,
+      and shell wrappers bypassed the Node guard after relabeling as Vitest. Added regressions,
+      declared existing shell-target wiring, refreshed lock revision3 with implementation
+      stashed, and fixed both.'
+  - source: independent-node_vitest_final_review
+    severity: ready
+    summary: Fresh read-only reviewer found no blockers; independently reran default
+      and actual SDK suites, implementation validation, and checked scope/evidence and
+      wrapper/VM guards.
+  - source: independent-node_vitest_final_review
+    severity: advisory
+    summary: Inherited bare-Vitest --root option parsing can count its value as a test
+      target. Tracked separately in ~/.maid/bug-report/20260930-055618-maid-vitest-root-option-e230.md.
+      Static misclassification reproduced; installed SDK rejected the example at runtime,
+      so no successful execution bypass is claimed.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/validation/test_node_vitest_entry_invocation.py
+    - tests/core/validation/test_test_runner_invocation.py
+    - tests/core/test_node_module_plan_lock.py
+    - tests/core/validation/test_test_command_targets.py
+    status: passed
+    summary: 101 focused/adjacent tests passed; the optional SDK case skipped without
+      configuration. Ruff and Black checks passed.
+  - command:
+    - env
+    - MAID_TEST_VITEST_ENTRY=/mnt/storage/development/crypto/wallet-copy-bot/node_modules/vitest/vitest.mjs
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/validation/test_node_vitest_entry_invocation.py
+    status: passed
+    summary: All 37 cases passed with the actual installed SDK, including isolated suite
+      success and planted behavior failure.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --quiet
+    - --packet
+    status: passed
+    summary: Repository-wide validation passed after the guard fixes.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/fix-direct-node-vitest-package-entry.manifest.yaml
+    status: passed
+    summary: Declared test command passed with 36 cases and one explicit optional SDK
+      skip.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - 3afa9093e075bbb58c4fdaa2e6ff66fd73d5b37c
+    - --summary
+    - --packet
+    status: passed
+    summary: All 11 deep gates passed without blockers; existing nonblocking E307 validator
+      warning remained.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: failed-unrelated
+    summary: '303 of 304 commands passed. Grouped pytest: 5276 passed, 12 skipped, two
+      unchanged release-metadata assertions failed because CHANGELOG.md lacks an Unreleased
+      heading. Both affected files match task baseline.'

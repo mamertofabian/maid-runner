@@ -216,6 +216,15 @@ Fix: Use a real test command such as `uv run python -m pytest -q <tests>`.
 Include every contextual behavioral test file in the manifest's validate
 command.
 
+Direct Node execution of the canonical Vitest package entry is supported:
+`node node_modules/vitest/vitest.mjs run tests/unit/example.test.ts`. Literal
+relative, `./`-relative, and absolute package-entry paths are recognized.
+The entry must end in `node_modules/vitest/vitest.mjs` and be followed by `run`;
+arbitrary script basenames, traversal, and shell expansion/glob paths do not
+qualify. Existing Vitest target and nonexecution checks still apply, so help,
+list, version, and dry modes cannot claim test execution. Node VM flags and
+unproven wrappers remain outside this direct-entry recognition rule.
+
 For pytest configuration `addopts`, marker/name selectors (`-m`, `-k`) and
 path exclusions (`--ignore`, `--ignore-glob`, `--deselect`) may be harmless for
 an explicit test target. MAID accepts supported combinations only when two

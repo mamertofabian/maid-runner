@@ -300,8 +300,10 @@ def _test_paths_from_executing_shell_segments(
         segment = _expand_shell_path_tokens(segment, variables)
         if not _runs_known_test_runner(segment, test_runner_wrappers):
             return []
-        invocation = _test_runner_invocation(segment, test_runner_wrappers)
-        if invocation is not None and invocation[0] in {_UNITTEST_TEST_RUNNER, "node"}:
+        invocation = _test_runner_invocation(
+            segment, test_runner_wrappers, allow_node=False
+        )
+        if invocation is None or invocation[0] in {_UNITTEST_TEST_RUNNER, "node"}:
             return []
         if _has_non_executing_test_runner_mode(segment, test_runner_wrappers):
             return []

@@ -274,6 +274,7 @@ _TEST_RUNNER_VALUE_FLAGS = frozenset(
         "--project",
         "--reporter",
         "--output",
+        "--outputFile",
         "--testNamePattern",
         "-t",
     }
@@ -522,6 +523,25 @@ def _pytest_ini_addopts_args(value: str) -> list[str]:
         return [value.split("=", 1)[1]]
 
 
+def _is_direct_node_vitest_entry(parts: list[str]) -> bool:
+    """Recognize only the literal Vitest package entry and explicit run mode."""
+    if len(parts) < 3 or _command_name(parts[0]) != "node" or parts[2] != "run":
+        return False
+    entry = parts[1]
+    if entry.startswith("-"):
+        return False
+    if any(
+        marker in entry for marker in ("$", "`", "*", "?", "[", "]", "{", "}", "\x00")
+    ):
+        return False
+    path_parts = Path(entry).parts
+    return ".." not in path_parts and path_parts[-3:] == (
+        "node_modules",
+        "vitest",
+        "vitest.mjs",
+    )
+
+
 def _test_runner_invocation(
     segment: list[str],
     test_runner_wrappers: tuple[TestRunnerWrapperConfig, ...] = (),
@@ -634,6 +654,9 @@ def _test_runner_invocation(
     if command in _DIRECT_TEST_RUNNERS:
         return command, parts[1:]
 
+    if allow_node and _is_direct_node_vitest_entry(parts):
+        return "vitest", parts[2:]
+
     if allow_node and command == "node" and len(parts) >= 3 and parts[1] == "--test":
         # Only positional inputs are proven here. Options can filter tests,
         # prevent execution, or consume a path without executing that file.
@@ -721,6 +744,9 @@ def _test_runner_target_scan_segment(
         return parts[2:]
 
     if command == "node" and len(parts) >= 2 and parts[1] == "--test":
+        return parts[2:]
+
+    if _is_direct_node_vitest_entry(parts):
         return parts[2:]
 
     if command == "deno" and len(parts) >= 2 and parts[1] == "test":
