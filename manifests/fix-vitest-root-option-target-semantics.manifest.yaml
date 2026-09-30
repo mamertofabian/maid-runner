@@ -1,0 +1,315 @@
+# manifest-kind: draft
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Prevent Vitest root option values from claiming test coverage while preserving
+  genuine rooted selectors
+type: fix
+created: '2026-09-30T07:01:19Z'
+metadata:
+  priority: high
+  tags:
+  - vitest
+  - command-integrity
+  - root-options
+  - e230
+  bug_report: 20260930-055618-maid-vitest-root-option-e230.md
+description: 'Fix the shared --root target-classification gap identified during the
+  direct
+
+  Node package-entry review. A root value such as tests/unit/value.test.ts currently
+
+  counts as an executed target. The actual SDK rejects that file-valued root;
+
+  this task repairs static command integrity without claiming a runtime bypass.
+
+  For known Vitest invocations only, consume --root PATH, --root=PATH and -r PATH
+
+  as runner context, never as targets. Resolve the literal existing directory
+
+  against the effective process/package/shell cwd and apply it to all explicit
+
+  selectors regardless of option order. Reject missing, empty, nonexistent,
+
+  file-valued, dynamic/glob or repeated root declarations as unproven executing
+
+  coverage. Keep discovery and executing-coverage normalization consistent.
+
+  Actual installed SDK probes confirmed both root-relative filters and cwd-relative
+
+  filters inside the selected root. Support these bounded literal file/directory
+
+  forms, but admit candidates only when they remain within the selected root and
+
+  map to repository-relative declared inventory. Deduplicate equivalent candidates;
+
+  do not double-prefix cwd-relative targets with the root. Root values alone do
+
+  not prove execution and do not persist as process cwd into later command segments.
+
+  Compose with existing supported package cwd prefixes and bare Vitest shell
+
+  context; preserve the direct-Node shell/VM restrictions delivered previously.
+
+  Leave non-Vitest flags and targets unchanged, including pytest --rootdir.
+
+  No new custom shell parser, selector language or SDK/config execution is needed.
+
+  Existing mode, selector and config/output-value guards stay authoritative.
+
+  Dedicated tests avoid shared-lock revisions. Optional real SDK proof is controlled
+
+  by MAID_TEST_VITEST_ENTRY, uses an isolated project, excludes a failing outside-root
+
+  suite and detects a planted inside-root failure. No consumer or SDK file is edited.
+
+  This additively evolves public target parsing with unchanged signatures; a new
+
+  contract is appropriate because the previous entry-recognition fix is committed.
+
+  Contract hardening: respect the SDK option delimiter so root-looking filter data
+  after -- cannot establish or override root context.
+
+  '
+temptations:
+- risk: Add --root to a global flag list and leave rooted selectors bound to the old
+    cwd.
+  instead: Normalize root context only for identified Vitest invocations, consume
+    every supported root spelling, and apply the resolved root before checking any
+    target.
+- risk: Treat the root directory or option value itself as evidence of a selected
+    test.
+  instead: Require independent explicit targets under the root and keep invalid/dangling/file-valued-root
+    E230 regressions.
+- risk: Apply root streaming in argv order or leak it into another command.
+  instead: Determine runner root before scanning selectors and retain segment-local
+    root state separate from process cwd.
+- risk: Widen wrapper, mode or non-Vitest behavior while fixing root paths.
+  instead: Reuse existing invocation guards and prove package/shell composition, direct-Node
+    restrictions through adjacent tests, and pytest-rootdir compatibility.
+files:
+  edit:
+  - path: maid_runner/core/_test_command_targets.py
+    artifacts:
+    - kind: function
+      name: test_paths_from_validate_command
+      args:
+      - name: command
+        type: tuple[str, ...]
+      - name: project_root
+        type: Path
+      - name: django_test_paths_from_validate_segment
+        type: _DjangoPathResolver | None
+      - name: test_runner_wrappers
+        type: tuple[TestRunnerWrapperConfig, ...]
+      returns: list[str]
+      description: Parse Vitest root as runner-specific selection context rather than
+        a target, retaining existing non-Vitest behavior and command boundaries.
+    - kind: function
+      name: test_paths_from_executing_validate_command
+      args:
+      - name: command
+        type: tuple[str, ...]
+      - name: project_root
+        type: Path
+      - name: allow_selectors
+        type: bool
+      - name: django_test_paths_from_validate_segment
+        type: _DjangoPathResolver | None
+      - name: test_runner_wrappers
+        type: tuple[TestRunnerWrapperConfig, ...]
+      returns: list[str]
+      description: Parse Vitest root as runner-specific selection context rather than
+        a target, retaining existing non-Vitest behavior and command boundaries.
+    - kind: function
+      name: test_files_covered_by_validate_command
+      args:
+      - name: command
+        type: tuple[str, ...]
+      - name: test_files
+        type: list[str]
+      - name: project_root
+        type: Path
+      - name: django_test_paths_from_validate_segment
+        type: _DjangoPathResolver | None
+      - name: test_runner_wrappers
+        type: tuple[TestRunnerWrapperConfig, ...]
+      returns: set[str]
+      description: Parse Vitest root as runner-specific selection context rather than
+        a target, retaining existing non-Vitest behavior and command boundaries.
+  scope:
+  - path: docs/troubleshooting.md
+    reason: Explain Vitest root option values, supported explicit selector forms and
+      fail-closed root handling.
+  create:
+  - path: tests/core/validation/test_vitest_root_option_targets.py
+    artifacts:
+    - kind: test_function
+      name: test_vitest_root_values_never_count_as_executed_test_targets
+      description: Separated, equals and short root values cannot satisfy coverage
+        for bare, local-binary or direct-Node Vitest forms.
+    - kind: test_function
+      name: test_explicit_vitest_targets_resolve_under_root_independent_of_option_order
+      description: Explicit relative test selectors bind to the root before coverage
+        checks regardless of root option ordering and spelling.
+    - kind: test_function
+      name: test_cwd_relative_filter_inside_vitest_root_remains_covered
+      description: SDK-supported working-directory-relative filters inside the root
+        remain supported without double-prefixing root paths.
+    - kind: test_function
+      name: test_vitest_root_prevents_coverage_claims_for_tests_outside_it
+      description: Targets outside the selected SDK root cannot claim coverage of
+        declared files, including traversal candidates.
+    - kind: test_function
+      name: test_absolute_literal_vitest_root_resolves_repo_relative_targets
+      description: Literal absolute root directories map selected test files back
+        to repository-relative inventory.
+    - kind: test_function
+      name: test_missing_dynamic_or_ambiguous_vitest_roots_fail_closed
+      description: Dangling, empty, nonexistent, dynamic and repeated roots cannot
+        claim executing targets.
+    - kind: test_function
+      name: test_vitest_root_bindings_compose_with_package_cwd_and_shell_context
+      description: Supported package-wrapper cwd and bare-Vitest shell context supply
+        the correct root base without altering direct-Node wrapper restrictions.
+    - kind: test_function
+      name: test_vitest_root_does_not_leak_into_following_discovery_segments
+      description: Discovery for later command segments uses process cwd rather than
+        a prior runner-specific root.
+    - kind: test_function
+      name: test_pytest_rootdir_keeps_existing_cwd_relative_target_semantics
+      description: Pytest rootdir remains an option value and does not acquire Vitest
+        root-relative path semantics.
+    - kind: test_function
+      name: test_vitest_root_runtime_proof_when_sdk_available
+      description: Optional actual SDK proof excludes a failing outside-root test
+        and catches a planted inside-root failure in an isolated project.
+    - kind: test_function
+      name: test_root_looking_filter_after_option_delimiter_does_not_change_root
+      description: SDK filters after -- are target data, not another root declaration;
+        preserve the already bound root and deduplicate equivalent selected targets.
+  read:
+  - maid_runner/core/_test_runner_invocation.py
+  - maid_runner/core/_validation_test_artifacts.py
+  - maid_runner/core/config.py
+  - maid_runner/core/types.py
+  - maid_runner/core/manifest.py
+  - maid_runner/core/result.py
+  - manifests/fix-direct-node-vitest-package-entry.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/core/validation/test_vitest_root_option_targets.py
+outcome:
+  status: completed
+  completed_at: '2026-09-30T07:30:10Z'
+  summary: Vitest root options are selection context rather than test targets. Explicit
+    rooted selectors are resolved independent of argv order, remain within the selected
+    root and repository inventory, and support root-relative/cwd-relative filters, package/shell
+    cwd and command-local state. Invalid roots, delimiter rebinding and malformed option/root
+    combinations fail closed.
+  rationale: Root values were counted as paths by generic scanning. A Vitest-only context
+    normalizer consumes root declarations before selector matching while leaving unrelated
+    runners and execution guards intact. Actual SDK probes establish legitimate selector
+    forms, and isolated runtime proof excludes a failing outside-root suite and detects
+    an inside-root failure.
+  lessons:
+  - lesson_type: validation-trust
+    summary: Runner root is not process cwd or an executing selector. Normalize root
+      context before scanning targets, preserve option delimiters and segment-local
+      state, and ensure malformed value options cannot hide a root control token. Validate
+      both SDK execution and static coverage boundaries.
+    tags:
+    - vitest
+    - root-options
+    - command-integrity
+    paths:
+    - maid_runner/core/_test_command_targets.py
+    - tests/core/validation/test_vitest_root_option_targets.py
+  review_notes:
+  - source: independent-vitest_root_final_review
+    severity: ready
+    summary: Fresh read-only reviewer found no blockers or actionable advisories; independently
+      ran 36 static cases, implementation validation and assessment, and checked revision4
+      scope/evidence, containment, delimiter/cwd behavior and unchanged guards. The
+      optional SDK test was separately executed by the coordinator.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/validation/test_vitest_root_option_targets.py
+    - tests/core/validation/test_test_command_targets.py
+    - tests/core/validation/test_node_vitest_entry_invocation.py
+    - tests/core/validation/test_test_runner_invocation.py
+    status: passed
+    summary: 87 focused/adjacent tests passed with two explicit optional SDK skips.
+      Ruff and Black passed.
+  - command:
+    - env
+    - MAID_TEST_VITEST_ENTRY=/mnt/storage/development/crypto/wallet-copy-bot/node_modules/vitest/vitest.mjs
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/validation/test_vitest_root_option_targets.py
+    status: passed
+    summary: 'All 37 root cases passed with actual SDK proof: a failing outside-root
+      test was excluded, and a planted inside-root failure was detected.'
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --quiet
+    - --packet
+    status: passed
+    summary: Repository-wide validation passed against the final implementation.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/fix-vitest-root-option-target-semantics.manifest.yaml
+    status: passed
+    summary: Declared test command passed with 36 cases and one explicit optional SDK
+      skip.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - 3b0915266498e1743e9d59cdee20611d232b6880
+    - --summary
+    - --packet
+    status: passed
+    summary: All 11 deep gates passed without blockers; existing nonblocking E307 validator
+      warning remained.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: failed-unrelated
+    summary: '303 of 304 commands passed. Grouped pytest: 5312 passed, 13 skipped, two
+      unchanged release-metadata assertions failed because CHANGELOG.md lacks an Unreleased
+      heading. Both affected files match task baseline.'

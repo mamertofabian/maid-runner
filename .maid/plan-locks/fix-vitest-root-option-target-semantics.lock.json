@@ -1,0 +1,323 @@
+{
+  "manifest_path": "manifests/fix-vitest-root-option-target-semantics.manifest.yaml",
+  "manifest_hash": "sha256-contract:5d4a780880ed5e220cb172389fb270b40abfb082e1dfaed8059d0824e6a01a84",
+  "test_hashes": {
+    "tests/core/validation/test_vitest_root_option_targets.py": "sha256-pyast:v2:b9b6f9a652471e8bd7b7cee7ce07af0bfe2935c6684ae9db813e0a021103aa77"
+  },
+  "created_at": "2026-09-30T07:01:18.891822+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:14d5f867d09ae042784b8b2403bf7c7120633667cd87d5ac53d7fd2a6283b710",
+      "prior_test_hashes": {
+        "tests/core/validation/test_vitest_root_option_targets.py": "sha256-pyast:v2:76a9fe1d21a4cead71b4083de3117bf231bda7e93dc24f114c5a5001300a6df8"
+      },
+      "revised_at": "2026-09-30T07:01:19.584241+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-vitest-root-option-target-semantics.manifest.yaml -> manifests/fix-vitest-root-option-target-semantics.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:767a44f6b618bf538f6d55fd7d0899b1ecfcc06a53b18a69bd119fc4179a2d9e",
+      "prior_test_hashes": {
+        "tests/core/validation/test_vitest_root_option_targets.py": "sha256-pyast:v2:76a9fe1d21a4cead71b4083de3117bf231bda7e93dc24f114c5a5001300a6df8"
+      },
+      "revised_at": "2026-09-30T07:12:11.573660+00:00",
+      "reason": "Harden root-option delimiter semantics before final validation; filters after -- cannot rebind root",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_vitest_root_option_targets.py:test_root_looking_filter_after_option_delimiter_does_not_change_root",
+          "tests/core/validation/test_vitest_root_option_targets.py:test_root_looking_filter_after_option_delimiter_does_not_change_root:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:5d4a780880ed5e220cb172389fb270b40abfb082e1dfaed8059d0824e6a01a84",
+      "prior_test_hashes": {
+        "tests/core/validation/test_vitest_root_option_targets.py": "sha256-pyast:v2:25860279fa37aa11ca81ea1921adf08f5ac1b98f83b7dbaab7a82fc32954bd44"
+      },
+      "revised_at": "2026-09-30T07:24:36.484013+00:00",
+      "reason": "Strengthen malformed known-option cases so a root flag cannot be hidden as an option value before final validation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-30T07:24:36.963236+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/validation/test_vitest_root_option_targets.py",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/core/validation/test_vitest_root_option_targets.py::test_explicit_vitest_targets_resolve_under_root_independent_of_option_order[True-root_option0-runner0]\nFAILED tests/core/validation/test_vitest_root_option_targets.py::test_explicit_vitest_targets_resolve_under_root_independent_of_option_order[True-root_option0-runner1]\nFAILED tests/core/validation/test_vitest_root_option_targets.py::test_explicit_vitest_targets_resolve_under_root_independent_of_option_order[True-root_option1-runner0]\nFAILED tests/core/validation/test_vitest_root_option_targets.py::test_explicit_vitest_targets_resolve_under_root_independent_of_option_order[True-root_option1-runner1]\nFAILED tests/core/validation/test_vitest_root_option_targets.py::test_explicit_vitest_targets_resolve_under_root_independent_of_option_order[True-root_option2-runner0]\nFAILED tests/core/validation/test_vitest_root_option_targets.py::test_explicit_vitest_targets_resolve_under_root_independent_of_option_order[True-root_option2-runner1]\nFAILED tests/core/validation/test_vitest_root_option_targets.py::test_vitest_root_prevents_coverage_claims_for_tests_outside_it[tests/unit/value.test.ts]\nFAILED tests/core/validation/test_vitest_root_option_targets.py::test_vitest_root_prevents_coverage_claims_for_tests_outside_it[../tests/unit/value.test.ts]\nFAILED tests/core/validation/test_vitest_root_option_targets.py::test_absolute_literal_vitest_root_resolves_repo_relative_targets\nFAILED tests/core/validation/test_vitest_root_option_targets.py::test_missing_dynamic_or_ambiguous_vitest_roots_fail_closed[root_option0]\nFAILED tests/core/validation/test_vitest_root_option_targets.py::test_missing_dynamic_or_ambiguous_vitest_roots_fail_closed[root_option1]\nFAILED tests/core/validation/test_vitest_root_option_targets.py::test_missing_dynamic_or_ambiguous_vitest_roots_fail_closed[root_option2]\nFAILED tests/core/validation/test_vitest_root_option_targets.py::test_missing_dynamic_or_ambiguous_vitest_roots_fail_closed[root_option3]\nFAILED tests/core/validation/test_vitest_root_option_targets.py::test_missing_dynamic_or_ambiguous_vitest_roots_fail_closed[root_option4]\nFAILED tests/core/validation/test_vitest_root_option_targets.py::test_missing_dynamic_or_ambiguous_vitest_roots_fail_closed[root_option5]\nFAILED tests/core/validation/test_vitest_root_option_targets.py::test_missing_dynamic_or_ambiguous_vitest_roots_fail_closed[root_option6]\nFAILED tests/core/validation/test_vitest_root_option_targets.py::test_vitest_root_bindings_compose_with_package_cwd_and_shell_context\nFAILED tests/core/validation/test_vitest_root_option_targets.py::test_vitest_root_does_not_leak_into_following_discovery_segments\nFAILED tests/core/validation/test_vitest_root_option_targets.py::test_root_looking_filter_after_option_delimiter_does_not_change_root\n31 failed, 5 passed, 1 skipped in 0.28s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_test_command_targets.py:function:test_files_covered_by_validate_command",
+      "maid_runner/core/_test_command_targets.py:function:test_files_covered_by_validate_command:arg=command:type=tuple[str, ...]:default=None",
+      "maid_runner/core/_test_command_targets.py:function:test_files_covered_by_validate_command:arg=django_test_paths_from_validate_segment:type=_DjangoPathResolver | None:default=None",
+      "maid_runner/core/_test_command_targets.py:function:test_files_covered_by_validate_command:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_test_command_targets.py:function:test_files_covered_by_validate_command:arg=test_files:type=list[str]:default=None",
+      "maid_runner/core/_test_command_targets.py:function:test_files_covered_by_validate_command:arg=test_runner_wrappers:type=tuple[TestRunnerWrapperConfig, ...]:default=None",
+      "maid_runner/core/_test_command_targets.py:function:test_files_covered_by_validate_command:kind=function",
+      "maid_runner/core/_test_command_targets.py:function:test_files_covered_by_validate_command:returns=set[str]",
+      "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command",
+      "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command:arg=allow_selectors:type=bool:default=None",
+      "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command:arg=command:type=tuple[str, ...]:default=None",
+      "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command:arg=django_test_paths_from_validate_segment:type=_DjangoPathResolver | None:default=None",
+      "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command:arg=test_runner_wrappers:type=tuple[TestRunnerWrapperConfig, ...]:default=None",
+      "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command:kind=function",
+      "maid_runner/core/_test_command_targets.py:function:test_paths_from_executing_validate_command:returns=list[str]",
+      "maid_runner/core/_test_command_targets.py:function:test_paths_from_validate_command",
+      "maid_runner/core/_test_command_targets.py:function:test_paths_from_validate_command:arg=command:type=tuple[str, ...]:default=None",
+      "maid_runner/core/_test_command_targets.py:function:test_paths_from_validate_command:arg=django_test_paths_from_validate_segment:type=_DjangoPathResolver | None:default=None",
+      "maid_runner/core/_test_command_targets.py:function:test_paths_from_validate_command:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_test_command_targets.py:function:test_paths_from_validate_command:arg=test_runner_wrappers:type=tuple[TestRunnerWrapperConfig, ...]:default=None",
+      "maid_runner/core/_test_command_targets.py:function:test_paths_from_validate_command:kind=function",
+      "maid_runner/core/_test_command_targets.py:function:test_paths_from_validate_command:returns=list[str]",
+      "tests/core/validation/test_vitest_root_option_targets.py:test_absolute_literal_vitest_root_resolves_repo_relative_targets",
+      "tests/core/validation/test_vitest_root_option_targets.py:test_absolute_literal_vitest_root_resolves_repo_relative_targets:kind=test_function",
+      "tests/core/validation/test_vitest_root_option_targets.py:test_cwd_relative_filter_inside_vitest_root_remains_covered",
+      "tests/core/validation/test_vitest_root_option_targets.py:test_cwd_relative_filter_inside_vitest_root_remains_covered:kind=test_function",
+      "tests/core/validation/test_vitest_root_option_targets.py:test_explicit_vitest_targets_resolve_under_root_independent_of_option_order",
+      "tests/core/validation/test_vitest_root_option_targets.py:test_explicit_vitest_targets_resolve_under_root_independent_of_option_order:kind=test_function",
+      "tests/core/validation/test_vitest_root_option_targets.py:test_missing_dynamic_or_ambiguous_vitest_roots_fail_closed",
+      "tests/core/validation/test_vitest_root_option_targets.py:test_missing_dynamic_or_ambiguous_vitest_roots_fail_closed:kind=test_function",
+      "tests/core/validation/test_vitest_root_option_targets.py:test_pytest_rootdir_keeps_existing_cwd_relative_target_semantics",
+      "tests/core/validation/test_vitest_root_option_targets.py:test_pytest_rootdir_keeps_existing_cwd_relative_target_semantics:kind=test_function",
+      "tests/core/validation/test_vitest_root_option_targets.py:test_root_looking_filter_after_option_delimiter_does_not_change_root",
+      "tests/core/validation/test_vitest_root_option_targets.py:test_root_looking_filter_after_option_delimiter_does_not_change_root:kind=test_function",
+      "tests/core/validation/test_vitest_root_option_targets.py:test_vitest_root_bindings_compose_with_package_cwd_and_shell_context",
+      "tests/core/validation/test_vitest_root_option_targets.py:test_vitest_root_bindings_compose_with_package_cwd_and_shell_context:kind=test_function",
+      "tests/core/validation/test_vitest_root_option_targets.py:test_vitest_root_does_not_leak_into_following_discovery_segments",
+      "tests/core/validation/test_vitest_root_option_targets.py:test_vitest_root_does_not_leak_into_following_discovery_segments:kind=test_function",
+      "tests/core/validation/test_vitest_root_option_targets.py:test_vitest_root_prevents_coverage_claims_for_tests_outside_it",
+      "tests/core/validation/test_vitest_root_option_targets.py:test_vitest_root_prevents_coverage_claims_for_tests_outside_it:kind=test_function",
+      "tests/core/validation/test_vitest_root_option_targets.py:test_vitest_root_runtime_proof_when_sdk_available",
+      "tests/core/validation/test_vitest_root_option_targets.py:test_vitest_root_runtime_proof_when_sdk_available:kind=test_function",
+      "tests/core/validation/test_vitest_root_option_targets.py:test_vitest_root_values_never_count_as_executed_test_targets",
+      "tests/core/validation/test_vitest_root_option_targets.py:test_vitest_root_values_never_count_as_executed_test_targets:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/validation/test_vitest_root_option_targets.py"
+      ],
+      "edit": [
+        "maid_runner/core/_test_command_targets.py"
+      ],
+      "read": [
+        "maid_runner/core/_test_runner_invocation.py",
+        "maid_runner/core/_validation_test_artifacts.py",
+        "maid_runner/core/config.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/result.py",
+        "maid_runner/core/types.py",
+        "manifests/fix-direct-node-vitest-package-entry.manifest.yaml"
+      ],
+      "scope": [
+        "docs/troubleshooting.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/validation/test_vitest_root_option_targets.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_vitest_root_values_never_count_as_executed_test_targets",
+              "description": "Separated, equals and short root values cannot satisfy coverage for bare, local-binary or direct-Node Vitest forms."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_explicit_vitest_targets_resolve_under_root_independent_of_option_order",
+              "description": "Explicit relative test selectors bind to the root before coverage checks regardless of root option ordering and spelling."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_cwd_relative_filter_inside_vitest_root_remains_covered",
+              "description": "SDK-supported working-directory-relative filters inside the root remain supported without double-prefixing root paths."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_vitest_root_prevents_coverage_claims_for_tests_outside_it",
+              "description": "Targets outside the selected SDK root cannot claim coverage of declared files, including traversal candidates."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_absolute_literal_vitest_root_resolves_repo_relative_targets",
+              "description": "Literal absolute root directories map selected test files back to repository-relative inventory."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_missing_dynamic_or_ambiguous_vitest_roots_fail_closed",
+              "description": "Dangling, empty, nonexistent, dynamic and repeated roots cannot claim executing targets."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_vitest_root_bindings_compose_with_package_cwd_and_shell_context",
+              "description": "Supported package-wrapper cwd and bare-Vitest shell context supply the correct root base without altering direct-Node wrapper restrictions."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_vitest_root_does_not_leak_into_following_discovery_segments",
+              "description": "Discovery for later command segments uses process cwd rather than a prior runner-specific root."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_pytest_rootdir_keeps_existing_cwd_relative_target_semantics",
+              "description": "Pytest rootdir remains an option value and does not acquire Vitest root-relative path semantics."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_vitest_root_runtime_proof_when_sdk_available",
+              "description": "Optional actual SDK proof excludes a failing outside-root test and catches a planted inside-root failure in an isolated project."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_root_looking_filter_after_option_delimiter_does_not_change_root",
+              "description": "SDK filters after -- are target data, not another root declaration; preserve the already bound root and deduplicate equivalent selected targets."
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/_test_command_targets.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "test_paths_from_validate_command",
+              "description": "Parse Vitest root as runner-specific selection context rather than a target, retaining existing non-Vitest behavior and command boundaries.",
+              "args": [
+                {
+                  "name": "command",
+                  "type": "tuple[str, ...]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "django_test_paths_from_validate_segment",
+                  "type": "_DjangoPathResolver | None"
+                },
+                {
+                  "name": "test_runner_wrappers",
+                  "type": "tuple[TestRunnerWrapperConfig, ...]"
+                }
+              ],
+              "returns": "list[str]"
+            },
+            {
+              "kind": "function",
+              "name": "test_paths_from_executing_validate_command",
+              "description": "Parse Vitest root as runner-specific selection context rather than a target, retaining existing non-Vitest behavior and command boundaries.",
+              "args": [
+                {
+                  "name": "command",
+                  "type": "tuple[str, ...]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "allow_selectors",
+                  "type": "bool"
+                },
+                {
+                  "name": "django_test_paths_from_validate_segment",
+                  "type": "_DjangoPathResolver | None"
+                },
+                {
+                  "name": "test_runner_wrappers",
+                  "type": "tuple[TestRunnerWrapperConfig, ...]"
+                }
+              ],
+              "returns": "list[str]"
+            },
+            {
+              "kind": "function",
+              "name": "test_files_covered_by_validate_command",
+              "description": "Parse Vitest root as runner-specific selection context rather than a target, retaining existing non-Vitest behavior and command boundaries.",
+              "args": [
+                {
+                  "name": "command",
+                  "type": "tuple[str, ...]"
+                },
+                {
+                  "name": "test_files",
+                  "type": "list[str]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "django_test_paths_from_validate_segment",
+                  "type": "_DjangoPathResolver | None"
+                },
+                {
+                  "name": "test_runner_wrappers",
+                  "type": "tuple[TestRunnerWrapperConfig, ...]"
+                }
+              ],
+              "returns": "set[str]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_test_runner_invocation.py",
+        "maid_runner/core/_validation_test_artifacts.py",
+        "maid_runner/core/config.py",
+        "maid_runner/core/types.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/result.py",
+        "manifests/fix-direct-node-vitest-package-entry.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "docs/troubleshooting.md",
+          "reason": "Explain Vitest root option values, supported explicit selector forms and fail-closed root handling."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/validation/test_vitest_root_option_targets.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/validation/test_vitest_root_option_targets.py"
+    ],
+    "acceptance_commands": []
+  }
+}

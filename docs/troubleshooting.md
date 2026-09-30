@@ -225,6 +225,18 @@ qualify. Existing Vitest target and nonexecution checks still apply, so help,
 list, version, and dry modes cannot claim test execution. Node VM flags and
 unproven wrappers remain outside this direct-entry recognition rule.
 
+Vitest `--root PATH`, `--root=PATH`, and `-r PATH` establish runner selection
+context; their values do not count as executed test targets. Supply independent
+explicit file or directory selectors. The option applies regardless of its
+position relative to those selectors. Literal root-relative and cwd-relative
+filters inside the selected root are supported, and coverage remains confined
+to repository inventory under that root. Root context does not become the cwd
+of a later command segment.
+
+Missing, empty, nonexistent, file-valued, dynamic, or repeated roots fail closed
+for command coverage. Root-looking filter text after `--` does not rebind the
+root. Non-Vitest flags, including pytest `--rootdir`, retain their own semantics.
+
 For pytest configuration `addopts`, marker/name selectors (`-m`, `-k`) and
 path exclusions (`--ignore`, `--ignore-glob`, `--deselect`) may be harmless for
 an explicit test target. MAID accepts supported combinations only when two

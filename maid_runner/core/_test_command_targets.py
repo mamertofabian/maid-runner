@@ -96,6 +96,10 @@ def test_paths_from_validate_command(
         unittest_runner = (
             invocation is not None and invocation[0] == _UNITTEST_TEST_RUNNER
         )
+        rooted = _vitest_root_targets(scan_segment, invocation, cwd, project_root)
+        if rooted is not None:
+            paths.extend(rooted)
+            continue
         index = 0
         while index < len(scan_segment):
             part = scan_segment[index]
@@ -203,6 +207,9 @@ def test_paths_from_executing_validate_command(
     unittest_runner = invocation is not None and invocation[0] == _UNITTEST_TEST_RUNNER
     if invocation is not None and invocation[0] == "playwright":
         scan_segment = _playwright_target_scan_segment(scan_segment)
+    rooted = _vitest_root_targets(scan_segment, invocation, cwd, project_root)
+    if rooted is not None:
+        return rooted
     index = 0
     while index < len(scan_segment):
         part = scan_segment[index]
@@ -343,6 +350,9 @@ def _test_paths_from_executing_runner_segment(
     unittest_runner = invocation is not None and invocation[0] == _UNITTEST_TEST_RUNNER
     if invocation is not None and invocation[0] == "playwright":
         scan_segment = _playwright_target_scan_segment(scan_segment)
+    rooted = _vitest_root_targets(scan_segment, invocation, cwd, project_root)
+    if rooted is not None:
+        return rooted
     index = 0
     while index < len(scan_segment):
         part = scan_segment[index]
@@ -509,6 +519,115 @@ def _resolve_shell_path(value: str, variables: dict[str, Path]) -> Path | None:
     if "$" in value:
         return None
     return Path(value)
+
+
+def _vitest_root_targets(
+    scan_segment: list[str],
+    invocation: tuple[str, list[str]] | None,
+    cwd: Path,
+    project_root: Path,
+) -> list[str] | None:
+    """Resolve explicit rooted Vitest targets without treating root as a target."""
+    if invocation is None or invocation[0] != "vitest":
+        return None
+    args = invocation[1]
+    root_values: list[str] = []
+    remaining: list[str] = []
+    index = 0
+    while index < len(args):
+        part = args[index]
+        if part == "--":
+            remaining.extend(args[index:])
+            break
+        if part in ("--root", "-r"):
+            if index + 1 == len(args) or args[index + 1].startswith("-"):
+                return []
+            root_values.append(args[index + 1])
+            index += 2
+            continue
+        if part.startswith("--root="):
+            root_values.append(part.split("=", 1)[1])
+            index += 1
+            continue
+        if part.startswith("-r") and not part.startswith("--"):
+            # Joined short-option shapes have no proven root binding here.
+            return []
+        if part in _TEST_RUNNER_VALUE_FLAGS and index + 1 < len(args):
+            value = args[index + 1]
+            if (
+                value in {"--", "--root", "-r"}
+                or value.startswith("--root=")
+                or (value.startswith("-r") and not value.startswith("--"))
+            ):
+                # A missing option value must not swallow a root control token
+                # and expose its path as a supposedly executing selector.
+                return []
+            remaining.extend(args[index : index + 2])
+            index += 2
+            continue
+        remaining.append(part)
+        index += 1
+    if not root_values:
+        return None
+    if len(root_values) != 1:
+        return []
+    value = root_values[0]
+    if not value or any(char in value for char in "$`*?[]{}\x00"):
+        return []
+
+    # Invocation args exclude the runner itself; scan prefixes retain wrapper
+    # cwd options. These affect only this runner, never later command segments.
+    process_cwd = project_root / cwd
+    prefix = scan_segment[: len(scan_segment) - len(args)]
+    index = 0
+    while index < len(prefix):
+        if prefix[index] in {"-C", "--cwd", "--dir", "--prefix"}:
+            if index + 1 == len(prefix):
+                return []
+            process_cwd = process_cwd / prefix[index + 1]
+            index += 2
+        else:
+            index += 1
+    selected_root = (process_cwd / value).resolve()
+    if not selected_root.is_dir():
+        return []
+    repo = project_root.resolve()
+    paths: list[str] = []
+    seen: set[Path] = set()
+    options = True
+    index = 0
+    while index < len(remaining):
+        part = remaining[index]
+        if part == "--" and options:
+            options = False
+            index += 1
+            continue
+        if index == 0 and part in {"run", "list", "watch", "bench"}:
+            index += 1
+            continue
+        if options and part in _TEST_RUNNER_VALUE_FLAGS and index + 1 < len(remaining):
+            index += 2
+            continue
+        if options and part.startswith("-"):
+            index += 1
+            continue
+        if not part or any(char in part for char in "$`*?[]{}\x00"):
+            index += 1
+            continue
+        for base in (process_cwd, selected_root):
+            candidate = (base / part).resolve()
+            try:
+                candidate.relative_to(selected_root)
+                relative = candidate.relative_to(repo).as_posix()
+            except ValueError:
+                continue
+            if candidate in seen or not candidate.exists():
+                continue
+            if _looks_like_test_path(relative, repo, allow_explicit_directories=True):
+                seen.add(candidate)
+                paths.append(relative)
+        index += 1
+    return paths
 
 
 def _playwright_target_scan_segment(parts: list[str]) -> list[str]:
