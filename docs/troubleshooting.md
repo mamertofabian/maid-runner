@@ -455,6 +455,21 @@ same `metadata.maid_task_base`, or pass `--since`/`--base-ref` to scope the run
 explicitly. Do not delete `maid_task_base` from manifests belonging to
 completed tasks; prior contracts are immutable.
 
+### 35. Deep assessment checks untouched legacy files
+
+Symptom: A deep verification command recommended by `maid assess` reports
+untracked legacy source files or missing plan locks outside the current task
+in a repository adopting MAID incrementally.
+
+Fix: Rerun `maid assess --since <baseline>` with the task's explicit Git
+baseline. Its deep recommendation includes `--file-tracking-scope task`,
+`--plan-lock-scope task`, and `--test-scope task`, so verification covers the
+baseline-bound task while retaining plan-lock, red-evidence, artifact-coverage,
+and knockout requirements. `--base-ref <baseline>` is also supported.
+
+For an intentional repository-wide audit, invoke `maid verify --profile deep`
+directly; its default file-tracking and plan-lock scopes remain `repository`.
+
 ## FAQ
 
 ### FAQ: Should I run `maid validate`, `maid test`, or `maid verify`?
