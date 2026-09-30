@@ -1,0 +1,482 @@
+{
+  "manifest_path": "manifests/add-typescript-return-contract-proof.manifest.yaml",
+  "manifest_hash": "sha256-contract:c5ed93b42ea6e0e5220d9dbc63f6e3e1ea6b5b6485e4b7541da2cd4626ccfb35",
+  "test_hashes": {
+    "tests/core/test_ts_compiler_resolver.py": "sha256-pyast:v2:802164a7033098d17e64a50fdc6c5b750fbdc2551dc2d934df352322925cc35a",
+    "tests/core/test_ts_compiler_resolver_session.py": "sha256-pyast:v2:65c05be74689dab96f94f7f3e65c4b77e09c5d0f22844b7d7a46248a6510af85",
+    "tests/core/test_ts_return_contracts.py": "sha256-pyast:v2:0c3ba859a4f787493983b01cf9c60482892bba339dd1010ab79e4a93db19221b"
+  },
+  "created_at": "2026-09-30T11:30:02.004457+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:de5ac7b022ffaa8dfedb7daffa90f2f9d416855a82e39673d432e3099a45cbd6",
+      "prior_test_hashes": {
+        "tests/core/test_ts_compiler_resolver.py": "sha256-pyast:v2:802164a7033098d17e64a50fdc6c5b750fbdc2551dc2d934df352322925cc35a",
+        "tests/core/test_ts_compiler_resolver_session.py": "sha256-pyast:v2:65c05be74689dab96f94f7f3e65c4b77e09c5d0f22844b7d7a46248a6510af85",
+        "tests/core/test_ts_return_contracts.py": "sha256-pyast:v2:9b560c649816f0b15ea087658ab0f2d34bb9fd1c51a915447cbcfea356229fe4"
+      },
+      "revised_at": "2026-09-30T11:30:17.366422+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/add-typescript-return-contract-proof.manifest.yaml -> manifests/add-typescript-return-contract-proof.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:e7b4cab28e5cebf165e5b1ab19535bda69edec0a24116152d820430cfbe18811",
+      "prior_test_hashes": {
+        "tests/core/test_ts_compiler_resolver.py": "sha256-pyast:v2:802164a7033098d17e64a50fdc6c5b750fbdc2551dc2d934df352322925cc35a",
+        "tests/core/test_ts_compiler_resolver_session.py": "sha256-pyast:v2:65c05be74689dab96f94f7f3e65c4b77e09c5d0f22844b7d7a46248a6510af85",
+        "tests/core/test_ts_return_contracts.py": "sha256-pyast:v2:9b560c649816f0b15ea087658ab0f2d34bb9fd1c51a915447cbcfea356229fe4"
+      },
+      "revised_at": "2026-09-30T11:41:24.335309+00:00",
+      "reason": "Bind proof replies to the expected contract and reject disabled semantic checking",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_ts_return_contracts.py:test_disabled_semantic_checking_cannot_establish_proof",
+          "tests/core/test_ts_return_contracts.py:test_disabled_semantic_checking_cannot_establish_proof:kind=test_function",
+          "tests/core/test_ts_return_contracts.py:test_stale_reply_for_different_request_is_unavailable",
+          "tests/core/test_ts_return_contracts.py:test_stale_reply_for_different_request_is_unavailable:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:82a957ad4fc681030aef5da915d991515a5918745b636877dbe95dbabb6ef273",
+      "prior_test_hashes": {
+        "tests/core/test_ts_compiler_resolver.py": "sha256-pyast:v2:802164a7033098d17e64a50fdc6c5b750fbdc2551dc2d934df352322925cc35a",
+        "tests/core/test_ts_compiler_resolver_session.py": "sha256-pyast:v2:65c05be74689dab96f94f7f3e65c4b77e09c5d0f22844b7d7a46248a6510af85",
+        "tests/core/test_ts_return_contracts.py": "sha256-pyast:v2:b6e76aa0c6754c1d9be6681b8523f360c79e78ebf4e82370d39a41345f407511"
+      },
+      "revised_at": "2026-09-30T11:43:33.971918+00:00",
+      "reason": "Complete approved unchecked-proof regression cases for expression and trailing directives",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:82a957ad4fc681030aef5da915d991515a5918745b636877dbe95dbabb6ef273",
+      "prior_test_hashes": {
+        "tests/core/test_ts_compiler_resolver.py": "sha256-pyast:v2:802164a7033098d17e64a50fdc6c5b750fbdc2551dc2d934df352322925cc35a",
+        "tests/core/test_ts_compiler_resolver_session.py": "sha256-pyast:v2:65c05be74689dab96f94f7f3e65c4b77e09c5d0f22844b7d7a46248a6510af85",
+        "tests/core/test_ts_return_contracts.py": "sha256-pyast:v2:97e875ce3d82abcf24420c36d66bd07861e50bff84a3bb8194eab387237f587d"
+      },
+      "revised_at": "2026-09-30T11:48:58.027171+00:00",
+      "reason": "Complete approved target diagnostic-suppression coverage for compiler library-check flags",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_ts_return_contracts.py:test_declaration_files_cannot_hide_ambient_errors",
+          "tests/core/test_ts_return_contracts.py:test_declaration_files_cannot_hide_ambient_errors:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-30T11:49:05.035748+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_ts_return_contracts.py",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/core/test_ts_return_contracts.py::test_failed_transport_is_explicitly_unavailable[]\nFAILED tests/core/test_ts_return_contracts.py::test_failed_transport_is_explicitly_unavailable[not JSON]\nFAILED tests/core/test_ts_return_contracts.py::test_failed_transport_is_explicitly_unavailable[[]]\nFAILED tests/core/test_ts_return_contracts.py::test_failed_transport_is_explicitly_unavailable[{\"ok\": true}]\nFAILED tests/core/test_ts_return_contracts.py::test_source_batch_returns_one_proof_per_declaration\nFAILED tests/core/test_ts_return_contracts.py::test_missing_node_is_explicitly_unavailable\nFAILED tests/core/test_ts_return_contracts.py::test_compiler_proof_does_not_run_inherited_node_preload\nFAILED tests/core/test_ts_return_contracts.py::test_session_bridge_supports_return_proof_requests\nFAILED tests/core/test_ts_return_contracts.py::test_generated_aliases_do_not_trigger_unused_local_errors\nFAILED tests/core/test_ts_return_contracts.py::test_transport_io_failure_is_unavailable[exception0]\nFAILED tests/core/test_ts_return_contracts.py::test_transport_io_failure_is_unavailable[exception1]\nFAILED tests/core/test_ts_return_contracts.py::test_disabled_semantic_checking_cannot_establish_proof[config]\nFAILED tests/core/test_ts_return_contracts.py::test_disabled_semantic_checking_cannot_establish_proof[source]\nFAILED tests/core/test_ts_return_contracts.py::test_disabled_semantic_checking_cannot_establish_proof[expected-directive]\nFAILED tests/core/test_ts_return_contracts.py::test_disabled_semantic_checking_cannot_establish_proof[trailing-directive]\nFAILED tests/core/test_ts_return_contracts.py::test_disabled_semantic_checking_cannot_establish_proof[no-default-lib]\nFAILED tests/core/test_ts_return_contracts.py::test_stale_reply_for_different_request_is_unavailable[expectation]\nFAILED tests/core/test_ts_return_contracts.py::test_stale_reply_for_different_request_is_unavailable[source-path]\nFAILED tests/core/test_ts_return_contracts.py::test_declaration_files_cannot_hide_ambient_errors\n57 failed in 0.71s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest -q tests/core/test_ts_compiler_resolver.py tests/core/test_ts_compiler_resolver_session.py",
+        "exit_code": 0,
+        "output_tail": "........................                                                 [100%]\n24 passed in 5.87s",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractExpectation.expected_type",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractExpectation.expected_type:kind=attribute",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractExpectation.expected_type:of=ReturnContractExpectation",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractExpectation.expected_type:type=str",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractExpectation.line",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractExpectation.line:kind=attribute",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractExpectation.line:of=ReturnContractExpectation",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractExpectation.line:type=int",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractExpectation.name",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractExpectation.name:kind=attribute",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractExpectation.name:of=ReturnContractExpectation",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractExpectation.name:type=str",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractItem.diagnostics",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractItem.diagnostics:kind=attribute",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractItem.diagnostics:of=ReturnContractItem",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractItem.diagnostics:type=tuple[str, ...]",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractItem.inferred_type",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractItem.inferred_type:kind=attribute",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractItem.inferred_type:of=ReturnContractItem",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractItem.inferred_type:type=str | None",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractItem.line",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractItem.line:kind=attribute",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractItem.line:of=ReturnContractItem",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractItem.line:type=int",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractItem.name",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractItem.name:kind=attribute",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractItem.name:of=ReturnContractItem",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractItem.name:type=str",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractItem.status",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractItem.status:kind=attribute",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractItem.status:of=ReturnContractItem",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractItem.status:type=Literal[\"matched\", \"mismatched\", \"unavailable\"]",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractResult.compiler_version",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractResult.compiler_version:kind=attribute",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractResult.compiler_version:of=ReturnContractResult",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractResult.compiler_version:type=str | None",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractResult.config_path",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractResult.config_path:kind=attribute",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractResult.config_path:of=ReturnContractResult",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractResult.config_path:type=str | None",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractResult.items",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractResult.items:kind=attribute",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractResult.items:of=ReturnContractResult",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractResult.items:type=tuple[ReturnContractItem, ...]",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractResult.source_sha256",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractResult.source_sha256:kind=attribute",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractResult.source_sha256:of=ReturnContractResult",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractResult.source_sha256:type=str",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractResult.strict_null_checks",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractResult.strict_null_checks:kind=attribute",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractResult.strict_null_checks:of=ReturnContractResult",
+      "maid_runner/core/ts_return_contracts.py:attribute:ReturnContractResult.strict_null_checks:type=bool | None",
+      "maid_runner/core/ts_return_contracts.py:class:ReturnContractExpectation",
+      "maid_runner/core/ts_return_contracts.py:class:ReturnContractExpectation:kind=class",
+      "maid_runner/core/ts_return_contracts.py:class:ReturnContractItem",
+      "maid_runner/core/ts_return_contracts.py:class:ReturnContractItem:kind=class",
+      "maid_runner/core/ts_return_contracts.py:class:ReturnContractResult",
+      "maid_runner/core/ts_return_contracts.py:class:ReturnContractResult:kind=class",
+      "maid_runner/core/ts_return_contracts.py:function:check_return_contracts",
+      "maid_runner/core/ts_return_contracts.py:function:check_return_contracts:arg=config_path:type=str:default=None",
+      "maid_runner/core/ts_return_contracts.py:function:check_return_contracts:arg=expectations:type=tuple[ReturnContractExpectation, ...]:default=None",
+      "maid_runner/core/ts_return_contracts.py:function:check_return_contracts:arg=project_root:type=Path:default=None",
+      "maid_runner/core/ts_return_contracts.py:function:check_return_contracts:arg=source:type=str:default=None",
+      "maid_runner/core/ts_return_contracts.py:function:check_return_contracts:arg=source_path:type=str:default=None",
+      "maid_runner/core/ts_return_contracts.py:function:check_return_contracts:arg=transport:type=Callable[[str], str | None] | None:default=None",
+      "maid_runner/core/ts_return_contracts.py:function:check_return_contracts:kind=function",
+      "maid_runner/core/ts_return_contracts.py:function:check_return_contracts:returns=ReturnContractResult",
+      "tests/core/test_ts_return_contracts.py:test_compiler_matches_semantic_alias_without_changing_disk",
+      "tests/core/test_ts_return_contracts.py:test_compiler_matches_semantic_alias_without_changing_disk:kind=test_function",
+      "tests/core/test_ts_return_contracts.py:test_compiler_proof_does_not_run_inherited_node_preload",
+      "tests/core/test_ts_return_contracts.py:test_compiler_proof_does_not_run_inherited_node_preload:kind=test_function",
+      "tests/core/test_ts_return_contracts.py:test_declaration_files_cannot_hide_ambient_errors",
+      "tests/core/test_ts_return_contracts.py:test_declaration_files_cannot_hide_ambient_errors:kind=test_function",
+      "tests/core/test_ts_return_contracts.py:test_dependency_change_is_not_hidden_by_semantic_cache",
+      "tests/core/test_ts_return_contracts.py:test_dependency_change_is_not_hidden_by_semantic_cache:kind=test_function",
+      "tests/core/test_ts_return_contracts.py:test_disabled_semantic_checking_cannot_establish_proof",
+      "tests/core/test_ts_return_contracts.py:test_disabled_semantic_checking_cannot_establish_proof:kind=test_function",
+      "tests/core/test_ts_return_contracts.py:test_explicit_config_controls_nullability",
+      "tests/core/test_ts_return_contracts.py:test_explicit_config_controls_nullability:kind=test_function",
+      "tests/core/test_ts_return_contracts.py:test_failed_transport_is_explicitly_unavailable",
+      "tests/core/test_ts_return_contracts.py:test_failed_transport_is_explicitly_unavailable:kind=test_function",
+      "tests/core/test_ts_return_contracts.py:test_generated_aliases_do_not_trigger_unused_local_errors",
+      "tests/core/test_ts_return_contracts.py:test_generated_aliases_do_not_trigger_unused_local_errors:kind=test_function",
+      "tests/core/test_ts_return_contracts.py:test_invalid_proof_reply_never_becomes_match",
+      "tests/core/test_ts_return_contracts.py:test_invalid_proof_reply_never_becomes_match:kind=test_function",
+      "tests/core/test_ts_return_contracts.py:test_missing_node_is_explicitly_unavailable",
+      "tests/core/test_ts_return_contracts.py:test_missing_node_is_explicitly_unavailable:kind=test_function",
+      "tests/core/test_ts_return_contracts.py:test_proof_records_expose_exact_typed_fields",
+      "tests/core/test_ts_return_contracts.py:test_proof_records_expose_exact_typed_fields:kind=test_function",
+      "tests/core/test_ts_return_contracts.py:test_real_compiler_distinguishes_match_mismatch_and_unavailable",
+      "tests/core/test_ts_return_contracts.py:test_real_compiler_distinguishes_match_mismatch_and_unavailable:kind=test_function",
+      "tests/core/test_ts_return_contracts.py:test_session_bridge_supports_return_proof_requests",
+      "tests/core/test_ts_return_contracts.py:test_session_bridge_supports_return_proof_requests:kind=test_function",
+      "tests/core/test_ts_return_contracts.py:test_source_batch_returns_one_proof_per_declaration",
+      "tests/core/test_ts_return_contracts.py:test_source_batch_returns_one_proof_per_declaration:kind=test_function",
+      "tests/core/test_ts_return_contracts.py:test_stale_reply_for_different_request_is_unavailable",
+      "tests/core/test_ts_return_contracts.py:test_stale_reply_for_different_request_is_unavailable:kind=test_function",
+      "tests/core/test_ts_return_contracts.py:test_transport_io_failure_is_unavailable",
+      "tests/core/test_ts_return_contracts.py:test_transport_io_failure_is_unavailable:kind=test_function",
+      "tests/core/test_ts_return_contracts.py:test_transport_receives_source_batch_and_hash",
+      "tests/core/test_ts_return_contracts.py:test_transport_receives_source_batch_and_hash:kind=test_function",
+      "tests/core/test_ts_return_contracts.py:test_unusable_owning_config_is_unavailable",
+      "tests/core/test_ts_return_contracts.py:test_unusable_owning_config_is_unavailable:kind=test_function",
+      "tests/core/test_ts_return_contracts.py:test_wrong_declaration_line_is_unavailable",
+      "tests/core/test_ts_return_contracts.py:test_wrong_declaration_line_is_unavailable:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "maid_runner/core/ts_return_contracts.py",
+        "tests/core/test_ts_return_contracts.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/validators/typescript.py",
+        "package.json",
+        "tests/core/test_ts_compiler_resolver.py",
+        "tests/core/test_ts_compiler_resolver_session.py"
+      ],
+      "scope": [
+        "maid_runner/core/ts_compiler_resolver.cjs",
+        "maid_runner/core/ts_compiler_resolver.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "maid_runner/core/ts_return_contracts.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "ReturnContractExpectation"
+            },
+            {
+              "kind": "attribute",
+              "name": "name",
+              "of": "ReturnContractExpectation",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "line",
+              "of": "ReturnContractExpectation",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "expected_type",
+              "of": "ReturnContractExpectation",
+              "type": "str"
+            },
+            {
+              "kind": "class",
+              "name": "ReturnContractItem"
+            },
+            {
+              "kind": "attribute",
+              "name": "name",
+              "of": "ReturnContractItem",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "line",
+              "of": "ReturnContractItem",
+              "type": "int"
+            },
+            {
+              "kind": "attribute",
+              "name": "status",
+              "of": "ReturnContractItem",
+              "type": "Literal[\"matched\", \"mismatched\", \"unavailable\"]"
+            },
+            {
+              "kind": "attribute",
+              "name": "inferred_type",
+              "of": "ReturnContractItem",
+              "type": "str | None"
+            },
+            {
+              "kind": "attribute",
+              "name": "diagnostics",
+              "of": "ReturnContractItem",
+              "type": "tuple[str, ...]"
+            },
+            {
+              "kind": "class",
+              "name": "ReturnContractResult"
+            },
+            {
+              "kind": "attribute",
+              "name": "source_sha256",
+              "of": "ReturnContractResult",
+              "type": "str"
+            },
+            {
+              "kind": "attribute",
+              "name": "compiler_version",
+              "of": "ReturnContractResult",
+              "type": "str | None"
+            },
+            {
+              "kind": "attribute",
+              "name": "config_path",
+              "of": "ReturnContractResult",
+              "type": "str | None"
+            },
+            {
+              "kind": "attribute",
+              "name": "strict_null_checks",
+              "of": "ReturnContractResult",
+              "type": "bool | None"
+            },
+            {
+              "kind": "attribute",
+              "name": "items",
+              "of": "ReturnContractResult",
+              "type": "tuple[ReturnContractItem, ...]"
+            },
+            {
+              "kind": "function",
+              "name": "check_return_contracts",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "source_path",
+                  "type": "str"
+                },
+                {
+                  "name": "config_path",
+                  "type": "str"
+                },
+                {
+                  "name": "source",
+                  "type": "str"
+                },
+                {
+                  "name": "expectations",
+                  "type": "tuple[ReturnContractExpectation, ...]"
+                },
+                {
+                  "name": "transport",
+                  "type": "Callable[[str], str | None] | None"
+                }
+              ],
+              "returns": "ReturnContractResult"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_ts_return_contracts.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_proof_records_expose_exact_typed_fields"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_compiler_matches_semantic_alias_without_changing_disk"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_real_compiler_distinguishes_match_mismatch_and_unavailable"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_explicit_config_controls_nullability"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unusable_owning_config_is_unavailable"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_wrong_declaration_line_is_unavailable"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_dependency_change_is_not_hidden_by_semantic_cache"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_transport_receives_source_batch_and_hash"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_invalid_proof_reply_never_becomes_match"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_failed_transport_is_explicitly_unavailable"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_source_batch_returns_one_proof_per_declaration"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_missing_node_is_explicitly_unavailable"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_compiler_proof_does_not_run_inherited_node_preload"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_session_bridge_supports_return_proof_requests"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_generated_aliases_do_not_trigger_unused_local_errors"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_transport_io_failure_is_unavailable"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_disabled_semantic_checking_cannot_establish_proof"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_stale_reply_for_different_request_is_unavailable"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_declaration_files_cannot_hide_ambient_errors"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "tests/core/test_ts_compiler_resolver.py",
+        "tests/core/test_ts_compiler_resolver_session.py",
+        "package.json",
+        "maid_runner/validators/typescript.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/ts_compiler_resolver.cjs",
+          "reason": "Extend existing compiler transport internally; preserve public import and reexport APIs."
+        },
+        {
+          "path": "maid_runner/core/ts_compiler_resolver.py",
+          "reason": "Extend existing compiler transport internally; preserve public import and reexport APIs."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_ts_compiler_resolver.py",
+      "tests/core/test_ts_compiler_resolver_session.py",
+      "tests/core/test_ts_return_contracts.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_ts_return_contracts.py",
+      "uv run python -m pytest -q tests/core/test_ts_compiler_resolver.py tests/core/test_ts_compiler_resolver_session.py"
+    ],
+    "acceptance_commands": []
+  }
+}

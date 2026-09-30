@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 import threading
@@ -206,6 +207,11 @@ def _run_compiler_request(payload: dict[str, Any]) -> Optional[dict[str, Any]]:
     except (FileNotFoundError, ModuleNotFoundError):
         return None
 
+    environment = None
+    if payload.get("command") == "checkReturnContracts":
+        environment = dict(os.environ)
+        environment.pop("NODE_OPTIONS", None)
+
     try:
         completed = subprocess.run(
             [node, str(bridge)],
@@ -214,6 +220,7 @@ def _run_compiler_request(payload: dict[str, Any]) -> Optional[dict[str, Any]]:
             text=True,
             timeout=_REQUEST_TIMEOUT_SECONDS,
             check=False,
+            env=environment,
         )
     except (OSError, subprocess.TimeoutExpired):
         return None

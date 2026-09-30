@@ -24,6 +24,10 @@ function main() {
   const projectRoot = path.resolve(String(request.projectRoot || "."));
   const ts = loadTypescript(projectRoot);
 
+  if (request.command === "checkReturnContracts") {
+    return checkReturnContracts(ts, projectRoot, request);
+  }
+
   if (ts === null) {
     if (request.command === "resolveMany") {
       return Array.isArray(request.requests)
@@ -68,6 +72,10 @@ function respondToSessionLine(line) {
   const projectRoot = path.resolve(String(request.projectRoot || "."));
   const ts = loadTypescript(projectRoot);
 
+  if (request.command === "checkReturnContracts") {
+    return checkReturnContracts(ts, projectRoot, request);
+  }
+
   if (ts === null) {
     if (request.command === "resolveMany") {
       return Array.isArray(request.requests)
@@ -87,6 +95,137 @@ function respondToSessionLine(line) {
     return resolveMany(ts, projectRoot, request);
   }
   return null;
+}
+
+function checkReturnContracts(ts, projectRoot, request) {
+  const crypto = require("crypto");
+  const source = typeof request.source === "string" ? request.source : "";
+  const hash = crypto.createHash("sha256").update(source, "utf8").digest("hex");
+  const expectations = Array.isArray(request.expectations) ? request.expectations : [];
+  const requestHash = crypto.createHash("sha256").update(JSON.stringify([
+    hash, path.resolve(projectRoot, String(request.sourcePath || ".")),
+    path.resolve(projectRoot, String(request.configPath || ".")),
+    expectations.map(item => [item.name, item.line, item.expectedType]),
+  ]), "utf8").digest("hex");
+  const result = {
+    sourceSha256: hash,
+    requestSha256: requestHash,
+    compilerVersion: ts ? ts.version : null,
+    configPath: null,
+    strictNullChecks: null,
+    items: expectations.map(item => ({
+      name: item.name, line: item.line, status: "unavailable",
+      inferredType: null, diagnostics: ["Compiler return proof unavailable"],
+    })),
+  };
+  const fail = message => {
+    result.items.forEach(item => { item.diagnostics = [message]; });
+    return result;
+  };
+  if (request.requestSha256 !== undefined && request.requestSha256 !== requestHash) {
+    return fail("Request fingerprint mismatch");
+  }
+  if (!ts) return fail("Local TypeScript SDK is unavailable");
+  if (typeof request.source !== "string" || request.sourceSha256 !== hash) {
+    return fail("Invalid supplied source or source hash mismatch");
+  }
+  if (!request.configPath || !request.sourcePath) return fail("Explicit source and owning config are required");
+  const configPath = path.resolve(projectRoot, request.configPath);
+  const sourcePath = path.resolve(projectRoot, request.sourcePath);
+  result.configPath = configPath;
+  const config = ts.readConfigFile(configPath, ts.sys.readFile);
+  const diagnosticText = diagnostic => ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n");
+  if (config.error) return fail(diagnosticText(config.error));
+  const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, path.dirname(configPath), undefined, configPath);
+  if (parsed.errors.length) return fail(parsed.errors.map(diagnosticText).join("\n"));
+  if (!parsed.fileNames.some(name => path.resolve(name) === sourcePath)) {
+    return fail("Source file is not included in the explicitly supplied owning config");
+  }
+  if (!/\.tsx?$/.test(sourcePath)) return fail("Return proofs require a TypeScript source file");
+  if (parsed.options.noCheck) return fail("Compiler noCheck disables semantic proof checking");
+  // Library-check flags are performance shortcuts, not return-type semantics.
+  // Disable them so diagnostics cannot skip the requested target file.
+  const options = { ...parsed.options, noEmit: true, skipLibCheck: false, skipDefaultLibCheck: false };
+  result.strictNullChecks = options.strictNullChecks === undefined ? !!options.strict : !!options.strictNullChecks;
+  const kind = sourcePath.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
+  const original = ts.createSourceFile(sourcePath, source, ts.ScriptTarget.Latest, true, kind);
+  if (original.isDeclarationFile) return fail("Declaration files are unsupported for implementation-return proofs");
+  if (original.checkJsDirective && !original.checkJsDirective.enabled) {
+    return fail("Source @ts-nocheck disables semantic proof checking");
+  }
+  if (original.parseDiagnostics.length) return fail(original.parseDiagnostics.map(diagnosticText).join("\n"));
+  const declarations = original.statements.filter(ts.isFunctionDeclaration);
+  const aliases = [];
+  const eligible = [];
+  let overlay = source + "\n;\n";
+  expectations.forEach((expectation, index) => {
+    const item = result.items[index];
+    const reject = message => { item.diagnostics = [message]; };
+    if (typeof expectation.name !== "string" || !Number.isInteger(expectation.line) || expectation.line < 1 || typeof expectation.expectedType !== "string" || !expectation.expectedType.trim()) {
+      reject("Invalid declaration identity or expected type"); return;
+    }
+    const candidates = declarations.filter(node => node.name && node.name.text === expectation.name);
+    if (candidates.length !== 1 || !candidates[0].body || candidates[0].type ||
+        original.getLineAndCharacterOfPosition(candidates[0].getStart(original)).line + 1 !== expectation.line) {
+      reject("Expected one unannotated top-level function declaration at the requested line; overloads are unsupported"); return;
+    }
+    const scanner = ts.createScanner(ts.ScriptTarget.Latest, false, ts.LanguageVariant.Standard, expectation.expectedType);
+    let token;
+    let suppressed = false;
+    while ((token = scanner.scan()) !== ts.SyntaxKind.EndOfFileToken) {
+      if ((token === ts.SyntaxKind.SingleLineCommentTrivia || token === ts.SyntaxKind.MultiLineCommentTrivia) &&
+          /@ts-(?:ignore|expect-error|nocheck|check)\b/.test(scanner.getTokenText())) {
+        suppressed = true;
+      }
+    }
+    if (suppressed) { reject("Expected type cannot contain checking directives"); return; }
+    // Parse the expression alone before placing it in the owning module scope.
+    const probe = ts.createSourceFile("expected.ts", "type __expected = " + expectation.expectedType + ";", ts.ScriptTarget.Latest, true);
+    if (probe.parseDiagnostics.length || probe.statements.length !== 1 || !ts.isTypeAliasDeclaration(probe.statements[0])) {
+      reject("Expected type must be one inert valid type expression"); return;
+    }
+    let alias = "__maid_return_" + hash + "_" + index;
+    while (source.includes(alias)) alias += "_";
+    aliases[index] = alias;
+    eligible.push(index);
+    // Export only for existing external modules; preserve global-script semantics.
+    overlay += "\n" + (ts.isExternalModule(original) ? "export " : "") + "type " + alias + " = " + expectation.expectedType + ";\n";
+  });
+  if (!eligible.length) return result;
+  const host = ts.createCompilerHost(options, true);
+  const getSourceFile = host.getSourceFile.bind(host);
+  host.getSourceFile = (name, ...args) => path.resolve(name) === sourcePath
+    ? ts.createSourceFile(sourcePath, overlay, ts.ScriptTarget.Latest, true, kind)
+    : getSourceFile(name, ...args);
+  const program = ts.createProgram(parsed.fileNames, options, host);
+  const target = program.getSourceFile(sourcePath);
+  if (!target) return fail("Supplied source is unavailable in the compiler program");
+  const diagnostics = [
+    ...program.getOptionsDiagnostics(),
+    ...program.getSyntacticDiagnostics(target),
+    ...program.getSemanticDiagnostics(target),
+  ];
+  if (diagnostics.length) return fail(diagnostics.map(diagnosticText).join("\n"));
+  const checker = program.getTypeChecker();
+  const functions = target.statements.filter(ts.isFunctionDeclaration);
+  const typeAliases = target.statements.filter(ts.isTypeAliasDeclaration);
+  eligible.forEach(index => {
+    const item = result.items[index];
+    const declaration = functions.find(node => node.name && node.name.text === item.name);
+    const alias = typeAliases.find(node => node.name.text === aliases[index]);
+    const signature = checker.getSignatureFromDeclaration(declaration);
+    if (!signature || !alias) { item.diagnostics = ["Compiler could not identify return type"]; return; }
+    const actual = checker.getReturnTypeOfSignature(signature);
+    const expected = checker.getTypeFromTypeNode(alias.type);
+    if ((actual.flags | expected.flags) & (ts.TypeFlags.Any | ts.TypeFlags.Unknown)) {
+      item.diagnostics = ["Top-level any, unknown, or error types cannot establish a return contract"]; return;
+    }
+    item.inferredType = checker.typeToString(actual);
+    item.status = checker.isTypeAssignableTo(actual, expected) && checker.isTypeAssignableTo(expected, actual)
+      ? "matched" : "mismatched";
+    item.diagnostics = [];
+  });
+  return result;
 }
 
 function loadTypescript(projectRoot) {

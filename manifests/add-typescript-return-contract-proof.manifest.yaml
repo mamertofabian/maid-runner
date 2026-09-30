@@ -1,0 +1,296 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Add a typed, compiler-backed TypeScript return-contract proof adapter without activating
+  validator inference.
+type: feature
+created: '2026-09-30T11:30:17Z'
+description: 'First implementation slice of the approved compiler-backed return-contract design.
+  Keep syntactic artifact collection and validators unchanged. Add frozen data records and a
+  public proof adapter; use the existing local Node/TypeScript bridge with command checkReturnContracts
+  in one-shot and session modes. A transport callable accepts serialized JSON and returns serialized
+  bridge output or None, allowing deterministic boundary tests without mocking TypeScript types.
+
+
+  The request carries projectRoot, sourcePath, configPath, source, sourceSha256 and expectations
+  (name, line, expectedType). The bridge envelope stays {ok: true, result: ...}; result contains
+  sourceSha256, compilerVersion, configPath, strictNullChecks, and items (name, line, status,
+  inferredType, diagnostics). Validate reply provenance and identity before trusting matched
+  results. Any unavailable infrastructure or malformed response produces one unavailable item
+  per expectation with a diagnostic; no syntax fallback.
+
+
+  Use the explicit owning tsconfig and require source inclusion in its parsed file list. Create
+  a fresh compiler program per request, overlay supplied UTF-8 source in memory, append collision-free
+  exported expected-type aliases, and compare types bidirectionally using the checker. Require
+  one inert, resolved type expression. Reject target-file semantic/syntax errors, top-level
+  any/unknown/error types, annotated functions, overloads, unsupported declarations, and name/line
+  ambiguity. Respect effective strictNullChecks rather than claiming stronger nullability. Never
+  write, emit, evaluate source, install dependencies, or inherit NODE_OPTIONS preloads for proof
+  requests. Preserve legacy import/reexport resolution behavior and the five-second timeout.
+
+
+  An executable temporary SDK spike with TypeScript 5.9.3 passed eight semantic assertions and
+  proved the overlay leaves disk source unchanged. Plain Outcome insights informed real compiler
+  checks, explicit unavailable results, and dedicated tests instead of editing previously locked
+  shared tests. Manifest-derived recall returned no related completed Outcomes; no feature-specific
+  historical claims are assumed. Configuration, E309 registration, validator activation, snapshots
+  and consumer changes are separate later slices.
+
+  Request and response include requestSha256, a SHA-256 digest of compact UTF-8 JSON [sourceSha256,
+  absolute normalized sourcePath, absolute normalized configPath, [[name, line, expectedType],
+  ...]]. Verify this fingerprint to reject same-source stale replies for different expected
+  contracts or source identities. Requests with compiler noCheck or an effective compiler-parsed
+  @ts-nocheck directive produce unavailable results because semantic diagnostics cannot establish
+  proof.
+
+
+  Declaration files are unsupported for implementation-return proofs. Ensure skipDefaultLibCheck
+  and skipLibCheck cannot suppress target semantic diagnostics; these performance flags may
+  be disabled for the fresh proof program without strengthening effective strictNullChecks.
+
+  '
+temptations:
+- risk: Do not compare checker display strings or accept only one-way assignability.
+  instead: Compare actual and expected types bidirectionally in the same checker and test structural
+    aliases plus wider unions.
+- risk: Do not convert errors, any, unknown, missing tooling or stale replies into a match.
+  instead: Reject each unsafe proof with typed unavailable items and nonempty diagnostics; validate
+    source hash and item identities.
+- risk: Do not write aliases into user files or execute project code.
+  instead: Use a compiler-host overlay, noEmit, inert type-expression parsing and sanitized
+    Node preload environment.
+- risk: Do not reuse stale semantic programs or guess a referenced root configuration.
+  instead: Parse the explicitly supplied owning config and create a fresh program for each source-file
+    batch.
+files:
+  create:
+  - path: maid_runner/core/ts_return_contracts.py
+    artifacts:
+    - kind: class
+      name: ReturnContractExpectation
+    - kind: attribute
+      name: name
+      of: ReturnContractExpectation
+      type: str
+    - kind: attribute
+      name: line
+      of: ReturnContractExpectation
+      type: int
+    - kind: attribute
+      name: expected_type
+      of: ReturnContractExpectation
+      type: str
+    - kind: class
+      name: ReturnContractItem
+    - kind: attribute
+      name: name
+      of: ReturnContractItem
+      type: str
+    - kind: attribute
+      name: line
+      of: ReturnContractItem
+      type: int
+    - kind: attribute
+      name: status
+      of: ReturnContractItem
+      type: Literal["matched", "mismatched", "unavailable"]
+    - kind: attribute
+      name: inferred_type
+      of: ReturnContractItem
+      type: str | None
+    - kind: attribute
+      name: diagnostics
+      of: ReturnContractItem
+      type: tuple[str, ...]
+    - kind: class
+      name: ReturnContractResult
+    - kind: attribute
+      name: source_sha256
+      of: ReturnContractResult
+      type: str
+    - kind: attribute
+      name: compiler_version
+      of: ReturnContractResult
+      type: str | None
+    - kind: attribute
+      name: config_path
+      of: ReturnContractResult
+      type: str | None
+    - kind: attribute
+      name: strict_null_checks
+      of: ReturnContractResult
+      type: bool | None
+    - kind: attribute
+      name: items
+      of: ReturnContractResult
+      type: tuple[ReturnContractItem, ...]
+    - kind: function
+      name: check_return_contracts
+      args:
+      - name: project_root
+        type: Path
+      - name: source_path
+        type: str
+      - name: config_path
+        type: str
+      - name: source
+        type: str
+      - name: expectations
+        type: tuple[ReturnContractExpectation, ...]
+      - name: transport
+        type: Callable[[str], str | None] | None
+      returns: ReturnContractResult
+  - path: tests/core/test_ts_return_contracts.py
+    artifacts:
+    - kind: test_function
+      name: test_proof_records_expose_exact_typed_fields
+    - kind: test_function
+      name: test_compiler_matches_semantic_alias_without_changing_disk
+    - kind: test_function
+      name: test_real_compiler_distinguishes_match_mismatch_and_unavailable
+    - kind: test_function
+      name: test_explicit_config_controls_nullability
+    - kind: test_function
+      name: test_unusable_owning_config_is_unavailable
+    - kind: test_function
+      name: test_wrong_declaration_line_is_unavailable
+    - kind: test_function
+      name: test_dependency_change_is_not_hidden_by_semantic_cache
+    - kind: test_function
+      name: test_transport_receives_source_batch_and_hash
+    - kind: test_function
+      name: test_invalid_proof_reply_never_becomes_match
+    - kind: test_function
+      name: test_failed_transport_is_explicitly_unavailable
+    - kind: test_function
+      name: test_source_batch_returns_one_proof_per_declaration
+    - kind: test_function
+      name: test_missing_node_is_explicitly_unavailable
+    - kind: test_function
+      name: test_compiler_proof_does_not_run_inherited_node_preload
+    - kind: test_function
+      name: test_session_bridge_supports_return_proof_requests
+    - kind: test_function
+      name: test_generated_aliases_do_not_trigger_unused_local_errors
+    - kind: test_function
+      name: test_transport_io_failure_is_unavailable
+    - kind: test_function
+      name: test_disabled_semantic_checking_cannot_establish_proof
+    - kind: test_function
+      name: test_stale_reply_for_different_request_is_unavailable
+    - kind: test_function
+      name: test_declaration_files_cannot_hide_ambient_errors
+  scope:
+  - path: maid_runner/core/ts_compiler_resolver.cjs
+    reason: Extend existing compiler transport internally; preserve public import and reexport
+      APIs.
+  - path: maid_runner/core/ts_compiler_resolver.py
+    reason: Extend existing compiler transport internally; preserve public import and reexport
+      APIs.
+  read:
+  - tests/core/test_ts_compiler_resolver.py
+  - tests/core/test_ts_compiler_resolver_session.py
+  - package.json
+  - maid_runner/validators/typescript.py
+validate:
+- uv run python -m pytest -q tests/core/test_ts_return_contracts.py
+- uv run python -m pytest -q tests/core/test_ts_compiler_resolver.py tests/core/test_ts_compiler_resolver_session.py
+outcome:
+  status: completed
+  completed_at: '2026-09-30T11:54:00Z'
+  summary: 'Implemented the first compiler-return proof slice: frozen typed results, a source-file
+    batch adapter, and fresh TypeScript-checker proofs through the existing bridge. Compiler
+    results remain separate from syntactic artifacts; configuration and validator activation
+    are deferred to the next slice. The original CSV component also matched through a read-only
+    API probe with its local TypeScript 5.8.3 and effective strictNullChecks false.'
+  rationale: Bidirectional checker assignability resolves module-scoped expected types without
+    display-string equality or source edits. Source and request fingerprints protect provenance.
+    Unsupported or unchecked targets, malformed replies and tooling failures are explicit unavailable
+    results.
+  lessons:
+  - lesson_type: validation
+    summary: Compiler semantic diagnostics can be suppressed by noCheck, source directives and
+      library-check flags. Return proofs must reject unchecked targets, isolate synthetic aliases
+      from trailing directives, and prevent target diagnostic skipping. Independent reviews
+      reproduced false matches before these protections were added.
+    tags:
+    - typescript
+    - compiler
+    - maid-runner-feedback
+    paths:
+    - maid_runner/core/ts_compiler_resolver.cjs
+    - tests/core/test_ts_return_contracts.py
+  - lesson_type: validation
+    summary: A source hash alone does not bind a semantic proof to the expected contract. Include
+      source identity, owning config and exact expected-type batch in a request fingerprint
+      and reject stale replies across those identities.
+    tags:
+    - typescript
+    - provenance
+    - maid-runner-feedback
+    paths:
+    - maid_runner/core/ts_return_contracts.py
+    - tests/core/test_ts_return_contracts.py
+  review_notes:
+  - source: independent-compiler_proof_review
+    severity: ready
+    summary: Read-only independent reviewer found no blocking findings or actionable advisories
+      and independently reran all 81 focused/adjacent cases. Prior review findings were resolved
+      through user-approved behavioral revisions with sanctioned red recapture.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/test_ts_return_contracts.py
+    - tests/core/test_ts_compiler_resolver.py
+    - tests/core/test_ts_compiler_resolver_session.py
+    status: passed
+    summary: '81 cases passed: 57 new proof cases and 24 existing resolver/session cases. Ruff
+      changed Python files and diff whitespace checks passed.'
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --packet
+    status: passed
+    summary: 325 active manifests passed, zero failed; 367 superseded manifests skipped.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - db321609eaf68f3902ce67c8bff54c64e1b29b73
+    status: passed
+    summary: All 11 assessed deep gates passed, including artifact coverage, knockout, plan
+      lock, red evidence and scope. Existing E307 for the CJS bridge remains nonblocking.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: failed-unrelated
+    summary: '303 of 304 commands passed. Grouped pytest: 5391 passed, 13 skipped, two unchanged
+      release metadata tests failed because CHANGELOG.md lacks an Unreleased heading. Both affected
+      files match task baseline.'
