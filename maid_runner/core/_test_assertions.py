@@ -7,6 +7,7 @@ from dataclasses import dataclass
 import re
 from pathlib import Path
 from typing import Union
+import warnings
 
 from maid_runner.core.result import ErrorCode, Location, Severity, ValidationError
 
@@ -147,7 +148,7 @@ def check_test_assertions(source: str, test_path: str) -> list[ValidationError]:
                     )
                 )
     elif test_path.endswith((".ts", ".tsx", ".js", ".jsx")):
-        for match, body in _js_ts_test_bodies(source):
+        for match, body in _js_ts_test_bodies(source, test_path):
             if "expect(" not in body and "assert" not in body.lower():
                 test_name = match.group(2) or "unknown"
                 line = source[: match.start()].count("\n") + 1
@@ -166,11 +167,60 @@ def check_test_assertions(source: str, test_path: str) -> list[ValidationError]:
     return errors
 
 
-def _js_ts_test_bodies(source: str) -> list[tuple[re.Match[str], str]]:
+def _shield_js_ts_regex_tokens(source: str, test_path: str) -> str:
+    """Shield grammar-identified regex tokens without changing character offsets."""
+    try:
+        from tree_sitter import Language, Parser
+        import tree_sitter_typescript
+    except ImportError:
+        warnings.warn(
+            "JS/TS assertion checking is using the legacy scanner because optional "
+            "parsers are unavailable; install maid-runner[typescript] or [all] "
+            "for regex-aware boundaries.",
+            RuntimeWarning,
+            stacklevel=3,
+        )
+        return source
+
+    if "/" not in source:
+        return source
+
+    from maid_runner.validators._typescript_parse import parse_typescript_source
+
+    session = parse_typescript_source(
+        source,
+        test_path,
+        Parser(Language(tree_sitter_typescript.language_typescript())),
+        Parser(Language(tree_sitter_typescript.language_tsx())),
+    )
+    spans: list[tuple[int, int]] = []
+    pending = [session.tree.root_node]
+    while pending:
+        node = pending.pop()
+        if node.type == "regex" and not node.has_error:
+            spans.append((node.start_byte, node.end_byte))
+        else:
+            pending.extend(node.named_children)
+
+    # Parse-service spans are byte offsets. Decode each original segment before
+    # shielding so multibyte characters still occupy exactly one Python index.
+    parts: list[str] = []
+    cursor = 0
+    for start, end in sorted(spans):
+        parts.append(session.source_bytes[cursor:start].decode("utf-8"))
+        token = session.source_bytes[start:end].decode("utf-8")
+        parts.append("".join(char if char in "\r\n" else " " for char in token))
+        cursor = end
+    parts.append(session.source_bytes[cursor:].decode("utf-8"))
+    return "".join(parts)
+
+
+def _js_ts_test_bodies(source: str, test_path: str) -> list[tuple[re.Match[str], str]]:
+    shielded = _shield_js_ts_regex_tokens(source, test_path)
     bodies: list[tuple[re.Match[str], str]] = []
-    for match in _JS_TS_TEST_PATTERN.finditer(source):
+    for match in _JS_TS_TEST_PATTERN.finditer(shielded):
         opening_brace = match.end() - 1
-        closing_brace = _find_matching_js_ts_brace(source, opening_brace)
+        closing_brace = _find_matching_js_ts_brace(shielded, opening_brace)
         if closing_brace is None:
             continue
         bodies.append((match, source[opening_brace + 1 : closing_brace]))

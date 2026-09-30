@@ -1,0 +1,178 @@
+{
+  "manifest_path": "manifests/fix-js-ts-regex-assertion-boundaries.manifest.yaml",
+  "manifest_hash": "sha256-contract:40c3064c2162e5b026b5023d627336be9552c347616562489be50254a7562b05",
+  "test_hashes": {
+    "tests/core/validation/test_js_ts_regex_assertion_boundaries.py": "sha256-pyast:v2:4963e8b0acf07f1421af2fab0343bf3e136293f40893ac78c5c0cfb74bb630fb"
+  },
+  "created_at": "2026-09-30T03:50:52.397861+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:26ac6ebf1c90e7821f64332bcbe397c7daeb6e4d77beb7f9db62d7862bff924e",
+      "prior_test_hashes": {
+        "tests/core/validation/test_js_ts_regex_assertion_boundaries.py": "sha256-pyast:v2:4963e8b0acf07f1421af2fab0343bf3e136293f40893ac78c5c0cfb74bb630fb"
+      },
+      "revised_at": "2026-09-30T03:50:52.995243+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-js-ts-regex-assertion-boundaries.manifest.yaml -> manifests/fix-js-ts-regex-assertion-boundaries.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-30T03:50:52.758035+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/validation/test_js_ts_regex_assertion_boundaries.py",
+        "exit_code": 1,
+        "output_tail": "tests/core/validation/test_js_ts_regex_assertion_boundaries.py:119: Failed\n=========================== short test summary info ============================\nFAILED tests/core/validation/test_js_ts_regex_assertion_boundaries.py::test_regex_setup_does_not_hide_later_assertions[/\\\\{([^}]*)\\\\}/-js]\nFAILED tests/core/validation/test_js_ts_regex_assertion_boundaries.py::test_regex_setup_does_not_hide_later_assertions[/\\\\{([^}]*)\\\\}/-jsx]\nFAILED tests/core/validation/test_js_ts_regex_assertion_boundaries.py::test_regex_setup_does_not_hide_later_assertions[/\\\\{([^}]*)\\\\}/-ts]\nFAILED tests/core/validation/test_js_ts_regex_assertion_boundaries.py::test_regex_setup_does_not_hide_later_assertions[/\\\\{([^}]*)\\\\}/-tsx]\nFAILED tests/core/validation/test_js_ts_regex_assertion_boundaries.py::test_regex_setup_does_not_hide_later_assertions[/import\\\\s*(?:type\\\\s*)?\\\\{([^}]*)\\\\}\\\\s*from\\\\s*[\\\\\"']viem(?:\\\\/[\\\\w-]+)?[\\\\\"']/g-js]\nFAILED tests/core/validation/test_js_ts_regex_assertion_boundaries.py::test_regex_setup_does_not_hide_later_assertions[/import\\\\s*(?:type\\\\s*)?\\\\{([^}]*)\\\\}\\\\s*from\\\\s*[\\\\\"']viem(?:\\\\/[\\\\w-]+)?[\\\\\"']/g-jsx]\nFAILED tests/core/validation/test_js_ts_regex_assertion_boundaries.py::test_regex_setup_does_not_hide_later_assertions[/import\\\\s*(?:type\\\\s*)?\\\\{([^}]*)\\\\}\\\\s*from\\\\s*[\\\\\"']viem(?:\\\\/[\\\\w-]+)?[\\\\\"']/g-ts]\nFAILED tests/core/validation/test_js_ts_regex_assertion_boundaries.py::test_regex_setup_does_not_hide_later_assertions[/import\\\\s*(?:type\\\\s*)?\\\\{([^}]*)\\\\}\\\\s*from\\\\s*[\\\\\"']viem(?:\\\\/[\\\\w-]+)?[\\\\\"']/g-tsx]\nFAILED tests/core/validation/test_js_ts_regex_assertion_boundaries.py::test_regex_setup_does_not_hide_later_assertions[/https?:\\\\/\\\\/example\\\\.test\\\\/[^}]+/g-js]\nFAILED tests/core/validation/test_js_ts_regex_assertion_boundaries.py::test_regex_setup_does_not_hide_later_assertions[/https?:\\\\/\\\\/example\\\\.test\\\\/[^}]+/g-jsx]\nFAILED tests/core/validation/test_js_ts_regex_assertion_boundaries.py::test_regex_setup_does_not_hide_later_assertions[/https?:\\\\/\\\\/example\\\\.test\\\\/[^}]+/g-ts]\nFAILED tests/core/validation/test_js_ts_regex_assertion_boundaries.py::test_regex_setup_does_not_hide_later_assertions[/https?:\\\\/\\\\/example\\\\.test\\\\/[^}]+/g-tsx]\nFAILED tests/core/validation/test_js_ts_regex_assertion_boundaries.py::test_regex_only_callbacks_still_report_missing_assertions[/[\\\\\"']/g]\nFAILED tests/core/validation/test_js_ts_regex_assertion_boundaries.py::test_regex_only_callbacks_still_report_missing_assertions[/[\\U0001f9ea{}'\\\\\"]/u]\nFAILED tests/core/validation/test_js_ts_regex_assertion_boundaries.py::test_regex_does_not_leak_assertions_from_a_following_callback\nFAILED tests/core/validation/test_js_ts_regex_assertion_boundaries.py::test_duplicate_labels_retain_independent_callback_diagnostics\nFAILED tests/core/validation/test_js_ts_regex_assertion_boundaries.py::test_core_assertion_checks_remain_available_without_optional_parser\n17 failed, 17 passed in 0.17s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_test_assertions.py:function:check_test_assertions",
+      "maid_runner/core/_test_assertions.py:function:check_test_assertions:arg=source:type=str:default=None",
+      "maid_runner/core/_test_assertions.py:function:check_test_assertions:arg=test_path:type=str:default=None",
+      "maid_runner/core/_test_assertions.py:function:check_test_assertions:kind=function",
+      "maid_runner/core/_test_assertions.py:function:check_test_assertions:returns=list[ValidationError]",
+      "tests/core/validation/test_js_ts_regex_assertion_boundaries.py:test_core_assertion_checks_remain_available_without_optional_parser",
+      "tests/core/validation/test_js_ts_regex_assertion_boundaries.py:test_core_assertion_checks_remain_available_without_optional_parser:kind=test_function",
+      "tests/core/validation/test_js_ts_regex_assertion_boundaries.py:test_division_comments_and_strings_keep_existing_assertion_behavior",
+      "tests/core/validation/test_js_ts_regex_assertion_boundaries.py:test_division_comments_and_strings_keep_existing_assertion_behavior:kind=test_function",
+      "tests/core/validation/test_js_ts_regex_assertion_boundaries.py:test_duplicate_labels_retain_independent_callback_diagnostics",
+      "tests/core/validation/test_js_ts_regex_assertion_boundaries.py:test_duplicate_labels_retain_independent_callback_diagnostics:kind=test_function",
+      "tests/core/validation/test_js_ts_regex_assertion_boundaries.py:test_regex_does_not_leak_assertions_from_a_following_callback",
+      "tests/core/validation/test_js_ts_regex_assertion_boundaries.py:test_regex_does_not_leak_assertions_from_a_following_callback:kind=test_function",
+      "tests/core/validation/test_js_ts_regex_assertion_boundaries.py:test_regex_only_callbacks_still_report_missing_assertions",
+      "tests/core/validation/test_js_ts_regex_assertion_boundaries.py:test_regex_only_callbacks_still_report_missing_assertions:kind=test_function",
+      "tests/core/validation/test_js_ts_regex_assertion_boundaries.py:test_regex_setup_does_not_hide_later_assertions",
+      "tests/core/validation/test_js_ts_regex_assertion_boundaries.py:test_regex_setup_does_not_hide_later_assertions:kind=test_function",
+      "tests/core/validation/test_js_ts_regex_assertion_boundaries.py:test_unicode_regex_and_labels_preserve_original_diagnostic_locations",
+      "tests/core/validation/test_js_ts_regex_assertion_boundaries.py:test_unicode_regex_and_labels_preserve_original_diagnostic_locations:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/validation/test_js_ts_regex_assertion_boundaries.py"
+      ],
+      "edit": [
+        "maid_runner/core/_test_assertions.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/core/_behavioral_validation.py",
+        "maid_runner/core/result.py",
+        "maid_runner/validators/_typescript_parse.py",
+        "maid_runner/validators/typescript.py",
+        "manifests/fix-python-playwright-assertion-recognition.manifest.yaml",
+        "manifests/fix-typescript-assertion-nested-braces.manifest.yaml",
+        "pyproject.toml"
+      ],
+      "scope": [
+        "docs/troubleshooting.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/validation/test_js_ts_regex_assertion_boundaries.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_regex_setup_does_not_hide_later_assertions",
+              "description": "Regex braces, quotes, Unicode and escaped slashes before expect do not truncate callbacks in JS, JSX, TS or TSX."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_regex_only_callbacks_still_report_missing_assertions",
+              "description": "Regex-only callbacks still report E210 rather than disappearing from the scan."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_regex_does_not_leak_assertions_from_a_following_callback",
+              "description": "A later asserting callback does not suppress an earlier regex-only test warning."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_duplicate_labels_retain_independent_callback_diagnostics",
+              "description": "Duplicate test labels retain per-call warning locations rather than collapsing into a dictionary keyed by name."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unicode_regex_and_labels_preserve_original_diagnostic_locations",
+              "description": "Multibyte source, regex contents and labels preserve exact source line and path diagnostics."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_division_comments_and_strings_keep_existing_assertion_behavior",
+              "description": "Division, division assignment, comments and string data preserve existing assertion recognition."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_core_assertion_checks_remain_available_without_optional_parser",
+              "description": "Missing optional parser dependencies retain basic legacy scanning and produce a visible runtime warning explaining the degraded backend."
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/_test_assertions.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "check_test_assertions",
+              "description": "Determine assertions independently within direct JS/TS test callbacks using grammar-backed regex shielding while preserving existing diagnostics and Python behavior.",
+              "args": [
+                {
+                  "name": "source",
+                  "type": "str"
+                },
+                {
+                  "name": "test_path",
+                  "type": "str"
+                }
+              ],
+              "returns": "list[ValidationError]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/validators/_typescript_parse.py",
+        "maid_runner/validators/typescript.py",
+        "maid_runner/core/result.py",
+        "maid_runner/core/_behavioral_validation.py",
+        "maid_runner/cli/commands/verify.py",
+        "pyproject.toml",
+        "manifests/fix-typescript-assertion-nested-braces.manifest.yaml",
+        "manifests/fix-python-playwright-assertion-recognition.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "docs/troubleshooting.md",
+          "reason": "Document regex-aware callback boundaries and the visible legacy fallback when optional parser dependencies are absent."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/validation/test_js_ts_regex_assertion_boundaries.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/validation/test_js_ts_regex_assertion_boundaries.py"
+    ],
+    "acceptance_commands": []
+  }
+}

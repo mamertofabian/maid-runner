@@ -184,6 +184,16 @@ execution. Aliased or module-qualified `expect` calls and stored assertion
 objects are outside this addition. Runtime test and deep-evidence requirements
 remain in force.
 
+JS/TS callback boundaries use the existing tree-sitter parser to shield regex
+tokens containing braces, quotes, or slash characters. Assertions are checked
+in each callback's original text, so duplicate test labels remain independent
+and assertion-free regex callbacks still report E210.
+
+Install `maid-runner[typescript]` or `maid-runner[all]` for grammar-aware regex
+boundaries. Without those optional parsers, core assertion checking retains
+the legacy scanner and emits a `RuntimeWarning` explaining its lexical limits.
+Unexpected parser failures are not silently converted into successful scans.
+
 ### 16. No test files are declared (`E220`)
 
 Symptom: Behavioral or implementation coverage reports `E220`.
