@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 from dataclasses import replace
 from pathlib import Path
 from typing import Callable, Optional
@@ -187,7 +188,7 @@ def compare_artifacts(
     file_path: str,
     is_strict: bool,
 ) -> list[ValidationError]:
-    """Compare artifacts with Runner's existing default type semantics."""
+    """Compare artifacts, retaining historical Python callable tuple contracts."""
     return _compare_artifacts(
         expected=expected,
         found=found,
@@ -363,6 +364,57 @@ def _found_artifact_is_declared(
     )
 
 
+def _legacy_python_tuple_annotation(annotation: Optional[str]) -> Optional[str]:
+    """Adapt only expected legacy variadic-tuple markers, not quoted values."""
+    if annotation is None or "Ellipsis" not in annotation:
+        return None
+    try:
+        tree = ast.parse(annotation.strip(), mode="eval")
+        changed = False
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Subscript):
+                continue
+            base = node.value
+            is_tuple = (
+                isinstance(base, ast.Name) and base.id in ("tuple", "Tuple")
+            ) or (
+                isinstance(base, ast.Attribute)
+                and base.attr == "Tuple"
+                and isinstance(base.value, ast.Name)
+                and base.value.id == "typing"
+            )
+            if not is_tuple or not isinstance(node.slice, ast.Tuple):
+                continue
+            elements = node.slice.elts
+            if (
+                len(elements) == 2
+                and isinstance(elements[1], ast.Name)
+                and elements[1].id == "Ellipsis"
+            ):
+                elements[1] = ast.copy_location(ast.Constant(Ellipsis), elements[1])
+                changed = True
+        return ast.unparse(tree) if changed else None
+    except (SyntaxError, ValueError, TypeError, RecursionError):
+        # The ordinary matcher already rejected this annotation. An invalid
+        # legacy spelling must not acquire compatibility through recovery.
+        return None
+
+
+def _callable_type_matches(
+    manifest_type: Optional[str],
+    implementation_type: Optional[str],
+    file_path: str,
+    kind: ArtifactKind,
+    type_matcher: _TypeMatcher,
+) -> bool:
+    if type_matcher(manifest_type, implementation_type):
+        return True
+    if kind not in _DEFAULT_HOOK_KINDS or Path(file_path).suffix != ".py":
+        return False
+    compatible = _legacy_python_tuple_annotation(manifest_type)
+    return compatible is not None and type_matcher(compatible, implementation_type)
+
+
 def _compare_single(
     spec: ArtifactSpec,
     found: FoundArtifact,
@@ -448,8 +500,8 @@ def _compare_single(
                         location=Location(file=file_path, line=found.line),
                     )
                 )
-            elif expected_arg.type and not type_matcher(
-                expected_arg.type, found_arg.type
+            elif expected_arg.type and not _callable_type_matches(
+                expected_arg.type, found_arg.type, file_path, spec.kind, type_matcher
             ):
                 errors.append(
                     ValidationError(
@@ -476,7 +528,9 @@ def _compare_single(
             )
         )
     elif spec.returns and found.returns:
-        if not type_matcher(spec.returns, found.returns):
+        if not _callable_type_matches(
+            spec.returns, found.returns, file_path, spec.kind, type_matcher
+        ):
             errors.append(
                 ValidationError(
                     code=ErrorCode.TYPE_MISMATCH,

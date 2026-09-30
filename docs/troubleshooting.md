@@ -472,6 +472,19 @@ directly; its default file-tracking and plan-lock scopes remain `repository`.
 
 ## FAQ
 
+### FAQ: How should I declare Python variadic tuple annotations?
+
+Use source syntax such as `tuple[str, ...]` or `typing.Tuple[str, ...]` for
+parameter and return types. Python collection and snapshots preserve the literal
+`...`, including tuples nested inside other annotations.
+
+Historical Python function and method contracts that used `tuple[str, Ellipsis]`
+remain accepted through an expected-only compatibility rule for the final marker
+of a two-argument variadic tuple. New contracts should use `...`. This rule does
+not equate actual source identifiers with literal ellipsis, loosen type-alias
+targets, or apply to non-Python contracts; tuple element and length mismatches
+still fail.
+
 ### FAQ: Should I run `maid validate`, `maid test`, or `maid verify`?
 
 Use `maid validate` to check manifest structure and artifact alignment. Use

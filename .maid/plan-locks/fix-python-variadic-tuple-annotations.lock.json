@@ -1,0 +1,219 @@
+{
+  "manifest_path": "manifests/fix-python-variadic-tuple-annotations.manifest.yaml",
+  "manifest_hash": "sha256-contract:dd73789f7902cdb4aad1130573697e98a9f405bfac1a87634b33a3bc0a30d930",
+  "test_hashes": {
+    "tests/validators/test_python_variadic_tuple_annotations.py": "sha256-pyast:v2:a6ce4800368617751a6e80456ccf5850a9f7b9b10b70347ea45f7c383b50c539"
+  },
+  "created_at": "2026-09-30T01:33:02.723413+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:784cb6ab59c5c54e50f72c25c6d87caf182cedb2d64c848f599e4bbaf2a87d99",
+      "prior_test_hashes": {
+        "tests/validators/test_python_variadic_tuple_annotations.py": "sha256-pyast:v2:8f7f54270f476deccce7e1cd0cbfd9cec6e4b9a29266f03d95688f6c0c74274b"
+      },
+      "revised_at": "2026-09-30T01:34:00.628141+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-python-variadic-tuple-annotations.manifest.yaml -> manifests/fix-python-variadic-tuple-annotations.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:dd73789f7902cdb4aad1130573697e98a9f405bfac1a87634b33a3bc0a30d930",
+      "prior_test_hashes": {
+        "tests/validators/test_python_variadic_tuple_annotations.py": "sha256-pyast:v2:8f7f54270f476deccce7e1cd0cbfd9cec6e4b9a29266f03d95688f6c0c74274b"
+      },
+      "revised_at": "2026-09-30T01:37:41.371817+00:00",
+      "reason": "Add reviewed outer-whitespace compatibility regressions for callable comparison and public implementation validation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-30T01:37:41.864883+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/validators/test_python_variadic_tuple_annotations.py",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/validators/test_python_variadic_tuple_annotations.py::test_python_collection_preserves_ellipsis_annotation_syntax[True-tuple[str, ...]]\nFAILED tests/validators/test_python_variadic_tuple_annotations.py::test_python_collection_preserves_ellipsis_annotation_syntax[True-Tuple[str, ...]]\nFAILED tests/validators/test_python_variadic_tuple_annotations.py::test_python_collection_preserves_ellipsis_annotation_syntax[True-typing.Tuple[str, ...]]\nFAILED tests/validators/test_python_variadic_tuple_annotations.py::test_python_collection_preserves_ellipsis_annotation_syntax[True-dict[str, tuple[int, ...]]]\nFAILED tests/validators/test_python_variadic_tuple_annotations.py::test_python_collection_preserves_ellipsis_annotation_syntax[True-Callable[..., str]]\nFAILED tests/validators/test_python_variadic_tuple_annotations.py::test_python_implementation_validation_accepts_canonical_and_legacy_tuple_contracts[tuple[str, ...]]\nFAILED tests/validators/test_python_variadic_tuple_annotations.py::test_python_comparison_retains_legacy_expected_tuple_spelling[False-tuple[str, ...]]\nFAILED tests/validators/test_python_variadic_tuple_annotations.py::test_python_comparison_retains_legacy_expected_tuple_spelling[False-Tuple[str, ...]]\nFAILED tests/validators/test_python_variadic_tuple_annotations.py::test_python_comparison_retains_legacy_expected_tuple_spelling[False-typing.Tuple[str, ...]]\nFAILED tests/validators/test_python_variadic_tuple_annotations.py::test_python_comparison_retains_legacy_expected_tuple_spelling[False-dict[str, tuple[int, ...]]]\nFAILED tests/validators/test_python_variadic_tuple_annotations.py::test_python_comparison_retains_legacy_expected_tuple_spelling[False-tuple[tuple[str, ...], ...]]\nFAILED tests/validators/test_python_variadic_tuple_annotations.py::test_python_comparison_retains_legacy_expected_tuple_spelling[True-tuple[str, ...]]\nFAILED tests/validators/test_python_variadic_tuple_annotations.py::test_python_comparison_retains_legacy_expected_tuple_spelling[True-Tuple[str, ...]]\nFAILED tests/validators/test_python_variadic_tuple_annotations.py::test_python_comparison_retains_legacy_expected_tuple_spelling[True-typing.Tuple[str, ...]]\nFAILED tests/validators/test_python_variadic_tuple_annotations.py::test_python_comparison_retains_legacy_expected_tuple_spelling[True-dict[str, tuple[int, ...]]]\nFAILED tests/validators/test_python_variadic_tuple_annotations.py::test_python_comparison_retains_legacy_expected_tuple_spelling[True-tuple[tuple[str, ...], ...]]\nFAILED tests/validators/test_python_variadic_tuple_annotations.py::test_python_method_tuple_annotations_keep_canonical_and_legacy_contracts[tuple[str, ...]]\nFAILED tests/validators/test_python_variadic_tuple_annotations.py::test_python_method_tuple_annotations_keep_canonical_and_legacy_contracts[tuple[str, Ellipsis]]\nFAILED tests/validators/test_python_variadic_tuple_annotations.py::test_python_snapshot_uses_canonical_tuple_syntax_without_changing_stub_detection\n24 failed, 13 passed in 0.22s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_implementation_validation.py:function:compare_artifacts",
+      "maid_runner/core/_implementation_validation.py:function:compare_artifacts:arg=expected:type=list[ArtifactSpec]:default=None",
+      "maid_runner/core/_implementation_validation.py:function:compare_artifacts:arg=file_path:type=str:default=None",
+      "maid_runner/core/_implementation_validation.py:function:compare_artifacts:arg=found:type=list[FoundArtifact]:default=None",
+      "maid_runner/core/_implementation_validation.py:function:compare_artifacts:arg=is_strict:type=bool:default=None",
+      "maid_runner/core/_implementation_validation.py:function:compare_artifacts:kind=function",
+      "maid_runner/core/_implementation_validation.py:function:compare_artifacts:returns=list[ValidationError]",
+      "tests/validators/test_python_variadic_tuple_annotations.py:test_ellipsis_identifiers_outside_variadic_tuple_positions_remain_distinct",
+      "tests/validators/test_python_variadic_tuple_annotations.py:test_ellipsis_identifiers_outside_variadic_tuple_positions_remain_distinct:kind=test_function",
+      "tests/validators/test_python_variadic_tuple_annotations.py:test_legacy_tuple_compatibility_does_not_relax_type_aliases_or_other_languages",
+      "tests/validators/test_python_variadic_tuple_annotations.py:test_legacy_tuple_compatibility_does_not_relax_type_aliases_or_other_languages:kind=test_function",
+      "tests/validators/test_python_variadic_tuple_annotations.py:test_python_collection_preserves_ellipsis_annotation_syntax",
+      "tests/validators/test_python_variadic_tuple_annotations.py:test_python_collection_preserves_ellipsis_annotation_syntax:kind=test_function",
+      "tests/validators/test_python_variadic_tuple_annotations.py:test_python_comparison_retains_legacy_expected_tuple_spelling",
+      "tests/validators/test_python_variadic_tuple_annotations.py:test_python_comparison_retains_legacy_expected_tuple_spelling:kind=test_function",
+      "tests/validators/test_python_variadic_tuple_annotations.py:test_python_implementation_validation_accepts_canonical_and_legacy_tuple_contracts",
+      "tests/validators/test_python_variadic_tuple_annotations.py:test_python_implementation_validation_accepts_canonical_and_legacy_tuple_contracts:kind=test_function",
+      "tests/validators/test_python_variadic_tuple_annotations.py:test_python_method_tuple_annotations_keep_canonical_and_legacy_contracts",
+      "tests/validators/test_python_variadic_tuple_annotations.py:test_python_method_tuple_annotations_keep_canonical_and_legacy_contracts:kind=test_function",
+      "tests/validators/test_python_variadic_tuple_annotations.py:test_python_snapshot_uses_canonical_tuple_syntax_without_changing_stub_detection",
+      "tests/validators/test_python_variadic_tuple_annotations.py:test_python_snapshot_uses_canonical_tuple_syntax_without_changing_stub_detection:kind=test_function",
+      "tests/validators/test_python_variadic_tuple_annotations.py:test_python_tuple_comparison_still_rejects_distinct_source_types",
+      "tests/validators/test_python_variadic_tuple_annotations.py:test_python_tuple_comparison_still_rejects_distinct_source_types:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/validators/test_python_variadic_tuple_annotations.py"
+      ],
+      "edit": [
+        "maid_runner/core/_implementation_validation.py"
+      ],
+      "read": [
+        "maid_runner/core/_type_compare.py",
+        "maid_runner/core/result.py",
+        "maid_runner/core/types.py",
+        "maid_runner/core/validate.py",
+        "maid_runner/validators/base.py",
+        "maid_runner/validators/python.py",
+        "manifests/029-04-move-python-implementation-collector-module.manifest.yaml",
+        "manifests/095-02-add-verify-profile-presets.manifest.yaml",
+        "manifests/fix-python-function-arg-signature-mismatch.manifest.yaml"
+      ],
+      "scope": [
+        "docs/troubleshooting.md",
+        "maid_runner/validators/_python_implementation.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/validators/test_python_variadic_tuple_annotations.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_python_collection_preserves_ellipsis_annotation_syntax",
+              "description": "Collect canonical ellipsis tokens in synchronous/asynchronous parameters and returns for builtin and typing tuples, nested containers, and Callable."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_python_implementation_validation_accepts_canonical_and_legacy_tuple_contracts",
+              "description": "Public implementation validation accepts canonical tuple contracts and existing legacy tuple contracts against the same canonical source."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_python_comparison_retains_legacy_expected_tuple_spelling",
+              "description": "Python function comparison accepts the historical expected tuple token only while found annotations remain canonical, including nested tuples."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_python_method_tuple_annotations_keep_canonical_and_legacy_contracts",
+              "description": "Method collection preserves canonical tuple annotations and comparison accepts canonical and historical expected tuples."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_python_tuple_comparison_still_rejects_distinct_source_types",
+              "description": "Wrong tuple elements, fixed-length tuples, and actual named Ellipsis source annotations still report precise parameter and return mismatches."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_legacy_tuple_compatibility_does_not_relax_type_aliases_or_other_languages",
+              "description": "Legacy compatibility does not affect type-alias targets or non-Python artifact comparisons."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_ellipsis_identifiers_outside_variadic_tuple_positions_remain_distinct",
+              "description": "A named Ellipsis token outside the final second argument of a variadic tuple is not rewritten as a wildcard."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_python_snapshot_uses_canonical_tuple_syntax_without_changing_stub_detection",
+              "description": "Snapshot signatures use source ellipsis spelling; an ellipsis function body remains a detected stub."
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/_implementation_validation.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "compare_artifacts",
+              "description": "Compare artifacts with strict default semantics plus expected-only legacy variadic tuple compatibility for Python callable annotations.",
+              "args": [
+                {
+                  "name": "expected",
+                  "type": "list[ArtifactSpec]"
+                },
+                {
+                  "name": "found",
+                  "type": "list[FoundArtifact]"
+                },
+                {
+                  "name": "file_path",
+                  "type": "str"
+                },
+                {
+                  "name": "is_strict",
+                  "type": "bool"
+                }
+              ],
+              "returns": "list[ValidationError]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/validators/python.py",
+        "maid_runner/validators/base.py",
+        "maid_runner/core/_type_compare.py",
+        "maid_runner/core/types.py",
+        "maid_runner/core/result.py",
+        "maid_runner/core/validate.py",
+        "manifests/095-02-add-verify-profile-presets.manifest.yaml",
+        "manifests/029-04-move-python-implementation-collector-module.manifest.yaml",
+        "manifests/fix-python-function-arg-signature-mismatch.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/validators/_python_implementation.py",
+          "reason": "Correct literal ellipsis rendering in the private annotation formatter; preserve named identifiers and stub/default handling."
+        },
+        {
+          "path": "docs/troubleshooting.md",
+          "reason": "Explain canonical variadic tuple declarations and narrowly supported historical callable spellings."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/validators/test_python_variadic_tuple_annotations.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/validators/test_python_variadic_tuple_annotations.py"
+    ],
+    "acceptance_commands": []
+  }
+}
