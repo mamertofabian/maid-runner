@@ -172,6 +172,18 @@ observable behavior.
 Fix: Add assertions for the user-visible or API-visible behavior. Prefer direct
 behavior checks over private state or incidental implementation details.
 
+Python checks also recognize direct Playwright chains such as
+`expect(locator).to_be_visible()` and `expect(locator).not_to_have_text("Loading")`,
+including awaited calls and `expect(actual=locator)`. Recognition requires an
+actual argument and a called matcher from the Playwright Python 1.58 vocabulary.
+Bare `expect(...)`, matcher attribute access, unknown matchers, and ordinary
+receiver method calls still produce E210.
+
+This is a bounded syntax heuristic; it does not prove import provenance or
+execution. Aliased or module-qualified `expect` calls and stored assertion
+objects are outside this addition. Runtime test and deep-evidence requirements
+remain in force.
+
 ### 16. No test files are declared (`E220`)
 
 Symptom: Behavioral or implementation coverage reports `E220`.

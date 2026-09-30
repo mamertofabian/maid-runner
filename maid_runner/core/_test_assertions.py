@@ -17,6 +17,40 @@ _JS_TS_TEST_PATTERN = re.compile(
     r"(?:\(\s*\)\s*=>|function\s*\(\s*\))\s*\{",
     re.DOTALL,
 )
+# Public Python 1.58 Playwright matchers; their not_to_ forms use the same roots.
+_PLAYWRIGHT_MATCHERS = frozenset(
+    {
+        "to_be_attached",
+        "to_be_checked",
+        "to_be_disabled",
+        "to_be_editable",
+        "to_be_empty",
+        "to_be_enabled",
+        "to_be_focused",
+        "to_be_hidden",
+        "to_be_in_viewport",
+        "to_be_visible",
+        "to_contain_class",
+        "to_contain_text",
+        "to_have_accessible_description",
+        "to_have_accessible_error_message",
+        "to_have_accessible_name",
+        "to_have_attribute",
+        "to_have_class",
+        "to_have_count",
+        "to_have_css",
+        "to_have_id",
+        "to_have_js_property",
+        "to_have_role",
+        "to_have_text",
+        "to_have_value",
+        "to_have_values",
+        "to_match_aria_snapshot",
+        "to_have_title",
+        "to_have_url",
+        "to_be_ok",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -203,12 +237,32 @@ def _find_matching_js_ts_brace(source: str, opening_brace: int) -> int | None:
     return None
 
 
+def _is_playwright_assertion_call(node: ast.Call) -> bool:
+    matcher = node.func
+    if not isinstance(matcher, ast.Attribute):
+        return False
+    if matcher.attr.removeprefix("not_") not in _PLAYWRIGHT_MATCHERS:
+        return False
+    expectation = matcher.value
+    return (
+        isinstance(expectation, ast.Call)
+        and isinstance(expectation.func, ast.Name)
+        and expectation.func.id == "expect"
+        and (
+            bool(expectation.args)
+            or any(keyword.arg == "actual" for keyword in expectation.keywords)
+        )
+    )
+
+
 def python_func_has_assertion(node) -> bool:
     """Check if a Python function AST node contains any assertion."""
     for child in ast.walk(node):
         if isinstance(child, ast.Assert):
             return True
         if isinstance(child, ast.Call):
+            if _is_playwright_assertion_call(child):
+                return True
             func = child.func
             if isinstance(func, ast.Attribute) and func.attr == "raises":
                 return True
