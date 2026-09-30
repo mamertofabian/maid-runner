@@ -144,9 +144,41 @@ def _sanitize_in_prefixed_property_errors(source_bytes: bytes, root: Any) -> byt
             if _IN_PREFIXED_PROPERTY_ERROR.match(error_bytes):
                 output[current.start_byte : current.start_byte + 2] = b"xx"
                 changed = True
+            else:
+                for position in _spilled_in_property_header_positions(
+                    current, source_bytes
+                ):
+                    output[position : position + 2] = b"xx"
+                    changed = True
             continue
         stack.extend(reversed(current.children))
     return bytes(output) if changed else source_bytes
+
+
+def _spilled_in_property_header_positions(error: Any, source_bytes: bytes) -> list[int]:
+    """Locate next-line property headers misowned by a preceding annotation."""
+    annotation = error.parent
+    if annotation is None or annotation.type != "type_annotation":
+        return []
+    property_node = annotation.parent
+    if property_node is None or property_node.type != "property_signature":
+        return []
+    container = property_node.parent
+    if container is None or container.type not in ("object_type", "interface_body"):
+        return []
+
+    positions: list[int] = []
+    children = error.children
+    for index, child in enumerate(children):
+        if index == 0 or child.type != "identifier":
+            continue
+        separator = source_bytes[children[index - 1].end_byte : child.start_byte]
+        if b"\n" not in separator and b"\r" not in separator:
+            continue
+        header = source_bytes[child.start_byte : error.end_byte]
+        if _IN_PREFIXED_PROPERTY_ERROR.match(header):
+            positions.append(child.start_byte)
+    return positions
 
 
 def _sanitize_jsx_text_ampersands(source_bytes: bytes, root: Any) -> bytes:

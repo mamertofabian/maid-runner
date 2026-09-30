@@ -1,0 +1,181 @@
+{
+  "manifest_path": "manifests/fix-supabase-spilled-property-header-parse.manifest.yaml",
+  "manifest_hash": "sha256-contract:783cb59698e1bbaa7d9463c2969d96ffd31550c3905e7ca82dd84f9d5099d0c8",
+  "test_hashes": {
+    "tests/validators/test_supabase_spilled_property_headers.py": "sha256-pyast:v2:b0c229e0e65faf810875ab4c2a026970b9c1a6ce793dac417c82c3c3f6529d5f"
+  },
+  "created_at": "2026-09-30T08:29:42.609080+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:3caa1ecfcb83ec820aa79cccf22c32ca391910b372b467099229fc3a673ff4ca",
+      "prior_test_hashes": {
+        "tests/validators/test_supabase_spilled_property_headers.py": "sha256-pyast:v2:b0c229e0e65faf810875ab4c2a026970b9c1a6ce793dac417c82c3c3f6529d5f"
+      },
+      "revised_at": "2026-09-30T08:29:43.210069+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-supabase-spilled-property-header-parse.manifest.yaml -> manifests/fix-supabase-spilled-property-header-parse.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-30T08:29:42.988500+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/validators/test_supabase_spilled_property_headers.py",
+        "exit_code": 1,
+        "output_tail": "E       assert 2 == 0\n\n/home/atomrem/projects/codefrost-dev/maid-runner/tests/validators/test_supabase_spilled_property_headers.py:149: AssertionError\n=========================== short test summary info ============================\nFAILED tests/validators/test_supabase_spilled_property_headers.py::test_spilled_in_prefixed_headers_parse_and_preserve_original_bytes[in_reconciliation-\\n-False]\nFAILED tests/validators/test_supabase_spilled_property_headers.py::test_spilled_in_prefixed_headers_parse_and_preserve_original_bytes[in_reconciliation-\\n-True]\nFAILED tests/validators/test_supabase_spilled_property_headers.py::test_spilled_in_prefixed_headers_parse_and_preserve_original_bytes[in_reconciliation-\\r\\n-False]\nFAILED tests/validators/test_supabase_spilled_property_headers.py::test_spilled_in_prefixed_headers_parse_and_preserve_original_bytes[in_reconciliation-\\r\\n-True]\nFAILED tests/validators/test_supabase_spilled_property_headers.py::test_spilled_in_prefixed_headers_parse_and_preserve_original_bytes[in_reply_to-\\n-False]\nFAILED tests/validators/test_supabase_spilled_property_headers.py::test_spilled_in_prefixed_headers_parse_and_preserve_original_bytes[in_reply_to-\\n-True]\nFAILED tests/validators/test_supabase_spilled_property_headers.py::test_spilled_in_prefixed_headers_parse_and_preserve_original_bytes[in_reply_to-\\r\\n-False]\nFAILED tests/validators/test_supabase_spilled_property_headers.py::test_spilled_in_prefixed_headers_parse_and_preserve_original_bytes[in_reply_to-\\r\\n-True]\nFAILED tests/validators/test_supabase_spilled_property_headers.py::test_spilled_in_prefixed_headers_parse_and_preserve_original_bytes[in_progress-\\n-False]\nFAILED tests/validators/test_supabase_spilled_property_headers.py::test_spilled_in_prefixed_headers_parse_and_preserve_original_bytes[in_progress-\\n-True]\nFAILED tests/validators/test_supabase_spilled_property_headers.py::test_spilled_in_prefixed_headers_parse_and_preserve_original_bytes[in_progress-\\r\\n-False]\nFAILED tests/validators/test_supabase_spilled_property_headers.py::test_spilled_in_prefixed_headers_parse_and_preserve_original_bytes[in_progress-\\r\\n-True]\nFAILED tests/validators/test_supabase_spilled_property_headers.py::test_full_row_insert_update_shapes_preserve_original_alias_fields_and_offsets\nFAILED tests/validators/test_supabase_spilled_property_headers.py::test_spilled_header_repair_retains_the_unrelated_error_line\nFAILED tests/validators/test_supabase_spilled_property_headers.py::test_assessment_accepts_spilled_headers_in_an_immutable_generated_baseline\n15 failed, 7 passed in 0.19s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/validators/_typescript_parse.py:function:parse_typescript_source",
+      "maid_runner/validators/_typescript_parse.py:function:parse_typescript_source:arg=file_path:type=Union[str, Path]:default=None",
+      "maid_runner/validators/_typescript_parse.py:function:parse_typescript_source:arg=source:type=str:default=None",
+      "maid_runner/validators/_typescript_parse.py:function:parse_typescript_source:arg=ts_parser:type=Parser:default=None",
+      "maid_runner/validators/_typescript_parse.py:function:parse_typescript_source:arg=tsx_parser:type=Parser:default=None",
+      "maid_runner/validators/_typescript_parse.py:function:parse_typescript_source:kind=function",
+      "maid_runner/validators/_typescript_parse.py:function:parse_typescript_source:returns=TypeScriptParseSession",
+      "tests/validators/test_supabase_spilled_property_headers.py:test_assessment_accepts_spilled_headers_in_an_immutable_generated_baseline",
+      "tests/validators/test_supabase_spilled_property_headers.py:test_assessment_accepts_spilled_headers_in_an_immutable_generated_baseline:kind=test_function",
+      "tests/validators/test_supabase_spilled_property_headers.py:test_full_row_insert_update_shapes_preserve_original_alias_fields_and_offsets",
+      "tests/validators/test_supabase_spilled_property_headers.py:test_full_row_insert_update_shapes_preserve_original_alias_fields_and_offsets:kind=test_function",
+      "tests/validators/test_supabase_spilled_property_headers.py:test_header_looking_literals_and_valid_semicolon_fields_remain_unmodified",
+      "tests/validators/test_supabase_spilled_property_headers.py:test_header_looking_literals_and_valid_semicolon_fields_remain_unmodified:kind=test_function",
+      "tests/validators/test_supabase_spilled_property_headers.py:test_spilled_header_recovery_preserves_malformed_or_unrelated_fields",
+      "tests/validators/test_supabase_spilled_property_headers.py:test_spilled_header_recovery_preserves_malformed_or_unrelated_fields:kind=test_function",
+      "tests/validators/test_supabase_spilled_property_headers.py:test_spilled_header_repair_retains_the_unrelated_error_line",
+      "tests/validators/test_supabase_spilled_property_headers.py:test_spilled_header_repair_retains_the_unrelated_error_line:kind=test_function",
+      "tests/validators/test_supabase_spilled_property_headers.py:test_spilled_in_prefixed_headers_parse_and_preserve_original_bytes",
+      "tests/validators/test_supabase_spilled_property_headers.py:test_spilled_in_prefixed_headers_parse_and_preserve_original_bytes:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/validators/test_supabase_spilled_property_headers.py"
+      ],
+      "edit": [
+        "maid_runner/validators/_typescript_parse.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/assess.py",
+        "maid_runner/core/change_assessment.py",
+        "maid_runner/core/diff_scope.py",
+        "maid_runner/core/types.py",
+        "maid_runner/validators/typescript.py",
+        "manifests/fix-jsx-raw-ampersand-parser-compatibility.manifest.yaml",
+        "manifests/fix-supabase-generated-types-parser.manifest.yaml",
+        "pyproject.toml"
+      ],
+      "scope": [
+        "docs/troubleshooting.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/validators/test_supabase_spilled_property_headers.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_spilled_in_prefixed_headers_parse_and_preserve_original_bytes",
+              "description": "Required/optional generated in_-prefixed headers with following sibling fields parse for LF and CRLF while original bytes and offsets remain exact."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_full_row_insert_update_shapes_preserve_original_alias_fields_and_offsets",
+              "description": "Full Row/Insert/Update shapes collect original field names rather than placeholder names and preserve following artifacts/Unicode line locations."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_spilled_header_recovery_preserves_malformed_or_unrelated_fields",
+              "description": "Same-line missing separators, missing colons/types, duplicate optional markers and malformed/unrelated siblings remain syntax errors."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_spilled_header_repair_retains_the_unrelated_error_line",
+              "description": "Recovery removes only the known header grammar error while retaining the independent error at its original line."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_header_looking_literals_and_valid_semicolon_fields_remain_unmodified",
+              "description": "Quoted/comment header text and already valid semicolon-delimited fields are not rewritten."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_assessment_accepts_spilled_headers_in_an_immutable_generated_baseline",
+              "description": "Assessment parses both generated baseline and current additions without editing historical source."
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/validators/_typescript_parse.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "parse_typescript_source",
+              "description": "Recover the bounded spilled property-header grammar shape alongside existing same-width repairs, preserving original bytes and genuine diagnostics.",
+              "args": [
+                {
+                  "name": "source",
+                  "type": "str"
+                },
+                {
+                  "name": "file_path",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "ts_parser",
+                  "type": "Parser"
+                },
+                {
+                  "name": "tsx_parser",
+                  "type": "Parser"
+                }
+              ],
+              "returns": "TypeScriptParseSession"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/validators/typescript.py",
+        "maid_runner/core/diff_scope.py",
+        "maid_runner/core/change_assessment.py",
+        "maid_runner/cli/commands/assess.py",
+        "maid_runner/core/types.py",
+        "pyproject.toml",
+        "manifests/fix-supabase-generated-types-parser.manifest.yaml",
+        "manifests/fix-jsx-raw-ampersand-parser-compatibility.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "docs/troubleshooting.md",
+          "reason": "Explain the generated-property parser compatibility repair and immutable-baseline behavior without suggesting consumer rewrites or blanket error suppression."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/validators/test_supabase_spilled_property_headers.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/validators/test_supabase_spilled_property_headers.py"
+    ],
+    "acceptance_commands": []
+  }
+}

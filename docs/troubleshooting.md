@@ -358,6 +358,16 @@ This compatibility fix does not infer destructured parameter names or missing
 return annotations for React components. Those signature-modeling questions
 remain separate from parsing valid JSX text.
 
+Generated Supabase types can also expose a grammar limitation around `in_…`
+property names. In some Row/Insert/Update shapes, the parser folds the next-line
+field header into the preceding property's type annotation and reports the
+error at that earlier `string` type. The parse service repairs this exact
+property-owned token shape using same-width parser-only input, retaining
+original names, source bytes, offsets, and unrelated diagnostics. Same-line
+missing separators and malformed neighboring fields remain errors. Assessment
+uses the same repair for immutable baseline content; generated files and old
+commits do not need manual rewrites.
+
 ### 24. Stub implementation is detected (`E310`)
 
 Symptom: `maid validate --mode implementation --check-stubs` or `maid verify`

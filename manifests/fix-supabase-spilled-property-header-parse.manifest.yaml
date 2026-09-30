@@ -1,0 +1,203 @@
+# manifest-kind: draft
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Recover valid generated in_-prefixed property headers spilled into a preceding type annotation
+type: fix
+created: '2026-09-30T08:29:43Z'
+metadata:
+  priority: high
+  tags:
+  - typescript
+  - supabase
+  - parser-compatibility
+  - assess
+  bug_report: 20260916-215922-orchestrate-distribute-flow-typescript-assess.md
+description: |-
+  Finish the reported generated Supabase TypeScript parse failure. Current source
+  still fails at id/string annotations on lines 311/329/347. Read-only grammar
+  inspection shows each ERROR contains the preceding string type, a next-line
+  in_reconciliation identifier, optional ? and colon under type_annotation of a
+  property_signature in object_type. The existing workaround only matches ERROR
+  bytes beginning with the in_ header and therefore misses this spilled shape.
+  Extend the existing same-width in_-property repair narrowly. Keep current
+  anchored-error behavior; additionally identify the documented header from direct
+  parser child tokens within an ERROR owned by a property type annotation in an
+  object/interface property container. Require an ASCII in_ identifier followed
+  by exactly optional ? and colon, and a real newline separator after the preceding
+  annotation token. Do not globally search/replace identifier text or accept
+  same-line missing separators. Use standard tree-sitter context and existing
+  property-shape rule, not a custom type/control-flow or reachability analyzer.
+  Replace only the leading two in bytes at the identified property-name offset
+  for parser input. Preserve original source_bytes, original collector names and
+  byte coordinates. Retain strict fewer-diagnostic adoption, unrelated errors,
+  existing type-query/JSX repair composition and public parser signatures.
+  Support Row/Insert/Update required and optional fields, LF/CRLF and Unicode
+  prefixes. Strings/comments, already valid source and malformed adjacent fields
+  must remain protected. Assessment must read immutable baseline bytes through
+  the same public parser rather than rewriting generated files or historical Git.
+  Prior fix-supabase-generated-types-parser Outcome requires exact error-scoped
+  same-width rewriting and a malformed neighbor; this extension follows those
+  rules while handling the newly confirmed error ownership shape. The recent
+  JSX parser contract reinforced carrying accepted parser input between stages.
+  New tests use a dedicated module; older manifests/locks/tests remain intact.
+temptations:
+- risk: Globally replace in_ names or search raw ERROR strings without parser ownership.
+  instead: Use direct child-token header shape and property-annotation/container ownership plus newline separation; replace only the identified two-byte name prefix.
+- risk: Rewrite the preceding id/string annotation or alter original source bytes.
+  instead: Retain session source_bytes and collector input unchanged; mask only the parser property-name prefix at its original offset.
+- risk: Suppress syntax errors merely because the file is generated or a build passes.
+  instead: Reparse and adopt only a strict diagnostic reduction; retain malformed neighboring property and unrelated-line regressions.
+- risk: Repair only the current file and leave assessment blocked by old baseline bytes.
+  instead: Exercise assessment against a real immutable Git baseline through public APIs and keep generated consumer files untouched.
+files:
+  edit:
+  - path: maid_runner/validators/_typescript_parse.py
+    artifacts:
+    - kind: function
+      name: parse_typescript_source
+      args:
+      - name: source
+        type: str
+      - name: file_path
+        type: Union[str, Path]
+      - name: ts_parser
+        type: Parser
+      - name: tsx_parser
+        type: Parser
+      returns: TypeScriptParseSession
+      description: Recover the bounded spilled property-header grammar shape alongside existing same-width repairs, preserving original bytes and genuine diagnostics.
+  scope:
+  - path: docs/troubleshooting.md
+    reason: Explain the generated-property parser compatibility repair and immutable-baseline behavior without suggesting consumer rewrites or blanket error suppression.
+  create:
+  - path: tests/validators/test_supabase_spilled_property_headers.py
+    artifacts:
+    - kind: test_function
+      name: test_spilled_in_prefixed_headers_parse_and_preserve_original_bytes
+      description: Required/optional generated in_-prefixed headers with following sibling fields parse for LF and CRLF while original bytes and offsets remain exact.
+    - kind: test_function
+      name: test_full_row_insert_update_shapes_preserve_original_alias_fields_and_offsets
+      description: Full Row/Insert/Update shapes collect original field names rather than placeholder names and preserve following artifacts/Unicode line locations.
+    - kind: test_function
+      name: test_spilled_header_recovery_preserves_malformed_or_unrelated_fields
+      description: Same-line missing separators, missing colons/types, duplicate optional markers and malformed/unrelated siblings remain syntax errors.
+    - kind: test_function
+      name: test_spilled_header_repair_retains_the_unrelated_error_line
+      description: Recovery removes only the known header grammar error while retaining the independent error at its original line.
+    - kind: test_function
+      name: test_header_looking_literals_and_valid_semicolon_fields_remain_unmodified
+      description: Quoted/comment header text and already valid semicolon-delimited fields are not rewritten.
+    - kind: test_function
+      name: test_assessment_accepts_spilled_headers_in_an_immutable_generated_baseline
+      description: Assessment parses both generated baseline and current additions without editing historical source.
+  read:
+  - maid_runner/validators/typescript.py
+  - maid_runner/core/diff_scope.py
+  - maid_runner/core/change_assessment.py
+  - maid_runner/cli/commands/assess.py
+  - maid_runner/core/types.py
+  - pyproject.toml
+  - manifests/fix-supabase-generated-types-parser.manifest.yaml
+  - manifests/fix-jsx-raw-ampersand-parser-compatibility.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/validators/test_supabase_spilled_property_headers.py
+outcome:
+  status: completed
+  completed_at: '2026-09-30T08:39:22Z'
+  summary: Generated in_-prefixed field headers spilled into a preceding property annotation
+    now recover through bounded parser-child context and newline separation. Original
+    names, bytes and coordinates remain intact; malformed neighbors and unrelated diagnostics
+    remain protected. The reported consumer file and immutable HEAD baseline both collect
+    without errors.
+  rationale: The existing anchored workaround missed ERROR spans beginning with the
+    preceding string type. Identifying the actual direct child property header under
+    annotation/property/container ownership extends that repair without global text
+    replacement, consumer edits or diagnostic suppression.
+  lessons:
+  - lesson_type: validation
+    summary: Grammar recovery can move a valid token into a preceding annotation. Extend
+      error-scoped repairs using exact child ownership and real field-separator evidence,
+      not broad substring searches; retain original bytes and malformed neighbor coverage.
+    tags:
+    - supabase
+    - parser-compatibility
+    - source-offsets
+    paths:
+    - maid_runner/validators/_typescript_parse.py
+    - tests/validators/test_supabase_spilled_property_headers.py
+  review_notes:
+  - source: independent-supabase_header_review
+    severity: ready
+    summary: Read-only reviewer found no blockers or actionable advisories; independently
+      reran 22 cases and implementation validation and probed malformed object/interface
+      shapes. Other required-interface recovery shapes remain outside this annotation-owned
+      repair contract.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/validators/test_supabase_spilled_property_headers.py
+    - tests/validators/test_typescript_supabase_generated_types.py
+    - tests/validators/test_jsx_raw_ampersand_parse.py
+    - tests/cli/test_assess_cmd.py
+    status: passed
+    summary: 77 focused/adjacent tests passed, including all 22 new cases. Ruff and
+      Black passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --quiet
+    - --packet
+    status: passed
+    summary: Repository-wide validation passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/fix-supabase-spilled-property-header-parse.manifest.yaml
+    status: passed
+    summary: Declared test command passed all 22 cases.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - 2d93abef0a36f80b29d3b9f596257f2b62ac7caa
+    - --summary
+    - --packet
+    status: passed
+    summary: All 11 deep gates passed without blockers; existing nonblocking E307 validator
+      warning remained.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: failed-unrelated
+    summary: '303 of 304 commands passed. Grouped pytest: 5334 passed, 13 skipped, two
+      unchanged release-metadata assertions failed because CHANGELOG.md lacks an Unreleased
+      heading. Both affected files match task baseline.'
