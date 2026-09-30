@@ -73,6 +73,31 @@ def parse_typescript_source(
             if len(sanitized_errors) < len(parse_errors):
                 tree = sanitized_tree
                 parse_errors = sanitized_errors
+                tree_bytes = parse_bytes
+
+    if parse_errors and str(file_path).endswith((".tsx", ".jsx")):
+        candidate_bytes = tree_bytes
+        candidate_tree = tree
+        # Every pass consumes at least one eligible ASCII marker. Reparse to
+        # expose text contexts hidden by the grammar's earlier error recovery.
+        for _ in range(candidate_bytes.count(b"&")):
+            repaired_bytes = _sanitize_jsx_text_ampersands(
+                candidate_bytes, candidate_tree.root_node
+            )
+            if repaired_bytes == candidate_bytes:
+                break
+            candidate_tree = parser.parse(repaired_bytes)
+            candidate_errors = collect_parse_errors(candidate_tree.root_node)
+            candidate_errors.extend(
+                _jsx_tag_mismatch_errors(candidate_tree.root_node, source_bytes)
+            )
+            candidate_bytes = repaired_bytes
+            if len(candidate_errors) < len(parse_errors):
+                tree = candidate_tree
+                tree_bytes = candidate_bytes
+                parse_errors = candidate_errors
+            if not candidate_errors:
+                break
 
     return TypeScriptParseSession(
         source_bytes=source_bytes,
@@ -122,6 +147,63 @@ def _sanitize_in_prefixed_property_errors(source_bytes: bytes, root: Any) -> byt
             continue
         stack.extend(reversed(current.children))
     return bytes(output) if changed else source_bytes
+
+
+def _sanitize_jsx_text_ampersands(source_bytes: bytes, root: Any) -> bytes:
+    """Mask only ampersand tokens recovered in parser-established JSX text."""
+    output = bytearray(source_bytes)
+    pending = [root]
+    while pending:
+        node = pending.pop()
+        parent = node.parent
+        if node.type in ("&", "&&", "&=") and parent is not None:
+            previous = node.prev_sibling
+            direct_text_error = (
+                parent.type == "ERROR"
+                and parent.parent is not None
+                and parent.parent.type in ("jsx_element", "jsx_fragment")
+            )
+            recovered_after_text = (
+                parent.type == "ERROR"
+                and previous is not None
+                and previous.type == "jsx_text"
+            )
+            if direct_text_error or recovered_after_text:
+                for position in range(node.start_byte, node.end_byte):
+                    if output[position] == ord("&"):
+                        output[position] = ord("x")
+        pending.extend(node.children)
+    return bytes(output)
+
+
+def _jsx_tag_mismatch_errors(root: Any, source_bytes: bytes) -> list[str]:
+    """Do not turn mismatched JSX tags into success during grammar recovery."""
+    errors: list[str] = []
+    pending = [root]
+    while pending:
+        node = pending.pop()
+        if node.type == "jsx_element":
+            opening = node.child_by_field_name("open_tag")
+            closing = node.child_by_field_name("close_tag")
+            if opening is not None and closing is not None:
+                open_name = opening.child_by_field_name("name")
+                close_name = closing.child_by_field_name("name")
+                names = [
+                    (
+                        b""
+                        if name is None
+                        else b"".join(
+                            source_bytes[name.start_byte : name.end_byte].split()
+                        )
+                    )
+                    for name in (open_name, close_name)
+                ]
+                if names[0] != names[1]:
+                    errors.append(
+                        f"Syntax error near line {closing.start_point[0] + 1}"
+                    )
+        pending.extend(node.named_children)
+    return errors
 
 
 def collect_parse_errors(node: Any) -> list[str]:

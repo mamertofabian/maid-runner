@@ -1,0 +1,209 @@
+# manifest-kind: draft
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Parse valid raw ampersands in JSX text and historical assessment baselines without weakening syntax diagnostics
+type: fix
+created: '2026-09-30T04:37:58Z'
+metadata:
+  priority: high
+  tags:
+  - tsx
+  - jsx
+  - parser-compatibility
+  - assess
+  bug_reports:
+  - 20260912-171616-hubb-ops-maid-assess-tsx-baseline.md
+  - 20260928-0630-hubb-csv-tsx-parser.md
+description: |-
+  Fix the shared raw-ampersand JSX grammar defect behind historical assessment
+  baseline failures and CSVImportDialog parse failure. Builtin tree-sitter rejects
+  valid JSX text such as Contracts & Cancels. Current-tree escaping cannot repair
+  immutable baseline content. Add a narrow same-byte-width repair in the existing
+  TSX/JSX parse service. Locate ampersand markers only from parser-established JSX
+  text/error context, such as text-adjacent recovered ampersand tokens or direct
+  text errors under JSX elements. Never globally replace ampersands or reinterpret
+  JavaScript expressions, opening-tag attributes, quoted values or TS operators.
+  Repeated and nested text markers may require bounded reparsing after grammar
+  recovery; every pass must mask at least one new eligible marker, preserve byte
+  positions and stop when no eligible markers remain. Do not build a new lexer or
+  control-flow model. Adopt a repaired candidate only when it reduces reported
+  parse errors; preserve unrelated errors and original diagnostics. Retain the
+  original source_bytes for artifact extraction and apply changes only to parser
+  input. Known valid source that parses already must remain unmodified.
+  Compose the stage with existing same-width type-query and in-prefixed-property
+  repairs, carrying the accepted parser-input bytes forward rather than undoing
+  an earlier repair. Keep public parser signatures and artifact APIs unchanged.
+  Rationale: the existing parser recovery architecture already repairs narrowly
+  identified grammar limitations while preserving offsets. Extend that mechanism
+  for this confirmed JSX text token rather than rewriting consumer components,
+  changing historical commits or suppressing E116/E308. The CSV report also has
+  destructured-prop and inferred-return modeling limitations; those are explicitly
+  outside this task, so fixing its parser portion does not close the whole report.
+  New tests live in a dedicated module; existing locked test modules and durable
+  contracts remain untouched. Existing Supabase parser tests informed composition
+  and preserved-error coverage; previous parser-boundary work informs the use of
+  standard grammar context instead of custom language interpretation.
+temptations:
+- risk: Globally escape or replace & across source to make the grammar pass.
+  instead: Repair only parser-established JSX text marker contexts in TSX/JSX; preserve expression, attribute, entity and TS syntax controls.
+- risk: Drop parse diagnostics or accept repaired input that hides genuine syntax errors.
+  instead: Adopt only candidates with fewer reported errors and retain malformed JSX and independent-error regression cases.
+- risk: Change source length or overwrite original bytes during normalization.
+  instead: Mask eligible ASCII ampersands with same-width parser-only bytes, retain original source_bytes, and check Unicode offsets/artifact locations.
+- risk: Broaden the task into JSX prop inference or rewrite downstream Git baselines.
+  instead: Exercise immutable-baseline assessment through public APIs; keep signature inference and the remaining CSV modeling gap out of scope.
+files:
+  edit:
+  - path: maid_runner/validators/_typescript_parse.py
+    artifacts:
+    - kind: function
+      name: parse_typescript_source
+      args:
+      - name: source
+        type: str
+      - name: file_path
+        type: Union[str, Path]
+      - name: ts_parser
+        type: Parser
+      - name: tsx_parser
+        type: Parser
+      returns: TypeScriptParseSession
+      description: Parse TypeScript/TSX with bounded same-width raw JSX text ampersand recovery while retaining original bytes, existing normalization stages and genuine diagnostics.
+  scope:
+  - path: docs/troubleshooting.md
+    reason: Explain parser compatibility for raw JSX text in current source and immutable baselines, without conflating the CSV signature-modeling gap.
+  create:
+  - path: tests/validators/test_jsx_raw_ampersand_parse.py
+    artifacts:
+    - kind: test_function
+      name: test_raw_ampersands_in_jsx_text_parse_without_changing_original_bytes
+      description: Raw ampersands, repeated markers, adjacent text, Unicode and fragments parse in TSX/JSX while original source bytes and tree offsets remain intact.
+    - kind: test_function
+      name: test_valid_jsx_expressions_attributes_and_entities_remain_unmodified
+      description: Bitwise/conditional expressions, quoted attributes and valid entities remain byte-identical in the parse tree when no recovery is needed.
+    - kind: test_function
+      name: test_ampersand_recovery_does_not_accept_genuine_jsx_syntax_errors
+      description: Missing operands, malformed attributes, wrong closing tags and incomplete elements remain syntax errors.
+    - kind: test_function
+      name: test_raw_ampersand_repair_preserves_unrelated_syntax_error_locations
+      description: Known JSX grammar repair preserves the independent syntax error at its original source line.
+    - kind: test_function
+      name: test_raw_ampersand_and_existing_parse_repairs_compose_without_restoring_errors
+      description: JSX repair composes with existing type-query and in-prefixed-property sanitizers without discarding accepted same-width changes.
+    - kind: test_function
+      name: test_collection_after_unicode_jsx_text_retains_original_names_and_lines
+      description: Public TypeScript collection retains exported names, return types and original line locations after Unicode JSX text.
+    - kind: test_function
+      name: test_assessment_accepts_historical_raw_ampersand_baseline
+      description: Assessment reads valid raw JSX text from an immutable Git baseline and emits the baseline-bound verify command without requiring historical edits.
+  read:
+  - maid_runner/validators/typescript.py
+  - maid_runner/core/diff_scope.py
+  - maid_runner/core/change_assessment.py
+  - maid_runner/cli/commands/assess.py
+  - maid_runner/core/types.py
+  - pyproject.toml
+  - manifests/fix-js-ts-regex-assertion-boundaries.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/validators/test_jsx_raw_ampersand_parse.py
+outcome:
+  status: completed
+  completed_at: '2026-09-30T04:47:02Z'
+  summary: TSX/JSX parsing repairs raw ampersands only in parser-established text/error
+    contexts with same-width parser input. Original source bytes, offsets, operators,
+    attributes, entities and genuine diagnostics remain protected. Historical assessment
+    baselines and the reported CSV import component now parse without consumer edits.
+  rationale: The tree-sitter grammar rejects valid JSX text. Narrow recovery, bounded
+    marker progress and fewer-diagnostic adoption resolve that compatibility defect
+    while preserving original collector input. Accepted existing parser repairs carry
+    forward, and mismatched tags cannot become success during recovery. CSV signature
+    inference remains outside this task.
+  lessons:
+  - lesson_type: validation
+    summary: A parser grammar repair must compose accepted input transformations, preserve
+      original byte coordinates, and retain malformed neighboring shapes. Recovery candidates
+      also need to preserve genuine tag mismatch errors that the underlying grammar
+      does not otherwise diagnose.
+    tags:
+    - parser-compatibility
+    - jsx
+    - source-offsets
+    paths:
+    - maid_runner/validators/_typescript_parse.py
+    - tests/validators/test_jsx_raw_ampersand_parse.py
+  review_notes:
+  - source: independent-jsx_ampersand_review
+    severity: ready
+    summary: Read-only explorer returned ready without blocking findings or current-scope
+      advisories. Independently reran 38 cases and implementation validation; additional
+      nested-marker, entity/attribute/operator, malformed expression/element/tag probes
+      retained diagnostics. Lock scope and red evidence matched.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/validators/test_jsx_raw_ampersand_parse.py
+    - tests/validators/test_typescript_supabase_generated_types.py
+    - tests/cli/test_assess_cmd.py
+    - tests/core/validation/test_js_ts_regex_assertion_boundaries.py
+    status: passed
+    summary: 89 focused and adjacent tests passed, including all 38 new cases. Ruff
+      and Black checks passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --quiet
+    - --packet
+    status: passed
+    summary: Repository-wide validation passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/fix-jsx-raw-ampersand-parser-compatibility.manifest.yaml
+    status: passed
+    summary: Declared validation command passed all 38 cases.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - b08b87ef0c86b729b900a57b6a59b99c43e1055c
+    - --summary
+    - --packet
+    status: passed
+    summary: All 11 deep gates passed without blockers; existing nonblocking E307 validator
+      warning remained.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: failed-unrelated
+    summary: '303 of 304 commands passed. Grouped pytest: 5240 passed, 11 skipped, two
+      unchanged release-metadata assertions failed because CHANGELOG.md lacks an Unreleased
+      heading. Both affected files match task baseline.'

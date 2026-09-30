@@ -325,6 +325,18 @@ parse, or an optional parser dependency is missing or incompatible.
 Fix: Run the language's normal syntax check, install the relevant optional
 extra such as `maid-runner[typescript]`, and rerun `maid validate`.
 
+Valid TSX/JSX text may contain raw `&`, such as `Contracts & Cancels`. The parse
+service applies a narrow grammar repair in parser-established JSX text contexts,
+including historical Git baselines used by `maid assess`. It preserves original
+source bytes and offsets; consumer files and historical commits need no escaping
+changes. Parser input is adopted only when diagnostics improve, and operators,
+attributes, valid entities, mismatched tags, and unrelated syntax errors remain
+protected. Existing parser repairs compose without discarding earlier changes.
+
+This compatibility fix does not infer destructured parameter names or missing
+return annotations for React components. Those signature-modeling questions
+remain separate from parsing valid JSX text.
+
 ### 24. Stub implementation is detected (`E310`)
 
 Symptom: `maid validate --mode implementation --check-stubs` or `maid verify`
