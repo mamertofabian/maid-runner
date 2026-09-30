@@ -1,0 +1,254 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Document opt-in TypeScript return contracts and verify the reported CSV components without
+  consumer writes.
+type: feature
+created: '2026-09-30T13:47:43Z'
+description: 'Final documentation and acceptance slice of the approved compiler-return design,
+  following the committed proof adapter and validation integration. Add a Compiler-backed TypeScript
+  Return Contracts subsection (heading ##### **Compiler-backed TypeScript Return Contracts**)
+  to docs/maid_specs.md. Include the actual .maidrc.yaml compiler-mode configuration with tsconfig.app.json,
+  an inert TSX example named preview with Props and exact { value } argument binding returning
+  number, and a YAML artifact-list contract executable by the documentation tests. Explain default
+  syntax, explicit owning config (including references-only roots), local Node/TypeScript requirements,
+  bidirectional semantic equivalence, effective strictNullChecks, unchanged FoundArtifact.returns/snapshots,
+  exact bindings, explicit annotations, 5-second request budget, supported named non-overloaded
+  top-level TS/TSX declarations, and unavailable any/unknown/unchecked/declaration-file/method/arrow
+  cases. Include the module-scoped React expectation import("react/jsx-runtime").JSX.Element
+  as an example, without guessing display-type names or promising stronger nullability.
+
+  Add troubleshooting issue 36, Compiler return contract is unavailable (E309), with symptom,
+  likely cause and actionable recovery through local Node/TypeScript, explicit owning tsconfig,
+  resolved expectation and supported declaration. Distinguish E309 from semantic mismatch E302,
+  binding mismatch E303 and default missing-annotation warning E304; compiler mode has no silent
+  syntax fallback. Update the old E308 paragraph so it accurately separates parser compatibility,
+  exact destructured bindings and the now-available opt-in return proof. Point registered E309
+  help to docs/troubleshooting.md#36-compiler-return-contract-is-unavailable-e309 through existing
+  private registry metadata only.
+
+  Documentation tests execute the published YAML and TSX through public configuration, manifest
+  and per-file validation APIs, including positive proof and negative binding/return/config
+  cases; no production proof/config policy is changed. Dedicated optional acceptance uses MAID_CSV_ACCEPTANCE_PROJECT
+  supplied by the caller, with no hardcoded consumer path or copied proprietary source in the
+  repository. An unset variable skips optional acceptance; an invalid supplied checkout or missing
+  installed SDK fails. Temporary project configuration and symlinks use existing source and
+  dependencies read-only. Verify CSVImportDialog and CSVPreviewStep using actual installed SDK
+  provenance, exact collected argument pattern, React jsx-runtime JSX.Element expectation, default
+  warning and wrong binding/return controls. Compare original bytes, raw artifacts and Git status
+  before/after. No application code is executed, SDK installed, or client source/config/manifests
+  edited.
+
+  The planning spike and optional tests already passed both reported components with TypeScript
+  5.8.3. Seven new documentation cases are genuinely red because the published section and help
+  target are absent; acceptance does not fabricate red evidence for behavior already implemented.
+  M1/M2 Outcome lessons require semantic proof rather than inferred text mutation, explicit
+  unavailable results and independent diagnostic checks. Archive the external CSV report only
+  after this unit passes review, Outcome and commit, recording that the parser defect is fixed,
+  props was an incorrect contract name, and inferred return verification is opt-in. Report closure
+  is bookkeeping outside repository implementation scope; do not alter consumer contracts. Remaining
+  SQL and Docker capability reports are separate tasks.
+
+  Keep the canonical specification byte-identical in its maintained packaged and local mirrors
+  (maid_runner/docs/maid_specs.md and .maid/docs/maid_specs.md). The existing unchanged chain-merge
+  documentation regression enforces this distribution contract and is included in the documentation
+  validation command.
+  '
+temptations:
+- risk: Do not make documentation assertions pass with unevaluated or invalid YAML examples.
+  instead: Publish a real mode/config and binding-pattern artifact example; execute it through
+    public APIs and test binding, return and config failures.
+- risk: Do not claim that compiler mode invents props aliases, updates snapshots or proves stricter
+    nullability.
+  instead: Document exact binding and raw-source boundaries, effective project compiler semantics
+    and explicit E302/E303/E304/E309 distinctions.
+- risk: Do not mutate the consumer repository or use mocked compiler data as CSV acceptance.
+  instead: Use a temporary linked project with the actual installed SDK; record provenance and
+    compare source/config bytes, artifact records and Git status.
+- risk: Do not archive the original report while only documentation or syntax parsing has been
+    checked.
+  instead: Require actual compiler-return acceptance, independent implementation review, Outcome
+    and commit before external report closure.
+files:
+  create:
+  - path: tests/test_typescript_return_contract_docs.py
+    artifacts:
+    - kind: test_function
+      name: test_documented_example_proves_inferred_return_without_source_edits
+    - kind: test_function
+      name: test_documented_default_syntax_mode_keeps_missing_return_warning
+    - kind: test_function
+      name: test_documented_example_distinguishes_contract_and_capability_failures
+    - kind: test_function
+      name: test_registered_e309_help_links_to_documented_recovery
+    - kind: test_function
+      name: test_documentation_states_compiler_boundaries_and_preserves_exact_bindings
+  - path: tests/acceptance/test_csv_return_contracts.py
+    artifacts:
+    - kind: test_function
+      name: test_reported_csv_component_return_contracts_are_verified_read_only
+  scope:
+  - path: docs/maid_specs.md
+    reason: Publish and explain the executable opt-in compiler-return configuration, artifact
+      example and supported semantic boundaries.
+  - path: docs/troubleshooting.md
+    reason: Add accurate E309 recovery and update the earlier parser/signature separation paragraph.
+  - path: maid_runner/core/diagnostics_registry.py
+    reason: Route the existing E309 help URI to its new troubleshooting section; preserve all
+      public diagnostic signatures and proof policy.
+  - path: maid_runner/docs/maid_specs.md
+    reason: Synchronize the maintained specification mirror byte-for-byte from docs/maid_specs.md;
+      no independent documentation content.
+  - path: .maid/docs/maid_specs.md
+    reason: Synchronize the maintained specification mirror byte-for-byte from docs/maid_specs.md;
+      no independent documentation content.
+  read:
+  - maid_runner/core/config.py
+  - maid_runner/core/_implementation_validation.py
+  - maid_runner/core/result.py
+  - maid_runner/core/ts_return_contracts.py
+  - maid_runner/core/ts_compiler_resolver.cjs
+  - maid_runner/core/types.py
+  - maid_runner/core/manifest.py
+  - maid_runner/validators/registry.py
+  - maid_runner/core/snapshot.py
+  - manifests/add-typescript-return-contract-proof.manifest.yaml
+  - manifests/activate-typescript-return-contract-validation.manifest.yaml
+  - tests/core/test_typescript_return_validation.py
+  - tests/test_troubleshooting_docs.py
+  - tests/docs/test_chain_merge_docs.py
+validate:
+- uv run python -m pytest -q tests/test_typescript_return_contract_docs.py tests/test_troubleshooting_docs.py
+  tests/docs/test_chain_merge_docs.py
+- uv run python -m pytest -q tests/core/test_typescript_return_validation.py
+acceptance:
+  tests:
+  - uv run python -m pytest -q tests/acceptance/test_csv_return_contracts.py
+outcome:
+  status: completed
+  completed_at: '2026-09-30T14:36:14Z'
+  summary: Documented opt-in compiler-return configuration, an executable exact-binding artifact
+    example, semantic limits and E302/E303/E304/E309 recovery. The E309 help URI resolves to
+    the new section. Canonical, packaged and local specifications are byte-identical. Read-only
+    real-consumer acceptance passed both reported CSV components with the installed TypeScript
+    5.8.3; the external report remains open until commit.
+  rationale: Documentation examples are executed through public APIs instead of relying only
+    on prose assertions. Optional acceptance uses temporary configuration and existing source/dependency
+    links, verifies compiler provenance and positive/negative contracts, and compares original
+    bytes, raw artifacts and Git status without consumer edits or application execution.
+  lessons:
+  - lesson_type: workflow
+    summary: A canonical specification may have maintained packaged and local mirrors. Include
+      those distribution boundaries in the same task inventory and run existing byte-equality
+      regressions; a local documentation test alone does not detect stale mirrors. The full
+      suite exposed this dependency, and a sanctioned inventory revision with red recapture
+      resolved it without test edits.
+    tags:
+    - documentation
+    - distribution
+    - maid-runner-feedback
+    paths:
+    - docs/maid_specs.md
+    - maid_runner/docs/maid_specs.md
+    - .maid/docs/maid_specs.md
+    - tests/docs/test_chain_merge_docs.py
+  - lesson_type: validation
+    summary: Execute documented compiler configuration and artifact examples with the real SDK,
+      including mismatch and unavailability controls. Keep optional consumer acceptance explicitly
+      parameterized and report unset environments as skipped; SDK provenance and before/after
+      state comparisons make the supplied consumer evidence reviewable.
+    tags:
+    - typescript
+    - documentation
+    - maid-runner-feedback
+    paths:
+    - tests/test_typescript_return_contract_docs.py
+    - tests/acceptance/test_csv_return_contracts.py
+  review_notes:
+  - source: independent-typescript_docs_distribution_review
+    severity: ready
+    summary: Fresh read-only reviewer found no blocking or advisory findings and independently
+      passed all 56 documentation/distribution/integration cases. Mirrors, help mapping and
+      scope were confirmed. Consumer acceptance was inspected but not independently rerun because
+      that reviewer did not receive a checkout path; coordinator evidence passed both cases.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/test_typescript_return_contract_docs.py
+    - tests/test_troubleshooting_docs.py
+    - tests/docs/test_chain_merge_docs.py
+    status: passed
+    summary: 13 documentation and maintained-distribution cases passed, including executable
+      positive/negative examples and byte-identical mirrors. Ruff and diff whitespace checks
+      passed.
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/test_typescript_return_validation.py
+    status: passed
+    summary: 43 validation integration cases passed; independent reviewer also ran them with
+      the documentation cases (56 total).
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/acceptance/test_csv_return_contracts.py
+    status: passed
+    summary: With MAID_CSV_ACCEPTANCE_PROJECT explicitly supplied, both CSV components passed
+      using installed TypeScript 5.8.3. Matched JSX expectation, incorrect props E303, wrong
+      return E302 and default syntax E304 checked; source/config bytes, raw artifacts and Git
+      status stayed unchanged.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --packet
+    status: passed
+    summary: 327 active manifests passed, zero failed; 367 superseded manifests skipped.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - 3adefb04d050aaf03bbe12870e18bd65952f914e
+    status: passed
+    summary: All 11 assessed deep gates passed after the maintained-mirror inventory revision.
+      Existing CJS E307 remains nonblocking.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: failed-unrelated
+    summary: '303 of 304 commands passed. Grouped pytest: 5441 passed, 13 skipped, two baseline
+      release-metadata assertions failed because CHANGELOG.md lacks Unreleased heading. Both
+      affected files match task baseline; documentation mirror regression passes.'

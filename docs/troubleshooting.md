@@ -354,9 +354,11 @@ changes. Parser input is adopted only when diagnostics improve, and operators,
 attributes, valid entities, mismatched tags, and unrelated syntax errors remain
 protected. Existing parser repairs compose without discarding earlier changes.
 
-This compatibility fix does not infer destructured parameter names or missing
-return annotations for React components. Those signature-modeling questions
-remain separate from parsing valid JSX text.
+Parser compatibility preserves the source's exact destructured binding pattern;
+it does not invent a parameter named `props`. Missing return annotations remain
+`E304` warnings in default syntax mode. Opt-in compiler return contracts can
+verify inferred returns independently of parsing; see [E309 recovery](#36-compiler-return-contract-is-unavailable-e309)
+and the [configuration example](maid_specs.md#compiler-backed-typescript-return-contracts).
 
 Generated Supabase types can also expose a grammar limitation around `in_…`
 property names. In some Row/Insert/Update shapes, the parser folds the next-line
@@ -534,6 +536,42 @@ and knockout requirements. `--base-ref <baseline>` is also supported.
 
 For an intentional repository-wide audit, invoke `maid verify --profile deep`
 directly; its default file-tracking and plan-lock scopes remain `repository`.
+
+### 36. Compiler return contract is unavailable (`E309`)
+
+Symptom: Compiler-mode implementation validation reports blocking `E309` for a
+requested inferred return. The diagnostic identifies the declaration and carries
+the compiler proof's cause.
+
+Likely cause: Local Node or the TypeScript SDK is unavailable; the selected
+`tsconfig` is missing, invalid or does not include the source; the expected type
+cannot resolve in module scope; or the target is unsafe or unsupported. This
+includes top-level `any`/`unknown`, semantic errors, `noCheck`, `@ts-nocheck`,
+declaration files, methods, arrow functions and overloaded declarations.
+
+Fix: Check Node availability and the existing local TypeScript installation,
+then select the explicit owning config through `typescript_return_contracts`
+in `.maidrc.yaml`. For a references-only root, use the app's config directly.
+Inspect the reported type expression and source diagnostics with that project
+config, correct legitimate contract/source problems through the MAID workflow,
+and rerun `maid validate <manifest> --mode implementation`. No automatic SDK
+installation or silent syntax fallback occurs. If syntax-only validation is the
+intended policy, explicitly select `mode: syntax`.
+
+Keep the diagnostic distinctions:
+
+- `E302`: the compiler established a semantic return mismatch, or an explicit
+  source annotation differs from its contract.
+- `E303`: an argument contract differs. A destructured pattern such as
+  `{ value }` must use its actual binding name; a `props` alias is not created.
+- `E304`: syntax mode still reports missing annotations as warnings; a matched
+  compiler return proof does not suppress missing parameter annotations.
+- `E309`: the requested compiler return proof could not be established.
+
+The proof compares types bidirectionally under the project's effective
+`strictNullChecks`, without changing raw collector records or snapshots. See
+[compiler-backed return contracts](maid_specs.md#compiler-backed-typescript-return-contracts)
+for an executable configuration and artifact example.
 
 ## FAQ
 
