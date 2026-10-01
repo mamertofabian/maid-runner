@@ -1367,7 +1367,8 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
-[Unreleased]: https://github.com/mamertofabian/maid-runner/compare/v2.27.6...HEAD
+[Unreleased]: https://github.com/mamertofabian/maid-runner/compare/v2.27.7...HEAD
+[2.27.7]: https://github.com/mamertofabian/maid-runner/compare/v2.27.6...v2.27.7
 [2.27.5]: https://github.com/mamertofabian/maid-runner/compare/v2.27.4...v2.27.5
 [2.27.4]: https://github.com/mamertofabian/maid-runner/compare/v2.27.3...v2.27.4
 [2.27.3]: https://github.com/mamertofabian/maid-runner/compare/v2.27.2...v2.27.3
