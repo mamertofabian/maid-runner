@@ -673,6 +673,9 @@ def _test_runner_invocation(
     if command == "bun" and len(parts) >= 2 and parts[1] == "test":
         return _BUN_TEST_RUNNER, parts[2:]
 
+    if command == "forge" and len(parts) >= 2 and parts[1] == "test":
+        return command, parts[2:]
+
     if command in _PACKAGE_RUNNER_WRAPPERS and len(parts) >= 2:
         inner_command = _package_runner_inner_command(parts, preserve_cwd_options=False)
         scan_command = _package_runner_inner_command(parts, preserve_cwd_options=True)

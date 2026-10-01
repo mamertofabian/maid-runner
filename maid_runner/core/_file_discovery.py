@@ -26,7 +26,7 @@ _EXCLUDE_DIRS = {
     "scripts",
 }
 
-_SOURCE_EXTENSIONS = {".py", ".ts", ".tsx", ".js", ".jsx", ".svelte"}
+_SOURCE_EXTENSIONS = {".py", ".ts", ".tsx", ".js", ".jsx", ".svelte", ".sol"}
 
 _TEST_PATTERNS = [
     re.compile(r"test_.*\.py$"),
@@ -35,6 +35,7 @@ _TEST_PATTERNS = [
     re.compile(r".*\.spec\.(ts|tsx|js|jsx|mjs|cjs)$"),
     re.compile(r".*\.cy\.(ts|tsx|js|jsx)$"),
     re.compile(r".*Tests\.cs$"),
+    re.compile(r".*\.t\.sol$"),
 ]
 
 

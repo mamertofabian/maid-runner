@@ -1,0 +1,261 @@
+{
+  "manifest_path": "manifests/solidity-foundry-runner-support.manifest.yaml",
+  "manifest_hash": "sha256-contract:97826973262590efa184f073da07a52b32cc538ee7fe9a9f6ef0315baae247ee",
+  "test_hashes": {
+    "tests/core/test_solidity_foundry_discovery.py": "sha256-pyast:v2:096a62a368c9bafd14dd1b2152c138551a7f1cd0394b48a65f7f7c71a685c2e0",
+    "tests/core/validation/test_foundry_test_runner.py": "sha256-pyast:v2:e4f39c3902ddc198c53c41cf0ca4a1cbe915b1818a7771bf23ccdb0ed93bf8f4"
+  },
+  "created_at": "2026-10-01T07:53:20.565407+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:f356f172cfdaa98e4b605e1dfab4b96246f53375916671626e3a3241bb1501d7",
+      "prior_test_hashes": {
+        "tests/core/test_node_module_plan_lock.py": "sha256-pyast:v2:59a6f92337f0d03f006aafd1a13f3945093e713e91b9e68a2d444fd119d27a16",
+        "tests/core/validation/test_bun_test_runner.py": "sha256-pyast:v2:e758e40ff654c18eb4c0f20f658bea27ece4d6b0566b2e8bc06f1e7b719eea17",
+        "tests/core/test_solidity_foundry_discovery.py": "sha256-pyast:v2:096a62a368c9bafd14dd1b2152c138551a7f1cd0394b48a65f7f7c71a685c2e0",
+        "tests/core/validation/test_foundry_test_runner.py": "sha256-pyast:v2:e4f39c3902ddc198c53c41cf0ca4a1cbe915b1818a7771bf23ccdb0ed93bf8f4"
+      },
+      "revised_at": "2026-10-01T07:53:32.401981+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/solidity-foundry-runner-support.manifest.yaml -> manifests/solidity-foundry-runner-support.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:34db040b507945b71915991e7691e635d9538bc7746458daa61cae06803b08de",
+      "prior_test_hashes": {
+        "tests/core/test_node_module_plan_lock.py": "sha256-pyast:v2:59a6f92337f0d03f006aafd1a13f3945093e713e91b9e68a2d444fd119d27a16",
+        "tests/core/validation/test_bun_test_runner.py": "sha256-pyast:v2:e758e40ff654c18eb4c0f20f658bea27ece4d6b0566b2e8bc06f1e7b719eea17",
+        "tests/core/test_solidity_foundry_discovery.py": "sha256-pyast:v2:096a62a368c9bafd14dd1b2152c138551a7f1cd0394b48a65f7f7c71a685c2e0",
+        "tests/core/validation/test_foundry_test_runner.py": "sha256-pyast:v2:e4f39c3902ddc198c53c41cf0ca4a1cbe915b1818a7771bf23ccdb0ed93bf8f4"
+      },
+      "revised_at": "2026-10-01T07:55:11.141557+00:00",
+      "reason": "Remove unrelated context-only test files that maid test interprets as behavioral targets; preserve scope and contract behavior.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [
+          "read:tests/core/test_node_module_plan_lock.py",
+          "read:tests/core/validation/test_bun_test_runner.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-01T07:55:22.097473+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_solidity_foundry_discovery.py tests/core/validation/test_foundry_test_runner.py -q",
+        "exit_code": 1,
+        "output_tail": "    ) -> None:\n        manifest_path = _write_foundry_project(\n            tmp_path, \"forge, build, test/Vault.t.sol\"\n        )\n    \n        errors = validate_manifest_test_commands(load_manifest(manifest_path), tmp_path)\n    \n>       assert [error.code for error in errors] == [\n            ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS\n        ]\nE       AssertionError: assert [] == [<ErrorCode.V...ESTS: 'E230'>]\nE         \nE         Right contains one more item: <ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS: 'E230'>\nE         Use -v to get more diff\n\ntests/core/validation/test_foundry_test_runner.py:59: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_solidity_foundry_discovery.py::test_source_discovery_and_test_classification_support_foundry_solidity\nFAILED tests/core/validation/test_foundry_test_runner.py::test_command_integrity_rejects_non_test_forge_subcommand\n2 failed, 2 passed in 0.14s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate --mode behavioral",
+        "exit_code": 0,
+        "output_tail": "Validation Results: 695 manifests\n  Passed: 328\n  Failed: 0\n  Skipped: 367 (superseded)\n  Duration: 10305ms",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_file_discovery.py:function:discover_source_files",
+      "maid_runner/core/_file_discovery.py:function:discover_source_files:arg=exclude_patterns:type=set[str] | None:default=None",
+      "maid_runner/core/_file_discovery.py:function:discover_source_files:arg=extensions:type=set[str] | None:default=None",
+      "maid_runner/core/_file_discovery.py:function:discover_source_files:arg=project_root:type=str | Path:default=None",
+      "maid_runner/core/_file_discovery.py:function:discover_source_files:arg=respect_gitignore:type=bool:default=None",
+      "maid_runner/core/_file_discovery.py:function:discover_source_files:kind=function",
+      "maid_runner/core/_file_discovery.py:function:discover_source_files:returns=list[str]",
+      "maid_runner/core/_file_discovery.py:function:is_test_file",
+      "maid_runner/core/_file_discovery.py:function:is_test_file:arg=path:type=str:default=None",
+      "maid_runner/core/_file_discovery.py:function:is_test_file:kind=function",
+      "maid_runner/core/_file_discovery.py:function:is_test_file:returns=bool",
+      "tests/core/test_solidity_foundry_discovery.py:test_source_discovery_and_test_classification_support_foundry_solidity",
+      "tests/core/test_solidity_foundry_discovery.py:test_source_discovery_and_test_classification_support_foundry_solidity:kind=test_function",
+      "tests/core/test_solidity_foundry_discovery.py:test_test_artifact_collection_routes_t_sol_files_to_registered_validator",
+      "tests/core/test_solidity_foundry_discovery.py:test_test_artifact_collection_routes_t_sol_files_to_registered_validator:kind=test_function",
+      "tests/core/validation/test_foundry_test_runner.py:test_command_integrity_accepts_forge_test_for_foundry_file",
+      "tests/core/validation/test_foundry_test_runner.py:test_command_integrity_accepts_forge_test_for_foundry_file:kind=test_function",
+      "tests/core/validation/test_foundry_test_runner.py:test_command_integrity_rejects_non_test_forge_subcommand",
+      "tests/core/validation/test_foundry_test_runner.py:test_command_integrity_rejects_non_test_forge_subcommand:kind=test_function"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "maid_runner/core/_file_discovery.py",
+        "tests/core/test_solidity_foundry_discovery.py",
+        "tests/core/validation/test_foundry_test_runner.py"
+      ],
+      "read": [
+        "maid_runner/core/_validation_test_artifacts.py",
+        "maid_runner/validators/base.py",
+        "maid_runner/validators/registry.py"
+      ],
+      "scope": [
+        "maid_runner/core/_test_runner_invocation.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "maid_runner/core/_file_discovery.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "discover_source_files",
+              "description": "Discover Solidity source and Foundry test files alongside existing supported source types.",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "str | Path"
+                },
+                {
+                  "name": "extensions",
+                  "type": "set[str] | None"
+                },
+                {
+                  "name": "exclude_patterns",
+                  "type": "set[str] | None"
+                },
+                {
+                  "name": "respect_gitignore",
+                  "type": "bool"
+                }
+              ],
+              "returns": "list[str]"
+            },
+            {
+              "kind": "function",
+              "name": "is_test_file",
+              "description": "Recognize exact Foundry `.t.sol` test filenames without classifying Solidity production files as tests.",
+              "args": [
+                {
+                  "name": "path",
+                  "type": "str"
+                }
+              ],
+              "returns": "bool"
+            }
+          ]
+        },
+        {
+          "path": "tests/core/test_solidity_foundry_discovery.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_source_discovery_and_test_classification_support_foundry_solidity",
+              "source_scenario": "A project contains `src/Vault.sol`, `test/Vault.t.sol`, and near-miss Solidity filenames.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "discover_source_files"
+                  }
+                },
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "is_test_file"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Both `.sol` files are discovered; only the `.t.sol` path is classified as a test."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_test_artifact_collection_routes_t_sol_files_to_registered_validator",
+              "source_scenario": "A `.t.sol` source file is collected by a registry containing a `.sol` validator.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "collect_test_artifacts"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Collection returns the validator's behavioral artifact for the `.t.sol` path without errors."
+              }
+            }
+          ]
+        },
+        {
+          "path": "tests/core/validation/test_foundry_test_runner.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_accepts_forge_test_for_foundry_file",
+              "source_scenario": "A task declares `test/Vault.t.sol` and validates it with `forge test --match-path test/Vault.t.sol`.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "validate_manifest_test_commands"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Command integrity returns no errors."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_command_integrity_rejects_non_test_forge_subcommand",
+              "source_scenario": "A task declares `test/Vault.t.sol` but its validate command uses `forge build`.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "validate_manifest_test_commands"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Command integrity returns VALIDATE_COMMAND_DOES_NOT_RUN_TESTS."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_validation_test_artifacts.py",
+        "maid_runner/validators/registry.py",
+        "maid_runner/validators/base.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_test_runner_invocation.py",
+          "reason": "Extend the internal runner invocation classifier for `forge test`; its behavior is asserted through command-integrity validation."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_solidity_foundry_discovery.py",
+      "tests/core/validation/test_foundry_test_runner.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_solidity_foundry_discovery.py tests/core/validation/test_foundry_test_runner.py -q",
+      "uv run maid validate --mode behavioral"
+    ],
+    "acceptance_commands": []
+  }
+}
