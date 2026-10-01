@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Solidity Foundry validation support** — Discover `.sol` files, classify Foundry `*.t.sol` files as behavioral tests, and recognize `forge test` commands when the Solidity validator plugin is installed.
+- **Compiler-backed TypeScript return contracts** — Add opt-in return-type validation using the owning TypeScript project and compiler checker. Missing, ambiguous, unsupported, or unverifiable contracts produce explicit diagnostics instead of guessed matches; document the mode and test it with CSV acceptance cases.
+
+### Changed
+- **Task-scoped deep verification** — Keep assessment-selected deep verification focused on the changed manifest task while preserving explicitly requested repository-wide deep verification.
+- **Plan revision context** — Allow scope-only plan revisions to stash declared epic planning context while continuing to reject unrelated read-only source changes.
+- **Promotion evidence preservation** — Preserve audited legacy baseline evidence during draft promotion instead of dropping or laundering it.
+- **GitHub workflow triggers** — Run MAID validation and test workflows for pull requests and reusable calls, and run the publishing workflow for pull requests and version tags while keeping publication tag-only.
+
+### Fixed
+- **Pytest command integrity** — Detect native pytest TOML configuration and accept selection-related `addopts` only when native collection proves the complete behavioral test selection is unchanged.
+- **Deno full-permission test discovery** — Recognize supported full-permission `deno test` flags while rejecting ambiguous or conflicting forms.
+- **Vitest command coverage** — Recognize direct Node execution of Vitest's canonical package entry and prevent Vitest `--root` values from being mistaken for test targets.
+- **Node module test locks** — Protect standard `.mjs` and `.cjs` test/spec files, including colocated files outside test directories, in behavioral plan locks.
+- **Python Playwright assertions** — Recognize direct, invoked Playwright matcher chains without treating ordinary `expect` calls as assertions.
+- **Python variadic tuple annotations** — Preserve canonical `...` annotations and compare variadic tuple contracts without breaking legacy `Ellipsis` spellings.
+- **JavaScript and TypeScript assertion boundaries** — Use parser token spans to keep regex literals from corrupting assertion callback boundaries.
+- **JSX raw ampersands** — Parse valid ampersands in JSX text, including historical assessment baselines, without weakening syntax diagnostics.
+- **Generated Supabase TypeScript headers** — Recover valid `in_`-prefixed property headers that spill into preceding type annotations.
+
 ## [2.27.6] - 2026-09-18
 
 ### Changed
@@ -1344,7 +1367,7 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
-[Unreleased]: https://github.com/mamertofabian/maid-runner/compare/v2.27.5...HEAD
+[Unreleased]: https://github.com/mamertofabian/maid-runner/compare/v2.27.6...HEAD
 [2.27.5]: https://github.com/mamertofabian/maid-runner/compare/v2.27.4...v2.27.5
 [2.27.4]: https://github.com/mamertofabian/maid-runner/compare/v2.27.3...v2.27.4
 [2.27.3]: https://github.com/mamertofabian/maid-runner/compare/v2.27.2...v2.27.3

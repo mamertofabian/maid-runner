@@ -128,6 +128,8 @@ def test_sphinx_reference_builds_without_warnings(tmp_path: Path) -> None:
             "html",
             "-W",
             "--keep-going",
+            "-D",
+            "extensions=sphinx.ext.autodoc,sphinx.ext.autosummary",
             str(docs_source),
             str(tmp_path / "html"),
         ],
