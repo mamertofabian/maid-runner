@@ -1,0 +1,127 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: Keep publishing matrix interpreters and shared dependency environments stable
+type: fix
+created: "2026-10-02T13:47:07Z"
+description: |
+  The failed v2.28.0 publishing run reported source dependency environment
+  mutations from snapshot tests and an isolated coverage worker failure.
+  A deterministic public snapshot reproduction shows that a cold sibling
+  dependency import creates bytecode in the guarded source environment;
+  redirecting bytecode writes prevents the mutation while real dependency
+  edits still fail closed. Set PYTHONPYCACHEPREFIX to
+  ${{ runner.temp }}/maid-python-cache on the publishing test job so outer
+  pytest workers and inherited subprocesses cache bytecode outside guarded
+  source dependencies. Snapshot commands keep their existing worker-local
+  cache overrides. Do not suppress bytecode globally: the retained snapshot
+  contract requires bytecode to be written inside its isolated worker cache.
+  Keep the production mutation guard unchanged rather than ignoring writes.
+  The same failed logs show all nominal matrix lanes executing Python 3.12.3:
+  uv run follows the project Python pin after the matrix-specific uv sync.
+  Set UV_PYTHON to the matrix version for the entire test job so sync and
+  subsequent uv commands use one interpreter. Retain the three-version
+  matrix, worker limits, tests, prerequisites and tag-only publication.
+  This additive scoped workflow change preserves all existing declarations
+  and their shared tests without rewriting durable contracts or plan locks.
+  Reproduce the cold-import boundary and interpreter override in dedicated
+  behavioral tests, then run the original failed snapshot and coverage test
+  modules and the publishing workflow tests before the full gates.
+  Keep the release tag deleted and create a release/v2.next PR to main only
+  after validation and independent review; do not retag or publish.
+temptations:
+  - risk: Weaken snapshot dependency fingerprints or retry failing tests to hide the race.
+    instead: Redirect outer bytecode writes outside dependency environments and verify isolated snapshot caching plus rejection of real dependency edits.
+  - risk: Assume setup-python or uv sync pins all later uv commands.
+    instead: Set job-wide UV_PYTHON and prove uv run overrides a conflicting project pin.
+  - risk: Remove a Python lane or reduce existing worker contracts to make CI green.
+    instead: Retain the three-version matrix and one-job/four-worker limits and validate the failing modules.
+files:
+  scope:
+    - path: .github/workflows/publish.yml
+      reason: Add process-start bytecode and uv interpreter environment settings to the existing test job without changing its public workflow contracts.
+  read:
+    - tests/ci/test_publish_environment_isolation.py
+    - tests/ci/test_publish_workflow.py
+    - tests/core/test_knockout_snapshot.py
+    - tests/core/test_artifact_coverage_fallback_workers.py
+    - tests/core/test_knockout_snapshot_template.py
+    - maid_runner/core/_knockout_snapshot.py
+    - maid_runner/core/_artifact_coverage_fallback_worker.py
+    - manifests/fix-publish-python-311-maid-tests.manifest.yaml
+    - manifests/fix-publish-matrix-diagnostics.manifest.yaml
+    - .python-version
+validate:
+  - uv run python -m pytest -q tests/ci/test_publish_environment_isolation.py tests/ci/test_publish_workflow.py tests/core/test_knockout_snapshot.py tests/core/test_artifact_coverage_fallback_workers.py tests/core/test_knockout_snapshot_template.py
+outcome:
+  status: completed
+  completed_at: "2026-10-02T14:08:16Z"
+  summary: >-
+    Publishing test jobs redirect outer Python bytecode to runner temporary
+    storage and bind all uv commands to the Python matrix version. Cold imports
+    no longer mutate guarded dependency environments, while snapshot commands
+    retain their isolated caches and real dependency edits remain rejected.
+    The release tag remains deleted; no replacement tag or publication was made.
+  rationale: >-
+    Failed tag-run logs showed dependency-environment drift and all nominal
+    matrix lanes executing Python 3.12. A public snapshot reproduction confirmed
+    that cold dependency imports write bytecode into guarded source environments.
+    Global suppression passed focused tests but failed the full gate because
+    retained snapshots require worker-local bytecode. The user approved cache
+    redirection, and stash-backed plan revision captured fresh red evidence
+    before implementing it. A lock-path mismatch from early promotion was also
+    reconciled before implementation. Existing shared behavioral tests and
+    production snapshot mutation guards were not changed.
+  lessons:
+    - lesson_type: reliability
+      summary: >-
+        Redirect outer-process bytecode caches outside guarded dependency
+        environments instead of suppressing bytecode globally; retained snapshot
+        tests must continue proving that worker-local caches are populated.
+      tags: [github-actions, release, snapshot-isolation]
+      paths: [.github/workflows/publish.yml, tests/ci/test_publish_environment_isolation.py, tests/core/test_knockout_snapshot_template.py]
+    - lesson_type: compatibility
+      summary: >-
+        Matrix-specific uv sync does not bind subsequent uv run commands when
+        the project Python pin differs. Job-wide UV_PYTHON keeps nested commands
+        on the selected interpreter; confirm actual versions in isolated
+        environments with standard .venv names for snapshot-copy compatibility.
+      tags: [github-actions, uv, python-matrix]
+      paths: [.github/workflows/publish.yml, .python-version, tests/ci/test_publish_environment_isolation.py]
+  review_notes:
+    - source: independent-read-only-publish_ci_review
+      severity: ready
+      summary: >-
+        Reviewer returned Ready to merge with no blocking or advisory findings.
+        Confirmed declared scope, worker-local caching, mutation rejection,
+        matrix interpreter binding, locked tests and genuine red evidence.
+        Local actual-interpreter checks passed; revised GitHub-hosted execution
+        has not yet been observed.
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/ci/test_publish_environment_isolation.py, tests/ci/test_publish_workflow.py, tests/core/test_knockout_snapshot.py, tests/core/test_artifact_coverage_fallback_workers.py, tests/core/test_knockout_snapshot_template.py]
+      status: passed
+      summary: 57 tests passed under each actual Python 3.10.16, 3.11.15 and 3.12.8 with redirected outer bytecode caches and matrix-bound uv commands.
+    - command: [uv, run, maid, validate, manifests/fix-publish-environment-isolation.manifest.yaml, --mode, implementation, --packet]
+      status: passed
+      summary: Promoted revised contract passed implementation validation.
+    - command: [uv, run, maid, validate, --packet]
+      status: passed
+      summary: All 331 active manifests passed; 368 superseded; zero failures.
+    - command: [uv, run, maid, test, --jobs, "1", --pytest-workers, "4"]
+      status: passed
+      summary: All 305 command groups passed with redirected outer bytecode caches. The superseded suppression approach had 304 passes and one snapshot-cache failure before the approved revision.
+    - command: [uv, run, python, -m, pytest, tests/, -q, -n, "4"]
+      status: passed
+      summary: Final full suite passed 5,533 tests with 20 skipped and 19 existing multiprocessing warnings in 96.27 seconds.
+    - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --file-tracking-scope, task, --plan-lock-scope, task, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, f11fc1f1b069517c1f352400d68d549b6656ceba]
+      status: passed
+      summary: All 11 stages passed with zero blocking errors; existing nonblocking E307 diagnostics concern the CJS resolver and non-code files.
+    - command: [uv, run, ruff, check, tests/ci/test_publish_environment_isolation.py]
+      status: passed
+      summary: No lint issues in the new behavioral tests.
+    - command: [uv, run, black, --check, tests/ci/test_publish_environment_isolation.py]
+      status: passed
+      summary: Formatting check passed.
