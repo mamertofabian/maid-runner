@@ -1,15 +1,18 @@
 {
   "manifest_path": "manifests/fix-publish-environment-isolation.manifest.yaml",
-  "manifest_hash": "sha256-contract:785f3bd788b1d7a995378c16b47f6def72043ef54fcf9b54aab35d835fda143a",
+  "manifest_hash": "sha256-contract:457c9d7bec5e1c8989261ac1622ec914c25187a554ea996520c93dd80c8f9a60",
   "test_hashes": {
-    "tests/ci/test_publish_environment_isolation.py": "sha256-pyast:v2:4fe6b6b64263b2f5001c99e201757ad6d64183d08686cf94c00834eedd7d0cc9",
+    "tests/ci/test_publish_environment_isolation.py": "sha256-pyast:v2:198601a64efa355af63d4ef1777a90ec30eead0ba2595469c48698fd40d1ddc1",
     "tests/ci/test_publish_workflow.py": "sha256-pyast:v2:799ef0c4341901b4622b4b8d0931c6ee70ec6aa3e6949cf29d060b56b9284dd5",
     "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:235da5154eb612bdd088aee7a4dfeb9df1ff32dca5352ce6c486e7e66e5d0aa6",
     "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:58209da5bac256e1da44871ab1a283a0fea3560f2403a95a490481e8eb89b6b8",
-    "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:4dc08f1cc7886ba96a6c50cc9f4fbe1b6f20f84bc547b52075afacf361688eb7"
+    "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:4dc08f1cc7886ba96a6c50cc9f4fbe1b6f20f84bc547b52075afacf361688eb7",
+    "tests/ci/test_maid_workflow_environment_isolation.py": "sha256-pyast:v2:f72a0e581e1a4ead89f9183283394a396eeb2b67e29d367c736d3e8fd6732ed3",
+    "tests/ci/test_github_pytest_worker_wiring.py": "sha256-pyast:v2:f65474540ec582b71d0e09ceecc097b2f836d668564053b16080a31e367f01cb",
+    "tests/ci/test_maid_workflow_pr_only_triggers.py": "sha256-pyast:v2:108b2c75b4e9a4d96460c9f93fb9cd6096360cf44ab4b4cf5002ee2e2874ab64"
   },
   "created_at": "2026-10-02T13:46:47.053335+00:00",
-  "revision": 3,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:9be40ee3408c0d26f362e8adcdd6b43d00565b4ee849cff3733657f26de1a700",
@@ -49,16 +52,71 @@
           "uv run python -m pytest -q tests/ci/test_publish_environment_isolation.py tests/ci/test_publish_workflow.py tests/core/test_knockout_snapshot.py tests/core/test_artifact_coverage_fallback_workers.py"
         ]
       }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:785f3bd788b1d7a995378c16b47f6def72043ef54fcf9b54aab35d835fda143a",
+      "prior_test_hashes": {
+        "tests/ci/test_publish_environment_isolation.py": "sha256-pyast:v2:4fe6b6b64263b2f5001c99e201757ad6d64183d08686cf94c00834eedd7d0cc9",
+        "tests/ci/test_publish_workflow.py": "sha256-pyast:v2:799ef0c4341901b4622b4b8d0931c6ee70ec6aa3e6949cf29d060b56b9284dd5",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:235da5154eb612bdd088aee7a4dfeb9df1ff32dca5352ce6c486e7e66e5d0aa6",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:58209da5bac256e1da44871ab1a283a0fea3560f2403a95a490481e8eb89b6b8",
+        "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:4dc08f1cc7886ba96a6c50cc9f4fbe1b6f20f84bc547b52075afacf361688eb7"
+      },
+      "revised_at": "2026-10-02T14:47:15.717822+00:00",
+      "reason": "User approved extending cache redirection and reusable input-selected UV_PYTHON to MAID Validation and MAID Test; new regression cases fail against committed workflows",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "read:tests/ci/test_github_pytest_worker_wiring.py",
+          "read:tests/ci/test_maid_workflow_environment_isolation.py",
+          "read:tests/ci/test_maid_workflow_pr_only_triggers.py",
+          "scope:.github/workflows/maid-test.yml",
+          "scope:.github/workflows/maid-validation.yml"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/ci/test_publish_environment_isolation.py tests/ci/test_publish_workflow.py tests/core/test_knockout_snapshot.py tests/core/test_artifact_coverage_fallback_workers.py tests/core/test_knockout_snapshot_template.py tests/ci/test_maid_workflow_environment_isolation.py tests/ci/test_github_pytest_worker_wiring.py tests/ci/test_maid_workflow_pr_only_triggers.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/ci/test_publish_environment_isolation.py tests/ci/test_publish_workflow.py tests/core/test_knockout_snapshot.py tests/core/test_artifact_coverage_fallback_workers.py tests/core/test_knockout_snapshot_template.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:5e521cea594079e46591d61b79cdaf80c1fc1afc0bdc10ed7ad6af3eced9f72b",
+      "prior_test_hashes": {
+        "tests/ci/test_publish_environment_isolation.py": "sha256-pyast:v2:4fe6b6b64263b2f5001c99e201757ad6d64183d08686cf94c00834eedd7d0cc9",
+        "tests/ci/test_publish_workflow.py": "sha256-pyast:v2:799ef0c4341901b4622b4b8d0931c6ee70ec6aa3e6949cf29d060b56b9284dd5",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:235da5154eb612bdd088aee7a4dfeb9df1ff32dca5352ce6c486e7e66e5d0aa6",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:58209da5bac256e1da44871ab1a283a0fea3560f2403a95a490481e8eb89b6b8",
+        "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:4dc08f1cc7886ba96a6c50cc9f4fbe1b6f20f84bc547b52075afacf361688eb7",
+        "tests/ci/test_maid_workflow_environment_isolation.py": "sha256-pyast:v2:7158e2b919e49306834d8bbf6fc3338073d18157abbbde93a3acc8c7d4d4d13a",
+        "tests/ci/test_github_pytest_worker_wiring.py": "sha256-pyast:v2:f65474540ec582b71d0e09ceecc097b2f836d668564053b16080a31e367f01cb",
+        "tests/ci/test_maid_workflow_pr_only_triggers.py": "sha256-pyast:v2:108b2c75b4e9a4d96460c9f93fb9cd6096360cf44ab4b4cf5002ee2e2874ab64"
+      },
+      "revised_at": "2026-10-02T15:00:32.914173+00:00",
+      "reason": "User approved first-step GITHUB_ENV cache export in all three workflows; execute real startup shell script in regression tests and validate GitHub context availability with Actionlint",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
     "red": true,
-    "captured_at": "2026-10-02T14:00:22.471564+00:00",
+    "captured_at": "2026-10-02T15:00:58.678162+00:00",
     "commands": [
       {
-        "command": "uv run python -m pytest -q tests/ci/test_publish_environment_isolation.py tests/ci/test_publish_workflow.py tests/core/test_knockout_snapshot.py tests/core/test_artifact_coverage_fallback_workers.py tests/core/test_knockout_snapshot_template.py",
+        "command": "uv run python -m pytest -q tests/ci/test_publish_environment_isolation.py tests/ci/test_publish_workflow.py tests/core/test_knockout_snapshot.py tests/core/test_artifact_coverage_fallback_workers.py tests/core/test_knockout_snapshot_template.py tests/ci/test_maid_workflow_environment_isolation.py tests/ci/test_github_pytest_worker_wiring.py tests/ci/test_maid_workflow_pr_only_triggers.py",
         "exit_code": 1,
-        "output_tail": ">           raise RuntimeError(final_error) from body_error\nE           RuntimeError: Knockout snapshot command changed a source dependency environment\n\nmaid_runner/core/_knockout_snapshot.py:639: RuntimeError\n____ test_publish_uv_run_uses_matrix_interpreter_despite_project_python_pin ____\n\ntmp_path = PosixPath('/tmp/pytest-of-atomrem/pytest-190/test_publish_uv_run_uses_matri0')\n\n    def test_publish_uv_run_uses_matrix_interpreter_despite_project_python_pin(tmp_path):\n        configured = _publish_environment()\n>       assert configured.get(\"UV_PYTHON\") == \"${{ matrix.python-version }}\"\nE       AssertionError: assert None == '${{ matrix.python-version }}'\nE        +  where None = <built-in method get of dict object at 0x72d5f04e9e80>('UV_PYTHON')\nE        +    where <built-in method get of dict object at 0x72d5f04e9e80> = {}.get\n\ntests/ci/test_publish_environment_isolation.py:79: AssertionError\n=========================== short test summary info ============================\nFAILED tests/ci/test_publish_environment_isolation.py::test_publish_cold_import_does_not_mutate_shared_snapshot_dependencies\nFAILED tests/ci/test_publish_environment_isolation.py::test_publish_uv_run_uses_matrix_interpreter_despite_project_python_pin\n2 failed, 55 passed in 26.52s",
+        "output_tail": "        job = _job(workflow_name, job_name)\n        setup = next(step for step in job[\"steps\"] if step.get(\"name\") == \"Set up Python\")\n        selected = setup[\"with\"][\"python-version\"]\n    \n        assert selected == \"${{ inputs['python-version'] || '3.12' }}\"\n>       assert job.get(\"env\", {}).get(\"UV_PYTHON\") == selected\nE       assert None == \"${{ inputs['python-version'] || '3.12' }}\"\nE        +  where None = <built-in method get of dict object at 0x7875ae589b40>('UV_PYTHON')\nE        +    where <built-in method get of dict object at 0x7875ae589b40> = {}.get\nE        +      where {} = <built-in method get of dict object at 0x7875ae73e7c0>('env', {})\nE        +        where <built-in method get of dict object at 0x7875ae73e7c0> = {'name': 'MAID tests and coverage', 'permissions': {'contents': 'read'}, 'runs-on': 'ubuntu-latest', 'steps': [{'name'...n/maid-runner\" && -f scripts/sync_claude_files.py ]]; then\\n  uv run python scripts/sync_claude_files.py\\nfi\\n'}, ...]}.get\n\ntests/ci/test_maid_workflow_environment_isolation.py:98: AssertionError\n=========================== short test summary info ============================\nFAILED tests/ci/test_publish_environment_isolation.py::test_publish_cold_import_does_not_mutate_shared_snapshot_dependencies\nFAILED tests/ci/test_maid_workflow_environment_isolation.py::test_maid_job_cold_import_keeps_dependency_environment_unchanged[maid-validation.yml-maid-validation]\nFAILED tests/ci/test_maid_workflow_environment_isolation.py::test_maid_job_cold_import_keeps_dependency_environment_unchanged[maid-test.yml-maid-test]\nFAILED tests/ci/test_maid_workflow_environment_isolation.py::test_maid_job_binds_uv_to_reusable_input_selected_interpreter[maid-validation.yml-maid-validation]\nFAILED tests/ci/test_maid_workflow_environment_isolation.py::test_maid_job_binds_uv_to_reusable_input_selected_interpreter[maid-test.yml-maid-test]\n5 failed, 60 passed in 25.56s",
         "classification": "red"
       }
     ]
@@ -76,6 +134,9 @@
         "maid_runner/core/_knockout_snapshot.py",
         "manifests/fix-publish-matrix-diagnostics.manifest.yaml",
         "manifests/fix-publish-python-311-maid-tests.manifest.yaml",
+        "tests/ci/test_github_pytest_worker_wiring.py",
+        "tests/ci/test_maid_workflow_environment_isolation.py",
+        "tests/ci/test_maid_workflow_pr_only_triggers.py",
         "tests/ci/test_publish_environment_isolation.py",
         "tests/ci/test_publish_workflow.py",
         "tests/core/test_artifact_coverage_fallback_workers.py",
@@ -83,6 +144,8 @@
         "tests/core/test_knockout_snapshot_template.py"
       ],
       "scope": [
+        ".github/workflows/maid-test.yml",
+        ".github/workflows/maid-validation.yml",
         ".github/workflows/publish.yml"
       ],
       "delete": [],
@@ -95,6 +158,9 @@
         "tests/core/test_knockout_snapshot.py",
         "tests/core/test_artifact_coverage_fallback_workers.py",
         "tests/core/test_knockout_snapshot_template.py",
+        "tests/ci/test_maid_workflow_environment_isolation.py",
+        "tests/ci/test_github_pytest_worker_wiring.py",
+        "tests/ci/test_maid_workflow_pr_only_triggers.py",
         "maid_runner/core/_knockout_snapshot.py",
         "maid_runner/core/_artifact_coverage_fallback_worker.py",
         "manifests/fix-publish-python-311-maid-tests.manifest.yaml",
@@ -105,10 +171,21 @@
         {
           "path": ".github/workflows/publish.yml",
           "reason": "Add process-start bytecode and uv interpreter environment settings to the existing test job without changing its public workflow contracts."
+        },
+        {
+          "path": ".github/workflows/maid-validation.yml",
+          "reason": "Apply the same cache redirection and reusable input-selected uv interpreter to the validation job before every Python command."
+        },
+        {
+          "path": ".github/workflows/maid-test.yml",
+          "reason": "Apply cache redirection and reusable input-selected uv interpreter to the main MAID test and coverage job."
         }
       ]
     },
     "test_files": [
+      "tests/ci/test_github_pytest_worker_wiring.py",
+      "tests/ci/test_maid_workflow_environment_isolation.py",
+      "tests/ci/test_maid_workflow_pr_only_triggers.py",
       "tests/ci/test_publish_environment_isolation.py",
       "tests/ci/test_publish_workflow.py",
       "tests/core/test_artifact_coverage_fallback_workers.py",
@@ -116,7 +193,7 @@
       "tests/core/test_knockout_snapshot_template.py"
     ],
     "validate_commands": [
-      "uv run python -m pytest -q tests/ci/test_publish_environment_isolation.py tests/ci/test_publish_workflow.py tests/core/test_knockout_snapshot.py tests/core/test_artifact_coverage_fallback_workers.py tests/core/test_knockout_snapshot_template.py"
+      "uv run python -m pytest -q tests/ci/test_publish_environment_isolation.py tests/ci/test_publish_workflow.py tests/core/test_knockout_snapshot.py tests/core/test_artifact_coverage_fallback_workers.py tests/core/test_knockout_snapshot_template.py tests/ci/test_maid_workflow_environment_isolation.py tests/ci/test_github_pytest_worker_wiring.py tests/ci/test_maid_workflow_pr_only_triggers.py"
     ],
     "acceptance_commands": []
   }

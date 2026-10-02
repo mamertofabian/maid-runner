@@ -17,6 +17,29 @@ def _publish_environment():
     return workflow["jobs"]["test"].get("env", {})
 
 
+def _apply_cache_setup(job, tmp_path, environment):
+    step = next(
+        (s for s in job["steps"] if s.get("name") == "Configure Python bytecode cache"),
+        None,
+    )
+    if step is None:
+        return
+    assert job["steps"][0] is step
+    environment_file = tmp_path / "github-env"
+    result = subprocess.run(
+        ["bash", "-euo", "pipefail", "-c", step["run"]],
+        env=dict(
+            environment, RUNNER_TEMP=str(tmp_path), GITHUB_ENV=str(environment_file)
+        ),
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    for line in environment_file.read_text().splitlines():
+        key, value = line.split("=", 1)
+        environment[key] = value
+
+
 def _cold_dependency_project(tmp_path):
     root = tmp_path / "project"
     source = root / "src/target.py"
@@ -33,11 +56,8 @@ def test_publish_cold_import_does_not_mutate_shared_snapshot_dependencies(tmp_pa
     environment = dict(os.environ)
     environment.pop("PYTHONDONTWRITEBYTECODE", None)
     environment.pop("PYTHONPYCACHEPREFIX", None)
-    configured = _publish_environment()
-    if "PYTHONPYCACHEPREFIX" in configured:
-        environment["PYTHONPYCACHEPREFIX"] = configured["PYTHONPYCACHEPREFIX"].replace(
-            "${{ runner.temp }}", str(tmp_path)
-        )
+    workflow = yaml.safe_load(Path(".github/workflows/publish.yml").read_text())
+    _apply_cache_setup(workflow["jobs"]["test"], tmp_path, environment)
 
     with SharedEnvironmentProjectSnapshotBackend().create(
         root, ("src/target.py",), "publish-cold-import"
@@ -58,9 +78,8 @@ def test_publish_cold_import_does_not_mutate_shared_snapshot_dependencies(tmp_pa
 
     assert dependency.read_text() == "VALUE = 1\n"
     assert not (dependency.parent / "__pycache__").exists()
-    assert configured["PYTHONPYCACHEPREFIX"] == "${{ runner.temp }}/maid-python-cache"
     cache_root = Path(environment["PYTHONPYCACHEPREFIX"])
-    assert cache_root.is_relative_to(tmp_path)
+    assert cache_root == tmp_path / "maid-python-cache"
     assert any(cache_root.rglob("cold_dependency*.pyc"))
 
 
