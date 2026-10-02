@@ -26,6 +26,12 @@ def _reference_can_cover_artifact(
     reference: FoundArtifact,
     artifact: FoundArtifact,
 ) -> bool:
+    if reference.reference_context == "exact" and (
+        reference.kind != artifact.kind
+        or reference.of != artifact.of
+        or ((artifact.module_path is None) != (reference.import_source is None))
+    ):
+        return False
     if artifact.signature is not None and reference.signature != artifact.signature:
         return False
     if reference.kind == ArtifactKind.TEST_FUNCTION:
@@ -48,9 +54,13 @@ def _reference_can_cover_artifact(
     return True
 
 
-def _module_identity_matches(reference_module: str, artifact_module: str) -> bool:
+def _module_identity_matches(
+    reference_module: str, artifact_module: str, *, exact: bool = False
+) -> bool:
     if reference_module == artifact_module:
         return True
+    if exact:
+        return False
     if _source_root_module_identity_matches(reference_module, artifact_module):
         return True
     if _non_importable_python_module_stem_matches(reference_module, artifact_module):
@@ -104,7 +114,11 @@ def _reference_identity_can_represent_artifact(
         return False
     if reference.import_source is None or artifact.module_path is None:
         return False
-    if _module_identity_matches(reference.import_source, artifact.module_path):
+    if _module_identity_matches(
+        reference.import_source,
+        artifact.module_path,
+        exact=reference.reference_context == "exact",
+    ):
         return True
     reexported = resolver(reference.import_source, ref_name, project_root)
     if reexported is None:
@@ -121,7 +135,11 @@ def _reference_module_can_represent_artifact(
 ) -> bool:
     if reference.import_source is None or artifact.module_path is None:
         return False
-    if _module_identity_matches(reference.import_source, artifact.module_path):
+    if _module_identity_matches(
+        reference.import_source,
+        artifact.module_path,
+        exact=reference.reference_context == "exact",
+    ):
         return True
 
     reexported = resolver(reference.import_source, artifact.name, project_root)
@@ -226,6 +244,9 @@ def match_artifact_to_references(
 
     Match rules, in order:
 
+    References opting into ``exact`` must agree on kind, owner, and whether
+    module identity is present before the legacy fallback rules below apply.
+
     1. The reference's effective name (``alias_of`` if set, else
        ``name``) must equal ``artifact.name``.
     2. If the reference has no ``import_source``, fall back to a
@@ -295,7 +316,11 @@ def match_artifact_to_references(
         if artifact.module_path is None:
             return True
 
-        if _module_identity_matches(ref.import_source, artifact.module_path):
+        if _module_identity_matches(
+            ref.import_source,
+            artifact.module_path,
+            exact=ref.reference_context == "exact",
+        ):
             return True
 
         reexported = resolver(ref.import_source, ref_name, root)

@@ -107,9 +107,14 @@ def _validate_removed_artifacts(
             continue
         validator = registry.get(spec.file)
         try:
-            collection = artifact_cache.collect_cached_implementation_artifacts(
-                validator, source, spec.file
-            )
+            if full_path.suffix == ".rs":
+                collection = validator.collect_implementation_artifacts(
+                    source, full_path
+                )
+            else:
+                collection = artifact_cache.collect_cached_implementation_artifacts(
+                    validator, source, spec.file
+                )
         except Exception as exc:
             errors.append(
                 ValidationError(

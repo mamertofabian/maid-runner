@@ -24,6 +24,7 @@ dependencies = [
     "jsonschema>=4.25.1",
     "pyyaml>=6.0",
     "ruamel-yaml>=0.18.0",
+    "tomli>=2.0.0; python_version < '3.11'",
 ]
 
 [project.urls]

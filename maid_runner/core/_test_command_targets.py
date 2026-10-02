@@ -9,6 +9,7 @@ from typing import Callable
 
 from maid_runner.core.config import TestRunnerWrapperConfig
 from maid_runner.core._file_discovery import is_test_file
+from maid_runner.core._rust_support import _cargo_test_paths
 from maid_runner.core._test_runner_invocation import (
     _TEST_RUNNER_VALUE_FLAGS,
     _UNITTEST_TEST_RUNNER,
@@ -93,6 +94,9 @@ def test_paths_from_validate_command(
         )
         scan_segment = _test_runner_target_scan_segment(segment, test_runner_wrappers)
         invocation = _test_runner_invocation(segment, test_runner_wrappers)
+        if invocation is not None and invocation[0] == "cargo":
+            paths.extend(_cargo_test_paths(invocation[1], project_root, cwd))
+            continue
         unittest_runner = (
             invocation is not None and invocation[0] == _UNITTEST_TEST_RUNNER
         )
@@ -204,6 +208,8 @@ def test_paths_from_executing_validate_command(
     django_runner = _runs_django_test_runner(segment, test_runner_wrappers)
     scan_segment = _test_runner_target_scan_segment(segment, test_runner_wrappers)
     invocation = _test_runner_invocation(segment, test_runner_wrappers)
+    if invocation is not None and invocation[0] == "cargo":
+        return _cargo_test_paths(invocation[1], project_root, cwd)
     unittest_runner = invocation is not None and invocation[0] == _UNITTEST_TEST_RUNNER
     if invocation is not None and invocation[0] == "playwright":
         scan_segment = _playwright_target_scan_segment(scan_segment)
@@ -347,6 +353,8 @@ def _test_paths_from_executing_runner_segment(
     django_runner = _runs_django_test_runner(segment, test_runner_wrappers)
     scan_segment = _test_runner_target_scan_segment(segment, test_runner_wrappers)
     invocation = _test_runner_invocation(segment, test_runner_wrappers)
+    if invocation is not None and invocation[0] == "cargo":
+        return _cargo_test_paths(invocation[1], project_root, cwd)
     unittest_runner = invocation is not None and invocation[0] == _UNITTEST_TEST_RUNNER
     if invocation is not None and invocation[0] == "playwright":
         scan_segment = _playwright_target_scan_segment(scan_segment)

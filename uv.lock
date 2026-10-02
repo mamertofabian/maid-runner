@@ -771,6 +771,7 @@ dependencies = [
     { name = "jsonschema" },
     { name = "pyyaml" },
     { name = "ruamel-yaml" },
+    { name = "tomli", marker = "python_full_version < '3.11'" },
 ]
 
 [package.optional-dependencies]
@@ -829,6 +830,7 @@ requires-dist = [
     { name = "jsonschema", specifier = ">=4.25.1" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "ruamel-yaml", specifier = ">=0.18.0" },
+    { name = "tomli", marker = "python_full_version < '3.11'", specifier = ">=2.0.0" },
     { name = "tree-sitter", marker = "extra == 'all'", specifier = ">=0.23.2" },
     { name = "tree-sitter", marker = "extra == 'svelte'", specifier = ">=0.23.2" },
     { name = "tree-sitter", marker = "extra == 'typescript'", specifier = ">=0.23.2" },

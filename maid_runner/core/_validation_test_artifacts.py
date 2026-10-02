@@ -23,6 +23,7 @@ from maid_runner.core._django_test_targets import (
     _django_source_root_candidates as django_source_root_candidates,
 )
 from maid_runner.core._file_discovery import is_test_file
+from maid_runner.core._rust_support import _is_inline_rust_test
 from maid_runner.core._pytest_config_addopts import (
     _pytest_config_addopts_source,
     pytest_config_addopts_args,
@@ -225,7 +226,9 @@ def find_test_files(manifest: Manifest, project_root: Path) -> list[str]:
     test_files: list[str] = []
 
     def add_test_file(path: str) -> None:
-        if is_test_file(path) and path not in test_files:
+        if (
+            is_test_file(path) or _is_inline_rust_test(path, project_root)
+        ) and path not in test_files:
             test_files.append(path)
 
     def add_test_path(path: str) -> None:
@@ -246,7 +249,7 @@ def find_test_files(manifest: Manifest, project_root: Path) -> list[str]:
 
 
 def _get_cached_test_discovery(path: str, project_root: Path) -> tuple[str, ...]:
-    if is_test_file(path):
+    if is_test_file(path) or _is_inline_rust_test(path, project_root):
         return (path,)
 
     full_path = project_root / path
@@ -282,7 +285,7 @@ def _discover_test_files_with_directory_state(
 
     def add_discovered_file(path: Path) -> None:
         rel_path = str(path.relative_to(project_root))
-        if is_test_file(rel_path):
+        if is_test_file(rel_path) or _is_inline_rust_test(rel_path, project_root):
             discovered.append(rel_path)
 
     def walk(directory: Path) -> None:
@@ -317,7 +320,7 @@ def _discover_test_files(full_path: Path, project_root: Path) -> tuple[str, ...]
         if not child.is_file():
             continue
         rel_path = str(child.relative_to(project_root))
-        if is_test_file(rel_path):
+        if is_test_file(rel_path) or _is_inline_rust_test(rel_path, project_root):
             discovered.append(rel_path)
     return tuple(discovered)
 
@@ -1181,7 +1184,11 @@ def get_cached_test_artifacts(
 
     key = _test_artifact_cache_key(full_path, validator)
     cached = _TEST_ARTIFACT_CACHE.get(key)
-    if cached is not None and cached.signature == signature:
+    if (
+        cached is not None
+        and cached.signature == signature
+        and full_path.suffix != ".rs"
+    ):
         return _test_artifact_table_for_request(cached, test_path)
 
     try:
@@ -1189,9 +1196,15 @@ def get_cached_test_artifacts(
     except OSError as exc:
         return _test_file_read_error_table(test_path, exc)
 
-    result = artifact_cache.collect_cached_behavioral_artifacts(
-        validator, source, test_path
-    )
+    if full_path.suffix == ".rs":
+        # Rust module identities depend on the Cargo package and other source
+        # files, not only this test's bytes. Supply project context and avoid
+        # reusing a source-only cache when its module graph may have changed.
+        result = validator.collect_behavioral_artifacts(source, full_path)
+    else:
+        result = artifact_cache.collect_cached_behavioral_artifacts(
+            validator, source, test_path
+        )
     if result.errors:
         entry = _TestArtifactCacheEntry(
             signature,

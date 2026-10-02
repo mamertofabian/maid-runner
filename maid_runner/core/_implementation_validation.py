@@ -117,9 +117,14 @@ class ImplementationFileValidator:
                 )
             ]
 
-        collection = artifact_cache.collect_cached_implementation_artifacts(
-            validator, source, fs.path
-        )
+        if full_path.suffix == ".rs":
+            # Rust impl owners depend on the project module graph, not just
+            # this source text. Preserve the physical context and recollect.
+            collection = validator.collect_implementation_artifacts(source, full_path)
+        else:
+            collection = artifact_cache.collect_cached_implementation_artifacts(
+                validator, source, fs.path
+            )
         if collection.errors:
             return collection_errors_to_validation_errors(collection.errors, fs.path)
 
