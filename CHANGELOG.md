@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.28.0] - 2026-10-02
+
 ### Added
-- **Solidity Foundry validation support** — Discover `.sol` files, classify Foundry `*.t.sol` files as behavioral tests, and recognize `forge test` commands when the Solidity validator plugin is installed.
+- **Rust Cargo validation support** — Discover `.rs` sources, integration tests, and inline tests through the separately installed `maid-validator-rust` plugin. Resolve `cargo test` targets using offline Cargo metadata and plugin-resolved module dependencies, honor required features and test harness settings, and reject unsupported selectors or unresolved coverage visibly.
+- **Solidity Foundry validation support** — Discover `.sol` files, classify Foundry `*.t.sol` files as behavioral tests, and recognize `forge test` commands when the separately installed `maid-validator-solidity` plugin is available.
 - **Compiler-backed TypeScript return contracts** — Add opt-in return-type validation using the owning TypeScript project and compiler checker. Missing, ambiguous, unsupported, or unverifiable contracts produce explicit diagnostics instead of guessed matches; document the mode and test it with CSV acceptance cases.
 
 ### Changed
@@ -1367,8 +1370,8 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
-[Unreleased]: https://github.com/mamertofabian/maid-runner/compare/v2.27.7...HEAD
-[2.27.7]: https://github.com/mamertofabian/maid-runner/compare/v2.27.6...v2.27.7
+[Unreleased]: https://github.com/mamertofabian/maid-runner/compare/v2.28.0...HEAD
+[2.28.0]: https://github.com/mamertofabian/maid-runner/compare/v2.27.6...v2.28.0
 [2.27.5]: https://github.com/mamertofabian/maid-runner/compare/v2.27.4...v2.27.5
 [2.27.4]: https://github.com/mamertofabian/maid-runner/compare/v2.27.3...v2.27.4
 [2.27.3]: https://github.com/mamertofabian/maid-runner/compare/v2.27.2...v2.27.3

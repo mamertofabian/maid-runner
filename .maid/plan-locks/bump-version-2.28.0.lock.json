@@ -1,0 +1,129 @@
+{
+  "manifest_path": "manifests/bump-version-2.28.0.manifest.yaml",
+  "manifest_hash": "sha256-contract:52e78c5adcadcc36941f453b7998a4af41086668e8618f87eea75f861aafdc13",
+  "test_hashes": {
+    "tests/integration/test_release_2_28_0.py": "sha256-pyast:v2:b30f5e480b0cd0191fd218007a55c70b68b2b3cd61439db08a8f83f362d39831",
+    "tests/integration/test_library_api.py": "sha256-pyast:v2:afd9ea020575cd6aecfe8ba433c05196578fdb978f9c0102608ce850b669feb0"
+  },
+  "created_at": "2026-10-02T12:37:05.519554+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:ccd08dc1e31ee1b1ef3577ba606386d476e9d521706f74bc0d5327481807f231",
+      "prior_test_hashes": {
+        "tests/integration/test_release_2_28_0.py": "sha256-pyast:v2:b30f5e480b0cd0191fd218007a55c70b68b2b3cd61439db08a8f83f362d39831",
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:afd9ea020575cd6aecfe8ba433c05196578fdb978f9c0102608ce850b669feb0"
+      },
+      "revised_at": "2026-10-02T12:37:10.883986+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/bump-version-2.28.0.manifest.yaml -> manifests/bump-version-2.28.0.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:91358eb12c621307984858e5ef11f22157cd2e2fa3c7fced4a392c732f6eef56",
+      "prior_test_hashes": {
+        "tests/integration/test_release_2_28_0.py": "sha256-pyast:v2:b30f5e480b0cd0191fd218007a55c70b68b2b3cd61439db08a8f83f362d39831",
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:afd9ea020575cd6aecfe8ba433c05196578fdb978f9c0102608ce850b669feb0"
+      },
+      "revised_at": "2026-10-02T12:38:10.923629+00:00",
+      "reason": "Run contextual library API tests as required by E230 alongside the dedicated release contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/integration/test_release_2_28_0.py tests/integration/test_library_api.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/integration/test_release_2_28_0.py"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-02T12:38:11.895336+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/integration/test_release_2_28_0.py tests/integration/test_library_api.py",
+        "exit_code": 1,
+        "output_tail": "        )\n        assert \"Draft manifest-kind marker\" in changelog_text\n    \n        roadmap_text = roadmap.read_text()\n>       assert f\"**Current Version:** {__version__}\" in roadmap_text\nE       AssertionError: assert '**Current Version:** 2.27.7' in '# MAID Runner Roadmap\\n\\n**Project:** MAID Runner - validation framework for Manifest-driven AI Development\\n**Status...should name the owning lane, current evidence, and the next\\nmanifest or spec needed to make the work implementable.\\n'\n\ntests/integration/test_library_api.py:91: AssertionError\n=========================== short test summary info ============================\nFAILED tests/integration/test_release_2_28_0.py::test_package_lock_and_cli_report_2_28_0\nFAILED tests/integration/test_release_2_28_0.py::test_release_notes_include_plugins_and_complete_pending_inventory\nFAILED tests/integration/test_release_2_28_0.py::test_roadmap_reports_prepared_release_version_and_date\nFAILED tests/integration/test_library_api.py::TestPublicAPIImports::test_release_metadata_is_current_version\nFAILED tests/integration/test_library_api.py::TestPublicAPIImports::test_release_metadata_is_2_21_0\n5 failed, 27 passed in 0.27s\n\n   Building maid-runner @ file:///home/atomrem/projects/codefrost-dev/maid-runner\n      Built maid-runner @ file:///home/atomrem/projects/codefrost-dev/maid-runner\nUninstalled 1 package in 0.30ms\nInstalled 1 package in 0.75ms",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [],
+    "files": {
+      "create": [],
+      "edit": [],
+      "read": [
+        ".github/workflows/publish.yml",
+        "Makefile",
+        "maid_runner/__version__.py",
+        "manifests/bump-version-2.27.5.manifest.yaml",
+        "manifests/rust-cargo-runner-support.manifest.yaml",
+        "manifests/solidity-foundry-runner-support.manifest.yaml",
+        "tests/integration/test_library_api.py",
+        "tests/integration/test_release_2_28_0.py"
+      ],
+      "scope": [
+        "CHANGELOG.md",
+        "docs/ROADMAP.md",
+        "pyproject.toml",
+        "uv.lock"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "read": [
+        "tests/integration/test_release_2_28_0.py",
+        "tests/integration/test_library_api.py",
+        "maid_runner/__version__.py",
+        "manifests/bump-version-2.27.5.manifest.yaml",
+        "manifests/rust-cargo-runner-support.manifest.yaml",
+        "manifests/solidity-foundry-runner-support.manifest.yaml",
+        ".github/workflows/publish.yml",
+        "Makefile"
+      ],
+      "scope": [
+        {
+          "path": "pyproject.toml",
+          "reason": "Package version metadata has no analyzer-visible public artifact."
+        },
+        {
+          "path": "uv.lock",
+          "reason": "Editable package metadata must match the version through uv regeneration."
+        },
+        {
+          "path": "CHANGELOG.md",
+          "reason": "Date and inventory the minor release and synchronize comparison links."
+        },
+        {
+          "path": "docs/ROADMAP.md",
+          "reason": "Synchronize prepared CLI version and last-updated date."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/integration/test_library_api.py",
+      "tests/integration/test_release_2_28_0.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/integration/test_release_2_28_0.py tests/integration/test_library_api.py"
+    ],
+    "acceptance_commands": []
+  }
+}
