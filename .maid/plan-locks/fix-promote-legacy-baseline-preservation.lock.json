@@ -1,0 +1,185 @@
+{
+  "manifest_path": "manifests/fix-promote-legacy-baseline-preservation.manifest.yaml",
+  "manifest_hash": "sha256-contract:fe472f98886aba8448db2b7e28addbecfbf5432f7677f35dae010885c66a811d",
+  "test_hashes": {
+    "tests/cli/test_promote_legacy_baseline_preservation.py": "sha256-pyast:v2:18d6ab5be45e91bfa9b7a083e99c1fe8befa1611263c4febb17ee99941e78614"
+  },
+  "created_at": "2026-09-28T10:15:17.622963+00:00",
+  "revision": 7,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:0cd02717567171ad6ecdc721a5925b04ee044d7df5659fed95b31ee2e31ab3da",
+      "prior_test_hashes": {
+        "tests/cli/test_promote_legacy_baseline_preservation.py": "sha256-pyast:v2:3887618e909e6cb1cc8eb2f7add7f44a13bb29fd8e1147ccdd1aaab7043e102e"
+      },
+      "revised_at": "2026-09-28T10:15:24.844395+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-promote-legacy-baseline-preservation.manifest.yaml -> manifests/fix-promote-legacy-baseline-preservation.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:868419f4d96b11584a8a0a1d95797f76d11e95379059302219c3be89413cfa64",
+      "prior_test_hashes": {
+        "tests/cli/test_promote_legacy_baseline_preservation.py": "sha256-pyast:v2:3887618e909e6cb1cc8eb2f7add7f44a13bb29fd8e1147ccdd1aaab7043e102e"
+      },
+      "revised_at": "2026-09-28T10:21:20.374501+00:00",
+      "reason": "Cover ordered signatures, acceptance contracts and unparseable-test rollback",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:f5d18a923e357c038869aed2ef8e87e0bca7ec3a66242d8536128867d042c6a8",
+      "prior_test_hashes": {
+        "tests/cli/test_promote_legacy_baseline_preservation.py": "sha256-pyast:v2:8a2dfef08e7f9133677ad2e7d1c7d6348c5a69f373f4467afdb7300d48ed5781"
+      },
+      "revised_at": "2026-09-28T10:22:26.778022+00:00",
+      "reason": "Declare manifest loader context for complete persisted-contract comparison",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "read:maid_runner/core/manifest.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:db1499f50150b91e1798b2080f5896a7a7d907a3368064d95129324a939c0e22",
+      "prior_test_hashes": {
+        "tests/cli/test_promote_legacy_baseline_preservation.py": "sha256-pyast:v2:8a2dfef08e7f9133677ad2e7d1c7d6348c5a69f373f4467afdb7300d48ed5781"
+      },
+      "revised_at": "2026-09-28T10:26:31.162509+00:00",
+      "reason": "Cover rollback for malformed legacy evidence value types",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:db1499f50150b91e1798b2080f5896a7a7d907a3368064d95129324a939c0e22",
+      "prior_test_hashes": {
+        "tests/cli/test_promote_legacy_baseline_preservation.py": "sha256-pyast:v2:bff5b1df056da6b5f23633419c69c84acdef2283a2d6ee283e747ecd79b612e7"
+      },
+      "revised_at": "2026-09-28T10:31:38.975590+00:00",
+      "reason": "Reject malformed stored test hash values before legacy preservation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:dfaf8dcfff1b8e542f4689277919c3f4ebe3f3bb7f457bf2d10cf6874cfe67b6",
+      "prior_test_hashes": {
+        "tests/cli/test_promote_legacy_baseline_preservation.py": "sha256-pyast:v2:f9ffc0daf53d0145193381c0f6fc4df8e806e3de6e09b09c8107131fe026ec8c"
+      },
+      "revised_at": "2026-09-28T10:37:09.248316+00:00",
+      "reason": "Bind legacy preservation to the full original draft hash before promotion mutations",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-28T10:37:27.505104+00:00",
+    "commands": [
+      {
+        "command": "uv run pytest tests/cli/test_promote_legacy_baseline_preservation.py -q",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/cli/test_promote_legacy_baseline_preservation.py::test_malformed_legacy_evidence_type_rolls_back_promotion[invalid_source0-False]\nFAILED tests/cli/test_promote_legacy_baseline_preservation.py::test_malformed_legacy_evidence_type_rolls_back_promotion[invalid_source0-True]\nFAILED tests/cli/test_promote_legacy_baseline_preservation.py::test_malformed_legacy_evidence_type_rolls_back_promotion[invalid_source1-False]\nFAILED tests/cli/test_promote_legacy_baseline_preservation.py::test_malformed_legacy_evidence_type_rolls_back_promotion[invalid_source1-True]\nFAILED tests/cli/test_promote_legacy_baseline_preservation.py::test_malformed_locked_test_hash_rolls_back_promotion[None-False]\nFAILED tests/cli/test_promote_legacy_baseline_preservation.py::test_malformed_locked_test_hash_rolls_back_promotion[None-True]\nFAILED tests/cli/test_promote_legacy_baseline_preservation.py::test_malformed_locked_test_hash_rolls_back_promotion[7-False]\nFAILED tests/cli/test_promote_legacy_baseline_preservation.py::test_malformed_locked_test_hash_rolls_back_promotion[7-True]\nFAILED tests/cli/test_promote_legacy_baseline_preservation.py::test_malformed_locked_test_hash_rolls_back_promotion[invalid_hash2-False]\nFAILED tests/cli/test_promote_legacy_baseline_preservation.py::test_malformed_locked_test_hash_rolls_back_promotion[invalid_hash2-True]\nFAILED tests/cli/test_promote_legacy_baseline_preservation.py::test_malformed_locked_test_hash_rolls_back_promotion[invalid_hash3-False]\nFAILED tests/cli/test_promote_legacy_baseline_preservation.py::test_malformed_locked_test_hash_rolls_back_promotion[invalid_hash3-True]\nFAILED tests/cli/test_promote_legacy_baseline_preservation.py::test_formatting_and_outcome_changes_preserve_legacy_promotion[False]\nFAILED tests/cli/test_promote_legacy_baseline_preservation.py::test_legacy_draft_must_match_its_stored_manifest_hash[None-False]\nFAILED tests/cli/test_promote_legacy_baseline_preservation.py::test_legacy_draft_must_match_its_stored_manifest_hash[None-True]\nFAILED tests/cli/test_promote_legacy_baseline_preservation.py::test_legacy_draft_must_match_its_stored_manifest_hash[unknown-format-False]\nFAILED tests/cli/test_promote_legacy_baseline_preservation.py::test_legacy_draft_must_match_its_stored_manifest_hash[unknown-format-True]\nFAILED tests/cli/test_promote_legacy_baseline_preservation.py::test_legacy_draft_must_match_its_stored_manifest_hash[sha256-contract:0000000000000000000000000000000000000000000000000000000000000000-False]\nFAILED tests/cli/test_promote_legacy_baseline_preservation.py::test_legacy_draft_must_match_its_stored_manifest_hash[sha256-contract:0000000000000000000000000000000000000000000000000000000000000000-True]\n48 failed, 8 passed in 17.98s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/manifest.py:function:cmd_manifest",
+      "maid_runner/cli/commands/manifest.py:function:cmd_manifest:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/manifest.py:function:cmd_manifest:kind=function",
+      "maid_runner/cli/commands/manifest.py:function:cmd_manifest:returns=int"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "maid_runner/cli/commands/manifest.py"
+      ],
+      "read": [
+        "maid_runner/core/chain.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/plan_lock.py",
+        "tests/cli/test_promote_legacy_baseline_preservation.py"
+      ],
+      "scope": [],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/manifest.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_manifest",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "tests/cli/test_promote_legacy_baseline_preservation.py",
+        "maid_runner/core/plan_lock.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/chain.py"
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_promote_legacy_baseline_preservation.py"
+    ],
+    "validate_commands": [
+      "uv run pytest tests/cli/test_promote_legacy_baseline_preservation.py -q"
+    ],
+    "acceptance_commands": []
+  }
+}

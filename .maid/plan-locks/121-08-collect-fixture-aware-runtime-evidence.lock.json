@@ -2,13 +2,13 @@
   "manifest_path": "manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml",
   "manifest_hash": "sha256-contract:72bbbed00f92ac7ae3a21bf2ed08bd3da303be9cc202ff91ad036903e6393521",
   "test_hashes": {
-    "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:e90baae652d05e55fb5caba7f5f6f733b3161bdd7d8ad44bba8a0728afcbe332",
+    "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:356622fef7d9d1375a02c221061a95e4b302dd10ca585a83fab278a486d3c635",
     "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:40d689b52b549e7b852da3dec2b2316bc87e7f4a38badb90ac173fb31ad68ccb",
     "tests/core/validation/test_test_command_batching.py": "sha256-pyast:v2:771a3cf717eaf072038aaec8787fb08af37d7e90364feda6770be205f7629f6c",
     "tests/core/test_test_runner.py": "sha256-pyast:v2:2a46dba2a774564ad767b932024b33dee078631aa5e13903fe70bd0736e38a0a"
   },
   "created_at": "2026-08-11T05:21:11.983455+00:00",
-  "revision": 17,
+  "revision": 18,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:f9025f6d5a47fb894589f12b0860826ec4183640e5c9f2f07f71ce2db34bf73a",
@@ -349,6 +349,26 @@
       },
       "revised_at": "2026-08-20T16:13:23.230903+00:00",
       "reason": "accept performance-preserving test optimization",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:72bbbed00f92ac7ae3a21bf2ed08bd3da303be9cc202ff91ad036903e6393521",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:e90baae652d05e55fb5caba7f5f6f733b3161bdd7d8ad44bba8a0728afcbe332",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:40d689b52b549e7b852da3dec2b2316bc87e7f4a38badb90ac173fb31ad68ccb",
+        "tests/core/validation/test_test_command_batching.py": "sha256-pyast:v2:771a3cf717eaf072038aaec8787fb08af37d7e90364feda6770be205f7629f6c",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:2a46dba2a774564ad767b932024b33dee078631aa5e13903fe70bd0736e38a0a"
+      },
+      "revised_at": "2026-10-02T22:42:28.043310+00:00",
+      "reason": "User-approved Python 3.10/3.11 shared test harness compatibility; preserve unchanged production contract and historical red evidence",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
@@ -1527,6 +1547,7 @@
     "validate_commands": [
       "uv run python -m pytest -q tests/core/test_runtime_evidence.py tests/core/test_artifact_coverage_batch.py tests/core/validation/test_test_command_batching.py tests/core/test_test_runner.py",
       "uv run maid validate manifests/121-08-collect-fixture-aware-runtime-evidence.manifest.yaml --mode schema --quiet"
-    ]
+    ],
+    "acceptance_commands": []
   }
 }

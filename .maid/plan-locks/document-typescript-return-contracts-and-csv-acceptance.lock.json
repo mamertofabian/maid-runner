@@ -1,0 +1,221 @@
+{
+  "manifest_path": "manifests/document-typescript-return-contracts-and-csv-acceptance.manifest.yaml",
+  "manifest_hash": "sha256-contract:bf5cd456d3bb7fce90ed7d7f87547f002c02fa1e99f25e48d0dc8eb4461880b2",
+  "test_hashes": {
+    "tests/core/test_typescript_return_validation.py": "sha256-pyast:v2:358bc05c211fb8f802f7c5ad5c83309e35cea71ce6efebad6227bd1cd9043a45",
+    "tests/test_troubleshooting_docs.py": "sha256-pyast:v2:e6da09af42e7fd19e89e9963dce521d22c774ccf5e287a523c6d9753cabf8b3a",
+    "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d",
+    "tests/test_typescript_return_contract_docs.py": "sha256-pyast:v2:82cd75afa39e25829357ab4617220ff83177c81ca944951107f78264f1470085",
+    "tests/acceptance/test_csv_return_contracts.py": "sha256-pyast:v2:886adf4fc7078e6e0cafbc94b7d69479390c64855188e83faa1f416c0acee80c"
+  },
+  "created_at": "2026-09-30T13:47:35.635808+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:9f7d96c5a8744ef2be109e9376aeb048656cfbfb2c3d3d6a15a9d614cd33f1f2",
+      "prior_test_hashes": {
+        "tests/core/test_typescript_return_validation.py": "sha256-pyast:v2:358bc05c211fb8f802f7c5ad5c83309e35cea71ce6efebad6227bd1cd9043a45",
+        "tests/test_troubleshooting_docs.py": "sha256-pyast:v2:e6da09af42e7fd19e89e9963dce521d22c774ccf5e287a523c6d9753cabf8b3a",
+        "tests/test_typescript_return_contract_docs.py": "sha256-pyast:v2:82cd75afa39e25829357ab4617220ff83177c81ca944951107f78264f1470085",
+        "tests/acceptance/test_csv_return_contracts.py": "sha256-pyast:v2:886adf4fc7078e6e0cafbc94b7d69479390c64855188e83faa1f416c0acee80c"
+      },
+      "revised_at": "2026-09-30T13:47:43.139781+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/document-typescript-return-contracts-and-csv-acceptance.manifest.yaml -> manifests/document-typescript-return-contracts-and-csv-acceptance.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:1a429cbdbd341dcfdadb99910abeca2152ebdc1d2cde2d57b59ab544053a91e7",
+      "prior_test_hashes": {
+        "tests/core/test_typescript_return_validation.py": "sha256-pyast:v2:358bc05c211fb8f802f7c5ad5c83309e35cea71ce6efebad6227bd1cd9043a45",
+        "tests/test_troubleshooting_docs.py": "sha256-pyast:v2:e6da09af42e7fd19e89e9963dce521d22c774ccf5e287a523c6d9753cabf8b3a",
+        "tests/test_typescript_return_contract_docs.py": "sha256-pyast:v2:82cd75afa39e25829357ab4617220ff83177c81ca944951107f78264f1470085",
+        "tests/acceptance/test_csv_return_contracts.py": "sha256-pyast:v2:886adf4fc7078e6e0cafbc94b7d69479390c64855188e83faa1f416c0acee80c"
+      },
+      "revised_at": "2026-09-30T14:03:45.400366+00:00",
+      "reason": "Include maintained specification mirrors and existing distribution regression",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "read:tests/docs/test_chain_merge_docs.py",
+          "scope:.maid/docs/maid_specs.md",
+          "scope:maid_runner/docs/maid_specs.md"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/test_typescript_return_contract_docs.py tests/test_troubleshooting_docs.py tests/docs/test_chain_merge_docs.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/test_typescript_return_contract_docs.py tests/test_troubleshooting_docs.py"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-30T14:03:52.864738+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_typescript_return_contract_docs.py tests/test_troubleshooting_docs.py tests/docs/test_chain_merge_docs.py",
+        "exit_code": 1,
+        "output_tail": "_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\n    def _section():\n        guide = (ROOT / \"docs/maid_specs.md\").read_text()\n>       assert (\n            HEADING in guide\n        ), \"Compiler return configuration and executable example are not documented\"\nE       AssertionError: Compiler return configuration and executable example are not documented\nE       assert '##### **Compiler-backed TypeScript Return Contracts**' in '### **MAID: The Manifest-driven AI Development Methodology**\\n\\n**Version:** 1.3\\n**Date:** October 30, 2025\\n\\n#### ...llows the system to automatically identify all necessary `readonlyFiles` for a given task and run tasks in parallel.\\n'\n\ntests/test_typescript_return_contract_docs.py:23: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_typescript_return_contract_docs.py::test_documented_example_proves_inferred_return_without_source_edits\nFAILED tests/test_typescript_return_contract_docs.py::test_documented_default_syntax_mode_keeps_missing_return_warning\nFAILED tests/test_typescript_return_contract_docs.py::test_documented_example_distinguishes_contract_and_capability_failures[binding-E303]\nFAILED tests/test_typescript_return_contract_docs.py::test_documented_example_distinguishes_contract_and_capability_failures[return-E302]\nFAILED tests/test_typescript_return_contract_docs.py::test_documented_example_distinguishes_contract_and_capability_failures[config-E309]\nFAILED tests/test_typescript_return_contract_docs.py::test_registered_e309_help_links_to_documented_recovery\nFAILED tests/test_typescript_return_contract_docs.py::test_documentation_states_compiler_boundaries_and_preserves_exact_bindings\n7 failed, 6 passed in 0.21s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest -q tests/core/test_typescript_return_validation.py",
+        "exit_code": 0,
+        "output_tail": "...........................................                              [100%]\n43 passed in 6.84s",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/acceptance/test_csv_return_contracts.py:test_reported_csv_component_return_contracts_are_verified_read_only",
+      "tests/acceptance/test_csv_return_contracts.py:test_reported_csv_component_return_contracts_are_verified_read_only:kind=test_function",
+      "tests/test_typescript_return_contract_docs.py:test_documentation_states_compiler_boundaries_and_preserves_exact_bindings",
+      "tests/test_typescript_return_contract_docs.py:test_documentation_states_compiler_boundaries_and_preserves_exact_bindings:kind=test_function",
+      "tests/test_typescript_return_contract_docs.py:test_documented_default_syntax_mode_keeps_missing_return_warning",
+      "tests/test_typescript_return_contract_docs.py:test_documented_default_syntax_mode_keeps_missing_return_warning:kind=test_function",
+      "tests/test_typescript_return_contract_docs.py:test_documented_example_distinguishes_contract_and_capability_failures",
+      "tests/test_typescript_return_contract_docs.py:test_documented_example_distinguishes_contract_and_capability_failures:kind=test_function",
+      "tests/test_typescript_return_contract_docs.py:test_documented_example_proves_inferred_return_without_source_edits",
+      "tests/test_typescript_return_contract_docs.py:test_documented_example_proves_inferred_return_without_source_edits:kind=test_function",
+      "tests/test_typescript_return_contract_docs.py:test_registered_e309_help_links_to_documented_recovery",
+      "tests/test_typescript_return_contract_docs.py:test_registered_e309_help_links_to_documented_recovery:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/acceptance/test_csv_return_contracts.py",
+        "tests/test_typescript_return_contract_docs.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/core/_implementation_validation.py",
+        "maid_runner/core/config.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/result.py",
+        "maid_runner/core/snapshot.py",
+        "maid_runner/core/ts_compiler_resolver.cjs",
+        "maid_runner/core/ts_return_contracts.py",
+        "maid_runner/core/types.py",
+        "maid_runner/validators/registry.py",
+        "manifests/activate-typescript-return-contract-validation.manifest.yaml",
+        "manifests/add-typescript-return-contract-proof.manifest.yaml",
+        "tests/core/test_typescript_return_validation.py",
+        "tests/docs/test_chain_merge_docs.py",
+        "tests/test_troubleshooting_docs.py"
+      ],
+      "scope": [
+        ".maid/docs/maid_specs.md",
+        "docs/maid_specs.md",
+        "docs/troubleshooting.md",
+        "maid_runner/core/diagnostics_registry.py",
+        "maid_runner/docs/maid_specs.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_typescript_return_contract_docs.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_documented_example_proves_inferred_return_without_source_edits"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_documented_default_syntax_mode_keeps_missing_return_warning"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_documented_example_distinguishes_contract_and_capability_failures"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_registered_e309_help_links_to_documented_recovery"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_documentation_states_compiler_boundaries_and_preserves_exact_bindings"
+            }
+          ]
+        },
+        {
+          "path": "tests/acceptance/test_csv_return_contracts.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_reported_csv_component_return_contracts_are_verified_read_only"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/config.py",
+        "maid_runner/core/_implementation_validation.py",
+        "maid_runner/core/result.py",
+        "maid_runner/core/ts_return_contracts.py",
+        "maid_runner/core/ts_compiler_resolver.cjs",
+        "maid_runner/core/types.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/validators/registry.py",
+        "maid_runner/core/snapshot.py",
+        "manifests/add-typescript-return-contract-proof.manifest.yaml",
+        "manifests/activate-typescript-return-contract-validation.manifest.yaml",
+        "tests/core/test_typescript_return_validation.py",
+        "tests/test_troubleshooting_docs.py",
+        "tests/docs/test_chain_merge_docs.py"
+      ],
+      "scope": [
+        {
+          "path": "docs/maid_specs.md",
+          "reason": "Publish and explain the executable opt-in compiler-return configuration, artifact example and supported semantic boundaries."
+        },
+        {
+          "path": "docs/troubleshooting.md",
+          "reason": "Add accurate E309 recovery and update the earlier parser/signature separation paragraph."
+        },
+        {
+          "path": "maid_runner/core/diagnostics_registry.py",
+          "reason": "Route the existing E309 help URI to its new troubleshooting section; preserve all public diagnostic signatures and proof policy."
+        },
+        {
+          "path": "maid_runner/docs/maid_specs.md",
+          "reason": "Synchronize the maintained specification mirror byte-for-byte from docs/maid_specs.md; no independent documentation content."
+        },
+        {
+          "path": ".maid/docs/maid_specs.md",
+          "reason": "Synchronize the maintained specification mirror byte-for-byte from docs/maid_specs.md; no independent documentation content."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/acceptance/test_csv_return_contracts.py",
+      "tests/core/test_typescript_return_validation.py",
+      "tests/docs/test_chain_merge_docs.py",
+      "tests/test_troubleshooting_docs.py",
+      "tests/test_typescript_return_contract_docs.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_typescript_return_contract_docs.py tests/test_troubleshooting_docs.py tests/docs/test_chain_merge_docs.py",
+      "uv run python -m pytest -q tests/core/test_typescript_return_validation.py"
+    ],
+    "acceptance_commands": [
+      "uv run python -m pytest -q tests/acceptance/test_csv_return_contracts.py"
+    ]
+  }
+}

@@ -17,6 +17,7 @@ _EXCLUDE_DIRS = {
     ".ruff_cache",
     "dist",
     "build",
+    "target",
     ".eggs",
     "*.egg-info",
     ".tox",
@@ -26,15 +27,16 @@ _EXCLUDE_DIRS = {
     "scripts",
 }
 
-_SOURCE_EXTENSIONS = {".py", ".ts", ".tsx", ".js", ".jsx", ".svelte"}
+_SOURCE_EXTENSIONS = {".py", ".ts", ".tsx", ".js", ".jsx", ".svelte", ".sol", ".rs"}
 
 _TEST_PATTERNS = [
     re.compile(r"test_.*\.py$"),
     re.compile(r".*_test\.py$"),
-    re.compile(r".*\.test\.(ts|tsx|js|jsx)$"),
-    re.compile(r".*\.spec\.(ts|tsx|js|jsx)$"),
+    re.compile(r".*\.test\.(ts|tsx|js|jsx|mjs|cjs)$"),
+    re.compile(r".*\.spec\.(ts|tsx|js|jsx|mjs|cjs)$"),
     re.compile(r".*\.cy\.(ts|tsx|js|jsx)$"),
     re.compile(r".*Tests\.cs$"),
+    re.compile(r".*\.t\.sol$"),
 ]
 
 
@@ -130,6 +132,8 @@ def _is_marker_init_file(path: Path) -> bool:
 def is_test_file(path: str) -> bool:
     """Check if a file path looks like a test file."""
     name = Path(path).name
+    if Path(path).suffix == ".rs" and "tests" in Path(path).parts[:-1]:
+        return True
     if name in {"conftest.py", "tests.py"}:
         return True
     return any(p.match(name) for p in _TEST_PATTERNS)

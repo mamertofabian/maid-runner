@@ -23,10 +23,12 @@ from maid_runner.core._django_test_targets import (
     _django_source_root_candidates as django_source_root_candidates,
 )
 from maid_runner.core._file_discovery import is_test_file
+from maid_runner.core._rust_support import _is_inline_rust_test
 from maid_runner.core._pytest_config_addopts import (
     _pytest_config_addopts_source,
     pytest_config_addopts_args,
     pytest_config_addopts_errors,
+    requires_native_pytest_config_check,
 )
 from maid_runner.core._test_command_targets import (
     command_segments,
@@ -224,7 +226,9 @@ def find_test_files(manifest: Manifest, project_root: Path) -> list[str]:
     test_files: list[str] = []
 
     def add_test_file(path: str) -> None:
-        if is_test_file(path) and path not in test_files:
+        if (
+            is_test_file(path) or _is_inline_rust_test(path, project_root)
+        ) and path not in test_files:
             test_files.append(path)
 
     def add_test_path(path: str) -> None:
@@ -245,7 +249,7 @@ def find_test_files(manifest: Manifest, project_root: Path) -> list[str]:
 
 
 def _get_cached_test_discovery(path: str, project_root: Path) -> tuple[str, ...]:
-    if is_test_file(path):
+    if is_test_file(path) or _is_inline_rust_test(path, project_root):
         return (path,)
 
     full_path = project_root / path
@@ -281,7 +285,7 @@ def _discover_test_files_with_directory_state(
 
     def add_discovered_file(path: Path) -> None:
         rel_path = str(path.relative_to(project_root))
-        if is_test_file(rel_path):
+        if is_test_file(rel_path) or _is_inline_rust_test(rel_path, project_root):
             discovered.append(rel_path)
 
     def walk(directory: Path) -> None:
@@ -316,7 +320,7 @@ def _discover_test_files(full_path: Path, project_root: Path) -> tuple[str, ...]
         if not child.is_file():
             continue
         rel_path = str(child.relative_to(project_root))
-        if is_test_file(rel_path):
+        if is_test_file(rel_path) or _is_inline_rust_test(rel_path, project_root):
             discovered.append(rel_path)
     return tuple(discovered)
 
@@ -396,6 +400,7 @@ def validate_manifest_test_commands(
     config_errors = _pytest_config_addopts_integrity_errors(
         manifest,
         project_root,
+        test_files,
     )
     if config_errors:
         return config_errors
@@ -863,9 +868,28 @@ def _is_e2e_script_name(value: str) -> bool:
 def _pytest_config_addopts_integrity_errors(
     manifest: Manifest,
     project_root: Path,
+    test_files: list[str],
 ) -> list[ValidationError]:
     errors: list[ValidationError] = []
     for command in manifest.validate_commands:
+        covered = _test_files_covered_by_validate_command(
+            command, test_files, project_root
+        )
+        if requires_native_pytest_config_check(project_root, command, sorted(covered)):
+            from maid_runner.core._pytest_addopts_selection import (
+                pytest_native_config_collection_error,
+            )
+
+            proof_error = pytest_native_config_collection_error(project_root, command)
+            if proof_error is not None:
+                errors.append(
+                    _validate_command_integrity_error(
+                        manifest,
+                        command,
+                        f"Native pytest config cannot prove complete behavioral test selection: {proof_error}",
+                    )
+                )
+            continue
         inspection_errors = pytest_config_addopts_errors(project_root, command)
         if inspection_errors:
             errors.append(
@@ -887,29 +911,29 @@ def _pytest_config_addopts_integrity_errors(
         config_source = _pytest_config_addopts_source(project_root, command)
         config_label = config_source or "pytest config"
         synthetic_pytest_segment = ["python", "-m", "pytest", *addopts_args]
-        if _has_non_executing_test_runner_mode(synthetic_pytest_segment):
-            errors.append(
-                _validate_command_integrity_error(
-                    manifest,
-                    command,
-                    (
-                        f"{config_label} pytest addopts put the test runner in a "
-                        f"non-executing mode: {_format_addopts(addopts_args)}"
-                    ),
-                )
-            )
+        if not (
+            _has_non_executing_test_runner_mode(synthetic_pytest_segment)
+            or _has_test_runner_selector(synthetic_pytest_segment)
+        ):
             continue
-        if _has_test_runner_selector(synthetic_pytest_segment):
-            errors.append(
-                _validate_command_integrity_error(
-                    manifest,
-                    command,
-                    (
-                        f"{config_label} pytest addopts can select or deselect "
-                        f"behavioral tests: {_format_addopts(addopts_args)}"
-                    ),
-                )
+        from maid_runner.core._pytest_addopts_selection import (
+            pytest_addopts_collection_error,
+        )
+
+        proof_error = pytest_addopts_collection_error(project_root, command)
+        if proof_error is None:
+            continue
+        errors.append(
+            _validate_command_integrity_error(
+                manifest,
+                command,
+                (
+                    f"{config_label} pytest addopts cannot prove complete "
+                    f"behavioral test selection: {_format_addopts(addopts_args)}. "
+                    f"{proof_error}"
+                ),
             )
+        )
     return errors
 
 
@@ -1160,7 +1184,11 @@ def get_cached_test_artifacts(
 
     key = _test_artifact_cache_key(full_path, validator)
     cached = _TEST_ARTIFACT_CACHE.get(key)
-    if cached is not None and cached.signature == signature:
+    if (
+        cached is not None
+        and cached.signature == signature
+        and full_path.suffix != ".rs"
+    ):
         return _test_artifact_table_for_request(cached, test_path)
 
     try:
@@ -1168,9 +1196,15 @@ def get_cached_test_artifacts(
     except OSError as exc:
         return _test_file_read_error_table(test_path, exc)
 
-    result = artifact_cache.collect_cached_behavioral_artifacts(
-        validator, source, test_path
-    )
+    if full_path.suffix == ".rs":
+        # Rust module identities depend on the Cargo package and other source
+        # files, not only this test's bytes. Supply project context and avoid
+        # reusing a source-only cache when its module graph may have changed.
+        result = validator.collect_behavioral_artifacts(source, full_path)
+    else:
+        result = artifact_cache.collect_cached_behavioral_artifacts(
+            validator, source, test_path
+        )
     if result.errors:
         entry = _TestArtifactCacheEntry(
             signature,

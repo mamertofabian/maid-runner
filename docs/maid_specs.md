@@ -558,6 +558,90 @@ still apply.
 
 -----
 
+##### **Compiler-backed TypeScript Return Contracts**
+
+Implementation validation can verify a declared return type when a named
+TypeScript function omits its source annotation. Syntax mode is the default:
+missing annotations continue to produce the existing `E304` warning, and no
+return-proof compiler request is made.
+
+Enable compiler mode in the project's `.maidrc.yaml`:
+
+```yaml
+typescript_return_contracts:
+  mode: compiler
+  tsconfig: tsconfig.app.json
+```
+
+Local Node and a locally installed TypeScript SDK must be available. MAID uses
+the existing project/bridge SDK loader and never installs dependencies
+automatically. Select the explicit owning config that includes the source file.
+For a references-only root `tsconfig.json`, select its app config directly;
+MAID does not guess which referenced project owns the file.
+
+For example, this `src/Preview.tsx` function has a destructured argument and an
+inferred numeric return:
+
+```tsx
+interface Props { value: number }
+
+export function preview({ value }: Props) {
+  return value;
+}
+```
+
+Declare this artifact in the file's manifest contract:
+
+```yaml
+- kind: function
+  name: preview
+  args:
+    - name: "{ value }"
+      type: Props
+  returns: number
+```
+
+The exact binding pattern `{ value }` is not a parameter named `props`.
+Preserve the collected pattern, including its formatting, for multiline bindings
+too. A successful return proof does not remove an `E303` argument
+mismatch or a parameter's missing-annotation warning.
+
+The TypeScript checker binds the expected type expression in the original
+module scope and checks bidirectional assignability. Display strings are
+advisory: an inferred JSX type may display as an absolute import path. For a
+React project with the corresponding installed types, an expectation such as
+`import("react/jsx-runtime").JSX.Element` resolves semantically without equating
+unrelated names that happen to end in `Element`.
+
+Proof follows the effective project `strictNullChecks` setting. With it enabled,
+a nullable return must satisfy the nullable contract; with it disabled, the
+checker provides the project's existing nullability semantics. Compiler mode
+does not impose a stronger nullability guarantee.
+
+Only named, non-overloaded top-level function declarations in `.ts`/`.tsx`
+implementation files support inferred-return proofs. Requested unannotated
+methods, arrow functions, overloads and `.d.ts` declarations are unsupported.
+Top-level `any`, `unknown`, error types, unresolved or malformed expectations,
+semantic errors and disabled checking (`noCheck` or `@ts-nocheck`) cannot establish
+a proof. The fresh proof program prevents library-check shortcuts from skipping
+its target's semantic diagnostics.
+
+A matched proof suppresses only the corresponding missing-return `E304`.
+A semantic mismatch produces blocking `E302`; an unavailable or unsafe proof
+produces blocking `E309`. Compiler mode never silently falls back to syntax.
+An intentional switch to `mode: syntax` restores default annotation checking.
+Explicit source return annotations always retain their existing syntactic
+comparison, and contracts without a return expectation need no proof.
+
+The checker uses an in-memory source overlay and a fresh program for each file
+batch, retaining the existing 5-second request timeout. It emits no JavaScript,
+executes no application code and changes no source or config files. Raw
+`FoundArtifact.returns` remains absent when the source annotation is absent;
+snapshots and other source-based collection retain that same source truth.
+Schema and behavioral validation do not run return proofs. `maid validate` and
+`maid verify` share this policy through implementation validation; runtime tests
+and the other MAID gates remain required.
+
 #### **Advanced Concepts & Future Techniques**
 
   * **Handling Code Evolution (Migrations, Refactoring & Snapshots)**

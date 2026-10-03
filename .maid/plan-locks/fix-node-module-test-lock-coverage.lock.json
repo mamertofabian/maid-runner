@@ -1,0 +1,318 @@
+{
+  "manifest_path": "manifests/fix-node-module-test-lock-coverage.manifest.yaml",
+  "manifest_hash": "sha256-contract:bb5686e555b35b8b919453ce8d5b3e5defb6fd46d312ff161b019a0dd7e7132d",
+  "test_hashes": {
+    "tests/core/test_node_module_plan_lock.py": "sha256-pyast:v2:59a6f92337f0d03f006aafd1a13f3945093e713e91b9e68a2d444fd119d27a16"
+  },
+  "created_at": "2026-09-28T09:42:27.643319+00:00",
+  "revision": 12,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:b5f89325610dfde48649ce6685b6a4f1e26031171aa9e219ee8ecf338448bfd5",
+      "prior_test_hashes": {
+        "tests/core/test_node_module_plan_lock.py": "sha256-pyast:v2:8b1c29716410479a737cb16b7fcd8b57bd9c6ba100182a017563efb6cb3e7bfa"
+      },
+      "revised_at": "2026-09-28T09:44:09.443548+00:00",
+      "reason": "Separate inventory-only discovery from command directory selectors after plan review",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b5f89325610dfde48649ce6685b6a4f1e26031171aa9e219ee8ecf338448bfd5",
+      "prior_test_hashes": {
+        "tests/core/test_node_module_plan_lock.py": "sha256-pyast:v2:8b1c29716410479a737cb16b7fcd8b57bd9c6ba100182a017563efb6cb3e7bfa"
+      },
+      "revised_at": "2026-09-28T09:44:25.919735+00:00",
+      "reason": "Separate inventory-only discovery from command directory selectors after plan review",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:64565cbb9e9784a554dc93ef6a80269308b5a971407af38ad6fbad8076afb99f",
+      "prior_test_hashes": {
+        "tests/core/test_node_module_plan_lock.py": "sha256-pyast:v2:69f394411a0a066d41b06e9a349c7d6bf0477cb1f8cdfaa28a1c0b8f2c41f7dd"
+      },
+      "revised_at": "2026-09-28T09:45:06.008614+00:00",
+      "reason": "Supply required enforcement policy arguments before implementation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:64565cbb9e9784a554dc93ef6a80269308b5a971407af38ad6fbad8076afb99f",
+      "prior_test_hashes": {
+        "tests/core/test_node_module_plan_lock.py": "sha256-pyast:v2:b50489b0132be6b3a3d185e61540d4b6ed44909cd3ab27930790f7a71be80944"
+      },
+      "revised_at": "2026-09-28T09:45:12.740595+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-node-module-test-lock-coverage.manifest.yaml -> manifests/fix-node-module-test-lock-coverage.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9de4b540e603861f1612f72cf6da38847b0a990acec73dfe155c451a7fbf63ca",
+      "prior_test_hashes": {
+        "tests/core/test_node_module_plan_lock.py": "sha256-pyast:v2:b50489b0132be6b3a3d185e61540d4b6ed44909cd3ab27930790f7a71be80944"
+      },
+      "revised_at": "2026-09-28T09:45:54.380631+00:00",
+      "reason": "Isolate read-directory discovery; Node runner directory recognition is a separate capability",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:5d261d7a27f61e447818a11eb677d7049ddf7eb8144cb0b517e12a9dceca140d",
+      "prior_test_hashes": {
+        "tests/core/test_node_module_plan_lock.py": "sha256-pyast:v2:f1a60f8fe88e9285134cf8230d6b2fda0892b4e40c3ca67948b34a3ffcde39f6"
+      },
+      "revised_at": "2026-09-28T09:49:09.021222+00:00",
+      "reason": "Include direct Node runner recognition so newly discovered tests execute through maid test",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:maid_runner/core/_test_runner_invocation.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c0153ffe1de0712c638d543bcae16e153b538a4a864ec55419046d88994a098b",
+      "prior_test_hashes": {
+        "tests/core/test_node_module_plan_lock.py": "sha256-pyast:v2:fcd773d65d6ea1180e8bcccf440fa7c6b737b6a01aaa1cc501ef53e917c9ee8b"
+      },
+      "revised_at": "2026-09-28T09:49:58.414488+00:00",
+      "reason": "Use native Node file selectors; preserve separate inventory directory tests",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:23e9968c67510608ad01a66534cd16f2cc49fe2395c598f48ddfbc44cfc1b681",
+      "prior_test_hashes": {
+        "tests/core/test_node_module_plan_lock.py": "sha256-pyast:v2:9197dc6dbbf256e247d857c5a0dfe31081f0d29069f1ce2048df7995935da241"
+      },
+      "revised_at": "2026-09-28T09:50:23.469085+00:00",
+      "reason": "Reject Node directory targets using concrete file checks; add runtime-proven negative coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:maid_runner/core/_test_command_targets.py"
+        ],
+        "files_removed": [
+          "read:maid_runner/core/_test_command_targets.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:30eca434fa269c170f76ef64342a7298bf89fb10e4ab1cca4f84a33f7980af27",
+      "prior_test_hashes": {
+        "tests/core/test_node_module_plan_lock.py": "sha256-pyast:v2:f13ff82a2ac94187524933d173e44577cbebf85dfd5fa5d6490bdedddc77cc19"
+      },
+      "revised_at": "2026-09-28T09:55:11.001814+00:00",
+      "reason": "Reject wrapped Node invocations with unproven execution semantics",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:e89b0005d5e408945604281062ccbc0d9a74e5a0920a358d0b0156298139f859",
+      "prior_test_hashes": {
+        "tests/core/test_node_module_plan_lock.py": "sha256-pyast:v2:8c85dc5b2ad8b989236b40132400d87564f56acca65d94a28936492f0ef5980f"
+      },
+      "revised_at": "2026-09-28T09:58:48.353282+00:00",
+      "reason": "Sanitize inherited Node options at the existing test environment boundary",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:maid_runner/core/_test_command_execution.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:f85f0ecbea6072e4399d2679c9f7d550140ee9f22399d9fb8196d78577225592",
+      "prior_test_hashes": {
+        "tests/core/test_node_module_plan_lock.py": "sha256-pyast:v2:aab3efdceacabd1fea72000c737d861b5243c24856c115ad8cfc943a54390fc1"
+      },
+      "revised_at": "2026-09-28T10:02:54.770712+00:00",
+      "reason": "Reject Node glob syntax that can redirect existing literal test filenames",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-28T10:02:55.966185+00:00",
+    "commands": [
+      {
+        "command": "uv run pytest tests/core/test_node_module_plan_lock.py -q",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/core/test_node_module_plan_lock.py::test_node_commands_that_do_not_prove_full_execution_are_rejected[prefix5]\nFAILED tests/core/test_node_module_plan_lock.py::test_node_commands_that_do_not_prove_full_execution_are_rejected[prefix6]\nFAILED tests/core/test_node_module_plan_lock.py::test_node_commands_that_do_not_prove_full_execution_are_rejected[prefix7]\nFAILED tests/core/test_node_module_plan_lock.py::test_node_commands_that_do_not_prove_full_execution_are_rejected[prefix8]\nFAILED tests/core/test_node_module_plan_lock.py::test_node_commands_that_do_not_prove_full_execution_are_rejected[prefix9]\nFAILED tests/core/test_node_module_plan_lock.py::test_node_directory_targets_do_not_cover_nested_tests[tests]\nFAILED tests/core/test_node_module_plan_lock.py::test_node_directory_targets_do_not_cover_nested_tests[tests/directory.test.mjs]\nFAILED tests/core/test_node_module_plan_lock.py::test_wrapped_node_commands_cannot_claim_execution_coverage[command0]\nFAILED tests/core/test_node_module_plan_lock.py::test_wrapped_node_commands_cannot_claim_execution_coverage[command1]\nFAILED tests/core/test_node_module_plan_lock.py::test_wrapped_node_commands_cannot_claim_execution_coverage[command2]\nFAILED tests/core/test_node_module_plan_lock.py::test_wrapped_node_commands_cannot_claim_execution_coverage[command3]\nFAILED tests/core/test_node_module_plan_lock.py::test_wrapped_node_commands_cannot_claim_execution_coverage[command4]\nFAILED tests/core/test_node_module_plan_lock.py::test_wrapped_node_commands_cannot_claim_execution_coverage[command5]\nFAILED tests/core/test_node_module_plan_lock.py::test_inherited_node_options_cannot_hide_a_failing_test\nFAILED tests/core/test_node_module_plan_lock.py::test_node_glob_names_cannot_claim_literal_file_coverage[[x].test.mjs]\nFAILED tests/core/test_node_module_plan_lock.py::test_node_glob_names_cannot_claim_literal_file_coverage[{x,y}.test.mjs]\nFAILED tests/core/test_node_module_plan_lock.py::test_node_glob_names_cannot_claim_literal_file_coverage[@(x).test.mjs]\nFAILED tests/core/test_node_module_plan_lock.py::test_node_glob_names_cannot_claim_literal_file_coverage[x?.test.mjs]\nFAILED tests/core/test_node_module_plan_lock.py::test_node_glob_names_cannot_claim_literal_file_coverage[x*.test.mjs]\n49 failed, 1 passed in 0.80s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_command_integrity_test_discovery.py:function:is_command_integrity_test_file",
+      "maid_runner/core/_command_integrity_test_discovery.py:function:is_command_integrity_test_file:arg=path:type=str:default=None",
+      "maid_runner/core/_command_integrity_test_discovery.py:function:is_command_integrity_test_file:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_command_integrity_test_discovery.py:function:is_command_integrity_test_file:kind=function",
+      "maid_runner/core/_command_integrity_test_discovery.py:function:is_command_integrity_test_file:returns=bool",
+      "maid_runner/core/_file_discovery.py:function:is_test_file",
+      "maid_runner/core/_file_discovery.py:function:is_test_file:arg=path:type=str:default=None",
+      "maid_runner/core/_file_discovery.py:function:is_test_file:kind=function",
+      "maid_runner/core/_file_discovery.py:function:is_test_file:returns=bool"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "maid_runner/core/_command_integrity_test_discovery.py",
+        "maid_runner/core/_file_discovery.py"
+      ],
+      "read": [
+        "maid_runner/core/chain.py",
+        "maid_runner/core/plan_lock.py",
+        "tests/core/test_node_module_plan_lock.py"
+      ],
+      "scope": [
+        "maid_runner/core/_test_command_execution.py",
+        "maid_runner/core/_test_command_targets.py",
+        "maid_runner/core/_test_runner_invocation.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "maid_runner/core/_file_discovery.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "is_test_file",
+              "args": [
+                {
+                  "name": "path",
+                  "type": "str"
+                }
+              ],
+              "returns": "bool"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/_command_integrity_test_discovery.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "is_command_integrity_test_file",
+              "args": [
+                {
+                  "name": "path",
+                  "type": "str"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                }
+              ],
+              "returns": "bool"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "tests/core/test_node_module_plan_lock.py",
+        "maid_runner/core/plan_lock.py",
+        "maid_runner/core/chain.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_test_runner_invocation.py",
+          "reason": "Recognize direct Node test invocations with positional targets without changing public API."
+        },
+        {
+          "path": "maid_runner/core/_test_command_targets.py",
+          "reason": "Require concrete Node test files so directory selectors cannot claim execution coverage."
+        },
+        {
+          "path": "maid_runner/core/_test_command_execution.py",
+          "reason": "Remove inherited NODE_OPTIONS alongside inherited pytest options before test execution."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_node_module_plan_lock.py"
+    ],
+    "validate_commands": [
+      "uv run pytest tests/core/test_node_module_plan_lock.py -q"
+    ],
+    "acceptance_commands": []
+  }
+}

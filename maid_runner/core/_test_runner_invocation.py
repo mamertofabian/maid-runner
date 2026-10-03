@@ -145,6 +145,7 @@ _NON_EXECUTING_TEST_RUNNER_FLAGS = frozenset(
         "--help",
         "--version",
         "--collect-only",
+        "--collectonly",
         "--co",
         "--fixtures",
         "--fixtures-per-test",
@@ -273,6 +274,7 @@ _TEST_RUNNER_VALUE_FLAGS = frozenset(
         "--project",
         "--reporter",
         "--output",
+        "--outputFile",
         "--testNamePattern",
         "-t",
     }
@@ -521,16 +523,37 @@ def _pytest_ini_addopts_args(value: str) -> list[str]:
         return [value.split("=", 1)[1]]
 
 
+def _is_direct_node_vitest_entry(parts: list[str]) -> bool:
+    """Recognize only the literal Vitest package entry and explicit run mode."""
+    if len(parts) < 3 or _command_name(parts[0]) != "node" or parts[2] != "run":
+        return False
+    entry = parts[1]
+    if entry.startswith("-"):
+        return False
+    if any(
+        marker in entry for marker in ("$", "`", "*", "?", "[", "]", "{", "}", "\x00")
+    ):
+        return False
+    path_parts = Path(entry).parts
+    return ".." not in path_parts and path_parts[-3:] == (
+        "node_modules",
+        "vitest",
+        "vitest.mjs",
+    )
+
+
 def _test_runner_invocation(
     segment: list[str],
     test_runner_wrappers: tuple[TestRunnerWrapperConfig, ...] = (),
     *,
     allow_unittest: bool = True,
     unittest_uv_depth: int = 0,
+    allow_node: bool = True,
 ) -> tuple[str, list[str]] | None:
     raw_parts = list(segment)
     parts = _strip_environment_prefix(raw_parts)
     if parts != raw_parts:
+        allow_node = False
         allow_unittest = allow_unittest and _allows_direct_unittest_env_prefix(
             raw_parts, parts, unittest_uv_depth
         )
@@ -556,29 +579,35 @@ def _test_runner_invocation(
                     and not _uv_run_uses_module_mode(parts)
                 ),
                 unittest_uv_depth=unittest_uv_depth + 1,
+                allow_node=False,
             )
         return None
 
     if command in {"poetry", "pdm"} and len(parts) >= 3 and parts[1] == "run":
         return _test_runner_invocation(
-            parts[2:], test_runner_wrappers, allow_unittest=False
+            parts[2:], test_runner_wrappers, allow_unittest=False, allow_node=False
         )
 
     if command == "docker":
         inner_command = _docker_exec_inner_command(parts)
         if inner_command is not None:
-            return _test_runner_invocation(inner_command, allow_unittest=False)
+            return _test_runner_invocation(
+                inner_command, allow_unittest=False, allow_node=False
+            )
 
     if command == "coverage" and len(parts) >= 4 and parts[1:3] == ["run", "-m"]:
         return _test_runner_invocation(
-            parts[3:], test_runner_wrappers, allow_unittest=False
+            parts[3:], test_runner_wrappers, allow_unittest=False, allow_node=False
         )
 
     if command == "dotenv":
         inner_command = _dotenv_inner_command(parts)
         if inner_command is not None:
             return _test_runner_invocation(
-                inner_command, test_runner_wrappers, allow_unittest=False
+                inner_command,
+                test_runner_wrappers,
+                allow_unittest=False,
+                allow_node=False,
             )
 
     if (
@@ -625,6 +654,16 @@ def _test_runner_invocation(
     if command in _DIRECT_TEST_RUNNERS:
         return command, parts[1:]
 
+    if allow_node and _is_direct_node_vitest_entry(parts):
+        return "vitest", parts[2:]
+
+    if allow_node and command == "node" and len(parts) >= 3 and parts[1] == "--test":
+        # Only positional inputs are proven here. Options can filter tests,
+        # prevent execution, or consume a path without executing that file.
+        if all(part and not part.startswith("-") for part in parts[2:]):
+            return command, parts[2:]
+        return None
+
     if command == "playwright" and len(parts) >= 2 and parts[1] == "test":
         return command, parts[2:]
 
@@ -634,6 +673,12 @@ def _test_runner_invocation(
     if command == "bun" and len(parts) >= 2 and parts[1] == "test":
         return _BUN_TEST_RUNNER, parts[2:]
 
+    if command == "forge" and len(parts) >= 2 and parts[1] == "test":
+        return command, parts[2:]
+
+    if command == "cargo" and len(parts) >= 2 and parts[1] == "test":
+        return command, parts[2:]
+
     if command in _PACKAGE_RUNNER_WRAPPERS and len(parts) >= 2:
         inner_command = _package_runner_inner_command(parts, preserve_cwd_options=False)
         scan_command = _package_runner_inner_command(parts, preserve_cwd_options=True)
@@ -641,12 +686,12 @@ def _test_runner_invocation(
             preserved_options = scan_command[: len(scan_command) - len(inner_command)]
             inner_wrappers = () if preserved_options else test_runner_wrappers
             return _test_runner_invocation(
-                inner_command, inner_wrappers, allow_unittest=False
+                inner_command, inner_wrappers, allow_unittest=False, allow_node=False
             )
 
     if command == "npm" and len(parts) >= 3 and parts[1] == "exec":
         return _test_runner_invocation(
-            parts[2:], test_runner_wrappers, allow_unittest=False
+            parts[2:], test_runner_wrappers, allow_unittest=False, allow_node=False
         )
 
     return None
@@ -704,6 +749,12 @@ def _test_runner_target_scan_segment(
     if command == "playwright" and len(parts) >= 2 and parts[1] == "test":
         return parts[2:]
 
+    if command == "node" and len(parts) >= 2 and parts[1] == "--test":
+        return parts[2:]
+
+    if _is_direct_node_vitest_entry(parts):
+        return parts[2:]
+
     if command == "deno" and len(parts) >= 2 and parts[1] == "test":
         return _deno_test_target_scan_args(parts[2:])
 
@@ -723,12 +774,24 @@ def _test_runner_target_scan_segment(
 
 def _deno_test_target_scan_args(args: list[str]) -> list[str]:
     targets: list[str] = []
+    all_permissions = False
+    env_permissions = False
     index = 0
     while index < len(args):
         part = args[index]
         if part == "--":
             break
+        if part in {"--allow-all", "-A"}:
+            if all_permissions or env_permissions:
+                return []
+            all_permissions = True
+            index += 1
+            continue
         flag = part.split("=", 1)[0]
+        if flag == "--allow-env":
+            if all_permissions:
+                return []
+            env_permissions = True
         if flag in _DENO_TEST_TARGET_STANDALONE_FLAGS:
             index += 1
             continue

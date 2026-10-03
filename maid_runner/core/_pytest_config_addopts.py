@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import configparser
 import shlex
+from collections.abc import Sequence
 from pathlib import Path
 
 try:  # pragma: no cover - exercised only on Python < 3.11
@@ -27,6 +28,103 @@ class _PytestConfigInspectionError(Exception):
         self.path = path
         self.error = error
         super().__init__(str(error))
+
+
+def requires_native_pytest_config_check(
+    project_root: Path, command: Sequence[str], test_files: Sequence[str]
+) -> bool:
+    """Detect candidates requiring consumer-native config proof, not precedence.
+
+    Native TOML support varies by consumer version. Inspect only enough shape
+    to route these commands to pytest itself; never choose an effective config
+    using the interpreter running MAID.
+    """
+    from maid_runner.core._test_command_targets import _shell_wrapped_command_segments
+
+    args = _pytest_args(tuple(command))
+    if args is None:
+        segments = _shell_wrapped_command_segments(tuple(command)) or []
+        for segment in segments:
+            if requires_native_pytest_config_check(project_root, segment, test_files):
+                return True
+            wrapped_args = _pytest_args(tuple(segment))
+            if wrapped_args is not None and not _has_override_ini_addopts(wrapped_args):
+                # A shell can change cwd. Explicit relative config cannot rule
+                # out candidates near covered tests; do not interpret the shell
+                # to infer precedence. The proof will reject this wrapper.
+                if any(
+                    path.suffix == ".toml"
+                    for path in _explicit_config_choices(
+                        Path(project_root), wrapped_args
+                    )
+                ):
+                    return True
+                if _native_config_in_ancestors(
+                    Path(project_root), wrapped_args, test_files, wrapped=True
+                ):
+                    return True
+        return False
+    if _has_override_ini_addopts(args):
+        return False
+    root = Path(project_root)
+    # Opaque argument expansion could supply both targets and config choices.
+    if any(part.startswith("@") for part in args):
+        return True
+    choices = _explicit_config_choices(root, args)
+    if choices:
+        return any(_native_config_candidate(path) for path in choices)
+    return _native_config_in_ancestors(root, args, test_files)
+
+
+def _explicit_config_choices(root: Path, args: list[str]) -> list[Path]:
+    choices = []
+    for index, part in enumerate(args):
+        if part.startswith(("-c", "--config")):
+            choice = _explicit_config_path(root, args[index:])
+            if choice is not None:
+                choices.append(choice)
+    return choices
+
+
+def _native_config_in_ancestors(
+    root: Path, args: list[str], test_files: Sequence[str], *, wrapped: bool = False
+) -> bool:
+    directories: set[Path] = set()
+    paths = [root, *(root / path for path in test_files)]
+    paths.extend(
+        root / part.split("::", 1)[0] for part in args if not part.startswith("-")
+    )
+    for path in paths:
+        for candidate in (path.absolute(), path.resolve()):
+            directory = candidate if candidate.is_dir() else candidate.parent
+            directories.update((directory, *directory.parents))
+    for directory in directories:
+        candidates = [
+            directory / name
+            for name in ("pytest.toml", ".pytest.toml", "pyproject.toml")
+        ]
+        if wrapped:
+            candidates.extend(_explicit_config_choices(directory, args))
+        if any(_native_config_candidate(path) for path in candidates):
+            return True
+    return False
+
+
+def _native_config_candidate(path: Path) -> bool:
+    if path.suffix != ".toml":
+        return False
+    if path.name in {"pytest.toml", ".pytest.toml"}:
+        return path.exists()
+    if not path.exists():
+        return False
+    try:
+        config = _load_pyproject(path)
+        tool = config.get("tool", {})
+        section = tool.get("pytest", {}) if isinstance(tool, dict) else {}
+        return isinstance(section, dict) and bool(set(section) - {"ini_options"})
+    except (OSError, ValueError, TypeError):
+        # A failed inspection cannot establish that native configuration is absent.
+        return True
 
 
 def pytest_config_addopts_args(

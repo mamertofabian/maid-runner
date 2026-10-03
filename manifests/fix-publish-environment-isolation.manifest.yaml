@@ -1,0 +1,220 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: Keep publishing and reusable MAID job interpreters and dependency environments stable
+type: fix
+created: "2026-10-02T13:47:07Z"
+description: |
+  The failed v2.28.0 publishing run reported source dependency environment
+  mutations from snapshot tests and an isolated coverage worker failure.
+  A deterministic public snapshot reproduction shows that a cold sibling
+  dependency import creates bytecode in the guarded source environment;
+  redirecting bytecode writes prevents the mutation while real dependency
+  edits still fail closed. Configure a first shell step in each affected job
+  that exports PYTHONPYCACHEPREFIX=$RUNNER_TEMP/maid-python-cache through
+  GITHUB_ENV before any Python commands. runner.temp is not available in
+  job-level env expressions; validate the actual workflow expression contexts
+  with Actionlint instead of manufacturing a context substitution in tests.
+  Outer pytest workers and inherited subprocesses cache bytecode outside
+  guarded source dependencies. Snapshot commands keep their existing worker-local
+  cache overrides. Do not suppress bytecode globally: the retained snapshot
+  contract requires bytecode to be written inside its isolated worker cache.
+  Keep the production mutation guard unchanged rather than ignoring writes.
+  The same failed logs show all nominal matrix lanes executing Python 3.12.3:
+  uv run follows the project Python pin after the matrix-specific uv sync.
+  Set UV_PYTHON to the matrix version for the entire test job so sync and
+  subsequent uv commands use one interpreter. Retain the three-version
+  matrix, worker limits, tests, prerequisites and tag-only publication.
+  This additive scoped workflow change preserves existing declarations and
+  shared tests. Revise only this current unmerged contract and its plan lock.
+  Reproduce the cold-import boundary and interpreter override in dedicated
+  behavioral tests, then run the original failed snapshot and coverage test
+  modules and the publishing workflow tests before the full gates.
+  Keep the release tag deleted and update release/v2.next PR 144 to main only
+  after validation and independent review; do not retag or publish.
+  PR 144 subsequently reproduced the same guarded dependency mutations in
+  the separate MAID Validation and MAID Test workflows. Extend the same
+  process-start cache redirection to their maid-validation and maid-test
+  jobs. Bind UV_PYTHON to the reusable python-version input with its 3.12
+  fallback, matching setup-python for both PR and downstream workflow calls.
+  Preserve worker limits, triggers, report uploads, coverage, scope gates and
+  source mutation guards. Dedicated regression cases must exercise both jobs;
+  publisher-only coverage is insufficient for this shared startup policy.
+  Latest runs also expose uv-cache hardlink alias changes after fresh CI
+  installs, Python 3.10 docs collection importing unavailable tomllib, and
+  Python 3.11 monitoring fakes assuming sys.monitoring already exists.
+  Set job-wide UV_LINK_MODE=copy before environment installation in all
+  three jobs so parallel installations into other environments cannot change
+  guarded dependency inodes. Keep hardlink and material mutation rejection
+  unchanged. Test this with real offline local-wheel installs and an external
+  hardlink-mode consumer inside the public snapshot context.
+  Add the existing tomli fallback to the docs test import and let monitoring
+  fakes create the optional sys attribute on older Python. Retain all original
+  assertions and supported lanes. Refresh affected shared-test plan locks
+  through the documented preserve-red-evidence workflow after approval.
+  Validate fresh copy-mode environments, including full suites on actual
+  Python 3.10 and 3.11, instead of relying on the warmed developer environment.
+  Full fresh-matrix validation uncovered seven Python 3.10 init/skills
+  uninstall failures: shutil.rmtree did not gain dir_fd until Python 3.11.
+  Add a shared remove_tree_at(name, parent_fd) boundary in core/uninstall.py.
+  Keep native descriptor-relative shutil removal on Python 3.11+ and use
+  public descriptor-relative os.fwalk/unlink/rmdir on Python 3.10. Require a
+  single child name, reject root symlinks/traversal, and preserve pinned-parent
+  behavior plus root identity checks. Do not fall back to mutable absolute
+  path deletion or process-global chdir. Rewire only the two existing guarded
+  directory-removal call sites in init and skill_install, preserving Windows
+  quarantine handling. Review this security-sensitive extension independently.
+temptations:
+  - risk: Weaken snapshot dependency fingerprints or retry failing tests to hide the race.
+    instead: Redirect outer bytecode writes in publishing, MAID Validation and MAID Test jobs and verify isolated snapshot caching plus rejection of real dependency edits.
+  - risk: Assume setup-python or uv sync pins all later uv commands.
+    instead: Set job-wide UV_PYTHON and prove uv run overrides a conflicting project pin.
+  - risk: Pretend an unavailable GitHub context is valid by substituting its value in a test.
+    instead: Run Actionlint on all three workflows and execute the real cache setup shell script against a temporary GITHUB_ENV file before exercising cold imports.
+  - risk: Ignore remaining dependency alias changes or skip tests on older supported Python.
+    instead: Install CI dependencies in copy mode, preserve mutation rejection, all supported lanes and worker limits, and make monitoring/TOML tests compatible without dropping assertions.
+  - risk: Replace the unsupported rmtree keyword with unanchored pathname deletion or global chdir.
+    instead: Keep removal relative to an open parent descriptor and test nested symlinks, renamed parents, root-link rejection and traversal rejection.
+files:
+  edit:
+    - path: maid_runner/core/uninstall.py
+      artifacts:
+        - kind: function
+          name: remove_tree_at
+          args:
+            - name: name
+              type: str
+            - name: parent_fd
+              type: int
+          returns: None
+          description: Remove one directory entry relative to its pinned parent descriptor across supported Python versions without following symlink targets.
+  scope:
+    - path: .github/workflows/publish.yml
+      reason: Add process-start bytecode and uv interpreter environment settings to the existing test job without changing its public workflow contracts.
+    - path: .github/workflows/maid-validation.yml
+      reason: Apply the same cache redirection and reusable input-selected uv interpreter to the validation job before every Python command.
+    - path: .github/workflows/maid-test.yml
+      reason: Apply cache redirection and reusable input-selected uv interpreter to the main MAID test and coverage job.
+    - path: maid_runner/cli/commands/init.py
+      reason: Delegate guarded directory deletion to the shared descriptor-relative compatibility boundary.
+    - path: maid_runner/core/skill_install.py
+      reason: Delegate owned skill directory deletion to the same compatibility boundary while preserving existing ownership and Windows checks.
+  read:
+    - tests/ci/test_publish_environment_isolation.py
+    - tests/ci/test_publish_workflow.py
+    - tests/core/test_knockout_snapshot.py
+    - tests/core/test_artifact_coverage_fallback_workers.py
+    - tests/core/test_knockout_snapshot_template.py
+    - tests/ci/test_maid_workflow_environment_isolation.py
+    - tests/ci/test_github_pytest_worker_wiring.py
+    - tests/ci/test_maid_workflow_pr_only_triggers.py
+    - tests/ci/test_ci_dependency_link_isolation.py
+    - tests/core/test_runtime_evidence.py
+    - tests/test_api_reference_docs.py
+    - maid_runner/core/_runtime_evidence_pytest_plugin.py
+    - docs/reference/conf.py
+    - tests/core/test_descriptor_tree_removal_compatibility.py
+    - tests/cli/test_uninstall_cmd.py
+    - tests/cli/test_legacy_pre_commit_markers.py
+    - tests/cli/test_uninstall_windows_portability.py
+    - maid_runner/core/_knockout_snapshot.py
+    - maid_runner/core/_artifact_coverage_fallback_worker.py
+    - manifests/fix-publish-python-311-maid-tests.manifest.yaml
+    - manifests/fix-publish-matrix-diagnostics.manifest.yaml
+    - .python-version
+validate:
+  - uv run python -m pytest -q tests/core/test_descriptor_tree_removal_compatibility.py
+  - uv run python -m pytest -q tests/cli/test_uninstall_cmd.py tests/cli/test_legacy_pre_commit_markers.py tests/cli/test_uninstall_windows_portability.py
+  - uv run --group docs python -m pytest -q tests/ci/test_publish_environment_isolation.py tests/ci/test_publish_workflow.py tests/core/test_knockout_snapshot.py tests/core/test_artifact_coverage_fallback_workers.py tests/core/test_knockout_snapshot_template.py tests/ci/test_maid_workflow_environment_isolation.py tests/ci/test_github_pytest_worker_wiring.py tests/ci/test_maid_workflow_pr_only_triggers.py tests/ci/test_ci_dependency_link_isolation.py tests/core/test_runtime_evidence.py tests/test_api_reference_docs.py
+outcome:
+  status: completed
+  completed_at: '2026-10-03T02:04:17.401882+00:00'
+  summary: CI installs use independent dependency copies; older Python test harnesses retain their
+    assertions. Python 3.10 uninstall now removes owned trees through pinned descriptors without
+    following symlinks. The release tag remains deleted; commit and push await fresh approval.
+  lessons:
+  - lesson_type: compatibility
+    summary: Fresh supported-interpreter environments exposed cache hardlink mutations, unavailable
+      monitoring/TOML APIs, and the Python 3.11-only rmtree dir_fd keyword that warmed developer
+      runs did not reveal. Keep dependency guards and security checks intact while fixing their concrete
+      causes.
+    tags:
+    - ci
+    - python
+    - environment
+    - security
+    paths:
+    - .github/workflows/publish.yml
+    - maid_runner/core/uninstall.py
+    - tests/ci/test_ci_dependency_link_isolation.py
+    - tests/core/test_descriptor_tree_removal_compatibility.py
+  review_notes:
+  - source: ci_compatibility_review
+    severity: ready
+    summary: Independent read-only review found no blocking or advisory findings. Reviewer checks
+      passed 23 removal/isolation/uninstall tests (9 Windows-only skips), 42 startup/runtime tests,
+      an actual Python 3.10 fallback probe, and implementation validation.
+  validation:
+  - command:
+    - uv
+    - run
+    - --group
+    - docs
+    - python
+    - -m
+    - pytest
+    - tests/
+    - -q
+    - -n
+    - '4'
+    status: passed
+    summary: 'Fresh copy-mode Python 3.10.16: 5543 passed, 20 skipped. Python 3.11.15 full compatibility
+      suite before helper addition: 5540 passed, 20 skipped; after addition focused removal/uninstall:
+      20 passed, 9 Windows-only skipped.'
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --json
+    - --jobs
+    - '1'
+    - --pytest-workers
+    - '4'
+    status: passed
+    summary: 'Fresh copy-mode Python 3.12.8: all 306 command groups passed. Subsequent command regrouping
+      retained all tests; current manifest commands passed 3/3.'
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --packet
+    status: passed
+    summary: 331 active manifests passed, 368 superseded, zero failures.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - 44d98e064c8fcb9ea7cedebf027dce7b242cd0f4
+    - --packet
+    status: passed
+    summary: All 11 assessed gates passed, including artifact coverage, knockout, scope, plan-lock
+      and red-evidence checks. Only existing non-blocking E307 notices remained.

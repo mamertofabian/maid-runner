@@ -1,0 +1,231 @@
+{
+  "manifest_path": "manifests/fix-pytest-addopts-selection-proof.manifest.yaml",
+  "manifest_hash": "sha256-contract:5d70b9dc713d29ca06c9cf11e79b590402d897742aad625040bd4aa03462b13a",
+  "test_hashes": {
+    "tests/core/validation/test_pytest_addopts_selection_proof.py": "sha256-pyast:v2:7e572ea497317486c8e6f5755968fdd82538899625d47036825fdfdd3c320af4"
+  },
+  "created_at": "2026-09-28T11:27:00.180622+00:00",
+  "revision": 8,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:a71e2a6cbc24fa3139ae5ac15f0d3d041ecb4b01649e0717e4539e2399b6c445",
+      "prior_test_hashes": {
+        "tests/core/validation/test_pytest_addopts_selection_proof.py": "sha256-pyast:v2:32a3d38894a6e1b318291be94e139746a5aa6b871631317524f5de0612ab5302"
+      },
+      "revised_at": "2026-09-28T11:27:00.929732+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-pytest-addopts-selection-proof.manifest.yaml -> manifests/fix-pytest-addopts-selection-proof.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:22b2a502ac6f0602c9e0387c9a0cef98f4abe563324e90fafc1741ad7a733095",
+      "prior_test_hashes": {
+        "tests/core/validation/test_pytest_addopts_selection_proof.py": "sha256-pyast:v2:32a3d38894a6e1b318291be94e139746a5aa6b871631317524f5de0612ab5302"
+      },
+      "revised_at": "2026-09-28T11:31:39.972802+00:00",
+      "reason": "Use sequence argv contract and document native selection-proof semantics",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/core/_pytest_addopts_selection.py:function:pytest_addopts_collection_error:arg=command:type=Sequence[str]:default=None"
+        ],
+        "artifacts_removed": [
+          "maid_runner/core/_pytest_addopts_selection.py:function:pytest_addopts_collection_error:arg=command:type=tuple[str, ...]:default=None"
+        ],
+        "files_added": [
+          "scope:docs/troubleshooting.md"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4e309ede472a612bd166846844f264ac700921e6def24b981c3cc00f46bfb131",
+      "prior_test_hashes": {
+        "tests/core/validation/test_pytest_addopts_selection_proof.py": "sha256-pyast:v2:32a3d38894a6e1b318291be94e139746a5aa6b871631317524f5de0612ab5302"
+      },
+      "revised_at": "2026-09-28T11:38:31.109300+00:00",
+      "reason": "Bound proof to unambiguous native config and reject argument-file expansion",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:02a5d20cf0061949932a7652db1d3b2f4567190aeda9d1c39d8e93e06a7cf2b4",
+      "prior_test_hashes": {
+        "tests/core/validation/test_pytest_addopts_selection_proof.py": "sha256-pyast:v2:90c4c9ac74441381524223cf3b9481f0507a5720284bebc3477ac431d5b6bdd2"
+      },
+      "revised_at": "2026-09-28T11:56:03.638622+00:00",
+      "reason": "Bind collection proof to native effective configuration receipts",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6fe7b73e36c0086fd504c0359fc30fab58bca330ab607d470c2887e4d751c32d",
+      "prior_test_hashes": {
+        "tests/core/validation/test_pytest_addopts_selection_proof.py": "sha256-pyast:v2:abb32f979e9e4185408af35cb4088d5557286fb97c64717d755d7e7ab35e33fc"
+      },
+      "revised_at": "2026-09-28T12:07:33.244276+00:00",
+      "reason": "Observe native runnable selection without collect-only mode distortion; guard dispatch before fixtures",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:1cf0ce81070f63dd23a4e0bfdd3de24dc261ce2a29b3c545a47b720e06331107",
+      "prior_test_hashes": {
+        "tests/core/validation/test_pytest_addopts_selection_proof.py": "sha256-pyast:v2:a19ae68f103a68f0452292a8d2912dbae5b09f04303ae3798bf33082798b01fe"
+      },
+      "revised_at": "2026-09-28T12:09:03.065552+00:00",
+      "reason": "Keep corrupted config receipt structurally valid for the mismatch regression",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:1cf0ce81070f63dd23a4e0bfdd3de24dc261ce2a29b3c545a47b720e06331107",
+      "prior_test_hashes": {
+        "tests/core/validation/test_pytest_addopts_selection_proof.py": "sha256-pyast:v2:deb64f9b1b7a55ae2c00a88728a21105c443b47738cb75875ac25af83d8564f4"
+      },
+      "revised_at": "2026-09-28T12:11:32.308721+00:00",
+      "reason": "Require complete collection before guarded-loop proof even when consumer overrides exit status",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-28T12:11:32.849305+00:00",
+    "commands": [
+      {
+        "command": "uv run pytest tests/core/validation/test_pytest_addopts_selection_proof.py -q",
+        "exit_code": 1,
+        "output_tail": "=========================== short test summary info ============================\nFAILED tests/core/validation/test_pytest_addopts_selection_proof.py::test_harmless_reported_addopts_preserve_all_tests_and_config[pyproject.toml]\nFAILED tests/core/validation/test_pytest_addopts_selection_proof.py::test_harmless_reported_addopts_preserve_all_tests_and_config[pytest.ini]\nFAILED tests/core/validation/test_pytest_addopts_selection_proof.py::test_harmless_reported_addopts_preserve_all_tests_and_config[tox.ini]\nFAILED tests/core/validation/test_pytest_addopts_selection_proof.py::test_harmless_reported_addopts_preserve_all_tests_and_config[setup.cfg]\nFAILED tests/core/validation/test_pytest_addopts_selection_proof.py::test_harmless_reported_addopts_preserve_all_tests_and_config[custom.ini]\nFAILED tests/core/validation/test_pytest_addopts_selection_proof.py::test_public_collection_proof_uses_original_uv_command\nFAILED tests/core/validation/test_pytest_addopts_selection_proof.py::test_selectors_that_omit_a_declared_case_are_rejected[-m 'not integration']\nFAILED tests/core/validation/test_pytest_addopts_selection_proof.py::test_selectors_that_omit_a_declared_case_are_rejected[-k alpha]\nFAILED tests/core/validation/test_pytest_addopts_selection_proof.py::test_selectors_that_omit_a_declared_case_are_rejected[--deselect=tests/unit/test_policy.py::test_beta]\nFAILED tests/core/validation/test_pytest_addopts_selection_proof.py::test_failing_test_is_executed_instead_of_blocked_as_nonexecuting\nFAILED tests/core/validation/test_pytest_addopts_selection_proof.py::test_collection_failure_and_empty_collection_fail_closed\nFAILED tests/core/validation/test_pytest_addopts_selection_proof.py::test_selection_proof_is_not_reused_after_config_or_test_changes\nFAILED tests/core/validation/test_pytest_addopts_selection_proof.py::test_probes_use_the_same_clean_environment_as_test_execution\nFAILED tests/core/validation/test_pytest_addopts_selection_proof.py::test_missing_consumer_runner_cannot_fall_back_to_host_pytest\nFAILED tests/core/validation/test_pytest_addopts_selection_proof.py::test_proof_resolves_implicit_uv_runner_like_execution\nFAILED tests/core/validation/test_pytest_addopts_selection_proof.py::test_explicit_config_choice_can_disambiguate_a_nested_configuration\nFAILED tests/core/validation/test_pytest_addopts_selection_proof.py::test_matching_native_cfg_sections_remain_eligible\nFAILED tests/core/validation/test_pytest_addopts_selection_proof.py::test_partial_collection_error_cannot_be_hidden_by_exit_status_override\n18 failed, 20 passed, 2 skipped in 0.34s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_pytest_addopts_selection.py:function:pytest_addopts_collection_error",
+      "maid_runner/core/_pytest_addopts_selection.py:function:pytest_addopts_collection_error:arg=command:type=Sequence[str]:default=None",
+      "maid_runner/core/_pytest_addopts_selection.py:function:pytest_addopts_collection_error:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_pytest_addopts_selection.py:function:pytest_addopts_collection_error:kind=function",
+      "maid_runner/core/_pytest_addopts_selection.py:function:pytest_addopts_collection_error:returns=str | None"
+    ],
+    "files": {
+      "create": [
+        "maid_runner/core/_pytest_addopts_selection.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/core/_pytest_config_addopts.py",
+        "maid_runner/core/_pytest_timing_plugin.py",
+        "maid_runner/core/_pytest_worker_execution.py",
+        "maid_runner/core/_test_command_execution.py",
+        "maid_runner/core/_test_runner_invocation.py",
+        "maid_runner/core/test_runner.py",
+        "tests/core/validation/test_pytest_addopts_selection_proof.py"
+      ],
+      "scope": [
+        "docs/troubleshooting.md",
+        "maid_runner/core/_validation_test_artifacts.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "maid_runner/core/_pytest_addopts_selection.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "pytest_addopts_collection_error",
+              "description": "Return no error only for supported syntax with matching nonempty native collection; otherwise explain why selection cannot be proven.",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "command",
+                  "type": "Sequence[str]"
+                }
+              ],
+              "returns": "str | None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "tests/core/validation/test_pytest_addopts_selection_proof.py",
+        "maid_runner/core/_pytest_config_addopts.py",
+        "maid_runner/core/_pytest_worker_execution.py",
+        "maid_runner/core/_pytest_timing_plugin.py",
+        "maid_runner/core/_test_command_execution.py",
+        "maid_runner/core/_test_runner_invocation.py",
+        "maid_runner/core/test_runner.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_validation_test_artifacts.py",
+          "reason": "Replace blanket config-selector rejection with bounded native collection proof while retaining E230 on failed or unsupported proof."
+        },
+        {
+          "path": "docs/troubleshooting.md",
+          "reason": "Explain native collection proof and conservative supported syntax for pytest config selectors at E230."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/validation/test_pytest_addopts_selection_proof.py"
+    ],
+    "validate_commands": [
+      "uv run pytest tests/core/validation/test_pytest_addopts_selection_proof.py -q"
+    ],
+    "acceptance_commands": []
+  }
+}

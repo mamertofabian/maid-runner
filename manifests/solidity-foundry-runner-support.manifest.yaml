@@ -1,0 +1,142 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: Support Solidity validator plugins in MAID validation of Foundry projects.
+type: feature
+created: "2026-10-01T07:53:32Z"
+description: |
+  Complete Runner-side integration for the independently packaged
+  maid-validator-solidity plugin. Discover `.sol` source files, classify only
+  Foundry `*.t.sol` files as behavioral tests, collect their behavioral
+  artifacts through the installed extension validator, and recognize `forge
+  test` commands for command-integrity validation. The plugin's README
+  identifies these filename and command-recognition gaps as the remaining
+  Runner prerequisite. Keep Solidity parsing in the plugin and use Runner's
+  existing generic test discovery and command-target behavior.
+temptations:
+  - risk: Treat all Solidity files or broad `*test*.sol` names as behavioral tests.
+    instead: Recognize only the exact `.t.sol` filename suffix and retain near-miss cases.
+  - risk: Accept arbitrary Forge commands as evidence that tests execute.
+    instead: Recognize only the `forge test` subcommand and test a non-test Forge command.
+  - risk: Add Solidity parsing or Foundry execution to MAID Runner.
+    instead: Test `.sol` validator dispatch through the existing registry and leave parsing and execution to the plugin and declared test command.
+  - risk: Edit existing locked behavioral test files and invalidate their red evidence.
+    instead: Keep new behavioral coverage in the task-specific test modules declared below.
+files:
+  edit:
+    - path: maid_runner/core/_file_discovery.py
+      artifacts:
+        - kind: function
+          name: discover_source_files
+          args:
+            - {name: project_root, type: "str | Path"}
+            - {name: extensions, type: "set[str] | None"}
+            - {name: exclude_patterns, type: "set[str] | None"}
+            - {name: respect_gitignore, type: bool}
+          returns: list[str]
+          description: Discover Solidity source and Foundry test files alongside existing supported source types.
+        - kind: function
+          name: is_test_file
+          args:
+            - {name: path, type: str}
+          returns: bool
+          description: Recognize exact Foundry `.t.sol` test filenames without classifying Solidity production files as tests.
+    - path: tests/core/test_solidity_foundry_discovery.py
+      artifacts:
+        - kind: test_function
+          name: test_source_discovery_and_test_classification_support_foundry_solidity
+          source_scenario: A project contains `src/Vault.sol`, `test/Vault.t.sol`, and near-miss Solidity filenames.
+          actions:
+            - type: api_call
+              subject: {function: discover_source_files}
+            - type: api_call
+              subject: {function: is_test_file}
+          expected:
+            behavior: Both `.sol` files are discovered; only the `.t.sol` path is classified as a test.
+        - kind: test_function
+          name: test_test_artifact_collection_routes_t_sol_files_to_registered_validator
+          source_scenario: A `.t.sol` source file is collected by a registry containing a `.sol` validator.
+          actions:
+            - type: api_call
+              subject: {function: collect_test_artifacts}
+          expected:
+            behavior: Collection returns the validator's behavioral artifact for the `.t.sol` path without errors.
+    - path: tests/core/validation/test_foundry_test_runner.py
+      artifacts:
+        - kind: test_function
+          name: test_command_integrity_accepts_forge_test_for_foundry_file
+          source_scenario: A task declares `test/Vault.t.sol` and validates it with `forge test --match-path test/Vault.t.sol`.
+          actions:
+            - type: api_call
+              subject: {function: validate_manifest_test_commands}
+          expected:
+            behavior: Command integrity returns no errors.
+        - kind: test_function
+          name: test_command_integrity_rejects_non_test_forge_subcommand
+          source_scenario: A task declares `test/Vault.t.sol` but its validate command uses `forge build`.
+          actions:
+            - type: api_call
+              subject: {function: validate_manifest_test_commands}
+          expected:
+            behavior: Command integrity returns VALIDATE_COMMAND_DOES_NOT_RUN_TESTS.
+  scope:
+    - path: maid_runner/core/_test_runner_invocation.py
+      reason: Extend the internal runner invocation classifier for `forge test`; its behavior is asserted through command-integrity validation.
+  read:
+    - maid_runner/core/_validation_test_artifacts.py
+    - maid_runner/validators/registry.py
+    - maid_runner/validators/base.py
+validate:
+  - [uv, run, python, -m, pytest, tests/core/test_solidity_foundry_discovery.py, tests/core/validation/test_foundry_test_runner.py, -q]
+  - [uv, run, maid, validate, --mode, behavioral]
+outcome:
+  status: completed
+  summary: Added Solidity source discovery, exact Foundry `.t.sol` behavioral file recognition, and `forge test` command-integrity support for installed validator plugins.
+  rationale: >-
+    The sibling Solidity plugin registers successfully through the existing
+    extension API; Runner-side filename and runner recognition were the missing
+    integration. The independent reviewer found the implementation within scope
+    and ready. Task-scoped verification passed. Repository-wide pytest also
+    passed 5,460 tests and skipped 20, with three unrelated failures: two release
+    metadata assertions for the absent Unreleased heading and one Sphinx inventory
+    HTTP 503.
+  lessons:
+    - lesson_type: test-discovery
+      summary: Test filename support must be checked through both source discovery and command-integrity discovery so newly supported languages reach behavioral collection without broadening production-file classification.
+      tags: [solidity, foundry, test-discovery, plugins]
+      paths:
+        - maid_runner/core/_file_discovery.py
+        - tests/core/test_solidity_foundry_discovery.py
+        - tests/core/validation/test_foundry_test_runner.py
+  review_notes:
+    - source: maid-implementation-reviewer
+      severity: info
+      summary: Independent review found no scope or behavior findings and returned Ready to merge; Forge itself was not run, so review covered command recognition and artifact accounting.
+  validation:
+    - command: [uv, run, python, -m, pytest, tests/core/test_solidity_foundry_discovery.py, tests/core/validation/test_foundry_test_runner.py, -q]
+      status: passed
+      summary: Four focused Foundry discovery, plugin dispatch, and command-integrity tests passed.
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: 328 manifests passed, 0 failed, 367 superseded.
+    - command: [uv, run, maid, test, --manifest, manifests/solidity-foundry-runner-support.manifest.yaml]
+      status: passed
+      summary: Both declared manifest validation commands passed.
+    - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --file-tracking-scope, task, --plan-lock-scope, task, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, 994127933b8fe1cd0e4c35fb1c6ff7c2c371a0be]
+      status: passed
+      summary: All 11 task-scoped deep verification stages passed; advisory E307 warnings concerned an unrelated CJS file and non-code files.
+    - command: [uv, run, ruff, check, maid_runner/core/_file_discovery.py, maid_runner/core/_test_runner_invocation.py, tests/core/test_solidity_foundry_discovery.py, tests/core/validation/test_foundry_test_runner.py]
+      status: passed
+      summary: Ruff reported no issues in the changed code and tests.
+    - command: [uv, run, black, --check, maid_runner/core/_file_discovery.py, maid_runner/core/_test_runner_invocation.py, tests/core/test_solidity_foundry_discovery.py, tests/core/validation/test_foundry_test_runner.py]
+      status: passed
+      summary: Black formatting check passed for all changed code and test files.
+    - command: [uv, run, python, -m, pytest, tests/, -q]
+      status: failed
+      summary: 5,460 passed and 20 skipped; three unrelated failures were two release metadata assertions expecting `## [Unreleased]` and the Sphinx reference build receiving HTTP 503 from docs.python.org.
+    - command: [uv, run, maid, test]
+      status: failed
+      summary: 301 of 305 manifest commands passed; the initial E230 caused by context-only test paths was fixed through plan revision. Remaining full-suite failures are outside this task; see full pytest results above for release metadata and external Sphinx inventory evidence.

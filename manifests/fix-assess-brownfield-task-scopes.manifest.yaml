@@ -1,0 +1,188 @@
+# manifest-kind: draft
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Keep assessment-selected deep file tracking and plan locks scoped to the explicit task baseline
+type: fix
+created: '2026-09-29T23:58:29Z'
+metadata:
+  priority: high
+  tags:
+  - assess
+  - brownfield
+  - task-scope
+  - plan-lock
+description: |-
+  Resolve report 20260916-002800-adc-fix-assess-brownfield-scope.
+  Deep commands emitted by maid assess currently select task tests but retain
+  repository-wide file tracking and plan-lock enforcement, blocking incremental
+  adoption on untouched legacy files. Emit --file-tracking-scope task and
+  --plan-lock-scope task alongside existing deep test scope and evidence flags.
+  Preserve both baseline forms, manifest-directory selection, JSON/text command
+  agreement, and all deep coverage/knockout requirements. Leave handoff assessment
+  and explicitly invoked deep profile defaults unchanged: repository audits must
+  still be available. Assessment already requires an explicit baseline, so its
+  deep recommendation can safely use the shipped baseline-bound task gates.
+  This additively extends cmd_assess behavior with unchanged public signatures.
+  Update the existing exact deep-argv test to the new contract and keep remaining
+  assessment tests intact. That shared module is hashed by four historical locks:
+  fix-assess-real-repo-adoption-blockers, snapshot-cli-commands--main-2,
+  121-45-scope-assessed-deep-to-task, and fix-assess-changed-manifest-directory.
+  After approval, reconcile those hashes through maid plan revise with preserved
+  valid red evidence before implementation; do not edit lock JSON manually.
+  Prior 121-45 Outcome supports scoping emitted commands instead of changing
+  the global deep profile. Shared-test dependency discovery determines the
+  required lock reconciliation; no production edits occur during planning.
+temptations:
+- risk: Change the global deep profile to silence incremental-adoption failures.
+  instead: Add both scope flags only to assessed deep argv; verify explicit deep still uses repository scope.
+- risk: Relax enforcement by dropping plan-lock, red-evidence, coverage, or knockout requirements.
+  instead: Parse the emitted command through the public verify parser and assert all existing deep and evidence gates remain enabled.
+- risk: Hide shared-test hash drift by manually rewriting historical locks.
+  instead: Use maid plan dependents and sanctioned preserve-red-evidence revisions for the four affected locks before implementation.
+files:
+  edit:
+  - path: maid_runner/cli/commands/assess.py
+    artifacts:
+    - kind: function
+      name: cmd_assess
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Emit task file-tracking and plan-lock scope flags for deep recommendations while retaining explicit baseline and existing evidence requirements.
+  - path: tests/cli/test_assess_cmd.py
+    artifacts:
+    - kind: test_function
+      name: test_deep_recommendation_command_retains_handoff_gates
+      description: Exact deep argv for since and base-ref now includes task file tracking and task plan locks alongside existing handoff gates.
+  create:
+  - path: tests/cli/test_assess_brownfield_scopes.py
+    artifacts:
+    - kind: test_function
+      name: test_deep_assessment_emits_task_tracking_and_lock_scopes
+      description: Real Git change with untouched legacy source emits task scopes for both baseline forms; parsed command retains coverage, knockout, and evidence enforcement.
+    - kind: test_function
+      name: test_deep_assessment_text_and_json_emit_identical_task_scopes
+      description: Text command and JSON argv agree and contain both task scopes.
+    - kind: test_function
+      name: test_handoff_assessment_and_explicit_deep_audits_keep_existing_defaults
+      description: Handoff recommendations and explicit deep audits retain existing repository tracking defaults.
+  scope:
+  - path: docs/troubleshooting.md
+    reason: Explain assessed deep task scopes for incremental adoption and preserve explicit repository audit guidance.
+  read:
+  - maid_runner/core/change_assessment.py
+  - maid_runner/core/diff_scope.py
+  - maid_runner/core/config.py
+  - maid_runner/core/verify_profiles.py
+  - maid_runner/cli/commands/_main.py
+  - maid_runner/cli/commands/verify.py
+  - manifests/121-45-scope-assessed-deep-to-task.manifest.yaml
+  - manifests/fix-assess-real-repo-adoption-blockers.manifest.yaml
+  - manifests/snapshot-cli-commands--main-2.manifest.yaml
+  - manifests/fix-assess-changed-manifest-directory.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/cli/test_assess_brownfield_scopes.py tests/cli/test_assess_cmd.py
+outcome:
+  status: completed
+  completed_at: '2026-09-30T00:02:38Z'
+  summary: Assessment-selected deep commands now explicitly select task scope for file
+    tracking and plan locks, alongside existing task test scope and evidence requirements.
+    Explicit deep audit and handoff defaults remain unchanged.
+  rationale: An explicit Git baseline does not activate task-scoped tracking by itself.
+    Adding scope flags to the assessed deep argv preserves incremental adoption without
+    weakening deep evidence or redefining repository audits.
+  lessons:
+  - lesson_type: workflow
+    summary: Assessment commands for incremental adoption must bind file tracking and
+      plan-lock enforcement to the task baseline as well as binding tests, coverage,
+      and knockout.
+    tags:
+    - assess
+    - brownfield
+    - task-scope
+    paths:
+    - maid_runner/cli/commands/assess.py
+    - tests/cli/test_assess_brownfield_scopes.py
+  - lesson_type: validation
+    summary: When extending a shared exact-command regression, discover every hashing
+      lock and reconcile it through approved evidence-preserving revisions before implementation;
+      all five dependent hashes matched after reconciliation.
+    tags:
+    - plan-lock
+    - shared-tests
+    paths:
+    - tests/cli/test_assess_cmd.py
+  review_notes:
+  - source: independent-assess_brownfield_review
+    severity: ready
+    summary: Read-only explorer found no blocking or advisory findings; independently
+      reran 24 tests, implementation validation, and new-lock integrity, and checked
+      the historical evidence-preserving revisions.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/cli/test_assess_brownfield_scopes.py
+    - tests/cli/test_assess_cmd.py
+    - tests/cli/test_assess_manifest_directory.py
+    status: passed
+    summary: 24 assessment and adjacent manifest-directory tests passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --quiet
+    - --packet
+    status: passed
+    summary: Repository-wide validation passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/fix-assess-brownfield-task-scopes.manifest.yaml
+    status: passed
+    summary: Declared validation command passed all 19 cases.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - 4b5e24ee519b0e10f28b273d46a7ea392a1c2e34
+    - --summary
+    - --packet
+    status: passed
+    summary: All 11 deep gates passed with zero blockers and existing nonblocking E307
+      validator warning.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: failed-unrelated
+    summary: '303 of 304 commands passed. Grouped pytest: 5053 passed, 11 skipped, two
+      unchanged release-metadata assertions failed because CHANGELOG.md lacks an Unreleased
+      heading. Tests and changelog match task baseline.'

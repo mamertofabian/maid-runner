@@ -172,6 +172,28 @@ observable behavior.
 Fix: Add assertions for the user-visible or API-visible behavior. Prefer direct
 behavior checks over private state or incidental implementation details.
 
+Python checks also recognize direct Playwright chains such as
+`expect(locator).to_be_visible()` and `expect(locator).not_to_have_text("Loading")`,
+including awaited calls and `expect(actual=locator)`. Recognition requires an
+actual argument and a called matcher from the Playwright Python 1.58 vocabulary.
+Bare `expect(...)`, matcher attribute access, unknown matchers, and ordinary
+receiver method calls still produce E210.
+
+This is a bounded syntax heuristic; it does not prove import provenance or
+execution. Aliased or module-qualified `expect` calls and stored assertion
+objects are outside this addition. Runtime test and deep-evidence requirements
+remain in force.
+
+JS/TS callback boundaries use the existing tree-sitter parser to shield regex
+tokens containing braces, quotes, or slash characters. Assertions are checked
+in each callback's original text, so duplicate test labels remain independent
+and assertion-free regex callbacks still report E210.
+
+Install `maid-runner[typescript]` or `maid-runner[all]` for grammar-aware regex
+boundaries. Without those optional parsers, core assertion checking retains
+the legacy scanner and emits a `RuntimeWarning` explaining its lexical limits.
+Unexpected parser failures are not silently converted into successful scans.
+
 ### 16. No test files are declared (`E220`)
 
 Symptom: Behavioral or implementation coverage reports `E220`.
@@ -193,6 +215,65 @@ or omits the contextual test files declared by the manifest.
 Fix: Use a real test command such as `uv run python -m pytest -q <tests>`.
 Include every contextual behavioral test file in the manifest's validate
 command.
+
+Direct Node execution of the canonical Vitest package entry is supported:
+`node node_modules/vitest/vitest.mjs run tests/unit/example.test.ts`. Literal
+relative, `./`-relative, and absolute package-entry paths are recognized.
+The entry must end in `node_modules/vitest/vitest.mjs` and be followed by `run`;
+arbitrary script basenames, traversal, and shell expansion/glob paths do not
+qualify. Existing Vitest target and nonexecution checks still apply, so help,
+list, version, and dry modes cannot claim test execution. Node VM flags and
+unproven wrappers remain outside this direct-entry recognition rule.
+
+Vitest `--root PATH`, `--root=PATH`, and `-r PATH` establish runner selection
+context; their values do not count as executed test targets. Supply independent
+explicit file or directory selectors. The option applies regardless of its
+position relative to those selectors. Literal root-relative and cwd-relative
+filters inside the selected root are supported, and coverage remains confined
+to repository inventory under that root. Root context does not become the cwd
+of a later command segment.
+
+Missing, empty, nonexistent, file-valued, dynamic, or repeated roots fail closed
+for command coverage. Root-looking filter text after `--` does not rebind the
+root. Non-Vitest flags, including pytest `--rootdir`, retain their own semantics.
+
+For pytest configuration `addopts`, marker/name selectors (`-m`, `-k`) and
+path exclusions (`--ignore`, `--ignore-glob`, `--deselect`) may be harmless for
+an explicit test target. MAID accepts supported combinations only when two
+native pytest collection probes produce the same nonempty set of test IDs,
+including parametrized cases. One probe neutralizes `addopts`; the other keeps
+the configured command intact. These probes import test modules and
+`conftest.py`, then stop pytest's normal test/fixture dispatch through an owned
+plugin. They preserve native collection-mode flags so collection hooks see
+the same mode as a real run. The actual test command and configuration are
+not rewritten.
+
+Each probe also reports pytest's native runnable mode and effective `addopts`.
+Collection failures remain blocking even when a consumer changes the exit code.
+If native options differ
+from the inspected options (for example because a pytest version or config
+file suffix changes precedence), or native evidence is unavailable, MAID
+retains `E230` instead of assuming the configuration is safe.
+
+This proof supports simple `pytest`, `python -m pytest`, and `uv run` forms,
+explicit file/directory targets and one config-file choice, and common verbosity
+and strictness flags. A nearer config or an aliased/outside-root target requires
+an explicit `-c`/`--config-file` choice. Argument files (`@file`) and repeated
+config choices are unsupported for this proof. Non-executing modes, unsupported options/wrappers,
+collection errors, empty collection, or changed test IDs retain `E230` with a
+diagnostic. Use explicit test targets and reconcile filters that omit declared
+cases; do not treat a failed collection probe as evidence that tests ran.
+
+Pytest 9 native TOML candidates (`pytest.toml`, `.pytest.toml`, and native
+`[tool.pytest]` tables) trigger this guarded proof before legacy configuration
+shortcuts. Candidates include explicit config choices and project/test
+ancestors. The resolved consumer interpreter decides which configuration
+applies: pytest 8 may ignore a pytest-9-only file. For this path, native evidence
+supplies effective options directly, and nested configuration needs no explicit
+config choice. The same bounded option syntax, nonempty selection comparison,
+and runnable-mode checks apply. Explicit legacy config choices and command-line
+`addopts` overrides retain their existing checks, including `--collectonly`.
+MAID does not use its own pytest version to infer consumer behavior.
 
 ### 18. Declared artifact is not defined (`E300`)
 
@@ -264,6 +345,30 @@ parse, or an optional parser dependency is missing or incompatible.
 
 Fix: Run the language's normal syntax check, install the relevant optional
 extra such as `maid-runner[typescript]`, and rerun `maid validate`.
+
+Valid TSX/JSX text may contain raw `&`, such as `Contracts & Cancels`. The parse
+service applies a narrow grammar repair in parser-established JSX text contexts,
+including historical Git baselines used by `maid assess`. It preserves original
+source bytes and offsets; consumer files and historical commits need no escaping
+changes. Parser input is adopted only when diagnostics improve, and operators,
+attributes, valid entities, mismatched tags, and unrelated syntax errors remain
+protected. Existing parser repairs compose without discarding earlier changes.
+
+Parser compatibility preserves the source's exact destructured binding pattern;
+it does not invent a parameter named `props`. Missing return annotations remain
+`E304` warnings in default syntax mode. Opt-in compiler return contracts can
+verify inferred returns independently of parsing; see [E309 recovery](#36-compiler-return-contract-is-unavailable-e309)
+and the [configuration example](maid_specs.md#compiler-backed-typescript-return-contracts).
+
+Generated Supabase types can also expose a grammar limitation around `in_…`
+property names. In some Row/Insert/Update shapes, the parser folds the next-line
+field header into the preceding property's type annotation and reports the
+error at that earlier `string` type. The parse service repairs this exact
+property-owned token shape using same-width parser-only input, retaining
+original names, source bytes, offsets, and unrelated diagnostics. Same-line
+missing separators and malformed neighboring fields remain errors. Assessment
+uses the same repair for immutable baseline content; generated files and old
+commits do not need manual rewrites.
 
 ### 24. Stub implementation is detected (`E310`)
 
@@ -417,7 +522,71 @@ same `metadata.maid_task_base`, or pass `--since`/`--base-ref` to scope the run
 explicitly. Do not delete `maid_task_base` from manifests belonging to
 completed tasks; prior contracts are immutable.
 
+### 35. Deep assessment checks untouched legacy files
+
+Symptom: A deep verification command recommended by `maid assess` reports
+untracked legacy source files or missing plan locks outside the current task
+in a repository adopting MAID incrementally.
+
+Fix: Rerun `maid assess --since <baseline>` with the task's explicit Git
+baseline. Its deep recommendation includes `--file-tracking-scope task`,
+`--plan-lock-scope task`, and `--test-scope task`, so verification covers the
+baseline-bound task while retaining plan-lock, red-evidence, artifact-coverage,
+and knockout requirements. `--base-ref <baseline>` is also supported.
+
+For an intentional repository-wide audit, invoke `maid verify --profile deep`
+directly; its default file-tracking and plan-lock scopes remain `repository`.
+
+### 36. Compiler return contract is unavailable (`E309`)
+
+Symptom: Compiler-mode implementation validation reports blocking `E309` for a
+requested inferred return. The diagnostic identifies the declaration and carries
+the compiler proof's cause.
+
+Likely cause: Local Node or the TypeScript SDK is unavailable; the selected
+`tsconfig` is missing, invalid or does not include the source; the expected type
+cannot resolve in module scope; or the target is unsafe or unsupported. This
+includes top-level `any`/`unknown`, semantic errors, `noCheck`, `@ts-nocheck`,
+declaration files, methods, arrow functions and overloaded declarations.
+
+Fix: Check Node availability and the existing local TypeScript installation,
+then select the explicit owning config through `typescript_return_contracts`
+in `.maidrc.yaml`. For a references-only root, use the app's config directly.
+Inspect the reported type expression and source diagnostics with that project
+config, correct legitimate contract/source problems through the MAID workflow,
+and rerun `maid validate <manifest> --mode implementation`. No automatic SDK
+installation or silent syntax fallback occurs. If syntax-only validation is the
+intended policy, explicitly select `mode: syntax`.
+
+Keep the diagnostic distinctions:
+
+- `E302`: the compiler established a semantic return mismatch, or an explicit
+  source annotation differs from its contract.
+- `E303`: an argument contract differs. A destructured pattern such as
+  `{ value }` must use its actual binding name; a `props` alias is not created.
+- `E304`: syntax mode still reports missing annotations as warnings; a matched
+  compiler return proof does not suppress missing parameter annotations.
+- `E309`: the requested compiler return proof could not be established.
+
+The proof compares types bidirectionally under the project's effective
+`strictNullChecks`, without changing raw collector records or snapshots. See
+[compiler-backed return contracts](maid_specs.md#compiler-backed-typescript-return-contracts)
+for an executable configuration and artifact example.
+
 ## FAQ
+
+### FAQ: How should I declare Python variadic tuple annotations?
+
+Use source syntax such as `tuple[str, ...]` or `typing.Tuple[str, ...]` for
+parameter and return types. Python collection and snapshots preserve the literal
+`...`, including tuples nested inside other annotations.
+
+Historical Python function and method contracts that used `tuple[str, Ellipsis]`
+remain accepted through an expected-only compatibility rule for the final marker
+of a two-argument variadic tuple. New contracts should use `...`. This rule does
+not equate actual source identifiers with literal ellipsis, loosen type-alias
+targets, or apply to non-Python contracts; tuple element and length mismatches
+still fail.
 
 ### FAQ: Should I run `maid validate`, `maid test`, or `maid verify`?
 

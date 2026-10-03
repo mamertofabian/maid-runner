@@ -7,6 +7,7 @@ import re
 from pathlib import Path
 
 from maid_runner.core._file_discovery import is_test_file
+from maid_runner.core._rust_support import _is_inline_rust_test
 from maid_runner.core._test_command_targets import test_paths_from_validate_command
 from maid_runner.core.types import Manifest
 
@@ -54,6 +55,8 @@ def find_command_integrity_test_files(
 
 def is_command_integrity_test_file(path: str, project_root: Path) -> bool:
     name = Path(path).name
+    if Path(path).suffix == ".rs":
+        return is_test_file(path) or _is_inline_rust_test(path, project_root)
     if name == "conftest.py":
         return False
     if not is_test_file(path):
@@ -66,7 +69,7 @@ def is_command_integrity_test_file(path: str, project_root: Path) -> bool:
     if any(part.lower() in _TEST_DIRECTORY_NAMES for part in parts[:-1]):
         return True
 
-    return bool(re.search(r"\.(test|spec)\.(ts|tsx|js|jsx)$", name))
+    return bool(re.search(r"\.(test|spec)\.(ts|tsx|js|jsx|mjs|cjs)$", name))
 
 
 def is_python_behavioral_test_file(path: str, project_root: Path) -> bool:

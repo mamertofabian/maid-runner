@@ -1,0 +1,219 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+type: feature
+created: '2026-10-02T00:35:25Z'
+goal: Support Rust validator plugins, inline tests and Cargo test target integrity.
+description: 'Keep Rust syntax parsing in the external plugin. Discover .rs sources
+  excluding target output, recognize integration tests, and find inline tests using
+  the installed validator get_test_function_bodies hook. Track Rust file signatures
+  in directory test discovery so edits invalidate cached test classification. Resolve
+  Cargo targets using offline cargo metadata --no-deps without compiling tests or
+  downloading dependencies. Map target module graphs using the validator collect_dependencies
+  hook; unknown cfg/module resolution fails coverage visibly. Support default targets,
+  --lib, --bin, --test, --tests, --bins, --all-targets, --workspace, -p/--package,
+  --exclude, --manifest-path and bounded output/harness options. Reject compile-only,
+  documentation-only, unknown/config-altering options and name/list/ignored/skip filters
+  as full-file coverage evidence. Preserve all existing language behavior. Existing
+  contracts evolve additively without supersession. The related plugin discovery Outcome
+  recommends assertion-level red evidence and scope-only private call-site wiring;
+  tests are deferred imports where production symbols do not exist yet. No commit,
+  push, remote repository creation or publication.
+
+  Honor Cargo required-features using default feature closure and read harness=false
+  from target TOML because Cargo metadata omits it. Honor reference_context=exact
+  as opt-in kind/owner identity evidence for Rust without changing legacy reference
+  semantics.
+
+  '
+temptations:
+- risk: Accept cargo test by executable name alone, or interpret target names as file
+    paths.
+  instead: Resolve the actual offline metadata targets and test wrong target, package,
+    nonexecution and filter cases.
+- risk: Count every Rust source file in a target directory as executed.
+  instead: Traverse only parser-resolved mod dependencies, reject unresolved dependencies
+    and test an unreferenced source file.
+- risk: Put Rust parsing in Runner or classify production files as tests.
+  instead: Use the existing plugin test-body hook for inline discovery and retain
+    production file tracking.
+files:
+  edit:
+  - path: maid_runner/core/_file_discovery.py
+    artifacts:
+    - kind: function
+      name: discover_source_files
+      args:
+      - name: project_root
+        type: str | Path
+      - name: extensions
+        type: set[str] | None
+      - name: exclude_patterns
+        type: set[str] | None
+      - name: respect_gitignore
+        type: bool
+      returns: list[str]
+    - kind: function
+      name: is_test_file
+      args:
+      - name: path
+        type: str
+      returns: bool
+  - path: maid_runner/core/_validation_test_artifacts.py
+    artifacts:
+    - kind: function
+      name: find_test_files
+      args:
+      - name: manifest
+        type: Manifest
+      - name: project_root
+        type: Path
+      returns: list[str]
+    - kind: function
+      name: get_cached_test_artifacts
+      args:
+      - name: test_file
+        type: str | Path
+      - name: project_root
+        type: Path
+      - name: registry
+        type: ValidatorRegistry
+      returns: Optional[TestArtifactsTable]
+  scope:
+  - path: maid_runner/core/_removed_artifacts.py
+    reason: Preserve physical Rust context and fresh module-graph evidence when checking removed artifacts.
+  - path: maid_runner/core/supersession_audit.py
+    reason: Verify Rust removal exemptions with physical, uncached implementation collection.
+  - path: maid_runner/core/_implementation_validation.py
+    reason: Pass physical Rust source paths and bypass source-only caching for project-dependent collection.
+  - path: maid_runner/core/_rust_support.py
+    reason: Private Cargo metadata adapter and plugin-backed inline discovery; exercised
+      through public command integrity and discovery.
+  - path: maid_runner/core/_test_runner_invocation.py
+    reason: Internal Cargo invocation classification.
+  - path: maid_runner/core/_test_command_targets.py
+    reason: Delegate Cargo discovery and execution coverage to the Rust target adapter.
+  - path: maid_runner/core/_command_integrity_test_discovery.py
+    reason: Recognize plugin-backed inline Rust tests and custom Cargo test paths.
+  - path: docs/validator-plugin-authoring.md
+    reason: Document existing Rust plugin hooks and Cargo integration support boundaries.
+  - path: maid_runner/core/identity.py
+    reason: Honor opt-in exact reference kind and owner identity, preserving legacy
+      references.
+  - path: pyproject.toml
+    reason: Declare Python 3.10 TOML runtime dependency for Cargo harness configuration.
+  - path: uv.lock
+    reason: Synchronize conditional TOML dependency in the reproducible graph.
+  read:
+  - tests/core/test_rust_cargo_support.py
+  - maid_runner/validators/base.py
+  - maid_runner/validators/registry.py
+validate:
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/core/test_rust_cargo_support.py
+  - -q
+outcome:
+  status: completed
+  summary: Added Rust source and inline-test discovery, bounded Cargo target accounting, exact reference
+    identity and physical project context across implementation and removal checks.
+  rationale: Rust syntax remains in the external plugin; Runner uses existing validator hooks and offline
+    Cargo metadata while preserving existing language behavior.
+  completed_at: '2026-10-02T05:21:16.000008+00:00'
+  lessons:
+  - lesson_type: design
+    summary: Project-dependent Rust owners require physical paths and fresh module-graph collection in
+      validation, removal checks and supersession exemptions; exact references must reject one-sided missing
+      module identities.
+    tags:
+    - rust
+    - identity
+    - collection-context
+    paths:
+    - maid_runner/core/_implementation_validation.py
+    - maid_runner/core/_removed_artifacts.py
+    - maid_runner/core/supersession_audit.py
+    - maid_runner/core/identity.py
+  review_notes:
+  - source: independent-read-only-rust_review_workspace_contract
+    severity: info
+    summary: Ready to merge with no blocking or advisory findings; reviewer independently ran 146 plugin
+      tests and 64 Runner Rust/Cargo tests.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/core/test_rust_cargo_support.py
+    - tests/core/test_identity_matching.py
+    - tests/core/validation/test_test_command_targets.py
+    - tests/core/validation/test_test_runner_invocation.py
+    - tests/core/test_csharp_test_discovery.py
+    - tests/core/test_solidity_foundry_discovery.py
+    - tests/core/validation/test_foundry_test_runner.py
+    - tests/core/test_removed_artifacts.py
+    - tests/core/test_supersession_audit.py
+    - -q
+    status: passed
+    summary: 178 focused Rust, identity, existing-language and removal/audit regression tests passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --quiet
+    status: passed
+    summary: Repository-wide manifest validation passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - 82fa77cabef492b2dcc2d7cfb8fdac73798f6ab8
+    status: passed
+    summary: All 11 deep verification stages passed, including plan-lock, red evidence, artifact coverage
+      and knockout. Existing E307 warning for ts_compiler_resolver.cjs remains nonblocking.
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/
+    - -q
+    - -n
+    - '8'
+    - --dist
+    - loadscope
+    status: failed
+    summary: 5525 passed and 20 skipped; two pre-existing release metadata assertions fail because HEAD
+      ROADMAP reports 2.27.6 while the package version is 2.27.7.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: failed
+    summary: 304/305 commands passed; the failed batched pytest command contains those same two baseline
+      release metadata assertions.

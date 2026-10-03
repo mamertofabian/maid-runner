@@ -1,0 +1,263 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Make local Sphinx API reference validation independent of remote inventory availability"
+type: fix
+created: "2026-10-01T08:41:35Z"
+supersedes:
+  - 052-01-add-sphinx-api-reference
+metadata:
+  github_issue: 52
+  tags:
+    - documentation
+    - api-reference
+    - sphinx
+  priority: medium
+description: |
+  Preserve the generated public API reference and its published Python
+  intersphinx mapping while making local validation independent of docs.python.org
+  availability. The local build disables only the intersphinx extension; a
+  separate configuration test continues to assert that Read the Docs retains
+  intersphinx for published cross-references.
+temptations:
+  - risk: "Do not hand-maintain a partial API list that can drift from maid_runner.__all__."
+    instead: "List every exported symbol in the Sphinx autosummary page and guard it with a test that compares against maid_runner.__all__."
+  - risk: "Do not claim external Read the Docs publication is complete from local repository changes alone."
+    instead: "Add the Read the Docs configuration and keep final handoff explicit about any external project setup that remains outside the repo."
+  - risk: "Do not let generated documentation hide broken references or import warnings."
+    instead: "Run the Sphinx build with -W --keep-going through the manifest validation command and a focused pytest."
+  - risk: "Do not remove or hide the production Python intersphinx mapping to make local builds pass."
+    instead: "Disable intersphinx only for local warning-free build commands and keep the mapping asserted in the configuration test."
+  - risk: "Do not document private modules as part of the public reference surface."
+    instead: "Document the root maid_runner package exports and use examples/cross-references for common workflows."
+files:
+  create:
+    - path: .readthedocs.yaml
+      artifacts:
+        - kind: attribute
+          name: _readthedocs_sphinx_api_reference_config
+          of: readthedocs
+          type: yaml configuration
+          description: "Read the Docs build configuration that points to docs/reference/conf.py and installs package plus Sphinx docs requirements."
+    - path: docs/reference/requirements.txt
+      artifacts:
+        - kind: attribute
+          name: _sphinx_reference_requirements
+          of: documentation
+          type: requirements file
+          description: "Pinned-lower-bound Sphinx documentation requirements used by Read the Docs."
+    - path: docs/reference/conf.py
+      artifacts:
+        - kind: attribute
+          name: project
+          type: str
+          description: "Sphinx project name for the MAID Runner API reference."
+        - kind: attribute
+          name: author
+          type: str
+          description: "Sphinx author metadata."
+        - kind: attribute
+          name: extensions
+          type: list[str]
+          description: "Sphinx extensions for autodoc, autosummary, and intersphinx."
+        - kind: attribute
+          name: autosummary_generate
+          type: bool
+          description: "Enable autosummary page generation during Sphinx builds."
+        - kind: attribute
+          name: autodoc_typehints
+          type: str
+          description: "Render public API type hints in descriptions."
+        - kind: attribute
+          name: autodoc_member_order
+          type: str
+          description: "Preserve source order for autodoc members."
+        - kind: attribute
+          name: intersphinx_mapping
+          type: dict[str, tuple[str, object]]
+          description: "Python documentation intersphinx mapping."
+        - kind: attribute
+          name: html_theme
+          type: str
+          description: "Sphinx HTML theme."
+        - kind: attribute
+          name: html_title
+          type: str
+          description: "Sphinx HTML title."
+    - path: docs/reference/index.rst
+      artifacts:
+        - kind: attribute
+          name: _sphinx_reference_index
+          of: documentation
+          type: reStructuredText document
+          description: "Sphinx reference index that links API and example pages."
+    - path: docs/reference/api.rst
+      artifacts:
+        - kind: attribute
+          name: _public_api_autosummary_reference
+          of: documentation
+          type: reStructuredText document
+          description: "Root package API reference with automodule and autosummary entries for every maid_runner.__all__ export."
+    - path: docs/reference/examples.rst
+      artifacts:
+        - kind: attribute
+          name: _public_api_usage_examples
+          of: documentation
+          type: reStructuredText document
+          description: "Usage examples with Sphinx cross-references for major public MAID Runner workflows."
+  edit:
+    - path: tests/test_api_reference_docs.py
+      artifacts:
+        - kind: test_function
+          name: test_sphinx_configuration_declares_reference_build_settings
+          source_scenario: "The Sphinx configuration and packaging metadata are inspected."
+          actions:
+            - type: api_call
+              subject:
+                function: runpy.run_path
+            - type: api_call
+              subject:
+                function: tomllib.loads
+          expected:
+            behavior: "The docs config enables autodoc, autosummary, intersphinx, furo theme, and a docs dependency group with Sphinx and furo."
+        - kind: test_function
+          name: test_reference_index_and_public_api_page_cover_all_exported_symbols
+          source_scenario: "The Sphinx index and public API page are read."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The index links API/examples, api.rst uses automodule, and autosummary lists every maid_runner.__all__ export in order."
+        - kind: test_function
+          name: test_examples_use_cross_references_for_major_public_workflows
+          source_scenario: "The Sphinx examples page is read."
+          actions:
+            - type: api_call
+              subject:
+                function: Path.read_text
+          expected:
+            behavior: "The examples page cross-references major public functions/classes and includes multiple Python code blocks."
+        - kind: test_function
+          name: test_readthedocs_configuration_builds_the_sphinx_reference
+          source_scenario: "The Read the Docs YAML configuration is loaded."
+          actions:
+            - type: api_call
+              subject:
+                function: yaml.safe_load
+          expected:
+            behavior: "Read the Docs points at docs/reference/conf.py and installs both the package and docs reference requirements."
+        - kind: test_function
+          name: test_sphinx_reference_builds_without_warnings
+          source_scenario: "The Sphinx reference documentation is built in a temporary output directory with intersphinx disabled for the offline local build."
+          actions:
+            - type: api_call
+              command: python -m sphinx -b html -W --keep-going -D extensions=sphinx.ext.autodoc,sphinx.ext.autosummary docs/reference <tmp>/html
+              subject:
+                function: subprocess.run
+          expected:
+            behavior: "The Sphinx HTML build exits successfully and creates index.html plus generated pages for representative public exports without fetching the remote inventory."
+    - path: pyproject.toml
+      artifacts:
+        - kind: attribute
+          name: _docs_dependency_group
+          of: packaging
+          type: TOML dependency group
+          description: "Documentation dependency group containing Sphinx and furo for API reference builds."
+        - kind: attribute
+          name: _documentation_url
+          of: packaging
+          type: project URL
+          description: "Project documentation URL that points users to the generated API reference publication target."
+    - path: uv.lock
+      artifacts:
+        - kind: attribute
+          name: _locked_docs_dependency_group
+          of: packaging
+          type: uv lockfile section
+          description: "uv lockfile entries for the Sphinx and furo docs dependency group."
+  scope:
+    - path: CHANGELOG.md
+      reason: "Add the user-requested Unreleased inventory of user-visible changes since v2.27.6."
+    - path: .maid/plan-locks/snapshot-cli-commands--main-2.lock.json
+      reason: "Refresh the shared behavioral-test lock after changing tests/test_api_reference_docs.py; the sanctioned lock revision reindexes the current test-file inventory as one coherent snapshot."
+  read:
+    - maid_runner/__init__.py
+validate:
+  - uv run --group docs python -m pytest -q tests/test_api_reference_docs.py
+  - uv run --group docs python -c "from pathlib import Path; import shutil, subprocess, sys; src = Path('/tmp/maid-runner-api-reference-src'); out = Path('/tmp/maid-runner-api-reference-html'); shutil.rmtree(src, ignore_errors=True); shutil.rmtree(out, ignore_errors=True); shutil.copytree('docs/reference', src); raise SystemExit(subprocess.run([sys.executable, '-m', 'sphinx', '-b', 'html', '-W', '--keep-going', '-D', 'extensions=sphinx.ext.autodoc,sphinx.ext.autosummary', str(src), str(out)]).returncode)"
+  - uv run maid validate manifests/052-01-add-sphinx-api-reference.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/052-01-add-sphinx-api-reference.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  summary: >-
+    Restored release metadata assertions by adding the Unreleased section and
+    comparison link for changes since v2.27.6, and made local API-reference
+    builds independent of the remote Python inventory while preserving the
+    production intersphinx configuration.
+  rationale: >-
+    The release-note inventory groups all user-visible changes in the
+    v2.27.6..HEAD range. The original Sphinx warning was reproduced as an HTTP
+    503 from docs.python.org. Local validation now disables only intersphinx;
+    the configuration test still checks the production mapping. The old API
+    reference contract was superseded so its direct build command uses the
+    same offline validation mode. The shared behavioral test lock was refreshed
+    through maid plan revise with red evidence preserved.
+  lessons:
+    - lesson_type: docs-validation
+      summary: >-
+        Keep network-backed documentation cross-references enabled for
+        publication, but disable that extension in local warning-free builds
+        when the docs content does not rely on external references.
+      tags: [sphinx, intersphinx, offline-validation]
+      paths:
+        - docs/reference/conf.py
+        - tests/test_api_reference_docs.py
+        - manifests/fix-sphinx-offline-validation.manifest.yaml
+    - lesson_type: release-notes
+      summary: >-
+        Build Unreleased notes from the exact previous release-tag range, group
+        related fixes without duplicating the release-finalization commit, and
+        keep the comparison link anchored to the latest tag.
+      tags: [changelog, release, versioning]
+      paths: [CHANGELOG.md]
+  review_notes:
+    - source: independent-read-only-implementation-review
+      severity: info
+      summary: >-
+        Initial review found the changelog and shared lock refresh missing from
+        manifest scope. Both were declared and the task was re-reviewed.
+    - source: independent-read-only-implementation-review
+      severity: ready
+      summary: >-
+        Fresh re-review confirmed declared scope, complete v2.27.6..HEAD
+        changelog coverage, coherent offline Sphinx validation, and valid
+        lock/evidence state; no findings remained.
+  validation:
+    - command: [uv, run, python, -m, pytest, tests/integration/test_library_api.py, tests/test_api_reference_docs.py, -q]
+      status: passed
+      summary: 34 release metadata and API-reference documentation tests passed after the final changelog update.
+    - command: [uv, run, python, -m, pytest, tests/, -q]
+      status: passed
+      summary: 5,463 passed and 20 skipped after making the Sphinx test build offline; the later changelog-only expansion was covered by the focused 34-test run.
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: 696 manifests, 328 passed, 0 failed, and 368 superseded.
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: All 305 manifest command groups passed after the old network-dependent Sphinx contract was superseded.
+    - command: [uv, run, maid, test, --manifest, manifests/fix-sphinx-offline-validation.manifest.yaml]
+      status: passed
+      summary: All four commands declared by the superseding contract passed.
+    - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --file-tracking-scope, task, --plan-lock-scope, task, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, 137ba6c5]
+      status: passed
+      summary: All 11 task-scoped verification stages passed with zero blocking findings; only existing E307 validator availability notices remained.
+    - command: [uv, run, ruff, check, tests/test_api_reference_docs.py]
+      status: passed
+      summary: Ruff reported no issues in the changed test module.
+    - command: [uv, run, black, --check, tests/test_api_reference_docs.py]
+      status: passed
+      summary: Black formatting check passed for the changed test module.

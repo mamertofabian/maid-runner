@@ -111,6 +111,9 @@ _HELP_ANCHORS = {
     ErrorCode.FILE_SHOULD_BE_PRESENT.value: "21-declared-file-should-be-present-e306",
     ErrorCode.VALIDATOR_NOT_AVAILABLE.value: "22-no-validator-is-available-e307",
     ErrorCode.SOURCE_PARSE_ERROR.value: "23-source-cannot-be-parsed-e308",
+    ErrorCode.COMPILER_RETURN_CONTRACT_UNAVAILABLE.value: (
+        "36-compiler-return-contract-is-unavailable-e309"
+    ),
     ErrorCode.STUB_FUNCTION_DETECTED.value: "24-stub-implementation-is-detected-e310",
     ErrorCode.REMOVED_ARTIFACT_STILL_PRESENT.value: (
         "25-removed-artifact-still-exists-e311"
@@ -130,6 +133,12 @@ _HELP_ANCHORS = {
 }
 
 _DESCRIPTION_OVERRIDES = {
+    ErrorCode.COMPILER_RETURN_CONTRACT_UNAVAILABLE.value: (
+        "Compiler return contract unavailable",
+        "The requested TypeScript return contract could not be proved using the "
+        "local compiler and explicit owning configuration. Inspect the proof "
+        "diagnostics; no syntactic fallback was used.",
+    ),
     ErrorCode.CHANGED_FILE_OUTSIDE_MANIFEST_SCOPE.value: (
         "Changed file is outside manifest scope",
         "The worktree contains a changed file that is not declared by the "

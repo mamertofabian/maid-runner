@@ -4,9 +4,8 @@
 
 MAID Runner ships reusable GitHub Actions workflow templates for repositories
 that want CI gates around manifest validation, manifest-declared tests, and
-coverage reporting. The templates can run directly in this repository on
-`pull_request` and `push`, or downstream projects can call them through
-`workflow_call`.
+coverage reporting. The templates run directly in this repository on `pull_request` only.
+Through `workflow_call`, downstream callers can still invoke them from either `pull_request` or `push`.
 
 ## Validation Gate
 

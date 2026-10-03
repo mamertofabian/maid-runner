@@ -1,0 +1,393 @@
+{
+  "manifest_path": "manifests/activate-typescript-return-contract-validation.manifest.yaml",
+  "manifest_hash": "sha256-contract:7cb9bc4a8084d98ad251611e4bd5000908e4c0b9f51448c87dd84ac5013c360e",
+  "test_hashes": {
+    "tests/core/test_ts_return_contracts.py": "sha256-pyast:v2:0c3ba859a4f787493983b01cf9c60482892bba339dd1010ab79e4a93db19221b",
+    "tests/core/test_implementation_validation.py": "sha256-pyast:v2:2856cdefeb2b34c252661904ff2a71c96daa186ee48d7aba29b2a962b47174b7",
+    "tests/core/test_config.py": "sha256-pyast:v2:2d61fe5232fbf57b533be1f86b00cbd7c5502b1655d8333dfdcbfc24814cfc9f",
+    "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:d9428231f4f91827521a818c261dca44a3eaa08aaa343a14aa9ed13a48badb4b",
+    "tests/core/test_typescript_return_validation.py": "sha256-pyast:v2:358bc05c211fb8f802f7c5ad5c83309e35cea71ce6efebad6227bd1cd9043a45"
+  },
+  "created_at": "2026-09-30T12:18:17.356287+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:0d8ad739b82a8e0107db0f45f3c6e8125a4ee55b647d7e2f8c2b35757585620c",
+      "prior_test_hashes": {
+        "tests/core/test_ts_return_contracts.py": "sha256-pyast:v2:0c3ba859a4f787493983b01cf9c60482892bba339dd1010ab79e4a93db19221b",
+        "tests/core/test_implementation_validation.py": "sha256-pyast:v2:2856cdefeb2b34c252661904ff2a71c96daa186ee48d7aba29b2a962b47174b7",
+        "tests/core/test_config.py": "sha256-pyast:v2:2d61fe5232fbf57b533be1f86b00cbd7c5502b1655d8333dfdcbfc24814cfc9f",
+        "tests/core/test_diagnostics_registry.py": "sha256-pyast:v2:d9428231f4f91827521a818c261dca44a3eaa08aaa343a14aa9ed13a48badb4b",
+        "tests/core/test_typescript_return_validation.py": "sha256-pyast:v2:358bc05c211fb8f802f7c5ad5c83309e35cea71ce6efebad6227bd1cd9043a45"
+      },
+      "revised_at": "2026-09-30T12:18:28.746892+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/activate-typescript-return-contract-validation.manifest.yaml -> manifests/activate-typescript-return-contract-validation.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-30T12:18:28.432947+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_typescript_return_validation.py",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/core/test_typescript_return_validation.py::test_missing_compiler_infrastructure_never_falls_back_to_syntax[config]\nFAILED tests/core/test_typescript_return_validation.py::test_compiler_return_proof_preserves_exact_binding_pattern_contracts[{ value }-codes0]\nFAILED tests/core/test_typescript_return_validation.py::test_compiler_return_proof_preserves_exact_binding_pattern_contracts[props-codes1]\nFAILED tests/core/test_typescript_return_validation.py::test_matched_proof_does_not_suppress_parameter_annotation_warnings\nFAILED tests/core/test_typescript_return_validation.py::test_compiler_validation_keeps_raw_collection_snapshots_and_pure_comparison\nFAILED tests/core/test_typescript_return_validation.py::test_one_batch_checks_all_requested_unannotated_returns\nFAILED tests/core/test_typescript_return_validation.py::test_e309_is_registered_as_a_blocking_diagnostic\nFAILED tests/core/test_typescript_return_validation.py::test_public_engine_routes_opt_in_proofs_and_strict_warning_policy\nFAILED tests/core/test_typescript_return_validation.py::test_cli_surfaces_compiler_unavailability_consistently[text]\nFAILED tests/core/test_typescript_return_validation.py::test_cli_surfaces_compiler_unavailability_consistently[json]\nFAILED tests/core/test_typescript_return_validation.py::test_cli_surfaces_compiler_unavailability_consistently[packet]\nFAILED tests/core/test_typescript_return_validation.py::test_requested_method_return_is_explicitly_unsupported\nFAILED tests/core/test_typescript_return_validation.py::test_contract_without_return_expectation_does_not_invoke_compiler\nFAILED tests/core/test_typescript_return_validation.py::test_validation_uses_project_nullability_semantics[True-E302]\nFAILED tests/core/test_typescript_return_validation.py::test_validation_uses_project_nullability_semantics[False-None]\nFAILED tests/core/test_typescript_return_validation.py::test_return_configuration_constructor_rejects_invalid_settings[compiler-None]\nFAILED tests/core/test_typescript_return_validation.py::test_return_configuration_constructor_rejects_invalid_settings[compiler-]\nFAILED tests/core/test_typescript_return_validation.py::test_return_configuration_constructor_rejects_invalid_settings[invalid-tsconfig.app.json]\nFAILED tests/core/test_typescript_return_validation.py::test_return_configuration_constructor_rejects_invalid_settings[syntax-True]\n38 failed, 5 passed in 0.94s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest -q tests/core/test_ts_return_contracts.py tests/core/test_implementation_validation.py tests/core/test_config.py tests/core/test_diagnostics_registry.py",
+        "exit_code": 0,
+        "output_tail": "........................................................................ [ 86%]\n...........                                                              [100%]\n83 passed in 9.75s",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_implementation_validation.py:class:ImplementationFileValidator",
+      "maid_runner/core/_implementation_validation.py:class:ImplementationFileValidator:kind=class",
+      "maid_runner/core/_implementation_validation.py:function:compare_artifacts",
+      "maid_runner/core/_implementation_validation.py:function:compare_artifacts:arg=expected:type=list[ArtifactSpec]:default=None",
+      "maid_runner/core/_implementation_validation.py:function:compare_artifacts:arg=file_path:type=str:default=None",
+      "maid_runner/core/_implementation_validation.py:function:compare_artifacts:arg=found:type=list[FoundArtifact]:default=None",
+      "maid_runner/core/_implementation_validation.py:function:compare_artifacts:arg=is_strict:type=bool:default=None",
+      "maid_runner/core/_implementation_validation.py:function:compare_artifacts:kind=function",
+      "maid_runner/core/_implementation_validation.py:function:compare_artifacts:returns=list[ValidationError]",
+      "maid_runner/core/_implementation_validation.py:method:ImplementationFileValidator.validate_file_spec",
+      "maid_runner/core/_implementation_validation.py:method:ImplementationFileValidator.validate_file_spec:arg=chain:type=Optional[ManifestChain]:default=None",
+      "maid_runner/core/_implementation_validation.py:method:ImplementationFileValidator.validate_file_spec:arg=fs:type=FileSpec:default=None",
+      "maid_runner/core/_implementation_validation.py:method:ImplementationFileValidator.validate_file_spec:arg=manifest:type=Manifest:default=None",
+      "maid_runner/core/_implementation_validation.py:method:ImplementationFileValidator.validate_file_spec:kind=method",
+      "maid_runner/core/_implementation_validation.py:method:ImplementationFileValidator.validate_file_spec:of=ImplementationFileValidator",
+      "maid_runner/core/_implementation_validation.py:method:ImplementationFileValidator.validate_file_spec:returns=list[ValidationError]",
+      "maid_runner/core/config.py:attribute:MaidConfig.typescript_return_contracts",
+      "maid_runner/core/config.py:attribute:MaidConfig.typescript_return_contracts:kind=attribute",
+      "maid_runner/core/config.py:attribute:MaidConfig.typescript_return_contracts:of=MaidConfig",
+      "maid_runner/core/config.py:attribute:MaidConfig.typescript_return_contracts:type=TypeScriptReturnContractsConfig",
+      "maid_runner/core/config.py:attribute:TypeScriptReturnContractsConfig.mode",
+      "maid_runner/core/config.py:attribute:TypeScriptReturnContractsConfig.mode:kind=attribute",
+      "maid_runner/core/config.py:attribute:TypeScriptReturnContractsConfig.mode:of=TypeScriptReturnContractsConfig",
+      "maid_runner/core/config.py:attribute:TypeScriptReturnContractsConfig.mode:type=Literal[\"syntax\", \"compiler\"]",
+      "maid_runner/core/config.py:attribute:TypeScriptReturnContractsConfig.tsconfig",
+      "maid_runner/core/config.py:attribute:TypeScriptReturnContractsConfig.tsconfig:kind=attribute",
+      "maid_runner/core/config.py:attribute:TypeScriptReturnContractsConfig.tsconfig:of=TypeScriptReturnContractsConfig",
+      "maid_runner/core/config.py:attribute:TypeScriptReturnContractsConfig.tsconfig:type=str | None",
+      "maid_runner/core/config.py:class:TypeScriptReturnContractsConfig",
+      "maid_runner/core/config.py:class:TypeScriptReturnContractsConfig:kind=class",
+      "maid_runner/core/config.py:function:load_config",
+      "maid_runner/core/config.py:function:load_config:arg=project_root:type=Union[str, Path]:default=None",
+      "maid_runner/core/config.py:function:load_config:kind=function",
+      "maid_runner/core/config.py:function:load_config:returns=MaidConfig",
+      "maid_runner/core/result.py:attribute:ErrorCode.COMPILER_RETURN_CONTRACT_UNAVAILABLE",
+      "maid_runner/core/result.py:attribute:ErrorCode.COMPILER_RETURN_CONTRACT_UNAVAILABLE:kind=attribute",
+      "maid_runner/core/result.py:attribute:ErrorCode.COMPILER_RETURN_CONTRACT_UNAVAILABLE:of=ErrorCode",
+      "maid_runner/core/result.py:attribute:ErrorCode.COMPILER_RETURN_CONTRACT_UNAVAILABLE:type=str",
+      "tests/core/test_typescript_return_validation.py:test_annotated_returns_keep_syntax_comparison_without_compiler",
+      "tests/core/test_typescript_return_validation.py:test_annotated_returns_keep_syntax_comparison_without_compiler:kind=test_function",
+      "tests/core/test_typescript_return_validation.py:test_cli_surfaces_compiler_unavailability_consistently",
+      "tests/core/test_typescript_return_validation.py:test_cli_surfaces_compiler_unavailability_consistently:kind=test_function",
+      "tests/core/test_typescript_return_validation.py:test_compiler_mode_classifies_return_contract_through_file_validator",
+      "tests/core/test_typescript_return_validation.py:test_compiler_mode_classifies_return_contract_through_file_validator:kind=test_function",
+      "tests/core/test_typescript_return_validation.py:test_compiler_return_proof_preserves_exact_binding_pattern_contracts",
+      "tests/core/test_typescript_return_validation.py:test_compiler_return_proof_preserves_exact_binding_pattern_contracts:kind=test_function",
+      "tests/core/test_typescript_return_validation.py:test_compiler_validation_keeps_raw_collection_snapshots_and_pure_comparison",
+      "tests/core/test_typescript_return_validation.py:test_compiler_validation_keeps_raw_collection_snapshots_and_pure_comparison:kind=test_function",
+      "tests/core/test_typescript_return_validation.py:test_contract_without_return_expectation_does_not_invoke_compiler",
+      "tests/core/test_typescript_return_validation.py:test_contract_without_return_expectation_does_not_invoke_compiler:kind=test_function",
+      "tests/core/test_typescript_return_validation.py:test_e309_is_registered_as_a_blocking_diagnostic",
+      "tests/core/test_typescript_return_validation.py:test_e309_is_registered_as_a_blocking_diagnostic:kind=test_function",
+      "tests/core/test_typescript_return_validation.py:test_invalid_return_configuration_fails_loudly",
+      "tests/core/test_typescript_return_validation.py:test_invalid_return_configuration_fails_loudly:kind=test_function",
+      "tests/core/test_typescript_return_validation.py:test_matched_proof_does_not_suppress_parameter_annotation_warnings",
+      "tests/core/test_typescript_return_validation.py:test_matched_proof_does_not_suppress_parameter_annotation_warnings:kind=test_function",
+      "tests/core/test_typescript_return_validation.py:test_missing_compiler_infrastructure_never_falls_back_to_syntax",
+      "tests/core/test_typescript_return_validation.py:test_missing_compiler_infrastructure_never_falls_back_to_syntax:kind=test_function",
+      "tests/core/test_typescript_return_validation.py:test_nonimplementation_modes_do_not_require_return_compiler",
+      "tests/core/test_typescript_return_validation.py:test_nonimplementation_modes_do_not_require_return_compiler:kind=test_function",
+      "tests/core/test_typescript_return_validation.py:test_one_batch_checks_all_requested_unannotated_returns",
+      "tests/core/test_typescript_return_validation.py:test_one_batch_checks_all_requested_unannotated_returns:kind=test_function",
+      "tests/core/test_typescript_return_validation.py:test_public_engine_routes_opt_in_proofs_and_strict_warning_policy",
+      "tests/core/test_typescript_return_validation.py:test_public_engine_routes_opt_in_proofs_and_strict_warning_policy:kind=test_function",
+      "tests/core/test_typescript_return_validation.py:test_requested_method_return_is_explicitly_unsupported",
+      "tests/core/test_typescript_return_validation.py:test_requested_method_return_is_explicitly_unsupported:kind=test_function",
+      "tests/core/test_typescript_return_validation.py:test_return_configuration_constructor_rejects_invalid_settings",
+      "tests/core/test_typescript_return_validation.py:test_return_configuration_constructor_rejects_invalid_settings:kind=test_function",
+      "tests/core/test_typescript_return_validation.py:test_return_configuration_defaults_and_explicit_compiler_mode",
+      "tests/core/test_typescript_return_validation.py:test_return_configuration_defaults_and_explicit_compiler_mode:kind=test_function",
+      "tests/core/test_typescript_return_validation.py:test_syntax_mode_preserves_missing_return_warning_without_node",
+      "tests/core/test_typescript_return_validation.py:test_syntax_mode_preserves_missing_return_warning_without_node:kind=test_function",
+      "tests/core/test_typescript_return_validation.py:test_unsafe_or_unsupported_return_proofs_are_blocking",
+      "tests/core/test_typescript_return_validation.py:test_unsafe_or_unsupported_return_proofs_are_blocking:kind=test_function",
+      "tests/core/test_typescript_return_validation.py:test_validation_uses_project_nullability_semantics",
+      "tests/core/test_typescript_return_validation.py:test_validation_uses_project_nullability_semantics:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_typescript_return_validation.py"
+      ],
+      "edit": [
+        "maid_runner/core/_implementation_validation.py",
+        "maid_runner/core/config.py",
+        "maid_runner/core/result.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/validate.py",
+        "maid_runner/core/_artifact_collection_cache.py",
+        "maid_runner/core/_implementation_coverage.py",
+        "maid_runner/core/_implementation_runner.py",
+        "maid_runner/core/snapshot.py",
+        "maid_runner/core/ts_return_contracts.py",
+        "maid_runner/core/types.py",
+        "maid_runner/core/validate.py",
+        "maid_runner/validators/base.py",
+        "maid_runner/validators/typescript.py",
+        "manifests/add-typescript-return-contract-proof.manifest.yaml",
+        "tests/core/test_config.py",
+        "tests/core/test_diagnostics_registry.py",
+        "tests/core/test_implementation_validation.py",
+        "tests/core/test_ts_return_contracts.py"
+      ],
+      "scope": [
+        "maid_runner/core/diagnostics_registry.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_typescript_return_validation.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_return_configuration_defaults_and_explicit_compiler_mode"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_invalid_return_configuration_fails_loudly"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_syntax_mode_preserves_missing_return_warning_without_node"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_compiler_mode_classifies_return_contract_through_file_validator"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unsafe_or_unsupported_return_proofs_are_blocking"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_missing_compiler_infrastructure_never_falls_back_to_syntax"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_annotated_returns_keep_syntax_comparison_without_compiler"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_compiler_return_proof_preserves_exact_binding_pattern_contracts"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_matched_proof_does_not_suppress_parameter_annotation_warnings"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_compiler_validation_keeps_raw_collection_snapshots_and_pure_comparison"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_one_batch_checks_all_requested_unannotated_returns"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_e309_is_registered_as_a_blocking_diagnostic"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_public_engine_routes_opt_in_proofs_and_strict_warning_policy"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_cli_surfaces_compiler_unavailability_consistently"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_requested_method_return_is_explicitly_unsupported"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_contract_without_return_expectation_does_not_invoke_compiler"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_validation_uses_project_nullability_semantics"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_return_configuration_constructor_rejects_invalid_settings"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_nonimplementation_modes_do_not_require_return_compiler"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/config.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "TypeScriptReturnContractsConfig"
+            },
+            {
+              "kind": "attribute",
+              "name": "mode",
+              "of": "TypeScriptReturnContractsConfig",
+              "type": "Literal[\"syntax\", \"compiler\"]"
+            },
+            {
+              "kind": "attribute",
+              "name": "tsconfig",
+              "of": "TypeScriptReturnContractsConfig",
+              "type": "str | None"
+            },
+            {
+              "kind": "attribute",
+              "name": "typescript_return_contracts",
+              "of": "MaidConfig",
+              "type": "TypeScriptReturnContractsConfig"
+            },
+            {
+              "kind": "function",
+              "name": "load_config",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]"
+                }
+              ],
+              "returns": "MaidConfig"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/_implementation_validation.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "ImplementationFileValidator"
+            },
+            {
+              "kind": "method",
+              "name": "validate_file_spec",
+              "of": "ImplementationFileValidator",
+              "args": [
+                {
+                  "name": "fs",
+                  "type": "FileSpec"
+                },
+                {
+                  "name": "manifest",
+                  "type": "Manifest"
+                },
+                {
+                  "name": "chain",
+                  "type": "Optional[ManifestChain]"
+                }
+              ],
+              "returns": "list[ValidationError]"
+            },
+            {
+              "kind": "function",
+              "name": "compare_artifacts",
+              "args": [
+                {
+                  "name": "expected",
+                  "type": "list[ArtifactSpec]"
+                },
+                {
+                  "name": "found",
+                  "type": "list[FoundArtifact]"
+                },
+                {
+                  "name": "file_path",
+                  "type": "str"
+                },
+                {
+                  "name": "is_strict",
+                  "type": "bool"
+                }
+              ],
+              "returns": "list[ValidationError]"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/result.py",
+          "artifacts": [
+            {
+              "kind": "attribute",
+              "name": "COMPILER_RETURN_CONTRACT_UNAVAILABLE",
+              "of": "ErrorCode",
+              "type": "str"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/ts_return_contracts.py",
+        "maid_runner/core/_implementation_runner.py",
+        "maid_runner/core/validate.py",
+        "maid_runner/core/_artifact_collection_cache.py",
+        "maid_runner/core/types.py",
+        "maid_runner/validators/base.py",
+        "maid_runner/validators/typescript.py",
+        "maid_runner/core/snapshot.py",
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/validate.py",
+        "maid_runner/core/_implementation_coverage.py",
+        "manifests/add-typescript-return-contract-proof.manifest.yaml",
+        "tests/core/test_ts_return_contracts.py",
+        "tests/core/test_implementation_validation.py",
+        "tests/core/test_config.py",
+        "tests/core/test_diagnostics_registry.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/diagnostics_registry.py",
+          "reason": "Register blocking compiler-return unavailable metadata through existing internal mappings; preserve public diagnostic APIs."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_config.py",
+      "tests/core/test_diagnostics_registry.py",
+      "tests/core/test_implementation_validation.py",
+      "tests/core/test_ts_return_contracts.py",
+      "tests/core/test_typescript_return_validation.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_typescript_return_validation.py",
+      "uv run python -m pytest -q tests/core/test_ts_return_contracts.py tests/core/test_implementation_validation.py tests/core/test_config.py tests/core/test_diagnostics_registry.py"
+    ],
+    "acceptance_commands": []
+  }
+}

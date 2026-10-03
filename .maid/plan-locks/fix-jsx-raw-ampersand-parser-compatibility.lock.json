@@ -1,0 +1,186 @@
+{
+  "manifest_path": "manifests/fix-jsx-raw-ampersand-parser-compatibility.manifest.yaml",
+  "manifest_hash": "sha256-contract:0d01f3264e8d7aec4f17b8a18feb66555d1e7f0d6e8295b3a799d9ff322d5776",
+  "test_hashes": {
+    "tests/validators/test_jsx_raw_ampersand_parse.py": "sha256-pyast:v2:145e3bd47a5baebaf2fcdfe04382a56200bfba2b97de7c355763503396336578"
+  },
+  "created_at": "2026-09-30T04:36:52.429528+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:2660f43ca4ab4405027f01e150297ec98829d81f342bfa754085f490f1f93eeb",
+      "prior_test_hashes": {
+        "tests/validators/test_jsx_raw_ampersand_parse.py": "sha256-pyast:v2:145e3bd47a5baebaf2fcdfe04382a56200bfba2b97de7c355763503396336578"
+      },
+      "revised_at": "2026-09-30T04:37:58.703998+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-jsx-raw-ampersand-parser-compatibility.manifest.yaml -> manifests/fix-jsx-raw-ampersand-parser-compatibility.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-30T04:36:52.839006+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/validators/test_jsx_raw_ampersand_parse.py",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/validators/test_jsx_raw_ampersand_parse.py::test_raw_ampersands_in_jsx_text_parse_without_changing_original_bytes[False-A && B-jsx]\nFAILED tests/validators/test_jsx_raw_ampersand_parse.py::test_raw_ampersands_in_jsx_text_parse_without_changing_original_bytes[False-\\U0001f9ea & Caf\\xe9-tsx]\nFAILED tests/validators/test_jsx_raw_ampersand_parse.py::test_raw_ampersands_in_jsx_text_parse_without_changing_original_bytes[False-\\U0001f9ea & Caf\\xe9-jsx]\nFAILED tests/validators/test_jsx_raw_ampersand_parse.py::test_raw_ampersands_in_jsx_text_parse_without_changing_original_bytes[True-Contracts & Cancels-tsx]\nFAILED tests/validators/test_jsx_raw_ampersand_parse.py::test_raw_ampersands_in_jsx_text_parse_without_changing_original_bytes[True-Contracts & Cancels-jsx]\nFAILED tests/validators/test_jsx_raw_ampersand_parse.py::test_raw_ampersands_in_jsx_text_parse_without_changing_original_bytes[True-A&B-tsx]\nFAILED tests/validators/test_jsx_raw_ampersand_parse.py::test_raw_ampersands_in_jsx_text_parse_without_changing_original_bytes[True-A&B-jsx]\nFAILED tests/validators/test_jsx_raw_ampersand_parse.py::test_raw_ampersands_in_jsx_text_parse_without_changing_original_bytes[True-&-tsx]\nFAILED tests/validators/test_jsx_raw_ampersand_parse.py::test_raw_ampersands_in_jsx_text_parse_without_changing_original_bytes[True-&-jsx]\nFAILED tests/validators/test_jsx_raw_ampersand_parse.py::test_raw_ampersands_in_jsx_text_parse_without_changing_original_bytes[True-A & B & C-tsx]\nFAILED tests/validators/test_jsx_raw_ampersand_parse.py::test_raw_ampersands_in_jsx_text_parse_without_changing_original_bytes[True-A & B & C-jsx]\nFAILED tests/validators/test_jsx_raw_ampersand_parse.py::test_raw_ampersands_in_jsx_text_parse_without_changing_original_bytes[True-A && B-tsx]\nFAILED tests/validators/test_jsx_raw_ampersand_parse.py::test_raw_ampersands_in_jsx_text_parse_without_changing_original_bytes[True-A && B-jsx]\nFAILED tests/validators/test_jsx_raw_ampersand_parse.py::test_raw_ampersands_in_jsx_text_parse_without_changing_original_bytes[True-\\U0001f9ea & Caf\\xe9-tsx]\nFAILED tests/validators/test_jsx_raw_ampersand_parse.py::test_raw_ampersands_in_jsx_text_parse_without_changing_original_bytes[True-\\U0001f9ea & Caf\\xe9-jsx]\nFAILED tests/validators/test_jsx_raw_ampersand_parse.py::test_raw_ampersand_repair_preserves_unrelated_syntax_error_locations\nFAILED tests/validators/test_jsx_raw_ampersand_parse.py::test_raw_ampersand_and_existing_parse_repairs_compose_without_restoring_errors\nFAILED tests/validators/test_jsx_raw_ampersand_parse.py::test_collection_after_unicode_jsx_text_retains_original_names_and_lines\nFAILED tests/validators/test_jsx_raw_ampersand_parse.py::test_assessment_accepts_historical_raw_ampersand_baseline\n28 failed, 10 passed in 0.22s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/validators/_typescript_parse.py:function:parse_typescript_source",
+      "maid_runner/validators/_typescript_parse.py:function:parse_typescript_source:arg=file_path:type=Union[str, Path]:default=None",
+      "maid_runner/validators/_typescript_parse.py:function:parse_typescript_source:arg=source:type=str:default=None",
+      "maid_runner/validators/_typescript_parse.py:function:parse_typescript_source:arg=ts_parser:type=Parser:default=None",
+      "maid_runner/validators/_typescript_parse.py:function:parse_typescript_source:arg=tsx_parser:type=Parser:default=None",
+      "maid_runner/validators/_typescript_parse.py:function:parse_typescript_source:kind=function",
+      "maid_runner/validators/_typescript_parse.py:function:parse_typescript_source:returns=TypeScriptParseSession",
+      "tests/validators/test_jsx_raw_ampersand_parse.py:test_ampersand_recovery_does_not_accept_genuine_jsx_syntax_errors",
+      "tests/validators/test_jsx_raw_ampersand_parse.py:test_ampersand_recovery_does_not_accept_genuine_jsx_syntax_errors:kind=test_function",
+      "tests/validators/test_jsx_raw_ampersand_parse.py:test_assessment_accepts_historical_raw_ampersand_baseline",
+      "tests/validators/test_jsx_raw_ampersand_parse.py:test_assessment_accepts_historical_raw_ampersand_baseline:kind=test_function",
+      "tests/validators/test_jsx_raw_ampersand_parse.py:test_collection_after_unicode_jsx_text_retains_original_names_and_lines",
+      "tests/validators/test_jsx_raw_ampersand_parse.py:test_collection_after_unicode_jsx_text_retains_original_names_and_lines:kind=test_function",
+      "tests/validators/test_jsx_raw_ampersand_parse.py:test_raw_ampersand_and_existing_parse_repairs_compose_without_restoring_errors",
+      "tests/validators/test_jsx_raw_ampersand_parse.py:test_raw_ampersand_and_existing_parse_repairs_compose_without_restoring_errors:kind=test_function",
+      "tests/validators/test_jsx_raw_ampersand_parse.py:test_raw_ampersand_repair_preserves_unrelated_syntax_error_locations",
+      "tests/validators/test_jsx_raw_ampersand_parse.py:test_raw_ampersand_repair_preserves_unrelated_syntax_error_locations:kind=test_function",
+      "tests/validators/test_jsx_raw_ampersand_parse.py:test_raw_ampersands_in_jsx_text_parse_without_changing_original_bytes",
+      "tests/validators/test_jsx_raw_ampersand_parse.py:test_raw_ampersands_in_jsx_text_parse_without_changing_original_bytes:kind=test_function",
+      "tests/validators/test_jsx_raw_ampersand_parse.py:test_valid_jsx_expressions_attributes_and_entities_remain_unmodified",
+      "tests/validators/test_jsx_raw_ampersand_parse.py:test_valid_jsx_expressions_attributes_and_entities_remain_unmodified:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/validators/test_jsx_raw_ampersand_parse.py"
+      ],
+      "edit": [
+        "maid_runner/validators/_typescript_parse.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/assess.py",
+        "maid_runner/core/change_assessment.py",
+        "maid_runner/core/diff_scope.py",
+        "maid_runner/core/types.py",
+        "maid_runner/validators/typescript.py",
+        "manifests/fix-js-ts-regex-assertion-boundaries.manifest.yaml",
+        "pyproject.toml"
+      ],
+      "scope": [
+        "docs/troubleshooting.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/validators/test_jsx_raw_ampersand_parse.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_raw_ampersands_in_jsx_text_parse_without_changing_original_bytes",
+              "description": "Raw ampersands, repeated markers, adjacent text, Unicode and fragments parse in TSX/JSX while original source bytes and tree offsets remain intact."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_valid_jsx_expressions_attributes_and_entities_remain_unmodified",
+              "description": "Bitwise/conditional expressions, quoted attributes and valid entities remain byte-identical in the parse tree when no recovery is needed."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_ampersand_recovery_does_not_accept_genuine_jsx_syntax_errors",
+              "description": "Missing operands, malformed attributes, wrong closing tags and incomplete elements remain syntax errors."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_raw_ampersand_repair_preserves_unrelated_syntax_error_locations",
+              "description": "Known JSX grammar repair preserves the independent syntax error at its original source line."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_raw_ampersand_and_existing_parse_repairs_compose_without_restoring_errors",
+              "description": "JSX repair composes with existing type-query and in-prefixed-property sanitizers without discarding accepted same-width changes."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_collection_after_unicode_jsx_text_retains_original_names_and_lines",
+              "description": "Public TypeScript collection retains exported names, return types and original line locations after Unicode JSX text."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_assessment_accepts_historical_raw_ampersand_baseline",
+              "description": "Assessment reads valid raw JSX text from an immutable Git baseline and emits the baseline-bound verify command without requiring historical edits."
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/validators/_typescript_parse.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "parse_typescript_source",
+              "description": "Parse TypeScript/TSX with bounded same-width raw JSX text ampersand recovery while retaining original bytes, existing normalization stages and genuine diagnostics.",
+              "args": [
+                {
+                  "name": "source",
+                  "type": "str"
+                },
+                {
+                  "name": "file_path",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "ts_parser",
+                  "type": "Parser"
+                },
+                {
+                  "name": "tsx_parser",
+                  "type": "Parser"
+                }
+              ],
+              "returns": "TypeScriptParseSession"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/validators/typescript.py",
+        "maid_runner/core/diff_scope.py",
+        "maid_runner/core/change_assessment.py",
+        "maid_runner/cli/commands/assess.py",
+        "maid_runner/core/types.py",
+        "pyproject.toml",
+        "manifests/fix-js-ts-regex-assertion-boundaries.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "docs/troubleshooting.md",
+          "reason": "Explain parser compatibility for raw JSX text in current source and immutable baselines, without conflating the CSV signature-modeling gap."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/validators/test_jsx_raw_ampersand_parse.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/validators/test_jsx_raw_ampersand_parse.py"
+    ],
+    "acceptance_commands": []
+  }
+}

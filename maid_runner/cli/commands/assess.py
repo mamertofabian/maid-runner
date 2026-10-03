@@ -88,6 +88,10 @@ def cmd_assess(args: argparse.Namespace) -> int:
     if recommendation.profile == "deep":
         verify_argv.extend(
             (
+                "--file-tracking-scope",
+                "task",
+                "--plan-lock-scope",
+                "task",
                 "--test-scope",
                 "task",
                 "--require-plan-lock",

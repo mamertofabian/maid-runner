@@ -2,11 +2,11 @@
   "manifest_path": "manifests/121-17-isolate-nested-test-process-identities.manifest.yaml",
   "manifest_hash": "sha256-contract:068151e004144c36c0720b55cf302c98d1802a19e1f3727197c315b1be4a984b",
   "test_hashes": {
-    "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:e90baae652d05e55fb5caba7f5f6f733b3161bdd7d8ad44bba8a0728afcbe332",
+    "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:356622fef7d9d1375a02c221061a95e4b302dd10ca585a83fab278a486d3c635",
     "tests/core/test_git_project_templates.py": "sha256-pyast:v2:9792c849c1b9f2db5e868755081a72f7599df92b9a157b8dadbde2c702dcfba8"
   },
   "created_at": "2026-08-12T10:13:05.640439+00:00",
-  "revision": 11,
+  "revision": 12,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:be91fdf6fe1f669008c37e8ecf01452726051edf5907973d2ac1e3cbeb26f3d9",
@@ -191,6 +191,24 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:068151e004144c36c0720b55cf302c98d1802a19e1f3727197c315b1be4a984b",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:e90baae652d05e55fb5caba7f5f6f733b3161bdd7d8ad44bba8a0728afcbe332",
+        "tests/core/test_git_project_templates.py": "sha256-pyast:v2:9792c849c1b9f2db5e868755081a72f7599df92b9a157b8dadbde2c702dcfba8"
+      },
+      "revised_at": "2026-10-02T22:42:29.219392+00:00",
+      "reason": "User-approved Python 3.10/3.11 shared test harness compatibility; preserve unchanged production contract and historical red evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -316,6 +334,7 @@
       "uv run python -m pytest -q tests/core/test_runtime_evidence.py tests/core/test_git_project_templates.py",
       "uv run python -m pytest -q -n 8 --dist loadscope tests/core/test_runtime_evidence.py tests/core/test_git_project_templates.py",
       "uv run maid validate manifests/121-17-isolate-nested-test-process-identities.manifest.yaml --mode schema --quiet"
-    ]
+    ],
+    "acceptance_commands": []
   }
 }

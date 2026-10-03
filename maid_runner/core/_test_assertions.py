@@ -7,6 +7,7 @@ from dataclasses import dataclass
 import re
 from pathlib import Path
 from typing import Union
+import warnings
 
 from maid_runner.core.result import ErrorCode, Location, Severity, ValidationError
 
@@ -16,6 +17,40 @@ _JS_TS_TEST_PATTERN = re.compile(
     r"(?<![\w$.])(?:it|test|fit|xit)\s*\(\s*(['\"])(.*?)\1\s*,\s*(?:async\s*)?"
     r"(?:\(\s*\)\s*=>|function\s*\(\s*\))\s*\{",
     re.DOTALL,
+)
+# Public Python 1.58 Playwright matchers; their not_to_ forms use the same roots.
+_PLAYWRIGHT_MATCHERS = frozenset(
+    {
+        "to_be_attached",
+        "to_be_checked",
+        "to_be_disabled",
+        "to_be_editable",
+        "to_be_empty",
+        "to_be_enabled",
+        "to_be_focused",
+        "to_be_hidden",
+        "to_be_in_viewport",
+        "to_be_visible",
+        "to_contain_class",
+        "to_contain_text",
+        "to_have_accessible_description",
+        "to_have_accessible_error_message",
+        "to_have_accessible_name",
+        "to_have_attribute",
+        "to_have_class",
+        "to_have_count",
+        "to_have_css",
+        "to_have_id",
+        "to_have_js_property",
+        "to_have_role",
+        "to_have_text",
+        "to_have_value",
+        "to_have_values",
+        "to_match_aria_snapshot",
+        "to_have_title",
+        "to_have_url",
+        "to_be_ok",
+    }
 )
 
 
@@ -113,7 +148,7 @@ def check_test_assertions(source: str, test_path: str) -> list[ValidationError]:
                     )
                 )
     elif test_path.endswith((".ts", ".tsx", ".js", ".jsx")):
-        for match, body in _js_ts_test_bodies(source):
+        for match, body in _js_ts_test_bodies(source, test_path):
             if "expect(" not in body and "assert" not in body.lower():
                 test_name = match.group(2) or "unknown"
                 line = source[: match.start()].count("\n") + 1
@@ -132,11 +167,60 @@ def check_test_assertions(source: str, test_path: str) -> list[ValidationError]:
     return errors
 
 
-def _js_ts_test_bodies(source: str) -> list[tuple[re.Match[str], str]]:
+def _shield_js_ts_regex_tokens(source: str, test_path: str) -> str:
+    """Shield grammar-identified regex tokens without changing character offsets."""
+    try:
+        from tree_sitter import Language, Parser
+        import tree_sitter_typescript
+    except ImportError:
+        warnings.warn(
+            "JS/TS assertion checking is using the legacy scanner because optional "
+            "parsers are unavailable; install maid-runner[typescript] or [all] "
+            "for regex-aware boundaries.",
+            RuntimeWarning,
+            stacklevel=3,
+        )
+        return source
+
+    if "/" not in source:
+        return source
+
+    from maid_runner.validators._typescript_parse import parse_typescript_source
+
+    session = parse_typescript_source(
+        source,
+        test_path,
+        Parser(Language(tree_sitter_typescript.language_typescript())),
+        Parser(Language(tree_sitter_typescript.language_tsx())),
+    )
+    spans: list[tuple[int, int]] = []
+    pending = [session.tree.root_node]
+    while pending:
+        node = pending.pop()
+        if node.type == "regex" and not node.has_error:
+            spans.append((node.start_byte, node.end_byte))
+        else:
+            pending.extend(node.named_children)
+
+    # Parse-service spans are byte offsets. Decode each original segment before
+    # shielding so multibyte characters still occupy exactly one Python index.
+    parts: list[str] = []
+    cursor = 0
+    for start, end in sorted(spans):
+        parts.append(session.source_bytes[cursor:start].decode("utf-8"))
+        token = session.source_bytes[start:end].decode("utf-8")
+        parts.append("".join(char if char in "\r\n" else " " for char in token))
+        cursor = end
+    parts.append(session.source_bytes[cursor:].decode("utf-8"))
+    return "".join(parts)
+
+
+def _js_ts_test_bodies(source: str, test_path: str) -> list[tuple[re.Match[str], str]]:
+    shielded = _shield_js_ts_regex_tokens(source, test_path)
     bodies: list[tuple[re.Match[str], str]] = []
-    for match in _JS_TS_TEST_PATTERN.finditer(source):
+    for match in _JS_TS_TEST_PATTERN.finditer(shielded):
         opening_brace = match.end() - 1
-        closing_brace = _find_matching_js_ts_brace(source, opening_brace)
+        closing_brace = _find_matching_js_ts_brace(shielded, opening_brace)
         if closing_brace is None:
             continue
         bodies.append((match, source[opening_brace + 1 : closing_brace]))
@@ -203,12 +287,32 @@ def _find_matching_js_ts_brace(source: str, opening_brace: int) -> int | None:
     return None
 
 
+def _is_playwright_assertion_call(node: ast.Call) -> bool:
+    matcher = node.func
+    if not isinstance(matcher, ast.Attribute):
+        return False
+    if matcher.attr.removeprefix("not_") not in _PLAYWRIGHT_MATCHERS:
+        return False
+    expectation = matcher.value
+    return (
+        isinstance(expectation, ast.Call)
+        and isinstance(expectation.func, ast.Name)
+        and expectation.func.id == "expect"
+        and (
+            bool(expectation.args)
+            or any(keyword.arg == "actual" for keyword in expectation.keywords)
+        )
+    )
+
+
 def python_func_has_assertion(node) -> bool:
     """Check if a Python function AST node contains any assertion."""
     for child in ast.walk(node):
         if isinstance(child, ast.Assert):
             return True
         if isinstance(child, ast.Call):
+            if _is_playwright_assertion_call(child):
+                return True
             func = child.func
             if isinstance(func, ast.Attribute) and func.attr == "raises":
                 return True

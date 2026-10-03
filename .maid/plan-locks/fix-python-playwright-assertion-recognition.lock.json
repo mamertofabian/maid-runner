@@ -1,0 +1,158 @@
+{
+  "manifest_path": "manifests/fix-python-playwright-assertion-recognition.manifest.yaml",
+  "manifest_hash": "sha256-contract:92ab7ff966c15c892c7ddb6da01736ab36aa83b01cc12a73baf9d8da14944d78",
+  "test_hashes": {
+    "tests/core/validation/test_python_playwright_assertions.py": "sha256-pyast:v2:1fd36318cd71e160069ba14e7341075b29b85f0541016c808b2b66ac6d953459"
+  },
+  "created_at": "2026-09-30T02:40:24.105040+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:dec2539fae0ecc355e8751d4e33630672cf19db8da3e5e1b7b4d2a0b7a00d8ce",
+      "prior_test_hashes": {
+        "tests/core/validation/test_python_playwright_assertions.py": "sha256-pyast:v2:1fd36318cd71e160069ba14e7341075b29b85f0541016c808b2b66ac6d953459"
+      },
+      "revised_at": "2026-09-30T02:41:25.416132+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-python-playwright-assertion-recognition.manifest.yaml -> manifests/fix-python-playwright-assertion-recognition.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-30T02:40:24.558527+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/validation/test_python_playwright_assertions.py",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/core/validation/test_python_playwright_assertions.py::test_python_playwright_matcher_calls_are_recognized[True-to_have_attribute('role', 'button')]\nFAILED tests/core/validation/test_python_playwright_assertions.py::test_python_playwright_matcher_calls_are_recognized[True-to_have_class('button')]\nFAILED tests/core/validation/test_python_playwright_assertions.py::test_python_playwright_matcher_calls_are_recognized[True-to_have_count(1)]\nFAILED tests/core/validation/test_python_playwright_assertions.py::test_python_playwright_matcher_calls_are_recognized[True-to_have_css('display', 'block')]\nFAILED tests/core/validation/test_python_playwright_assertions.py::test_python_playwright_matcher_calls_are_recognized[True-to_have_id('search')]\nFAILED tests/core/validation/test_python_playwright_assertions.py::test_python_playwright_matcher_calls_are_recognized[True-to_have_js_property('muted', False)]\nFAILED tests/core/validation/test_python_playwright_assertions.py::test_python_playwright_matcher_calls_are_recognized[True-to_have_role('dialog')]\nFAILED tests/core/validation/test_python_playwright_assertions.py::test_python_playwright_matcher_calls_are_recognized[True-to_have_text('Ready')]\nFAILED tests/core/validation/test_python_playwright_assertions.py::test_python_playwright_matcher_calls_are_recognized[True-to_have_value('query')]\nFAILED tests/core/validation/test_python_playwright_assertions.py::test_python_playwright_matcher_calls_are_recognized[True-to_have_values(['a', 'b'])]\nFAILED tests/core/validation/test_python_playwright_assertions.py::test_python_playwright_matcher_calls_are_recognized[True-to_match_aria_snapshot('- button \"Save\"')]\nFAILED tests/core/validation/test_python_playwright_assertions.py::test_python_playwright_matcher_calls_are_recognized[True-to_have_title('Search')]\nFAILED tests/core/validation/test_python_playwright_assertions.py::test_python_playwright_matcher_calls_are_recognized[True-to_have_url('https://example.test/search')]\nFAILED tests/core/validation/test_python_playwright_assertions.py::test_python_playwright_matcher_calls_are_recognized[True-to_be_ok()]\nFAILED tests/core/validation/test_python_playwright_assertions.py::test_async_python_playwright_assertions_are_recognized[await expect(subject).to_be_visible()]\nFAILED tests/core/validation/test_python_playwright_assertions.py::test_async_python_playwright_assertions_are_recognized[await expect(subject).not_to_have_text('Loading')]\nFAILED tests/core/validation/test_python_playwright_assertions.py::test_async_python_playwright_assertions_are_recognized[await expect(subject, 'reviewed message').to_have_count(1)]\nFAILED tests/core/validation/test_python_playwright_assertions.py::test_async_python_playwright_assertions_are_recognized[await expect(actual=subject).to_have_text('Ready')]\nFAILED tests/core/validation/test_python_playwright_assertions.py::test_python_playwright_recognition_preserves_per_test_diagnostics\n63 failed, 15 passed in 0.25s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_test_assertions.py:function:check_test_assertions",
+      "maid_runner/core/_test_assertions.py:function:check_test_assertions:arg=source:type=str:default=None",
+      "maid_runner/core/_test_assertions.py:function:check_test_assertions:arg=test_path:type=str:default=None",
+      "maid_runner/core/_test_assertions.py:function:check_test_assertions:kind=function",
+      "maid_runner/core/_test_assertions.py:function:check_test_assertions:returns=list[ValidationError]",
+      "tests/core/validation/test_python_playwright_assertions.py:test_async_python_playwright_assertions_are_recognized",
+      "tests/core/validation/test_python_playwright_assertions.py:test_async_python_playwright_assertions_are_recognized:kind=test_function",
+      "tests/core/validation/test_python_playwright_assertions.py:test_existing_python_assertion_forms_remain_recognized",
+      "tests/core/validation/test_python_playwright_assertions.py:test_existing_python_assertion_forms_remain_recognized:kind=test_function",
+      "tests/core/validation/test_python_playwright_assertions.py:test_nonasserting_python_calls_still_report_e210",
+      "tests/core/validation/test_python_playwright_assertions.py:test_nonasserting_python_calls_still_report_e210:kind=test_function",
+      "tests/core/validation/test_python_playwright_assertions.py:test_python_playwright_matcher_calls_are_recognized",
+      "tests/core/validation/test_python_playwright_assertions.py:test_python_playwright_matcher_calls_are_recognized:kind=test_function",
+      "tests/core/validation/test_python_playwright_assertions.py:test_python_playwright_recognition_preserves_per_test_diagnostics",
+      "tests/core/validation/test_python_playwright_assertions.py:test_python_playwright_recognition_preserves_per_test_diagnostics:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/validation/test_python_playwright_assertions.py"
+      ],
+      "edit": [
+        "maid_runner/core/_test_assertions.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/core/_behavioral_validation.py",
+        "maid_runner/core/result.py",
+        "manifests/038-08-extract-behavioral-validation-helper.manifest.yaml",
+        "manifests/snapshot-cli-commands--main-2.manifest.yaml"
+      ],
+      "scope": [
+        "docs/troubleshooting.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/validation/test_python_playwright_assertions.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_python_playwright_matcher_calls_are_recognized",
+              "description": "Recognize direct sync expect(subject) calls terminating in documented Playwright 1.58 matchers and their Python not_to_ forms."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_async_python_playwright_assertions_are_recognized",
+              "description": "Recognize awaited matcher calls, custom messages, actual keyword arguments, and negated async assertions."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_nonasserting_python_calls_still_report_e210",
+              "description": "Bare expect, unknown matchers, unrelated receivers, attribute access, strings, missing actuals, and indirect receiver chains remain assertion-free."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_python_playwright_recognition_preserves_per_test_diagnostics",
+              "description": "Test-class matcher calls count while the separate click-only test retains exact E210 function and location diagnostics."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_existing_python_assertion_forms_remain_recognized",
+              "description": "Existing assert statements, assert-named helpers, assertion methods, and pytest.raises remain accepted."
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/_test_assertions.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "check_test_assertions",
+              "description": "Recognize bounded direct Python Playwright matcher call chains while retaining E210 for assertion-free tests and preserving existing language behavior.",
+              "args": [
+                {
+                  "name": "source",
+                  "type": "str"
+                },
+                {
+                  "name": "test_path",
+                  "type": "str"
+                }
+              ],
+              "returns": "list[ValidationError]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/result.py",
+        "maid_runner/core/_behavioral_validation.py",
+        "maid_runner/cli/commands/verify.py",
+        "manifests/038-08-extract-behavioral-validation-helper.manifest.yaml",
+        "manifests/snapshot-cli-commands--main-2.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "docs/troubleshooting.md",
+          "reason": "Document recognized direct Playwright assertion syntax and the bounded E210 heuristic without claiming import or execution proof."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/validation/test_python_playwright_assertions.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/validation/test_python_playwright_assertions.py"
+    ],
+    "acceptance_commands": []
+  }
+}

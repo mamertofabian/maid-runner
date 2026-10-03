@@ -43,21 +43,21 @@ on:
         type: boolean
         default: false
   pull_request:
-  push:
-    branches:
-      - main
-      - dev
-      - "dev/**"
-      - "release/**"
 
 jobs:
   maid-validation:
     name: MAID validation
     runs-on: ubuntu-latest
+    env:
+      UV_LINK_MODE: copy
+      UV_PYTHON: ${{ inputs['python-version'] || '3.12' }}
     permissions:
       contents: read
 
     steps:
+      - name: Configure Python bytecode cache
+        run: |
+          echo "PYTHONPYCACHEPREFIX=$RUNNER_TEMP/maid-python-cache" >> "$GITHUB_ENV"
       - name: Checkout repository
         uses: actions/checkout@v6.0.2
         with:

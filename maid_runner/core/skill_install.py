@@ -17,6 +17,7 @@ from maid_runner.core.uninstall import (
     UninstallReport,
     _is_link_or_reparse_point,
     _remove_path_on_windows,
+    remove_tree_at,
 )
 
 
@@ -207,7 +208,7 @@ def _remove_owned_skill_tree(
         name = relative.name
         stat_result = os.stat(name, dir_fd=descriptor, follow_symlinks=False)
         if stat.S_ISDIR(stat_result.st_mode):
-            shutil.rmtree(name, dir_fd=descriptor)
+            remove_tree_at(name, descriptor)
         else:
             os.unlink(name, dir_fd=descriptor)
     finally:

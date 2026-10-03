@@ -1,11 +1,8 @@
 name: Publish Python 🐍 distribution 📦 to PyPI
 
 on:
+  pull_request:
   push:
-    branches:
-      - dev
-      - main
-      - 'release/**'
     tags:
       - 'v*'  # Trigger on version tags like v0.1.0, v0.2.0, etc.
 
@@ -13,6 +10,10 @@ jobs:
   test:
     name: Test on Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
+    env:
+      UV_LINK_MODE: copy
+      # Apply the matrix interpreter to every uv command, including nested test commands.
+      UV_PYTHON: ${{ matrix.python-version }}
     # _publish_release_branch_python_diagnostics
     strategy:
       fail-fast: false
@@ -20,6 +21,9 @@ jobs:
         python-version: ["3.10", "3.11", "3.12"]
 
     steps:
+    - name: Configure Python bytecode cache
+      run: |
+        echo "PYTHONPYCACHEPREFIX=$RUNNER_TEMP/maid-python-cache" >> "$GITHUB_ENV"
     - uses: actions/checkout@v6.0.2
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v6.2.0

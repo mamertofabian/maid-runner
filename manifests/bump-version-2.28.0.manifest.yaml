@@ -1,0 +1,129 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: Prepare maid-runner 2.28.0 release metadata for Rust and Solidity plugin support
+type: feature
+created: "2026-10-02T12:37:10Z"
+description: |
+  Advance the locally prepared 2.27.7 metadata to minor release 2.28.0 for
+  Rust/Cargo and Solidity/Foundry validator-plugin integration. Keep parsing
+  attributed to the separately installed maid-validator-rust and
+  maid-validator-solidity distributions, not bundled Runner parsers.
+  Move the complete pending changelog inventory into a dated 2.28.0 section,
+  add the Rust entry, and synchronize pyproject, uv lock metadata, roadmap,
+  CLI runtime version and changelog comparison links. Use v2.27.6 as the
+  previous local release tag; the current changelog has no 2.27.7 release
+  section and all of its inventory remains pending.
+  A dedicated behavioral test avoids changing shared historical plan locks.
+  Existing historical metadata assertions remain applicable because their
+  version-mirror checks are dynamic. Build and inspect wheel/sdist metadata
+  and smoke-test the wheel in an isolated environment after implementation.
+  This is local preparation; commits, pushes, tags and publishing require
+  separate user approval.
+temptations:
+  - risk: Leave the roadmap or editable lock metadata on an older version.
+    instead: Test all release mirrors and regenerate uv.lock through uv.
+  - risk: Advertise the external Rust and Solidity plugins as bundled parsers.
+    instead: Name their independent packages and describe only Runner integration.
+  - risk: Drop pending fixes while adding the new plugin release notes.
+    instead: Preserve every current Unreleased entry under 2.28.0 and test the inventory.
+files:
+  scope:
+    - path: pyproject.toml
+      reason: Package version metadata has no analyzer-visible public artifact.
+    - path: uv.lock
+      reason: Editable package metadata must match the version through uv regeneration.
+    - path: CHANGELOG.md
+      reason: Date and inventory the minor release and synchronize comparison links.
+    - path: docs/ROADMAP.md
+      reason: Synchronize prepared CLI version and last-updated date.
+  read:
+    - tests/integration/test_release_2_28_0.py
+    - tests/integration/test_library_api.py
+    - maid_runner/__version__.py
+    - manifests/bump-version-2.27.5.manifest.yaml
+    - manifests/rust-cargo-runner-support.manifest.yaml
+    - manifests/solidity-foundry-runner-support.manifest.yaml
+    - .github/workflows/publish.yml
+    - Makefile
+validate:
+  - uv run python -m pytest -q tests/integration/test_release_2_28_0.py tests/integration/test_library_api.py
+outcome:
+  status: completed
+  completed_at: "2026-10-02T12:44:31Z"
+  summary: >-
+    Prepared maid-runner 2.28.0 on release/v2.next with synchronized package,
+    lock, roadmap and CLI metadata; dated release notes preserve all pending
+    changes and describe Rust/Cargo and Solidity/Foundry plugin integration.
+    Built and checked wheel and source distributions. No commit, push, tag
+    or publication was performed.
+  rationale: >-
+    Rust and Solidity plugin support warrants the requested minor release.
+    The previous tagged release is v2.27.6; 2.27.7 had local metadata but no
+    released changelog section or remote tag. Dedicated release tests avoid
+    rewriting historical shared tests and locks. E230 required adding the
+    contextual library tests to the validation command; sanctioned stash-backed
+    plan revision captured fresh red evidence before restoring implementation.
+  lessons:
+    - lesson_type: release-version-consistency
+      summary: >-
+        Test package, editable lock, runtime CLI, roadmap and dated changelog
+        references together, and inspect both built distribution versions.
+        Attribute independently installed language parsers to their plugins.
+      tags: [release, version, plugins]
+      paths: [pyproject.toml, uv.lock, CHANGELOG.md, docs/ROADMAP.md, tests/integration/test_release_2_28_0.py]
+    - lesson_type: validation-command-coverage
+      summary: >-
+        Contextual behavioral test files listed in files.read participate in
+        E230 command coverage; run them alongside dedicated release tests.
+        Revise command changes through the sanctioned red-evidence workflow.
+      tags: [plan-lock, behavioral-tests, maid-runner-feedback]
+      paths: [manifests/bump-version-2.28.0.manifest.yaml]
+  review_notes:
+    - source: independent-read-only-release_review
+      severity: ready
+      summary: >-
+        Reviewer returned Ready to merge with no blocking findings or
+        current-scope actionable advisories. Reviewed the complete diff,
+        locked scope, release inventory, plugin attribution, version mirrors,
+        comparison links and genuine red evidence; independently verified
+        32 focused tests and implementation validation. Local validation used
+        Python 3.12; Python 3.10/3.11 remain covered by the publishing CI matrix.
+  validation:
+    - command: [uv, run, maid, validate, manifests/bump-version-2.28.0.manifest.yaml, --mode, implementation, --packet]
+      status: passed
+      summary: Promoted release contract passed implementation validation.
+    - command: [uv, run, maid, validate, --packet]
+      status: passed
+      summary: 330 active manifests passed; 368 superseded; zero failures.
+    - command: [uv, run, maid, test, --jobs, "1", --pytest-workers, "4"]
+      status: passed
+      summary: All 305 declared command groups passed after the E230 contract revision.
+    - command: [uv, run, python, -m, pytest, tests/, -q, -n, "4"]
+      status: passed
+      summary: >-
+        Clean final run passed 5,530 tests with 20 skipped. An earlier
+        overlapping broad run had 5,529 passes and one differential-knockout
+        KeyError; its isolated module rerun passed both tests, and the clean
+        full rerun passed without implementation or test changes.
+    - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --file-tracking-scope, task, --plan-lock-scope, task, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, 173ec9eebab516fc9a92da7f85c99a78bc1380b3]
+      status: passed
+      summary: All 11 stages passed; existing nonblocking E307 diagnostics concern a CJS resolver and non-code files.
+    - command: [make, build]
+      status: passed
+      summary: Built maid_runner-2.28.0 wheel and source distribution; archive metadata versions and Runner integration modules were checked.
+    - command: [uv, run, --with, twine, twine, check, dist/maid_runner-2.28.0-py3-none-any.whl, dist/maid_runner-2.28.0.tar.gz]
+      status: passed
+      summary: Both distribution metadata checks passed.
+    - command: [/tmp/maid-release-228-smoke/bin/maid, --version]
+      status: passed
+      summary: Clean isolated wheel installation outside the checkout reports maid 2.28.0.
+    - command: [uv, run, ruff, check, tests/integration/test_release_2_28_0.py]
+      status: passed
+      summary: Ruff reported no issues.
+    - command: [uv, run, black, --check, tests/integration/test_release_2_28_0.py]
+      status: passed
+      summary: Black formatting check passed.

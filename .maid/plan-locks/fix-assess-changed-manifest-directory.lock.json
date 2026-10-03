@@ -2,11 +2,11 @@
   "manifest_path": "manifests/fix-assess-changed-manifest-directory.manifest.yaml",
   "manifest_hash": "sha256-contract:24bc43b25c750fbd830286d58d2166eab33e4f806f2536e1a79bc95f32ff3b1e",
   "test_hashes": {
-    "tests/cli/test_assess_cmd.py": "sha256-pyast:v2:0d8a18fef974a4f0e37cceaed09e2d554c0411aec371e055c783c0f3e561bf3a",
+    "tests/cli/test_assess_cmd.py": "sha256-pyast:v2:d8a10f92569a6a0bf8a48ee4a9a7e6541d9451c104d7651b3d171613e4a8179b",
     "tests/cli/test_assess_manifest_directory.py": "sha256-pyast:v2:98359f7e3669f4c32730809a9682721e44db298ec4e2f31cd7b497fb035df794"
   },
   "created_at": "2026-08-25T00:22:38.823181+00:00",
-  "revision": 2,
+  "revision": 3,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:af7d3025fa11a421d8fcef93c55e3a8fb2d43ee79bf0a952668f4c147a5cfc4d",
@@ -16,6 +16,24 @@
       },
       "revised_at": "2026-08-25T00:22:40.482764+00:00",
       "reason": "Migrated by maid manifest promote: manifests/drafts/fix-assess-changed-manifest-directory.manifest.yaml -> manifests/fix-assess-changed-manifest-directory.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:24bc43b25c750fbd830286d58d2166eab33e4f806f2536e1a79bc95f32ff3b1e",
+      "prior_test_hashes": {
+        "tests/cli/test_assess_cmd.py": "sha256-pyast:v2:0d8a18fef974a4f0e37cceaed09e2d554c0411aec371e055c783c0f3e561bf3a",
+        "tests/cli/test_assess_manifest_directory.py": "sha256-pyast:v2:98359f7e3669f4c32730809a9682721e44db298ec4e2f31cd7b497fb035df794"
+      },
+      "revised_at": "2026-09-29T23:58:23.360111+00:00",
+      "reason": "Accept approved shared assessment test extension; preserve original manifest-directory contract and red evidence",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
@@ -169,6 +187,7 @@
     "validate_commands": [
       "uv run python -m pytest -q tests/cli/test_assess_manifest_directory.py tests/cli/test_assess_cmd.py",
       "uv run maid validate manifests/fix-assess-changed-manifest-directory.manifest.yaml --mode behavioral --quiet"
-    ]
+    ],
+    "acceptance_commands": []
   }
 }

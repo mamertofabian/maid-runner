@@ -252,9 +252,14 @@ class SupersessionAuditor:
             return False
         try:
             validator = self._registry.get(spec.file)
-            collection = artifact_cache.collect_cached_implementation_artifacts(
-                validator, source, spec.file
-            )
+            if full_path.suffix == ".rs":
+                collection = validator.collect_implementation_artifacts(
+                    source, full_path
+                )
+            else:
+                collection = artifact_cache.collect_cached_implementation_artifacts(
+                    validator, source, spec.file
+                )
         except Exception:
             return False
         if collection.errors:

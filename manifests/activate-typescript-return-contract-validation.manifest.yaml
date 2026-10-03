@@ -1,0 +1,300 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Activate opt-in TypeScript return proofs in implementation validation while preserving
+  raw source contracts.
+type: feature
+created: '2026-09-30T12:18:28Z'
+description: 'Second slice of the approved compiler-return design, following the committed proof
+  adapter. Add frozen TypeScriptReturnContractsConfig with mode syntax (default) or compiler,
+  and optional tsconfig; compiler mode requires a nonempty explicit owning tsconfig. Add MaidConfig.typescript_return_contracts
+  and parse the matching .maidrc.yaml section. Reject invalid modes, config path types and unknown
+  section keys through load_config ValueError instead of silently selecting syntax.
+
+  ImplementationFileValidator reads configuration in its validation operation, not its constructor.
+  Its constructor gains an optional owned return_contract_checker dependency whose call contract
+  is (Path project_root, str source_path, str config_path, str source, tuple[ReturnContractExpectation,
+  ...] expectations) -> ReturnContractResult. Default to the existing public check_return_contracts
+  adapter. Batch the file''s requested missing-return proofs once per per-file validation stage,
+  without persistent semantic-result caching. No bridge call is needed in syntax mode, for an
+  annotated return or for a contract without a return expectation.
+
+  Apply compiler proof results at artifact comparison, retaining independent kind, argument,
+  binding-pattern, type-parameter and strict-public-artifact checks. For requested absent callable
+  returns in .ts/.tsx source, matched suppresses only that return''s E304; mismatched emits
+  blocking E302; unavailable (including invalid expectations, unsupported methods/arrows/overloads,
+  missing SDK/Node/config or suppressed semantic checking) emits blocking E309 COMPILER_RETURN_CONTRACT_UNAVAILABLE
+  with declaration identity, source location and proof diagnostics. Explicit source annotations
+  still compare syntactically. Python and other source languages retain current behavior. The
+  context-free compare_artifacts public helper remains syntactic.
+
+  Do not replace FoundArtifact.returns, mutate artifact-cache entries, manufacture a props alias,
+  rewrite snapshots, or activate compiler checks in schema/behavioral modes. Existing ValidationEngine
+  and CLI routing consume the per-file policy without new engine public API. Keep JSON, text
+  and failure packets consistent with the same blocking E309 diagnostic. Add diagnostic metadata
+  through the existing registry, retaining the common-issues help anchor until the documentation
+  slice.
+
+  Use additive chain evolution for existing config/result/per-file contracts; no durable public
+  artifact is removed or renamed, and no existing locked tests are edited. The proof adapter
+  remains read-only. The prior Outcome''s suppressed-diagnostic and reply-provenance lessons
+  shape actual SDK tests and failure cases; reuse its safety guards rather than reimplementing
+  TypeScript semantics. Documentation and final bug-report archival remain in the subsequent
+  acceptance slice.
+
+  Manifest-derived recall reinforced compatibility boundaries: the existing type-comparison-hook
+  Outcome kept compare_artifacts signatures unchanged, and the enum/variadic-tuple Outcomes
+  preserved historical collector representation. This slice therefore leaves collector records
+  and old callable APIs unchanged, adds an optional owned constructor dependency, and isolates
+  new policy in private comparison wiring. Their unrelated release-metadata failures remain
+  outside this task.
+  '
+temptations:
+- risk: Do not write inferred return strings into FoundArtifact or snapshot contracts.
+  instead: Consume typed proof decisions only in per-file comparison and test raw collection,
+    snapshots and the pure comparison helper remain syntactic.
+- risk: Do not remove every E304 after a successful compiler proof.
+  instead: Suppress only the matching missing-return diagnostic while retaining parameter annotation
+    warnings and exact binding-pattern errors.
+- risk: Do not silently fall back to syntax when explicitly enabled compiler proof fails.
+  instead: Emit blocking E309 with original proof diagnostics and verify text, JSON and packet
+    results.
+- risk: Do not call the compiler once per artifact or for default syntax validation.
+  instead: Collect requested absent-return contracts into one file batch and use the owned checker
+    seam to assert one invocation; bypass proof for explicit annotations and unspecified returns.
+files:
+  create:
+  - path: tests/core/test_typescript_return_validation.py
+    artifacts:
+    - kind: test_function
+      name: test_return_configuration_defaults_and_explicit_compiler_mode
+    - kind: test_function
+      name: test_invalid_return_configuration_fails_loudly
+    - kind: test_function
+      name: test_syntax_mode_preserves_missing_return_warning_without_node
+    - kind: test_function
+      name: test_compiler_mode_classifies_return_contract_through_file_validator
+    - kind: test_function
+      name: test_unsafe_or_unsupported_return_proofs_are_blocking
+    - kind: test_function
+      name: test_missing_compiler_infrastructure_never_falls_back_to_syntax
+    - kind: test_function
+      name: test_annotated_returns_keep_syntax_comparison_without_compiler
+    - kind: test_function
+      name: test_compiler_return_proof_preserves_exact_binding_pattern_contracts
+    - kind: test_function
+      name: test_matched_proof_does_not_suppress_parameter_annotation_warnings
+    - kind: test_function
+      name: test_compiler_validation_keeps_raw_collection_snapshots_and_pure_comparison
+    - kind: test_function
+      name: test_one_batch_checks_all_requested_unannotated_returns
+    - kind: test_function
+      name: test_e309_is_registered_as_a_blocking_diagnostic
+    - kind: test_function
+      name: test_public_engine_routes_opt_in_proofs_and_strict_warning_policy
+    - kind: test_function
+      name: test_cli_surfaces_compiler_unavailability_consistently
+    - kind: test_function
+      name: test_requested_method_return_is_explicitly_unsupported
+    - kind: test_function
+      name: test_contract_without_return_expectation_does_not_invoke_compiler
+    - kind: test_function
+      name: test_validation_uses_project_nullability_semantics
+    - kind: test_function
+      name: test_return_configuration_constructor_rejects_invalid_settings
+    - kind: test_function
+      name: test_nonimplementation_modes_do_not_require_return_compiler
+  edit:
+  - path: maid_runner/core/config.py
+    artifacts:
+    - kind: class
+      name: TypeScriptReturnContractsConfig
+    - kind: attribute
+      name: mode
+      of: TypeScriptReturnContractsConfig
+      type: Literal["syntax", "compiler"]
+    - kind: attribute
+      name: tsconfig
+      of: TypeScriptReturnContractsConfig
+      type: str | None
+    - kind: attribute
+      name: typescript_return_contracts
+      of: MaidConfig
+      type: TypeScriptReturnContractsConfig
+    - kind: function
+      name: load_config
+      args:
+      - name: project_root
+        type: Union[str, Path]
+      returns: MaidConfig
+  - path: maid_runner/core/_implementation_validation.py
+    artifacts:
+    - kind: class
+      name: ImplementationFileValidator
+    - kind: method
+      name: validate_file_spec
+      of: ImplementationFileValidator
+      args:
+      - name: fs
+        type: FileSpec
+      - name: manifest
+        type: Manifest
+      - name: chain
+        type: Optional[ManifestChain]
+      returns: list[ValidationError]
+    - kind: function
+      name: compare_artifacts
+      args:
+      - name: expected
+        type: list[ArtifactSpec]
+      - name: found
+        type: list[FoundArtifact]
+      - name: file_path
+        type: str
+      - name: is_strict
+        type: bool
+      returns: list[ValidationError]
+  - path: maid_runner/core/result.py
+    artifacts:
+    - kind: attribute
+      name: COMPILER_RETURN_CONTRACT_UNAVAILABLE
+      of: ErrorCode
+      type: str
+  scope:
+  - path: maid_runner/core/diagnostics_registry.py
+    reason: Register blocking compiler-return unavailable metadata through existing internal
+      mappings; preserve public diagnostic APIs.
+  read:
+  - maid_runner/core/ts_return_contracts.py
+  - maid_runner/core/_implementation_runner.py
+  - maid_runner/core/validate.py
+  - maid_runner/core/_artifact_collection_cache.py
+  - maid_runner/core/types.py
+  - maid_runner/validators/base.py
+  - maid_runner/validators/typescript.py
+  - maid_runner/core/snapshot.py
+  - maid_runner/cli/commands/_main.py
+  - maid_runner/cli/commands/validate.py
+  - maid_runner/core/_implementation_coverage.py
+  - manifests/add-typescript-return-contract-proof.manifest.yaml
+  - tests/core/test_ts_return_contracts.py
+  - tests/core/test_implementation_validation.py
+  - tests/core/test_config.py
+  - tests/core/test_diagnostics_registry.py
+validate:
+- uv run python -m pytest -q tests/core/test_typescript_return_validation.py
+- uv run python -m pytest -q tests/core/test_ts_return_contracts.py tests/core/test_implementation_validation.py
+  tests/core/test_config.py tests/core/test_diagnostics_registry.py
+outcome:
+  status: completed
+  completed_at: '2026-09-30T12:28:57Z'
+  summary: Opt-in TypeScript return proof configuration now routes through implementation validation.
+    Syntax remains the default; compiler mode requires explicit owning tsconfig. Matched proofs
+    suppress only missing-return warnings, mismatches emit E302, and unavailable proofs emit
+    blocking E309 consistently in text, JSON and failure packets. Raw artifacts, snapshots,
+    exact bindings, explicit annotations and other validation modes retain existing behavior.
+  rationale: Private per-file comparison decisions consume the existing typed compiler adapter
+    without changing source metadata or context-free comparison. An owned injectable checker
+    supports one batch per file and deterministic policy tests; configuration validation prevents
+    silent mode fallback.
+  lessons:
+  - lesson_type: validation
+    summary: Keep compiler proof decisions outside syntactic artifact records. Suppressing only
+      a specific return comparison preserves parameter warnings, exact binding-pattern contracts
+      and stable snapshots while permitting opt-in semantic verification.
+    tags:
+    - typescript
+    - compiler
+    - maid-runner-feedback
+    paths:
+    - maid_runner/core/_implementation_validation.py
+    - tests/core/test_typescript_return_validation.py
+  - lesson_type: validation
+    summary: 'Optional compiler validation needs two distinct policies: syntax is the compatible
+      default, while explicitly requested but unavailable proof is blocking. Register the diagnostic
+      once and let existing text, JSON and failure-packet routes carry it consistently.'
+    tags:
+    - configuration
+    - diagnostics
+    - maid-runner-feedback
+    paths:
+    - maid_runner/core/config.py
+    - maid_runner/core/result.py
+    - maid_runner/core/diagnostics_registry.py
+    - tests/core/test_typescript_return_validation.py
+  review_notes:
+  - source: independent-return_validation_review
+    severity: ready
+    summary: Independent read-only reviewer found no blocking or advisory findings and independently
+      passed all 126 focused and baseline cases. Scope and contract fidelity were confirmed;
+      no implementation-phase test or manifest revision was needed.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/test_typescript_return_validation.py
+    status: passed
+    summary: 43 integration cases passed, including actual SDK checks, exact bindings, parameter-warning
+      retention, one-file batching, output parity, raw snapshots and nonimplementation-mode
+      isolation.
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/test_ts_return_contracts.py
+    - tests/core/test_implementation_validation.py
+    - tests/core/test_config.py
+    - tests/core/test_diagnostics_registry.py
+    status: passed
+    summary: 83 proof/config/diagnostic/per-file regression cases passed. Reviewer independently
+      passed these and the integration cases together (126 total). Changed Python Ruff/Black
+      and diff whitespace checks passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --packet
+    status: passed
+    summary: 326 active manifests passed, zero failed; 367 superseded manifests skipped.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - 84407f8de77e86d6bbd1afa8d6dd38f752023807
+    status: passed
+    summary: All 11 assessed deep gates passed, including artifact coverage, knockout, plan
+      lock, red evidence and scope. Existing CJS E307 remains nonblocking.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: failed-unrelated
+    summary: '303 of 304 commands passed. Grouped pytest: 5434 passed, 13 skipped, two baseline
+      release-metadata assertions failed because CHANGELOG.md lacks Unreleased heading. Both
+      affected files match baseline.'

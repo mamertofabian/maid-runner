@@ -1,0 +1,146 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Protect Node module behavioral tests against unnoticed changes after plan lock.
+type: fix
+created: '2026-09-28T09:45:12Z'
+metadata:
+  priority: critical
+description: |
+  The wallet-copy-bot report demonstrates that explicitly run .test.mjs files
+  are absent from test_hashes. Extend existing filename classification to Node
+  ESM and CommonJS test/spec files, including colocated tests outside test
+  directories. Preserve public signatures and current production-file rules.
+  This compatible bug fix merges with existing discovery contracts; it does
+  not add language artifact collection or change source-file tracking.
+  Exercise real plan-lock creation and enforcement for direct selectors,
+  directory/read/create inventory, edits, and deletion. Recognize the report's
+  direct node --test invocation with literal positional file targets so newly
+  discovered tests do not cause E230. Support this deliberately narrow syntax;
+  invocations with options or wrappers (including env/shell prefixes) are
+  rejected until their execution semantics are
+  modeled, preventing help, eval, filtered/sharded runs and option values from
+  falsely satisfying command integrity. Reject glob syntax even in existing
+  filenames because Node can execute a different matched file. Exercise a real Node suite when Node
+  is installed; classification/enforcement tests do not require Node. Remove
+  inherited NODE_OPTIONS at the existing test-command environment boundary,
+  alongside PYTEST_ADDOPTS, so host configuration cannot silently filter tests.
+temptations:
+- risk: Do not fix only test files inside tests directories.
+  instead: Cover colocated test/spec module files through both discovery predicates.
+- risk: Do not treat every module as a behavioral test or relax lock enforcement.
+  instead: Retain existing test naming rules and verify E701 on changed/deleted inputs.
+files:
+  edit:
+  - path: maid_runner/core/_file_discovery.py
+    artifacts:
+    - kind: function
+      name: is_test_file
+      args:
+      - {name: path, type: str}
+      returns: bool
+  - path: maid_runner/core/_command_integrity_test_discovery.py
+    artifacts:
+    - kind: function
+      name: is_command_integrity_test_file
+      args:
+      - {name: path, type: str}
+      - {name: project_root, type: Path}
+      returns: bool
+  scope:
+  - path: maid_runner/core/_test_runner_invocation.py
+    reason: Recognize direct Node test invocations with positional targets without changing public API.
+  - path: maid_runner/core/_test_command_targets.py
+    reason: Require concrete Node test files so directory selectors cannot claim execution coverage.
+  - path: maid_runner/core/_test_command_execution.py
+    reason: Remove inherited NODE_OPTIONS alongside inherited pytest options before test execution.
+  read:
+  - tests/core/test_node_module_plan_lock.py
+  - maid_runner/core/plan_lock.py
+  - maid_runner/core/chain.py
+validate:
+- [uv, run, pytest, tests/core/test_node_module_plan_lock.py, -q]
+
+outcome:
+  status: completed
+  completed_at: '2026-09-28T10:07:37Z'
+  summary: Protected .test/.spec mjs and cjs inputs in plan-lock hashes and enforcement, and enabled
+    direct literal-file node --test commands without allowing wrappers, options, directories or glob
+    targets to claim test execution.
+  rationale: Both filename classifiers now recognize Node module tests, including colocated inputs.
+    The existing execution environment cleanup removes inherited NODE_OPTIONS. Native regressions
+    prove execution and prevent filters from hiding failing tests. Scope excludes language artifact
+    collection and source-file tracking. The full repository test gate remains blocked only by two
+    unchanged baseline release-metadata assertions; the assessed task deep gate passes.
+  lessons:
+  - lesson_type: validation-trust
+    summary: 'Discovery changes must be tested through plan-lock enforcement and actual command execution:
+      recognizing previously omitted tests exposed missing Node runner classification. Explicit and
+      inherited runner configuration, shell wrappers and glob interpretation can otherwise produce
+      false coverage.'
+    tags:
+    - plan-lock
+    - node
+    - command-integrity
+    - maid-runner-feedback
+    paths:
+    - maid_runner/core/_command_integrity_test_discovery.py
+    - maid_runner/core/_test_runner_invocation.py
+    - maid_runner/core/_test_command_targets.py
+    - maid_runner/core/_test_command_execution.py
+    - tests/core/test_node_module_plan_lock.py
+  review_notes:
+  - source: independent-read-only-node_patch_review
+    severity: ready
+    summary: No blocking findings or actionable advisories after review-driven regressions for shell/environment
+      bypasses and Node glob reinterpretation. Reviewer independently ran 50 contract tests, implementation
+      validation, and native path probes; reconciled the two unchanged baseline release failures.
+  validation:
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/fix-node-module-test-lock-coverage.manifest.yaml
+    status: passed
+    summary: 50 behavioral cases passed; 194 focused contract and adjacent discovery/runner/plan-lock
+      regressions also passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: 311 active manifests passed; 367 superseded manifests skipped.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: failed
+    summary: '302 of 303 commands passed. Batched pytest: 4870 passed, 9 skipped, 2 failed. Both
+      failures are unchanged tests/integration/test_library_api.py release-metadata assertions expecting
+      the absent Unreleased changelog heading; all their release metadata inputs are byte-identical
+      to baseline ce670d8f.'
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - ce670d8f
+    status: passed
+    summary: All 11 stages passed; existing E307 ts_compiler_resolver.cjs warning remains nonblocking.
+      Plan lock revision 12 matches and records preimplementation red evidence.

@@ -87,7 +87,11 @@ that listed non-test wiring under
 `files.scope` for narrow no-artifact wiring or `files.edit` for changed public
 artifacts before implementation continues. Undeclared dirty paths still fail
 closed. Scope-only manifests also reject separate dirty `files.read` context
-paths.
+paths. A scope-only contract with a non-test writable scope path may also
+stash explicitly declared `files.read` epic inventory at
+`manifests/drafts/*.epic.yaml`. Those planning changes are hidden during red
+capture and restored afterward, including untracked epics. This exception does
+not admit ordinary read-only source context or authorize production edits.
 
 Recall is advisory planning context only. It can inform selected-draft
 hardening, test focus, and implementation risks, but it does not expand the

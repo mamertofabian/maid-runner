@@ -1,0 +1,143 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Preserve valid legacy baseline evidence during draft promotion without laundering contract changes.
+type: fix
+created: '2026-09-28T10:15:24Z'
+metadata:
+  priority: critical
+description: |
+  Promotion currently drops legacy_baseline on the normal run path and replaces
+  it with an invalid all-green red_evidence payload. Preserve the exact audited
+  legacy provenance when the locked contract and behavioral tests are unchanged,
+  for both normal and --no-run promotion, without rerunning commands.
+  Verify the original draft against the full stored manifest contract hash
+  before applying sanctioned promotion mutations; this covers ordered signatures,
+  acceptance policy, supersession and removal intent omitted by partial snapshots.
+  Preserve canonical-hash compatibility with formatting and Outcome changes.
+  Reuse existing evidence-preservation and plan-revision checks afterward. Refuse and
+  roll back promotion if the legacy evidence is invalid, contradictory, missing
+  its contract snapshot, or if contract/test changes prevent preservation.
+  Self-referencing validate commands change during promotion and must therefore
+  fail with an actionable reconciliation error rather than silently rewriting
+  historical evidence or manufacturing new red evidence. Existing red and
+  test-only-green promotion behavior remains covered by adjacent regressions.
+  Reject non-string stored test hashes before invoking preservation checks.
+  A test parsing failure must use the same exit-2 rollback path, preserving the
+  original draft/lock bytes and removing the tentative active manifest.
+temptations:
+- risk: Do not preserve a legacy payload merely because it is non-null.
+  instead: Require existing evidence validity, unchanged contract and locked tests before preserving it.
+- risk: Do not recapture green legacy commands as if they were historical red evidence.
+  instead: Keep the audited legacy payload intact and do not rerun it during a preserving migration.
+- risk: Do not silently adjust self-referencing command provenance to make the gate pass.
+  instead: Roll back changed-command promotion and require explicit reconciliation.
+files:
+  edit:
+  - path: maid_runner/cli/commands/manifest.py
+    artifacts:
+    - kind: function
+      name: cmd_manifest
+      args:
+      - {name: args, type: argparse.Namespace}
+      returns: int
+  read:
+  - tests/cli/test_promote_legacy_baseline_preservation.py
+  - maid_runner/core/plan_lock.py
+  - maid_runner/core/manifest.py
+  - maid_runner/core/chain.py
+validate:
+- [uv, run, pytest, tests/cli/test_promote_legacy_baseline_preservation.py, -q]
+
+outcome:
+  status: completed
+  completed_at: '2026-09-28T10:46:12Z'
+  summary: Preserved audited legacy baseline evidence during normal and no-run promotion, binding
+    the original draft to its full locked contract and rejecting changed or malformed inputs without
+    leaving an active manifest behind.
+  rationale: Preflight uses the existing manifest hash matcher before sanctioned promotion mutations,
+    covering ordered signatures, acceptance policy, supersession and removal intent while allowing
+    canonical formatting and Outcome changes. Existing evidence/test checks preserve the exact legacy
+    payload without rerunning commands. Invalid test hashes, parsing failures and malformed evidence
+    use the failure/rollback path. Self-referencing validation rewrites explicitly require establishing
+    the legacy baseline at the final active path.
+  lessons:
+  - lesson_type: validation-trust
+    summary: Set-based deltas and partial contract snapshots omit meaningful policy and ordering.
+      Bind the original input to its complete locked hash before promotion changes metadata, then
+      check whether historical evidence can be preserved.
+    tags:
+    - promotion
+    - legacy-baseline
+    - plan-lock
+    - maid-runner-feedback
+    paths:
+    - maid_runner/cli/commands/manifest.py
+    - tests/cli/test_promote_legacy_baseline_preservation.py
+  - lesson_type: test-design
+    summary: Promotion rollback tests must exercise malformed evidence and test data as well as valid
+      contract edits, in both normal and no-run modes; assert exact original bytes, absent tentative
+      output and no command reexecution.
+    tags:
+    - rollback
+    - promotion
+    - behavioral-tests
+    - maid-runner-feedback
+    paths:
+    - tests/cli/test_promote_legacy_baseline_preservation.py
+  review_notes:
+  - source: independent-read-only-legacy_migration_review
+    severity: ready
+    summary: No remaining blocking findings or actionable advisories. Independent reviewer ran 80
+      preservation/adjacent tests and implementation validation, and reviewed the complete contract,
+      diff, lock and helper call paths. Review-driven cases cover ordered/policy changes, invalid
+      Python tests and malformed evidence/hash types.
+  validation:
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/fix-promote-legacy-baseline-preservation.manifest.yaml
+    status: passed
+    summary: All 56 contract cases passed. The focused promotion, legacy capture and evidence-integrity
+      regression suite passed 91 tests; Ruff, Black and diff checks passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: 312 active manifests passed; 367 superseded manifests skipped.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: failed
+    summary: '302 of 303 commands passed. Batched pytest: 4926 passed, 9 skipped, 2 failed. Both
+      failures are pre-existing release-metadata assertions in tests/integration/test_library_api.py
+      expecting a missing Unreleased changelog heading; their source and release inputs are unchanged
+      from baseline 2f39a2cd.'
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - 2f39a2cd
+    status: passed
+    summary: All 11 stages passed with plan-lock revision 7 and recorded preimplementation red evidence.
+      Existing E307 ts_compiler_resolver.cjs warning remains nonblocking.

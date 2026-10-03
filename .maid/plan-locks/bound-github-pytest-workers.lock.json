@@ -2,12 +2,12 @@
   "manifest_path": "manifests/bound-github-pytest-workers.manifest.yaml",
   "manifest_hash": "sha256-contract:583a0f9f38d7f35822687b6786e70ed872f0cc19921cd3ca1b7a835b4e549926",
   "test_hashes": {
-    "tests/ci/test_github_actions_templates.py": "sha256-pyast:v2:35e6dbf0c1ccf224f0697e13e063ddd67bb0daefaf5fcb9eb58497701cc9143d",
+    "tests/ci/test_github_actions_templates.py": "sha256-pyast:v2:2e64c1d99aa26815c46901baa98d611cd4acb8698814a141d6d84ea5c9af1bab",
     "tests/ci/test_github_pytest_worker_wiring.py": "sha256-pyast:v2:f65474540ec582b71d0e09ceecc097b2f836d668564053b16080a31e367f01cb",
     "tests/core/test_config.py": "sha256-pyast:v2:2d61fe5232fbf57b533be1f86b00cbd7c5502b1655d8333dfdcbfc24814cfc9f"
   },
   "created_at": "2026-08-20T12:15:29.497472+00:00",
-  "revision": 7,
+  "revision": 8,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:a09df8845872a79eaf464acec81ed897dcf09e0d16730bfc02a4c2c902e7cfed",
@@ -125,6 +125,25 @@
       },
       "revised_at": "2026-08-20T12:42:02.208826+00:00",
       "reason": "accept formatting-only behavioral test normalization",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:583a0f9f38d7f35822687b6786e70ed872f0cc19921cd3ca1b7a835b4e549926",
+      "prior_test_hashes": {
+        "tests/ci/test_github_actions_templates.py": "sha256-pyast:v2:35e6dbf0c1ccf224f0697e13e063ddd67bb0daefaf5fcb9eb58497701cc9143d",
+        "tests/ci/test_github_pytest_worker_wiring.py": "sha256-pyast:v2:f65474540ec582b71d0e09ceecc097b2f836d668564053b16080a31e367f01cb",
+        "tests/core/test_config.py": "sha256-pyast:v2:2d61fe5232fbf57b533be1f86b00cbd7c5502b1655d8333dfdcbfc24814cfc9f"
+      },
+      "revised_at": "2026-09-18T01:08:30.316681+00:00",
+      "reason": "accept approved shared-test removal of obsolete push-trigger assertion",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
@@ -281,6 +300,7 @@
     ],
     "validate_commands": [
       "uv run python -m pytest -q tests/ci/test_github_pytest_worker_wiring.py tests/ci/test_github_actions_templates.py tests/core/test_config.py"
-    ]
+    ],
+    "acceptance_commands": []
   }
 }

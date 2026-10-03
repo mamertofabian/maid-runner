@@ -281,6 +281,7 @@ def _load_promotion_lock(project_root: Path, draft_path: Path, old_rel: str):
     from maid_runner.core.plan_lock import (
         PlanLock,
         default_plan_lock_path,
+        manifest_hash_matches,
         _PlanLockLoadError,
     )
 
@@ -300,6 +301,18 @@ def _load_promotion_lock(project_root: Path, draft_path: Path, old_rel: str):
             f"'{lock.manifest_path}', not the draft being promoted "
             f"('{old_rel}'); refusing to promote."
         )
+    if lock.legacy_baseline is not None:
+        try:
+            matches_draft = isinstance(
+                lock.manifest_hash, str
+            ) and manifest_hash_matches(lock.manifest_hash, draft_path)
+        except (OSError, ValueError) as exc:
+            return f"Cannot verify the locked legacy baseline draft: {exc}"
+        if not matches_draft:
+            return (
+                "Cannot preserve legacy baseline: the draft does not match its "
+                "locked manifest hash. Reconcile the legacy plan before promotion."
+            )
     return lock, lock_path
 
 
@@ -327,26 +340,36 @@ def _migrate_promotion_lock(
     reason = f"Migrated by maid manifest promote: {old_rel} -> {new_rel}"
     try:
         prior_contract = _load_locked_contract(lock_path)
-        preserve_red_evidence = (
-            lock.red_evidence is not None
-            and revision_preserves_red_evidence(
-                lock,
-                output_path,
-                project_root,
-                prior_contract,
+        if lock.legacy_baseline is not None and not all(
+            isinstance(value, str) for value in lock.test_hashes.values()
+        ):
+            raise ValueError(
+                "Cannot preserve legacy baseline: locked test hashes must be strings."
             )
+        preserve_evidence = revision_preserves_red_evidence(
+            lock,
+            output_path,
+            project_root,
+            prior_contract,
         )
+        if lock.legacy_baseline is not None and not preserve_evidence:
+            raise ValueError(
+                "Cannot preserve legacy baseline: evidence, contract, or tests "
+                "changed or are invalid. Reconcile the legacy contract and tests "
+                "before promotion; if promotion rewrites validate commands, "
+                "establish the legacy baseline at the final active path instead."
+            )
         migrated = revise_plan_lock(
             lock,
             output_path,
             project_root,
             reason,
             prior_contract=prior_contract,
-            preserve_legacy_baseline=no_run,
+            preserve_legacy_baseline=True,
         )
-        if preserve_red_evidence:
+        if lock.red_evidence is not None and preserve_evidence:
             migrated = replace(migrated, red_evidence=lock.red_evidence)
-        elif not no_run:
+        elif not no_run and migrated.legacy_baseline is None:
             migrated = replace(
                 migrated,
                 red_evidence=capture_red_phase_evidence(
@@ -354,7 +377,14 @@ def _migrate_promotion_lock(
                 ).to_payload(),
             )
         migrated.save(lock_path)
-    except (ManifestLoadError, ManifestSchemaError, OSError, ValueError) as exc:
+    except (
+        ManifestLoadError,
+        ManifestSchemaError,
+        OSError,
+        SyntaxError,
+        TypeError,
+        ValueError,
+    ) as exc:
         return str(exc)
     return None
 

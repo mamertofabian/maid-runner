@@ -1,0 +1,227 @@
+# manifest-kind: draft
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Preserve canonical Python ellipsis annotations and validate variadic tuples without breaking historical callable contracts
+type: fix
+created: '2026-09-30T01:34:00Z'
+metadata:
+  priority: high
+  tags:
+  - python
+  - type-normalization
+  - compatibility
+  - e302
+description: |-
+  Resolve report 20260920-171500-elevenlabs-tuple-return.
+  Python annotation collection renders the AST literal Ellipsis as the identifier
+  Ellipsis, so canonical tuple[str, ...] parameter and return contracts fail E302.
+  Render literal ellipsis as ... in raw collected annotations and generated
+  snapshots, including nested types, typing.Tuple and Callable. Keep ordinary
+  identifier Ellipsis distinct and leave function-body stub detection unchanged.
+  Preserve existing contracts that used the old collector workaround without
+  bulk edits to historical manifests: allow a narrowly bounded expected-type
+  compatibility spelling for Python FUNCTION/METHOD parameters and returns only.
+  When ordinary comparison fails, normalize an expected named Ellipsis only as
+  the second/final argument of a two-argument tuple/Tuple/typing.Tuple, including
+  nested tuple positions. Compare that expected annotation to the unmodified
+  canonical found annotation through the existing type matcher. This is one-way
+  compatibility: do not normalize actual source identifiers, quoted string
+  values, type-alias targets, non-tuple shapes, or non-Python artifacts. Genuine
+  element and fixed-length tuple mismatches must still fail. Do not redefine
+  Runner-wide type normalization or weaken language plugin type semantics.
+  Use Python's standard annotation AST parsing or existing token services for
+  this bounded syntax adaptation; do not model execution or control flow.
+  Prior 095-02 Outcome documents historical tuple[str, Ellipsis] workarounds;
+  that evidence motivates a compatibility path rather than changing committed
+  contracts in bulk. Existing alias tests require that real alias targets remain
+  strict. This additive comparison behavior retains all public signatures.
+  All new tests stay in a dedicated module to avoid shared-test lock revisions.
+temptations:
+- risk: Globally treat Ellipsis and ... as interchangeable type tokens.
+  instead: Limit compatibility to expected Python function/method annotations and variadic tuple positions; retain strict alias and cross-language comparison tests.
+- risk: Rewrite actual source annotations or use string replacement inside quoted metadata.
+  instead: Canonicalize only the literal AST ellipsis during collection, and bound legacy expected normalization using parsed tuple positions without editing quoted values.
+- risk: Update dozens of accepted manifests and their locks to hide a collector bug.
+  instead: Preserve historical callable declarations through one-way compatibility and assert both old and canonical manifest contracts pass.
+- risk: Relax mismatched tuple element types or accept fixed-length tuples as variadic.
+  instead: Keep exact semantic comparison after bounded legacy adaptation and assert E302 for wrong elements, fixed length, and distinct named Ellipsis source annotations.
+files:
+  edit:
+  - path: maid_runner/core/_implementation_validation.py
+    artifacts:
+    - kind: function
+      name: compare_artifacts
+      args:
+      - name: expected
+        type: list[ArtifactSpec]
+      - name: found
+        type: list[FoundArtifact]
+      - name: file_path
+        type: str
+      - name: is_strict
+        type: bool
+      returns: list[ValidationError]
+      description: Compare artifacts with strict default semantics plus expected-only legacy variadic tuple compatibility for Python callable annotations.
+  scope:
+  - path: maid_runner/validators/_python_implementation.py
+    reason: Correct literal ellipsis rendering in the private annotation formatter; preserve named identifiers and stub/default handling.
+  - path: docs/troubleshooting.md
+    reason: Explain canonical variadic tuple declarations and narrowly supported historical callable spellings.
+  create:
+  - path: tests/validators/test_python_variadic_tuple_annotations.py
+    artifacts:
+    - kind: test_function
+      name: test_python_collection_preserves_ellipsis_annotation_syntax
+      description: Collect canonical ellipsis tokens in synchronous/asynchronous parameters and returns for builtin and typing tuples, nested containers, and Callable.
+    - kind: test_function
+      name: test_python_implementation_validation_accepts_canonical_and_legacy_tuple_contracts
+      description: Public implementation validation accepts canonical tuple contracts and existing legacy tuple contracts against the same canonical source.
+    - kind: test_function
+      name: test_python_comparison_retains_legacy_expected_tuple_spelling
+      description: Python function comparison accepts the historical expected tuple token only while found annotations remain canonical, including nested tuples.
+    - kind: test_function
+      name: test_python_method_tuple_annotations_keep_canonical_and_legacy_contracts
+      description: Method collection preserves canonical tuple annotations and comparison accepts canonical and historical expected tuples.
+    - kind: test_function
+      name: test_python_tuple_comparison_still_rejects_distinct_source_types
+      description: Wrong tuple elements, fixed-length tuples, and actual named Ellipsis source annotations still report precise parameter and return mismatches.
+    - kind: test_function
+      name: test_legacy_tuple_compatibility_does_not_relax_type_aliases_or_other_languages
+      description: Legacy compatibility does not affect type-alias targets or non-Python artifact comparisons.
+    - kind: test_function
+      name: test_ellipsis_identifiers_outside_variadic_tuple_positions_remain_distinct
+      description: A named Ellipsis token outside the final second argument of a variadic tuple is not rewritten as a wildcard.
+    - kind: test_function
+      name: test_python_snapshot_uses_canonical_tuple_syntax_without_changing_stub_detection
+      description: Snapshot signatures use source ellipsis spelling; an ellipsis function body remains a detected stub.
+  read:
+  - maid_runner/validators/python.py
+  - maid_runner/validators/base.py
+  - maid_runner/core/_type_compare.py
+  - maid_runner/core/types.py
+  - maid_runner/core/result.py
+  - maid_runner/core/validate.py
+  - manifests/095-02-add-verify-profile-presets.manifest.yaml
+  - manifests/029-04-move-python-implementation-collector-module.manifest.yaml
+  - manifests/fix-python-function-arg-signature-mismatch.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/validators/test_python_variadic_tuple_annotations.py
+outcome:
+  status: completed
+  completed_at: '2026-09-30T01:41:47Z'
+  summary: Python collection and snapshots preserve literal ellipsis as ... in parameters
+    and returns. Existing callable tuple contracts using the historical expected Ellipsis
+    spelling continue to validate through bounded expected-only compatibility; aliases,
+    quoted values, source identifiers, and non-Python comparisons remain strict.
+  rationale: The collector used str(Ellipsis), which conflated a literal annotation
+    marker with an identifier. Correcting collection plus an expected-only tuple adaptation
+    resolves E302 without bulk rewrites of accepted contracts or changes to global type
+    normalization.
+  lessons:
+  - lesson_type: compatibility
+    summary: When correcting a shared collector representation, retain narrowly bounded
+      historical contract compatibility rather than conflating real source identifiers
+      with literals or migrating many accepted manifests.
+    tags:
+    - python
+    - type-normalization
+    - compatibility
+    paths:
+    - maid_runner/validators/_python_implementation.py
+    - maid_runner/core/_implementation_validation.py
+  - lesson_type: validation
+    summary: Compatibility parsing must preserve the ordinary matcher's outer-whitespace
+      handling. The reviewed regression was reproduced, tests strengthened, genuine
+      red recaptured with implementation stashed, then fixed by stripping before annotation
+      parsing.
+    tags:
+    - type-normalization
+    - plan-lock
+    - review-fix-loop
+    paths:
+    - tests/validators/test_python_variadic_tuple_annotations.py
+    - .maid/plan-locks/fix-python-variadic-tuple-annotations.lock.json
+  review_notes:
+  - source: independent-tuple_annotations_review
+    severity: resolved
+    summary: 'P2 finding: leading whitespace in historical expected annotations was
+      rejected by ast.parse. Added comparison and public-validation regressions, refreshed
+      lock revision3 with implementation stashed, and stripped outer whitespace before
+      parsing.'
+  - source: independent-tuple_annotations_final_review
+    severity: ready
+    summary: Fresh read-only explorer returned ready with no blocking findings or actionable
+      advisories. Independently ran all 37 behavioral cases and implementation validation,
+      and inspected bounded adaptation, aliases/plugins, scope, and revision3 evidence.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/validators/test_python_variadic_tuple_annotations.py
+    - tests/validators/test_python_type_alias.py
+    - tests/core/test_type_compare.py
+    - tests/validators/test_python.py
+    - tests/validators/test_python_parser_replacement_boundaries.py
+    - tests/core/validation/test_implementation_basics.py
+    - tests/core/test_snapshot.py
+    status: passed
+    summary: 194 focused and adjacent tests passed after the whitespace fix; Ruff and
+      Black checks also passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --quiet
+    - --packet
+    status: passed
+    summary: Repository-wide validation passed against the corrected implementation.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/fix-python-variadic-tuple-annotations.manifest.yaml
+    status: passed
+    summary: Declared validation command passed all 37 cases.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - 819f6cb769d1c76a877a4d4e93bee8c3f4477f6e
+    - --summary
+    - --packet
+    status: passed
+    summary: All 11 deep gates passed with zero blockers and existing nonblocking E307
+      validator warning.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: failed-unrelated
+    summary: '303 of 304 commands passed. Grouped pytest: 5090 passed, 11 skipped, and
+      two unchanged release-metadata assertions failed because CHANGELOG.md lacks an
+      Unreleased heading. Both affected files match task baseline.'

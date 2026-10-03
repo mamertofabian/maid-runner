@@ -5,8 +5,12 @@ import runpy
 import shutil
 import subprocess
 import sys
-import tomllib
 from pathlib import Path
+
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
 
 import yaml
 
@@ -128,6 +132,8 @@ def test_sphinx_reference_builds_without_warnings(tmp_path: Path) -> None:
             "html",
             "-W",
             "--keep-going",
+            "-D",
+            "extensions=sphinx.ext.autodoc,sphinx.ext.autosummary",
             str(docs_source),
             str(tmp_path / "html"),
         ],

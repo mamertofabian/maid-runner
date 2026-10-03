@@ -1,0 +1,203 @@
+# manifest-kind: draft
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Use existing JS/TS parser token spans to keep regex literals from corrupting E210 callback boundaries
+type: fix
+created: '2026-09-30T03:50:52Z'
+metadata:
+  priority: high
+  tags:
+  - typescript
+  - javascript
+  - assertion-checking
+  - regex
+  - e210
+description: |-
+  Resolve report 20260928-113126-alexderthegreat-e210-regex-literal.
+  The balanced-brace scanner still treats braces/quotes/comment markers inside
+  regex literals as JavaScript code. This causes false E210 warnings, lost
+  callbacks, or assertion leakage between tests. Use the existing tree-sitter
+  TypeScript/TSX parse service to obtain regex token spans and shield those tokens
+  while locating the existing direct test callback forms. Slice original source
+  for assertion checks and preserve per-call labels and locations. Do not use
+  label-keyed body dictionaries: duplicate test names must remain independent.
+  Mask token punctuation without changing character/newline positions, accounting
+  for byte spans in multibyte source. Preserve the existing expect/assert substring
+  policy, Python behavior, diagnostics/severity, and supported direct it/test/fit/xit
+  callback shapes; this task does not add assertion provenance or control-flow
+  analysis. Division operators, comments and strings must not be misclassified
+  as regex literals. Do not add a custom regex/division lexer.
+  The TypeScript parsers remain optional. Import them lazily for JS/TS checks;
+  when the optional SDK is unavailable, retain the existing dependency-free scanner
+  and emit a RuntimeWarning explaining the legacy backend and installation of
+  maid-runner[typescript] or [all] for grammar-aware regex boundaries. This
+  fallback explicitly retains legacy lexical limitations rather than claiming
+  full regex support. Do not return an empty successful scan just because parsing
+  is unavailable or has errors; use trustworthy regex token spans from the existing
+  service without silently skipping callbacks, and propagate unexpected parser
+  failures. No new dependency pins or consumer test rewrites are required.
+  Prior fix-typescript-assertion-nested-braces Outcome and the June 24 insight
+  confirm that delimiter heuristics fixed nested setup but left lexical boundaries
+  limited. Reuse standard parser services instead of growing that heuristic into
+  a full analyzer. Keep new tests in an isolated module to avoid historical lock
+  reconciliation. This additively evolves check_test_assertions behavior with its
+  public signature unchanged.
+temptations:
+- risk: Extend the manual scanner with ad-hoc regex-versus-division heuristics.
+  instead: Use the existing TypeScript/TSX parser to identify regex spans; keep only bounded span shielding and existing callback extraction.
+- risk: Silence E210 for an entire file or collapse duplicate labels.
+  instead: Maintain independent callback boundaries and require regex-only and duplicate-label cases to retain exact warnings.
+- risk: Confuse parser byte offsets with Python character indexes.
+  instead: Preserve character and newline positions when shielding multibyte regex spans and validate original diagnostic paths/lines.
+- risk: Hide missing optional parsers behind empty successful results.
+  instead: Retain basic legacy scanning with a visible RuntimeWarning and documented lexical limitations; do not swallow unexpected parser failures.
+files:
+  edit:
+  - path: maid_runner/core/_test_assertions.py
+    artifacts:
+    - kind: function
+      name: check_test_assertions
+      args:
+      - name: source
+        type: str
+      - name: test_path
+        type: str
+      returns: list[ValidationError]
+      description: Determine assertions independently within direct JS/TS test callbacks using grammar-backed regex shielding while preserving existing diagnostics and Python behavior.
+  scope:
+  - path: docs/troubleshooting.md
+    reason: Document regex-aware callback boundaries and the visible legacy fallback when optional parser dependencies are absent.
+  create:
+  - path: tests/core/validation/test_js_ts_regex_assertion_boundaries.py
+    artifacts:
+    - kind: test_function
+      name: test_regex_setup_does_not_hide_later_assertions
+      description: Regex braces, quotes, Unicode and escaped slashes before expect do not truncate callbacks in JS, JSX, TS or TSX.
+    - kind: test_function
+      name: test_regex_only_callbacks_still_report_missing_assertions
+      description: Regex-only callbacks still report E210 rather than disappearing from the scan.
+    - kind: test_function
+      name: test_regex_does_not_leak_assertions_from_a_following_callback
+      description: A later asserting callback does not suppress an earlier regex-only test warning.
+    - kind: test_function
+      name: test_duplicate_labels_retain_independent_callback_diagnostics
+      description: Duplicate test labels retain per-call warning locations rather than collapsing into a dictionary keyed by name.
+    - kind: test_function
+      name: test_unicode_regex_and_labels_preserve_original_diagnostic_locations
+      description: Multibyte source, regex contents and labels preserve exact source line and path diagnostics.
+    - kind: test_function
+      name: test_division_comments_and_strings_keep_existing_assertion_behavior
+      description: Division, division assignment, comments and string data preserve existing assertion recognition.
+    - kind: test_function
+      name: test_core_assertion_checks_remain_available_without_optional_parser
+      description: Missing optional parser dependencies retain basic legacy scanning and produce a visible runtime warning explaining the degraded backend.
+  read:
+  - maid_runner/validators/_typescript_parse.py
+  - maid_runner/validators/typescript.py
+  - maid_runner/core/result.py
+  - maid_runner/core/_behavioral_validation.py
+  - maid_runner/cli/commands/verify.py
+  - pyproject.toml
+  - manifests/fix-typescript-assertion-nested-braces.manifest.yaml
+  - manifests/fix-python-playwright-assertion-recognition.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/core/validation/test_js_ts_regex_assertion_boundaries.py
+outcome:
+  status: completed
+  completed_at: '2026-09-30T03:56:37Z'
+  summary: JS/TS E210 callback boundaries now shield regex tokens using existing tree-sitter
+    parse-service spans. Original callback text, Unicode offsets, duplicate labels,
+    assertion policy, and Python behavior are preserved. Missing optional parsers retain
+    the legacy scanner with an explicit RuntimeWarning.
+  rationale: Manual brace scanning confused regex punctuation with syntax. Grammar-derived
+    token shielding fixes that lexical boundary without building a custom lexer or broad
+    analyzer, adding required dependencies, or changing assertion severity and runtime
+    evidence gates.
+  lessons:
+  - lesson_type: validation
+    summary: Use existing language services for lexical boundaries and retain original-source
+      diagnostics. Pair positive regex cases with assertion-free callbacks, adjacent
+      tests, duplicate labels, Unicode spans, division controls, and an observable optional-dependency
+      fallback.
+    tags:
+    - regex
+    - assertion-checking
+    - parser-reuse
+    paths:
+    - maid_runner/core/_test_assertions.py
+    - tests/core/validation/test_js_ts_regex_assertion_boundaries.py
+  review_notes:
+  - source: independent-regex_assertion_review
+    severity: ready
+    summary: Read-only explorer returned ready with no blocking findings or current-scope
+      advisories; independently reran all 34 cases and checked additional function callbacks,
+      parser recovery, Unicode, original substring policy, scope, and evidence.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/validation/test_js_ts_regex_assertion_boundaries.py
+    - tests/core/validation/test_assertion_checking.py
+    - tests/core/validation/test_assertion_cache.py
+    - tests/core/validation/test_python_playwright_assertions.py
+    status: passed
+    summary: 143 focused tests passed, including all 34 new cases. Ruff and Black checks
+      passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --quiet
+    - --packet
+    status: passed
+    summary: Repository-wide validation passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    - --manifest
+    - manifests/fix-js-ts-regex-assertion-boundaries.manifest.yaml
+    status: passed
+    summary: Declared validation command passed all 34 cases.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - 4155c22d601a4d903c53c6b6da9622c1bdbe4aec
+    - --summary
+    - --packet
+    status: passed
+    summary: All 11 deep gates passed without blockers; existing nonblocking E307 validator
+      warning remained.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: failed-unrelated
+    summary: '303 of 304 commands passed. Grouped pytest: 5202 passed, 11 skipped, two
+      unchanged release-metadata assertions failed because CHANGELOG.md lacks an Unreleased
+      heading. Both affected files match task baseline.'

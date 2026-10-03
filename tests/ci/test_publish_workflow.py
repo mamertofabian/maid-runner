@@ -62,10 +62,13 @@ def test_publish_workflow_exercises_release_branches_with_matrix_python() -> Non
     workflow_path = Path(".github/workflows/publish.yml")
     workflow = yaml.safe_load(workflow_path.read_text())
     test_job = workflow["jobs"]["test"]
+    publish_job = workflow["jobs"]["publish-to-pypi"]
     install_step = _named_step_for_job(workflow_path, "test", "Install dependencies")
     triggers = _workflow_triggers(workflow_path)
 
-    assert "release/**" in triggers["push"]["branches"]
+    assert "pull_request" in triggers
+    assert triggers["push"] == {"tags": ["v*"]}
+    assert publish_job["if"] == "startsWith(github.ref, 'refs/tags/v')"
     assert test_job["strategy"]["fail-fast"] is False
     assert install_step["run"] == 'uv sync --python "$pythonLocation/bin/python"'
 

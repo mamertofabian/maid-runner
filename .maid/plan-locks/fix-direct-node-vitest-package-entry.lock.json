@@ -1,0 +1,215 @@
+{
+  "manifest_path": "manifests/fix-direct-node-vitest-package-entry.manifest.yaml",
+  "manifest_hash": "sha256-contract:c847ce17fe83f59f2dab927778fa7be231cd74c3bdf95e2528268d2c57323e82",
+  "test_hashes": {
+    "tests/core/validation/test_node_vitest_entry_invocation.py": "sha256-pyast:v2:46e81702c68e4183464977bfb81abcc7bc3c48877b7decfd134796f8456676f8"
+  },
+  "created_at": "2026-09-30T05:36:12.362504+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:fdc05ac9f9b560231da40d0211ccf5e37c492678df506a8dcad201252d0c956c",
+      "prior_test_hashes": {
+        "tests/core/validation/test_node_vitest_entry_invocation.py": "sha256-pyast:v2:de1475df30523a29afe0ece0cc3ede4d3ef0dcb25d19978525f348ef5c0a3fde"
+      },
+      "revised_at": "2026-09-30T05:36:12.995811+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-direct-node-vitest-package-entry.manifest.yaml -> manifests/fix-direct-node-vitest-package-entry.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:e0efba7837715fdbea9ce4b81d694d7cc52828f12e14c9b07ed9e4388f87448e",
+      "prior_test_hashes": {
+        "tests/core/validation/test_node_vitest_entry_invocation.py": "sha256-pyast:v2:de1475df30523a29afe0ece0cc3ede4d3ef0dcb25d19978525f348ef5c0a3fde"
+      },
+      "revised_at": "2026-09-30T05:45:46.115501+00:00",
+      "reason": "Harden attached VM-option and shell-wrapper regressions; include existing shell target boundary to preserve approved direct-Node semantics",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_node_vitest_entry_invocation.py:test_shell_wrapped_node_vitest_entry_cannot_claim_direct_execution",
+          "tests/core/validation/test_node_vitest_entry_invocation.py:test_shell_wrapped_node_vitest_entry_cannot_claim_direct_execution:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:maid_runner/core/_test_command_targets.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-09-30T05:45:46.577835+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/validation/test_node_vitest_entry_invocation.py",
+        "exit_code": 1,
+        "output_tail": "        }[entry_form]\n        manifest = _project(tmp_path, [\"node\", entry, \"run\", target])\n    \n        errors = validate_manifest_test_commands(manifest, tmp_path)\n    \n>       assert errors == []\nE       assert [ValidationEr... directory.')] == []\nE         \nE         Left contains one more item: ValidationError(code=<ErrorCode.VALIDATE_COMMAND_DOES_NOT_RUN_TESTS: 'E230'>, message=\"VALIDATE_COMMAND_DOES_NOT_RUN_T...ion='Run the behavioral tests with a recognized test runner and target each test file or a containing test directory.')\nE         Use -v to get more diff\n\ntests/core/validation/test_node_vitest_entry_invocation.py:78: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/validation/test_node_vitest_entry_invocation.py::test_direct_node_vitest_entry_covers_declared_test_targets[tests/unit/value.test.ts-relative]\nFAILED tests/core/validation/test_node_vitest_entry_invocation.py::test_direct_node_vitest_entry_covers_declared_test_targets[tests/unit/value.test.ts-dot_relative]\nFAILED tests/core/validation/test_node_vitest_entry_invocation.py::test_direct_node_vitest_entry_covers_declared_test_targets[tests/unit/value.test.ts-absolute]\nFAILED tests/core/validation/test_node_vitest_entry_invocation.py::test_direct_node_vitest_entry_covers_declared_test_targets[tests/unit-relative]\nFAILED tests/core/validation/test_node_vitest_entry_invocation.py::test_direct_node_vitest_entry_covers_declared_test_targets[tests/unit-dot_relative]\nFAILED tests/core/validation/test_node_vitest_entry_invocation.py::test_direct_node_vitest_entry_covers_declared_test_targets[tests/unit-absolute]\n6 failed, 30 passed, 1 skipped in 0.24s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_validation_test_artifacts.py:function:validate_manifest_test_commands",
+      "maid_runner/core/_validation_test_artifacts.py:function:validate_manifest_test_commands:arg=manifest:type=Manifest:default=None",
+      "maid_runner/core/_validation_test_artifacts.py:function:validate_manifest_test_commands:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_validation_test_artifacts.py:function:validate_manifest_test_commands:kind=function",
+      "maid_runner/core/_validation_test_artifacts.py:function:validate_manifest_test_commands:returns=list[ValidationError]",
+      "tests/core/validation/test_node_vitest_entry_invocation.py:test_arbitrary_or_dynamic_node_scripts_do_not_claim_vitest_coverage",
+      "tests/core/validation/test_node_vitest_entry_invocation.py:test_arbitrary_or_dynamic_node_scripts_do_not_claim_vitest_coverage:kind=test_function",
+      "tests/core/validation/test_node_vitest_entry_invocation.py:test_direct_node_vitest_entry_covers_declared_test_targets",
+      "tests/core/validation/test_node_vitest_entry_invocation.py:test_direct_node_vitest_entry_covers_declared_test_targets:kind=test_function",
+      "tests/core/validation/test_node_vitest_entry_invocation.py:test_existing_local_vitest_binary_recognition_remains_intact",
+      "tests/core/validation/test_node_vitest_entry_invocation.py:test_existing_local_vitest_binary_recognition_remains_intact:kind=test_function",
+      "tests/core/validation/test_node_vitest_entry_invocation.py:test_node_vitest_entry_executes_declared_suite_when_sdk_available",
+      "tests/core/validation/test_node_vitest_entry_invocation.py:test_node_vitest_entry_executes_declared_suite_when_sdk_available:kind=test_function",
+      "tests/core/validation/test_node_vitest_entry_invocation.py:test_node_vitest_nonexecuting_modes_still_report_e230",
+      "tests/core/validation/test_node_vitest_entry_invocation.py:test_node_vitest_nonexecuting_modes_still_report_e230:kind=test_function",
+      "tests/core/validation/test_node_vitest_entry_invocation.py:test_node_vitest_option_values_do_not_count_as_executed_test_targets",
+      "tests/core/validation/test_node_vitest_entry_invocation.py:test_node_vitest_option_values_do_not_count_as_executed_test_targets:kind=test_function",
+      "tests/core/validation/test_node_vitest_entry_invocation.py:test_node_vm_flags_and_unproven_wrappers_remain_rejected",
+      "tests/core/validation/test_node_vitest_entry_invocation.py:test_node_vm_flags_and_unproven_wrappers_remain_rejected:kind=test_function",
+      "tests/core/validation/test_node_vitest_entry_invocation.py:test_shell_wrapped_node_vitest_entry_cannot_claim_direct_execution",
+      "tests/core/validation/test_node_vitest_entry_invocation.py:test_shell_wrapped_node_vitest_entry_cannot_claim_direct_execution:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/validation/test_node_vitest_entry_invocation.py"
+      ],
+      "edit": [
+        "maid_runner/core/_validation_test_artifacts.py"
+      ],
+      "read": [
+        "maid_runner/core/_test_command_execution.py",
+        "maid_runner/core/_test_command_targets.py",
+        "maid_runner/core/config.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/result.py",
+        "maid_runner/core/types.py",
+        "manifests/fix-node-module-test-lock-coverage.manifest.yaml"
+      ],
+      "scope": [
+        "docs/troubleshooting.md",
+        "maid_runner/core/_test_command_targets.py",
+        "maid_runner/core/_test_runner_invocation.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/validation/test_node_vitest_entry_invocation.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_direct_node_vitest_entry_covers_declared_test_targets",
+              "description": "Canonical package-entry relative, dot-relative and absolute direct Node commands cover literal file/directory selectors."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_arbitrary_or_dynamic_node_scripts_do_not_claim_vitest_coverage",
+              "description": "Arbitrary script basenames, wrong package layouts, dynamic/glob paths and traversal segments retain E230."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_node_vitest_nonexecuting_modes_still_report_e230",
+              "description": "List, help, version and dry modes do not claim executing behavioral tests."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_node_vm_flags_and_unproven_wrappers_remain_rejected",
+              "description": "Node eval/preload/import flags and existing unproven environment/package/uv wrappers remain outside the direct-entry proof."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_node_vitest_option_values_do_not_count_as_executed_test_targets",
+              "description": "Config/output filenames do not masquerade as test selectors and missing required targets retain E230."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_existing_local_vitest_binary_recognition_remains_intact",
+              "description": "Already supported local Vitest binary invocation remains recognized."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_node_vitest_entry_executes_declared_suite_when_sdk_available",
+              "description": "Optional real-SDK proof runs an isolated temporary Vitest suite successfully and then detects a planted behavior failure; no fake SDK execution."
+            },
+            {
+              "kind": "test_function",
+              "name": "test_shell_wrapped_node_vitest_entry_cannot_claim_direct_execution",
+              "description": "Both sh and bash -c/-lc wrappers must retain E230 for direct Node Vitest commands instead of inheriting bare Vitest shell coverage."
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/_validation_test_artifacts.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "validate_manifest_test_commands",
+              "description": "Public command-integrity facade accepts the bounded direct Node Vitest entry as executing declared tests while preserving E230 safeguards.",
+              "args": [
+                {
+                  "name": "manifest",
+                  "type": "Manifest"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                }
+              ],
+              "returns": "list[ValidationError]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/_test_command_targets.py",
+        "maid_runner/core/_test_command_execution.py",
+        "maid_runner/core/config.py",
+        "maid_runner/core/types.py",
+        "maid_runner/core/result.py",
+        "maid_runner/core/manifest.py",
+        "manifests/fix-node-module-test-lock-coverage.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_test_runner_invocation.py",
+          "reason": "Add narrow direct package-entry recognition and matching target-scan prefix stripping through existing private invocation helpers."
+        },
+        {
+          "path": "docs/troubleshooting.md",
+          "reason": "Document the supported direct Node Vitest entry and its literal-path, explicit-run and wrapper/VM bounds."
+        },
+        {
+          "path": "maid_runner/core/_test_command_targets.py",
+          "reason": "Retain the direct-Node allow_node restriction at the existing shell target boundary even when the identified framework is Vitest; no public signature changes."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/validation/test_node_vitest_entry_invocation.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/validation/test_node_vitest_entry_invocation.py"
+    ],
+    "acceptance_commands": []
+  }
+}

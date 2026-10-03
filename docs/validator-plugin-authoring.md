@@ -89,6 +89,14 @@ permissive validation modes: kind, name, optional `of` parent, arguments,
 return types, async state, module identity, and alias information where the
 language supports those concepts.
 
+A collector that has exact kind and owner evidence can set
+`FoundArtifact.reference_context="exact"`. Runner then requires both `kind` and
+`of` to match the declared artifact and requires equal resolved module identities
+before applying its name/signature checks. Other reference contexts retain their
+current semantics. Rust
+uses this opt-in so reading a field or calling another type's method cannot
+cover a same-named declared method.
+
 Parse errors must return a `CollectionResult` with no artifacts and a non-empty
 `errors` list. A parser exception should not escape from the collector for
 ordinary invalid language syntax. Empty files should return no artifacts and no
@@ -283,6 +291,32 @@ Do not treat the kit as optional guidance. A plugin that cannot pass it has not
 shown that its collector preserves MAID validation semantics.
 
 ## Support Boundary
+
+### Rust and Cargo integration
+
+The external `maid-validator-rust` package handles `.rs` syntax. Runner discovers
+Rust sources, excludes Cargo's `target/` output, recognizes `tests/**/*.rs`, and
+asks the installed validator's `get_test_function_bodies()` hook whether other
+Rust files contain inline unit tests. Inline-test files remain production files
+for file tracking. The plugin must report parse errors rather than treating
+malformed test-bearing sources as empty.
+
+Cargo command integrity resolves targets with offline `cargo metadata --no-deps`
+without compiling tests or downloading dependencies. Supported commands include
+`cargo test`, `--lib`, `--bin NAME`, `--test NAME`, `--tests`, `--bins`,
+`--all-targets`, `--workspace`, `-p/--package`, `--exclude`, `--manifest-path`,
+and bounded output and harness options such as `-- --nocapture`. Metadata paths
+and module dependencies must stay within the project root. Rust plugins provide
+source-local `mod` dependency file paths through `collect_dependencies()`;
+unsupported or unresolved module graphs cannot prove test-file coverage.
+Targets requiring inactive default features and targets configured with
+`harness=false` do not count as ordinary Rust behavioral test execution.
+
+Compile-only, documentation-only, positional name filters, harness list/ignored/
+skip filters, unknown options and feature/cfg mutation are not accepted as
+full-file execution evidence. Missing Cargo, metadata failures, or unresolved
+targets likewise produce uncovered-test command-integrity diagnostics. Plugins
+remain responsible for Rust module syntax and conditional-module uncertainty.
 
 Plugins own parser quality; MAID Runner owns the contract. Plugin maintainers
 are responsible for their parser dependency, language version coverage, edge

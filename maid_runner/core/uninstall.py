@@ -7,6 +7,7 @@ import os
 import secrets
 import shutil
 import stat
+import sys
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -20,6 +21,55 @@ class UninstallReport:
     removed: list[str]
     preserved: list[str]
     missing: list[str]
+
+
+def remove_tree_at(name: str, parent_fd: int) -> None:
+    """Remove a child tree without following links or resolving its parent path."""
+    if not name or name in (".", "..") or os.path.basename(name) != name:
+        raise ValueError("tree removal requires one child directory name")
+    original = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+    if not stat.S_ISDIR(original.st_mode):
+        raise ValueError("tree removal requires a real directory")
+    if sys.version_info >= (3, 11):
+        shutil.rmtree(name, dir_fd=parent_fd)
+        return
+
+    flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+    root_fd = os.open(name, flags, dir_fd=parent_fd)
+    try:
+        pinned = os.fstat(root_fd)
+        identity = (original.st_dev, original.st_ino)
+        if (pinned.st_dev, pinned.st_ino) != identity:
+            raise ValueError("tree changed before descriptor-relative removal")
+
+        def fail_walk(error: OSError) -> None:
+            raise error
+
+        for _, directories, files, descriptor in os.fwalk(
+            ".", topdown=False, onerror=fail_walk, follow_symlinks=False, dir_fd=root_fd
+        ):
+            for child in files:
+                os.unlink(child, dir_fd=descriptor)
+            for child in directories:
+                entry = os.stat(child, dir_fd=descriptor, follow_symlinks=False)
+                if stat.S_ISLNK(entry.st_mode):
+                    os.unlink(child, dir_fd=descriptor)
+                else:
+                    os.rmdir(child, dir_fd=descriptor)
+
+        current = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+        if (
+            not stat.S_ISDIR(current.st_mode)
+            or (
+                current.st_dev,
+                current.st_ino,
+            )
+            != identity
+        ):
+            raise ValueError("tree changed during descriptor-relative removal")
+        os.rmdir(name, dir_fd=parent_fd)
+    finally:
+        os.close(root_fd)
 
 
 _FILE_ATTRIBUTE_DIRECTORY = 0x10

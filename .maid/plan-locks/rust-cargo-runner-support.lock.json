@@ -1,0 +1,642 @@
+{
+  "manifest_path": "manifests/rust-cargo-runner-support.manifest.yaml",
+  "manifest_hash": "sha256-contract:8a3a0d24b7f26661dcf25f96ce517d779e5a7f186e9a2dbf09e581dde7ec75f9",
+  "test_hashes": {
+    "tests/core/test_rust_cargo_support.py": "sha256-pyast:v2:a1b33e59dde2479dc3eb6423d605b2bc933ec34e19f97b606c335f08ac8a34ac"
+  },
+  "created_at": "2026-10-02T00:35:24.729785+00:00",
+  "revision": 25,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:3d6805f03f9e8516a0f34f64178fd6a00a99905d2109a46b7960d5da711f4a11",
+      "prior_test_hashes": {
+        "tests/core/test_rust_cargo_support.py": "sha256-pyast:v2:0e2ad11b40fe9f06dabe631d9bc8674cbe9c0c2183f4b5e01e0eb698aad84c4f"
+      },
+      "revised_at": "2026-10-02T00:35:25.398316+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/rust-cargo-runner-support.manifest.yaml -> manifests/rust-cargo-runner-support.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:7402dab2f65407c55f6c2d08baaa3f87353ba7cc88baebd3cc199b49e40217ab",
+      "prior_test_hashes": {
+        "tests/core/test_rust_cargo_support.py": "sha256-pyast:v2:0e2ad11b40fe9f06dabe631d9bc8674cbe9c0c2183f4b5e01e0eb698aad84c4f"
+      },
+      "revised_at": "2026-10-02T00:43:12.283667+00:00",
+      "reason": "Extend Rust module uncertainty and directory cache coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:7402dab2f65407c55f6c2d08baaa3f87353ba7cc88baebd3cc199b49e40217ab",
+      "prior_test_hashes": {
+        "tests/core/test_rust_cargo_support.py": "sha256-pyast:v2:b8cb2542415d0225063c00041941ea29959722e490c3eaab97b7b5c528f510c3"
+      },
+      "revised_at": "2026-10-02T00:59:23.554706+00:00",
+      "reason": "Harden Cargo feature/harness target evidence and opt-in exact plugin identity",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:maid_runner/core/identity.py",
+          "scope:pyproject.toml",
+          "scope:uv.lock"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:50f6387fe4e26d0aca271ca975d1e81dd50bd4a89687bcd9a8bab1f9b8ba7e6d",
+      "prior_test_hashes": {
+        "tests/core/test_rust_cargo_support.py": "sha256-pyast:v2:dd6240121255c2023327bcfad0678a48616851a190fc515f5f5ed90291895176"
+      },
+      "revised_at": "2026-10-02T01:09:03.964009+00:00",
+      "reason": "Provide absolute Rust source context for project module collection",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/core/_validation_test_artifacts.py:function:get_cached_test_artifacts",
+          "maid_runner/core/_validation_test_artifacts.py:function:get_cached_test_artifacts:arg=project_root:type=Path:default=None",
+          "maid_runner/core/_validation_test_artifacts.py:function:get_cached_test_artifacts:arg=registry:type=ValidatorRegistry:default=None",
+          "maid_runner/core/_validation_test_artifacts.py:function:get_cached_test_artifacts:arg=test_file:type=str | Path:default=None",
+          "maid_runner/core/_validation_test_artifacts.py:function:get_cached_test_artifacts:kind=function",
+          "maid_runner/core/_validation_test_artifacts.py:function:get_cached_test_artifacts:returns=Optional[TestArtifactsTable]"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4c9d29da986248df33e2f56ee6fe378ce9927d7faaeb921daba3ba532862dccf",
+      "prior_test_hashes": {
+        "tests/core/test_rust_cargo_support.py": "sha256-pyast:v2:53dcdcc2831a8fc3350a009eef41b4ad3507a6512ff447ff93a72afd57158e94"
+      },
+      "revised_at": "2026-10-02T01:10:27.390644+00:00",
+      "reason": "Capture changed context contract against the declared preimplementation baseline",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4c9d29da986248df33e2f56ee6fe378ce9927d7faaeb921daba3ba532862dccf",
+      "prior_test_hashes": {
+        "tests/core/test_rust_cargo_support.py": "sha256-pyast:v2:53dcdcc2831a8fc3350a009eef41b4ad3507a6512ff447ff93a72afd57158e94"
+      },
+      "revised_at": "2026-10-02T01:21:44.971035+00:00",
+      "reason": "Match Cargo workspace defaults and explicit target selection semantics",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4c9d29da986248df33e2f56ee6fe378ce9927d7faaeb921daba3ba532862dccf",
+      "prior_test_hashes": {
+        "tests/core/test_rust_cargo_support.py": "sha256-pyast:v2:4f80ca0b839a5a6a2a107ece54b18cf4c4b37121852b0eb3aacda93c4c08ee86"
+      },
+      "revised_at": "2026-10-02T01:42:57.214366+00:00",
+      "reason": "Preserve Cargo test flags for aggregate --tests selection",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4c9d29da986248df33e2f56ee6fe378ce9927d7faaeb921daba3ba532862dccf",
+      "prior_test_hashes": {
+        "tests/core/test_rust_cargo_support.py": "sha256-pyast:v2:fda19d83828e6a9cb5ea0992d1373dabd92134861f887ffbc6432d3f478a9f9a"
+      },
+      "revised_at": "2026-10-02T01:51:35.983261+00:00",
+      "reason": "Exclude custom-build targets from executable test target evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4c9d29da986248df33e2f56ee6fe378ce9927d7faaeb921daba3ba532862dccf",
+      "prior_test_hashes": {
+        "tests/core/test_rust_cargo_support.py": "sha256-pyast:v2:566bfeb98ad8289d1d8ca7626f8ee06ee668c4302f9911903ab92fc1840d6b66"
+      },
+      "revised_at": "2026-10-02T01:53:55.246588+00:00",
+      "reason": "Keep Cargo build-target and default-execution scenarios independently scoped",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4c9d29da986248df33e2f56ee6fe378ce9927d7faaeb921daba3ba532862dccf",
+      "prior_test_hashes": {
+        "tests/core/test_rust_cargo_support.py": "sha256-pyast:v2:67ae9c6eb0d3ab7e8346da8e11b913db48036834eaef92573c0ca38a23cb8852"
+      },
+      "revised_at": "2026-10-02T02:01:25.532418+00:00",
+      "reason": "Bind aggregate Cargo target contract to the declared preimplementation baseline",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4c9d29da986248df33e2f56ee6fe378ce9927d7faaeb921daba3ba532862dccf",
+      "prior_test_hashes": {
+        "tests/core/test_rust_cargo_support.py": "sha256-pyast:v2:67ae9c6eb0d3ab7e8346da8e11b913db48036834eaef92573c0ca38a23cb8852"
+      },
+      "revised_at": "2026-10-02T02:32:35.112597+00:00",
+      "reason": "Resolve version-qualified Cargo package specifications from metadata",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4c9d29da986248df33e2f56ee6fe378ce9927d7faaeb921daba3ba532862dccf",
+      "prior_test_hashes": {
+        "tests/core/test_rust_cargo_support.py": "sha256-pyast:v2:10693746a090a5d1f45e8c3a3f345a01727ea236fcdd14a910afc65d9908fd1f"
+      },
+      "revised_at": "2026-10-02T02:52:19.374849+00:00",
+      "reason": "Validate package specifications independently of workspace selection",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4c9d29da986248df33e2f56ee6fe378ce9927d7faaeb921daba3ba532862dccf",
+      "prior_test_hashes": {
+        "tests/core/test_rust_cargo_support.py": "sha256-pyast:v2:7e5a82bc75f1393f6b2ae830355c33490c082ddb04832021dec94b7c31f6e299"
+      },
+      "revised_at": "2026-10-02T03:11:54.209292+00:00",
+      "reason": "Include implicit optional dependency feature activation in Cargo defaults",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4c9d29da986248df33e2f56ee6fe378ce9927d7faaeb921daba3ba532862dccf",
+      "prior_test_hashes": {
+        "tests/core/test_rust_cargo_support.py": "sha256-pyast:v2:55271c8151e1c18aa247053a136ff0acf1449786339162e6d2b549d254e3991b"
+      },
+      "revised_at": "2026-10-02T03:25:52.364329+00:00",
+      "reason": "Require exact module identities and defined Cargo default features",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4c9d29da986248df33e2f56ee6fe378ce9927d7faaeb921daba3ba532862dccf",
+      "prior_test_hashes": {
+        "tests/core/test_rust_cargo_support.py": "sha256-pyast:v2:39f21a14834011ef9597c8df94d234f357e0078038bc6f8d1144ae0a8a3b0dd1"
+      },
+      "revised_at": "2026-10-02T03:45:40.071489+00:00",
+      "reason": "Reject repeated Cargo singleton options while retaining repeatable selectors",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4c9d29da986248df33e2f56ee6fe378ce9927d7faaeb921daba3ba532862dccf",
+      "prior_test_hashes": {
+        "tests/core/test_rust_cargo_support.py": "sha256-pyast:v2:e23c53c69a0df561b159e9bd4ab556af2ab51cdb9ff02f9c30d48c9d9d0d0e32"
+      },
+      "revised_at": "2026-10-02T03:58:23.150908+00:00",
+      "reason": "Reject duplicate Rust harness options before granting test coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4c9d29da986248df33e2f56ee6fe378ce9927d7faaeb921daba3ba532862dccf",
+      "prior_test_hashes": {
+        "tests/core/test_rust_cargo_support.py": "sha256-pyast:v2:4a3c8bf34fc74472befda3bd5ccda6483b668d869301a39e61c919ecdee63b51"
+      },
+      "revised_at": "2026-10-02T04:11:18.464510+00:00",
+      "reason": "Reject Cargo quiet/verbose option conflicts before granting coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4c9d29da986248df33e2f56ee6fe378ce9927d7faaeb921daba3ba532862dccf",
+      "prior_test_hashes": {
+        "tests/core/test_rust_cargo_support.py": "sha256-pyast:v2:8a0e6268963af59ef7e0b2dd69bd1ac138ffec4b01f8ed04fac6a87db48ece67"
+      },
+      "revised_at": "2026-10-02T04:24:07.547464+00:00",
+      "reason": "Reject unresolved exact reference identities for module-scoped declarations",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4c9d29da986248df33e2f56ee6fe378ce9927d7faaeb921daba3ba532862dccf",
+      "prior_test_hashes": {
+        "tests/core/test_rust_cargo_support.py": "sha256-pyast:v2:5bbe539d2f9c8af9f03d989ccc7e8eda5daf16fabeff03bc07985804650693ed"
+      },
+      "revised_at": "2026-10-02T04:36:46.016930+00:00",
+      "reason": "Reject explicit mixed Cargo selections that cannot execute as a whole",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4c9d29da986248df33e2f56ee6fe378ce9927d7faaeb921daba3ba532862dccf",
+      "prior_test_hashes": {
+        "tests/core/test_rust_cargo_support.py": "sha256-pyast:v2:b3bd5af66aedf5726591168854f7c4ec12a297f6169b6199ae7b7a4118a21727"
+      },
+      "revised_at": "2026-10-02T04:54:00.002668+00:00",
+      "reason": "Require physical Rust implementation context and fresh project-dependent collection",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:maid_runner/core/_implementation_validation.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8b563a8f2f109cf2855f26a38071b262ee05a93b5e235db18ffaa361375aae70",
+      "prior_test_hashes": {
+        "tests/core/test_rust_cargo_support.py": "sha256-pyast:v2:a20e164ee5ab98e8678225d456995b748dbd7428b24939707020aa53541fc943"
+      },
+      "revised_at": "2026-10-02T04:54:50.291587+00:00",
+      "reason": "Correct expected return-type diagnostic while recapturing the physical-context regression before wiring",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8b563a8f2f109cf2855f26a38071b262ee05a93b5e235db18ffaa361375aae70",
+      "prior_test_hashes": {
+        "tests/core/test_rust_cargo_support.py": "sha256-pyast:v2:217d73d883ea633d92724f1f20f3f1972d8f1ad5a4f9fd5a5d232faeef91a049"
+      },
+      "revised_at": "2026-10-02T05:01:22.761706+00:00",
+      "reason": "Capture red removal and supersession regressions for context-dependent Rust owners",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:maid_runner/core/_removed_artifacts.py",
+          "scope:maid_runner/core/supersession_audit.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8a3a0d24b7f26661dcf25f96ce517d779e5a7f186e9a2dbf09e581dde7ec75f9",
+      "prior_test_hashes": {
+        "tests/core/test_rust_cargo_support.py": "sha256-pyast:v2:b6734c04427ea8dc5734e689092b5142deb063b4ab00f169d30f40a0cf0124d8"
+      },
+      "revised_at": "2026-10-02T05:12:57.553954+00:00",
+      "reason": "Reject exact known-crate references against unresolved definition identities",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8a3a0d24b7f26661dcf25f96ce517d779e5a7f186e9a2dbf09e581dde7ec75f9",
+      "prior_test_hashes": {
+        "tests/core/test_rust_cargo_support.py": "sha256-pyast:v2:a1b33e59dde2479dc3eb6423d605b2bc933ec34e19f97b606c335f08ac8a34ac"
+      },
+      "revised_at": "2026-10-02T05:21:16.216482+00:00",
+      "reason": "Capture reviewed Rust support Outcome and validation evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-02T05:12:59.874968+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_rust_cargo_support.py -q",
+        "exit_code": 1,
+        "output_tail": "        tmp_path,\n    ):\n        from maid_runner.core.identity import match_artifact_to_references\n        from maid_runner.core.types import ArtifactKind\n    \n        artifact = FoundArtifact(kind=ArtifactKind.FUNCTION, name=\"render\")\n        reference = FoundArtifact(\n            kind=ArtifactKind.FUNCTION,\n            name=\"render\",\n            import_source=\"other\",\n            reference_context=\"exact\",\n        )\n>       assert not match_artifact_to_references(artifact, [reference], tmp_path)\nE       AssertionError: assert not True\nE        +  where True = <function match_artifact_to_references at 0x73dc0b540ae0>(FoundArtifact(kind=<ArtifactKind.FUNCTION: 'function'>, name='render', of=None, args=(), returns=None, is_async=False,...one, module_path=None, import_source=None, alias_of=None, reference_context=None, signature=None, _canonical_kind=None), [FoundArtifact(kind=<ArtifactKind.FUNCTION: 'function'>, name='render', of=None, args=(), returns=None, is_async=False...dule_path=None, import_source='other', alias_of=None, reference_context='exact', signature=None, _canonical_kind=None)], PosixPath('/tmp/pytest-of-atomrem/pytest-2514/test_exact_reference_with_know0'))\n\ntests/core/test_rust_cargo_support.py:804: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_rust_cargo_support.py::test_exact_reference_with_known_crate_does_not_cover_unknown_definition_identity\n1 failed, 63 passed in 2.11s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_file_discovery.py:function:discover_source_files",
+      "maid_runner/core/_file_discovery.py:function:discover_source_files:arg=exclude_patterns:type=set[str] | None:default=None",
+      "maid_runner/core/_file_discovery.py:function:discover_source_files:arg=extensions:type=set[str] | None:default=None",
+      "maid_runner/core/_file_discovery.py:function:discover_source_files:arg=project_root:type=str | Path:default=None",
+      "maid_runner/core/_file_discovery.py:function:discover_source_files:arg=respect_gitignore:type=bool:default=None",
+      "maid_runner/core/_file_discovery.py:function:discover_source_files:kind=function",
+      "maid_runner/core/_file_discovery.py:function:discover_source_files:returns=list[str]",
+      "maid_runner/core/_file_discovery.py:function:is_test_file",
+      "maid_runner/core/_file_discovery.py:function:is_test_file:arg=path:type=str:default=None",
+      "maid_runner/core/_file_discovery.py:function:is_test_file:kind=function",
+      "maid_runner/core/_file_discovery.py:function:is_test_file:returns=bool",
+      "maid_runner/core/_validation_test_artifacts.py:function:find_test_files",
+      "maid_runner/core/_validation_test_artifacts.py:function:find_test_files:arg=manifest:type=Manifest:default=None",
+      "maid_runner/core/_validation_test_artifacts.py:function:find_test_files:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_validation_test_artifacts.py:function:find_test_files:kind=function",
+      "maid_runner/core/_validation_test_artifacts.py:function:find_test_files:returns=list[str]",
+      "maid_runner/core/_validation_test_artifacts.py:function:get_cached_test_artifacts",
+      "maid_runner/core/_validation_test_artifacts.py:function:get_cached_test_artifacts:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_validation_test_artifacts.py:function:get_cached_test_artifacts:arg=registry:type=ValidatorRegistry:default=None",
+      "maid_runner/core/_validation_test_artifacts.py:function:get_cached_test_artifacts:arg=test_file:type=str | Path:default=None",
+      "maid_runner/core/_validation_test_artifacts.py:function:get_cached_test_artifacts:kind=function",
+      "maid_runner/core/_validation_test_artifacts.py:function:get_cached_test_artifacts:returns=Optional[TestArtifactsTable]"
+    ],
+    "files": {
+      "create": [],
+      "edit": [
+        "maid_runner/core/_file_discovery.py",
+        "maid_runner/core/_validation_test_artifacts.py"
+      ],
+      "read": [
+        "maid_runner/validators/base.py",
+        "maid_runner/validators/registry.py",
+        "tests/core/test_rust_cargo_support.py"
+      ],
+      "scope": [
+        "docs/validator-plugin-authoring.md",
+        "maid_runner/core/_command_integrity_test_discovery.py",
+        "maid_runner/core/_implementation_validation.py",
+        "maid_runner/core/_removed_artifacts.py",
+        "maid_runner/core/_rust_support.py",
+        "maid_runner/core/_test_command_targets.py",
+        "maid_runner/core/_test_runner_invocation.py",
+        "maid_runner/core/identity.py",
+        "maid_runner/core/supersession_audit.py",
+        "pyproject.toml",
+        "uv.lock"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "edit": [
+        {
+          "path": "maid_runner/core/_file_discovery.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "discover_source_files",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "str | Path"
+                },
+                {
+                  "name": "extensions",
+                  "type": "set[str] | None"
+                },
+                {
+                  "name": "exclude_patterns",
+                  "type": "set[str] | None"
+                },
+                {
+                  "name": "respect_gitignore",
+                  "type": "bool"
+                }
+              ],
+              "returns": "list[str]"
+            },
+            {
+              "kind": "function",
+              "name": "is_test_file",
+              "args": [
+                {
+                  "name": "path",
+                  "type": "str"
+                }
+              ],
+              "returns": "bool"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/_validation_test_artifacts.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "find_test_files",
+              "args": [
+                {
+                  "name": "manifest",
+                  "type": "Manifest"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                }
+              ],
+              "returns": "list[str]"
+            },
+            {
+              "kind": "function",
+              "name": "get_cached_test_artifacts",
+              "args": [
+                {
+                  "name": "test_file",
+                  "type": "str | Path"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "registry",
+                  "type": "ValidatorRegistry"
+                }
+              ],
+              "returns": "Optional[TestArtifactsTable]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "tests/core/test_rust_cargo_support.py",
+        "maid_runner/validators/base.py",
+        "maid_runner/validators/registry.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_removed_artifacts.py",
+          "reason": "Preserve physical Rust context and fresh module-graph evidence when checking removed artifacts."
+        },
+        {
+          "path": "maid_runner/core/supersession_audit.py",
+          "reason": "Verify Rust removal exemptions with physical, uncached implementation collection."
+        },
+        {
+          "path": "maid_runner/core/_implementation_validation.py",
+          "reason": "Pass physical Rust source paths and bypass source-only caching for project-dependent collection."
+        },
+        {
+          "path": "maid_runner/core/_rust_support.py",
+          "reason": "Private Cargo metadata adapter and plugin-backed inline discovery; exercised through public command integrity and discovery."
+        },
+        {
+          "path": "maid_runner/core/_test_runner_invocation.py",
+          "reason": "Internal Cargo invocation classification."
+        },
+        {
+          "path": "maid_runner/core/_test_command_targets.py",
+          "reason": "Delegate Cargo discovery and execution coverage to the Rust target adapter."
+        },
+        {
+          "path": "maid_runner/core/_command_integrity_test_discovery.py",
+          "reason": "Recognize plugin-backed inline Rust tests and custom Cargo test paths."
+        },
+        {
+          "path": "docs/validator-plugin-authoring.md",
+          "reason": "Document existing Rust plugin hooks and Cargo integration support boundaries."
+        },
+        {
+          "path": "maid_runner/core/identity.py",
+          "reason": "Honor opt-in exact reference kind and owner identity, preserving legacy references."
+        },
+        {
+          "path": "pyproject.toml",
+          "reason": "Declare Python 3.10 TOML runtime dependency for Cargo harness configuration."
+        },
+        {
+          "path": "uv.lock",
+          "reason": "Synchronize conditional TOML dependency in the reproducible graph."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_rust_cargo_support.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_rust_cargo_support.py -q"
+    ],
+    "acceptance_commands": []
+  }
+}

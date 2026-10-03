@@ -8,7 +8,7 @@ import math
 from pathlib import Path
 from pathlib import PureWindowsPath
 import re
-from typing import Union
+from typing import Literal, Union
 
 import yaml
 
@@ -193,6 +193,30 @@ class KnockoutExecutionConfig:
 
 
 @dataclass(frozen=True)
+class TypeScriptReturnContractsConfig:
+    """Optional semantic proof policy; compiler mode needs an owning config."""
+
+    mode: Literal["syntax", "compiler"] = "syntax"
+    tsconfig: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.mode not in ("syntax", "compiler"):
+            raise ValueError(
+                "typescript_return_contracts.mode must be syntax or compiler"
+            )
+        if self.tsconfig is not None and (
+            not isinstance(self.tsconfig, str) or not self.tsconfig.strip()
+        ):
+            raise ValueError(
+                "typescript_return_contracts.tsconfig must be a nonempty path"
+            )
+        if self.mode == "compiler" and self.tsconfig is None:
+            raise ValueError(
+                "typescript_return_contracts compiler mode requires explicit tsconfig"
+            )
+
+
+@dataclass(frozen=True)
 class MaidConfig:
     manifest_dir: str = "manifests/"
     schema_version: str = "2"
@@ -207,6 +231,9 @@ class MaidConfig:
     artifact_coverage: ArtifactCoverageConfig = ArtifactCoverageConfig()
     test_execution: TestExecutionConfig = TestExecutionConfig()
     knockout_execution: KnockoutExecutionConfig = KnockoutExecutionConfig()
+    typescript_return_contracts: TypeScriptReturnContractsConfig = (
+        TypeScriptReturnContractsConfig()
+    )
 
 
 def load_config(project_root: Union[str, Path]) -> MaidConfig:
@@ -318,6 +345,22 @@ def load_config(project_root: Union[str, Path]) -> MaidConfig:
         artifact_coverage=artifact_coverage_config,
         test_execution=test_execution_config,
         knockout_execution=knockout_execution_config,
+        typescript_return_contracts=_parse_typescript_return_contracts(
+            data.get("typescript_return_contracts")
+        ),
+    )
+
+
+def _parse_typescript_return_contracts(raw: object) -> TypeScriptReturnContractsConfig:
+    if raw is None:
+        return TypeScriptReturnContractsConfig()
+    if not isinstance(raw, dict):
+        raise ValueError("typescript_return_contracts must be a mapping")
+    unknown = set(raw) - {"mode", "tsconfig"}
+    if unknown:
+        raise ValueError("typescript_return_contracts contains unknown keys")
+    return TypeScriptReturnContractsConfig(
+        mode=raw.get("mode", "syntax"), tsconfig=raw.get("tsconfig")
     )
 
 

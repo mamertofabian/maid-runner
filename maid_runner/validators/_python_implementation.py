@@ -647,6 +647,8 @@ def _ast_to_type_string(node: Optional[ast.AST]) -> Optional[str]:
         if isinstance(node, ast.Name):
             return node.id
         if isinstance(node, ast.Constant):
+            if node.value is Ellipsis:
+                return "..."
             return str(node.value)
         if isinstance(node, ast.Subscript):
             base = _ast_to_type_string(node.value)
