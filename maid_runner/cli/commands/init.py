@@ -28,6 +28,7 @@ from maid_runner.core.uninstall import (
     _is_link_or_reparse_point,
     _remove_path_on_windows,
     _replace_file_on_windows,
+    remove_tree_at,
 )
 
 
@@ -675,7 +676,7 @@ def _apply_uninstall_operation(
             raise ValueError(f"{operation.path} changed after uninstall planning")
         if operation.replacement is None:
             if stat.S_ISDIR(stat_result.st_mode):
-                shutil.rmtree(name, dir_fd=parent_fd)
+                remove_tree_at(name, parent_fd)
             else:
                 os.unlink(name, dir_fd=parent_fd)
         else:

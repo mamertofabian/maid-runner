@@ -49,6 +49,7 @@ jobs:
     name: MAID validation
     runs-on: ubuntu-latest
     env:
+      UV_LINK_MODE: copy
       UV_PYTHON: ${{ inputs['python-version'] || '3.12' }}
     permissions:
       contents: read

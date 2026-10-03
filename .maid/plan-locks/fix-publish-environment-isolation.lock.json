@@ -1,6 +1,6 @@
 {
   "manifest_path": "manifests/fix-publish-environment-isolation.manifest.yaml",
-  "manifest_hash": "sha256-contract:457c9d7bec5e1c8989261ac1622ec914c25187a554ea996520c93dd80c8f9a60",
+  "manifest_hash": "sha256-contract:a54d843a06c26d69edfdfd8c10a95591d7f38eb5755a0367c28dddb24ee23981",
   "test_hashes": {
     "tests/ci/test_publish_environment_isolation.py": "sha256-pyast:v2:198601a64efa355af63d4ef1777a90ec30eead0ba2595469c48698fd40d1ddc1",
     "tests/ci/test_publish_workflow.py": "sha256-pyast:v2:799ef0c4341901b4622b4b8d0931c6ee70ec6aa3e6949cf29d060b56b9284dd5",
@@ -9,10 +9,17 @@
     "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:4dc08f1cc7886ba96a6c50cc9f4fbe1b6f20f84bc547b52075afacf361688eb7",
     "tests/ci/test_maid_workflow_environment_isolation.py": "sha256-pyast:v2:f72a0e581e1a4ead89f9183283394a396eeb2b67e29d367c736d3e8fd6732ed3",
     "tests/ci/test_github_pytest_worker_wiring.py": "sha256-pyast:v2:f65474540ec582b71d0e09ceecc097b2f836d668564053b16080a31e367f01cb",
-    "tests/ci/test_maid_workflow_pr_only_triggers.py": "sha256-pyast:v2:108b2c75b4e9a4d96460c9f93fb9cd6096360cf44ab4b4cf5002ee2e2874ab64"
+    "tests/ci/test_maid_workflow_pr_only_triggers.py": "sha256-pyast:v2:108b2c75b4e9a4d96460c9f93fb9cd6096360cf44ab4b4cf5002ee2e2874ab64",
+    "tests/ci/test_ci_dependency_link_isolation.py": "sha256-pyast:v2:d737cac8f5e0427c3e54ef0f22dde9f30cd26e1eb37965c949dd898e913a9a3d",
+    "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:356622fef7d9d1375a02c221061a95e4b302dd10ca585a83fab278a486d3c635",
+    "tests/test_api_reference_docs.py": "sha256-pyast:v2:c17c116e77b442fb9ae01e22653adc9d9c52c4de7e35025e5b02950bffb792a7",
+    "tests/core/test_descriptor_tree_removal_compatibility.py": "sha256-pyast:v2:eb89f65b5e234b9fb0f7e37170144332d48cbfea53715ceef4e807bdb14e9a47",
+    "tests/cli/test_uninstall_cmd.py": "sha256-pyast:v2:ded2a1de2df0bff6b0032246fa5f5a67679e6d8ac9d3f89080d3432d9fd219ff",
+    "tests/cli/test_legacy_pre_commit_markers.py": "sha256-pyast:v2:c25bb46b34e97c406d55c0dfbea975db6a9b45c9722e00b43e1c4a9ca48ef22f",
+    "tests/cli/test_uninstall_windows_portability.py": "sha256-pyast:v2:9201960074589cd41cbb1d3d8bd82f68ba93664e7cd56239183ca100e58eea15"
   },
   "created_at": "2026-10-02T13:46:47.053335+00:00",
-  "revision": 5,
+  "revision": 10,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:9be40ee3408c0d26f362e8adcdd6b43d00565b4ee849cff3733657f26de1a700",
@@ -107,51 +114,286 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:457c9d7bec5e1c8989261ac1622ec914c25187a554ea996520c93dd80c8f9a60",
+      "prior_test_hashes": {
+        "tests/ci/test_publish_environment_isolation.py": "sha256-pyast:v2:198601a64efa355af63d4ef1777a90ec30eead0ba2595469c48698fd40d1ddc1",
+        "tests/ci/test_publish_workflow.py": "sha256-pyast:v2:799ef0c4341901b4622b4b8d0931c6ee70ec6aa3e6949cf29d060b56b9284dd5",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:235da5154eb612bdd088aee7a4dfeb9df1ff32dca5352ce6c486e7e66e5d0aa6",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:58209da5bac256e1da44871ab1a283a0fea3560f2403a95a490481e8eb89b6b8",
+        "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:4dc08f1cc7886ba96a6c50cc9f4fbe1b6f20f84bc547b52075afacf361688eb7",
+        "tests/ci/test_maid_workflow_environment_isolation.py": "sha256-pyast:v2:f72a0e581e1a4ead89f9183283394a396eeb2b67e29d367c736d3e8fd6732ed3",
+        "tests/ci/test_github_pytest_worker_wiring.py": "sha256-pyast:v2:f65474540ec582b71d0e09ceecc097b2f836d668564053b16080a31e367f01cb",
+        "tests/ci/test_maid_workflow_pr_only_triggers.py": "sha256-pyast:v2:108b2c75b4e9a4d96460c9f93fb9cd6096360cf44ab4b4cf5002ee2e2874ab64"
+      },
+      "revised_at": "2026-10-02T22:36:31.189920+00:00",
+      "reason": "User approved copy-mode dependency isolation and Python 3.10/3.11 test harness compatibility; capture new copy-mode regression red before implementation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "read:docs/reference/conf.py",
+          "read:maid_runner/core/_runtime_evidence_pytest_plugin.py",
+          "read:tests/ci/test_ci_dependency_link_isolation.py",
+          "read:tests/core/test_runtime_evidence.py",
+          "read:tests/test_api_reference_docs.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run --group docs python -m pytest -q tests/ci/test_publish_environment_isolation.py tests/ci/test_publish_workflow.py tests/core/test_knockout_snapshot.py tests/core/test_artifact_coverage_fallback_workers.py tests/core/test_knockout_snapshot_template.py tests/ci/test_maid_workflow_environment_isolation.py tests/ci/test_github_pytest_worker_wiring.py tests/ci/test_maid_workflow_pr_only_triggers.py tests/ci/test_ci_dependency_link_isolation.py tests/core/test_runtime_evidence.py tests/test_api_reference_docs.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/ci/test_publish_environment_isolation.py tests/ci/test_publish_workflow.py tests/core/test_knockout_snapshot.py tests/core/test_artifact_coverage_fallback_workers.py tests/core/test_knockout_snapshot_template.py tests/ci/test_maid_workflow_environment_isolation.py tests/ci/test_github_pytest_worker_wiring.py tests/ci/test_maid_workflow_pr_only_triggers.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d6446f5442410c05ada2462476d0e89b07181438adcf71d51720d383d9119196",
+      "prior_test_hashes": {
+        "tests/ci/test_publish_environment_isolation.py": "sha256-pyast:v2:198601a64efa355af63d4ef1777a90ec30eead0ba2595469c48698fd40d1ddc1",
+        "tests/ci/test_publish_workflow.py": "sha256-pyast:v2:799ef0c4341901b4622b4b8d0931c6ee70ec6aa3e6949cf29d060b56b9284dd5",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:235da5154eb612bdd088aee7a4dfeb9df1ff32dca5352ce6c486e7e66e5d0aa6",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:58209da5bac256e1da44871ab1a283a0fea3560f2403a95a490481e8eb89b6b8",
+        "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:4dc08f1cc7886ba96a6c50cc9f4fbe1b6f20f84bc547b52075afacf361688eb7",
+        "tests/ci/test_maid_workflow_environment_isolation.py": "sha256-pyast:v2:f72a0e581e1a4ead89f9183283394a396eeb2b67e29d367c736d3e8fd6732ed3",
+        "tests/ci/test_github_pytest_worker_wiring.py": "sha256-pyast:v2:f65474540ec582b71d0e09ceecc097b2f836d668564053b16080a31e367f01cb",
+        "tests/ci/test_maid_workflow_pr_only_triggers.py": "sha256-pyast:v2:108b2c75b4e9a4d96460c9f93fb9cd6096360cf44ab4b4cf5002ee2e2874ab64",
+        "tests/ci/test_ci_dependency_link_isolation.py": "sha256-pyast:v2:d737cac8f5e0427c3e54ef0f22dde9f30cd26e1eb37965c949dd898e913a9a3d",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:e90baae652d05e55fb5caba7f5f6f733b3161bdd7d8ad44bba8a0728afcbe332",
+        "tests/test_api_reference_docs.py": "sha256-pyast:v2:09fc4b2ccd4b671ea5e998c989213bfcde14226ef2b208fa07d3cee378e0c7ea"
+      },
+      "revised_at": "2026-10-02T22:40:24.256435+00:00",
+      "reason": "Bind user-approved older-Python test changes into current contract while copy-mode regressions still prove genuine red before workflow edits",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d6446f5442410c05ada2462476d0e89b07181438adcf71d51720d383d9119196",
+      "prior_test_hashes": {
+        "tests/ci/test_publish_environment_isolation.py": "sha256-pyast:v2:198601a64efa355af63d4ef1777a90ec30eead0ba2595469c48698fd40d1ddc1",
+        "tests/ci/test_publish_workflow.py": "sha256-pyast:v2:799ef0c4341901b4622b4b8d0931c6ee70ec6aa3e6949cf29d060b56b9284dd5",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:235da5154eb612bdd088aee7a4dfeb9df1ff32dca5352ce6c486e7e66e5d0aa6",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:58209da5bac256e1da44871ab1a283a0fea3560f2403a95a490481e8eb89b6b8",
+        "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:4dc08f1cc7886ba96a6c50cc9f4fbe1b6f20f84bc547b52075afacf361688eb7",
+        "tests/ci/test_maid_workflow_environment_isolation.py": "sha256-pyast:v2:f72a0e581e1a4ead89f9183283394a396eeb2b67e29d367c736d3e8fd6732ed3",
+        "tests/ci/test_github_pytest_worker_wiring.py": "sha256-pyast:v2:f65474540ec582b71d0e09ceecc097b2f836d668564053b16080a31e367f01cb",
+        "tests/ci/test_maid_workflow_pr_only_triggers.py": "sha256-pyast:v2:108b2c75b4e9a4d96460c9f93fb9cd6096360cf44ab4b4cf5002ee2e2874ab64",
+        "tests/ci/test_ci_dependency_link_isolation.py": "sha256-pyast:v2:d737cac8f5e0427c3e54ef0f22dde9f30cd26e1eb37965c949dd898e913a9a3d",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:356622fef7d9d1375a02c221061a95e4b302dd10ca585a83fab278a486d3c635",
+        "tests/test_api_reference_docs.py": "sha256-pyast:v2:c17c116e77b442fb9ae01e22653adc9d9c52c4de7e35025e5b02950bffb792a7"
+      },
+      "revised_at": "2026-10-02T22:42:30.409261+00:00",
+      "reason": "User-approved Python 3.10/3.11 shared test harness compatibility; preserve unchanged production contract and historical red evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d6446f5442410c05ada2462476d0e89b07181438adcf71d51720d383d9119196",
+      "prior_test_hashes": {
+        "tests/ci/test_publish_environment_isolation.py": "sha256-pyast:v2:198601a64efa355af63d4ef1777a90ec30eead0ba2595469c48698fd40d1ddc1",
+        "tests/ci/test_publish_workflow.py": "sha256-pyast:v2:799ef0c4341901b4622b4b8d0931c6ee70ec6aa3e6949cf29d060b56b9284dd5",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:235da5154eb612bdd088aee7a4dfeb9df1ff32dca5352ce6c486e7e66e5d0aa6",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:58209da5bac256e1da44871ab1a283a0fea3560f2403a95a490481e8eb89b6b8",
+        "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:4dc08f1cc7886ba96a6c50cc9f4fbe1b6f20f84bc547b52075afacf361688eb7",
+        "tests/ci/test_maid_workflow_environment_isolation.py": "sha256-pyast:v2:f72a0e581e1a4ead89f9183283394a396eeb2b67e29d367c736d3e8fd6732ed3",
+        "tests/ci/test_github_pytest_worker_wiring.py": "sha256-pyast:v2:f65474540ec582b71d0e09ceecc097b2f836d668564053b16080a31e367f01cb",
+        "tests/ci/test_maid_workflow_pr_only_triggers.py": "sha256-pyast:v2:108b2c75b4e9a4d96460c9f93fb9cd6096360cf44ab4b4cf5002ee2e2874ab64",
+        "tests/ci/test_ci_dependency_link_isolation.py": "sha256-pyast:v2:d737cac8f5e0427c3e54ef0f22dde9f30cd26e1eb37965c949dd898e913a9a3d",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:356622fef7d9d1375a02c221061a95e4b302dd10ca585a83fab278a486d3c635",
+        "tests/test_api_reference_docs.py": "sha256-pyast:v2:c17c116e77b442fb9ae01e22653adc9d9c52c4de7e35025e5b02950bffb792a7"
+      },
+      "revised_at": "2026-10-03T01:52:40.472868+00:00",
+      "reason": "Approved Python 3.10 descriptor-relative uninstall compatibility extension with genuine missing-helper red tests",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/core/uninstall.py:function:remove_tree_at",
+          "maid_runner/core/uninstall.py:function:remove_tree_at:arg=name:type=str:default=None",
+          "maid_runner/core/uninstall.py:function:remove_tree_at:arg=parent_fd:type=int:default=None",
+          "maid_runner/core/uninstall.py:function:remove_tree_at:kind=function",
+          "maid_runner/core/uninstall.py:function:remove_tree_at:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:maid_runner/core/uninstall.py",
+          "read:tests/cli/test_legacy_pre_commit_markers.py",
+          "read:tests/cli/test_uninstall_cmd.py",
+          "read:tests/cli/test_uninstall_windows_portability.py",
+          "read:tests/core/test_descriptor_tree_removal_compatibility.py",
+          "scope:maid_runner/cli/commands/init.py",
+          "scope:maid_runner/core/skill_install.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/core/test_descriptor_tree_removal_compatibility.py tests/cli/test_uninstall_cmd.py tests/cli/test_legacy_pre_commit_markers.py tests/cli/test_uninstall_windows_portability.py"
+        ],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:1c376a42ab1c203c5fce8aad25acade776081a1045b90f9e62bcbcfc80ce4946",
+      "prior_test_hashes": {
+        "tests/ci/test_publish_environment_isolation.py": "sha256-pyast:v2:198601a64efa355af63d4ef1777a90ec30eead0ba2595469c48698fd40d1ddc1",
+        "tests/ci/test_publish_workflow.py": "sha256-pyast:v2:799ef0c4341901b4622b4b8d0931c6ee70ec6aa3e6949cf29d060b56b9284dd5",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:235da5154eb612bdd088aee7a4dfeb9df1ff32dca5352ce6c486e7e66e5d0aa6",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:58209da5bac256e1da44871ab1a283a0fea3560f2403a95a490481e8eb89b6b8",
+        "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:4dc08f1cc7886ba96a6c50cc9f4fbe1b6f20f84bc547b52075afacf361688eb7",
+        "tests/ci/test_maid_workflow_environment_isolation.py": "sha256-pyast:v2:f72a0e581e1a4ead89f9183283394a396eeb2b67e29d367c736d3e8fd6732ed3",
+        "tests/ci/test_github_pytest_worker_wiring.py": "sha256-pyast:v2:f65474540ec582b71d0e09ceecc097b2f836d668564053b16080a31e367f01cb",
+        "tests/ci/test_maid_workflow_pr_only_triggers.py": "sha256-pyast:v2:108b2c75b4e9a4d96460c9f93fb9cd6096360cf44ab4b4cf5002ee2e2874ab64",
+        "tests/ci/test_ci_dependency_link_isolation.py": "sha256-pyast:v2:d737cac8f5e0427c3e54ef0f22dde9f30cd26e1eb37965c949dd898e913a9a3d",
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:356622fef7d9d1375a02c221061a95e4b302dd10ca585a83fab278a486d3c635",
+        "tests/test_api_reference_docs.py": "sha256-pyast:v2:c17c116e77b442fb9ae01e22653adc9d9c52c4de7e35025e5b02950bffb792a7",
+        "tests/core/test_descriptor_tree_removal_compatibility.py": "sha256-pyast:v2:eb89f65b5e234b9fb0f7e37170144332d48cbfea53715ceef4e807bdb14e9a47",
+        "tests/cli/test_uninstall_cmd.py": "sha256-pyast:v2:ded2a1de2df0bff6b0032246fa5f5a67679e6d8ac9d3f89080d3432d9fd219ff",
+        "tests/cli/test_legacy_pre_commit_markers.py": "sha256-pyast:v2:c25bb46b34e97c406d55c0dfbea975db6a9b45c9722e00b43e1c4a9ca48ef22f",
+        "tests/cli/test_uninstall_windows_portability.py": "sha256-pyast:v2:9201960074589cd41cbb1d3d8bd82f68ba93664e7cd56239183ca100e58eea15"
+      },
+      "revised_at": "2026-10-03T01:57:16.426002+00:00",
+      "reason": "Keep all approved tests while separating isolated descriptor knockout tests from generated-payload CLI prerequisites",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/cli/test_uninstall_cmd.py tests/cli/test_legacy_pre_commit_markers.py tests/cli/test_uninstall_windows_portability.py",
+          "uv run python -m pytest -q tests/core/test_descriptor_tree_removal_compatibility.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/core/test_descriptor_tree_removal_compatibility.py tests/cli/test_uninstall_cmd.py tests/cli/test_legacy_pre_commit_markers.py tests/cli/test_uninstall_windows_portability.py"
+        ]
+      }
     }
   ],
   "red_evidence": {
     "red": true,
-    "captured_at": "2026-10-02T15:00:58.678162+00:00",
+    "captured_at": "2026-10-03T01:57:53.671538+00:00",
     "commands": [
       {
-        "command": "uv run python -m pytest -q tests/ci/test_publish_environment_isolation.py tests/ci/test_publish_workflow.py tests/core/test_knockout_snapshot.py tests/core/test_artifact_coverage_fallback_workers.py tests/core/test_knockout_snapshot_template.py tests/ci/test_maid_workflow_environment_isolation.py tests/ci/test_github_pytest_worker_wiring.py tests/ci/test_maid_workflow_pr_only_triggers.py",
+        "command": "uv run python -m pytest -q tests/core/test_descriptor_tree_removal_compatibility.py",
         "exit_code": 1,
-        "output_tail": "        job = _job(workflow_name, job_name)\n        setup = next(step for step in job[\"steps\"] if step.get(\"name\") == \"Set up Python\")\n        selected = setup[\"with\"][\"python-version\"]\n    \n        assert selected == \"${{ inputs['python-version'] || '3.12' }}\"\n>       assert job.get(\"env\", {}).get(\"UV_PYTHON\") == selected\nE       assert None == \"${{ inputs['python-version'] || '3.12' }}\"\nE        +  where None = <built-in method get of dict object at 0x7875ae589b40>('UV_PYTHON')\nE        +    where <built-in method get of dict object at 0x7875ae589b40> = {}.get\nE        +      where {} = <built-in method get of dict object at 0x7875ae73e7c0>('env', {})\nE        +        where <built-in method get of dict object at 0x7875ae73e7c0> = {'name': 'MAID tests and coverage', 'permissions': {'contents': 'read'}, 'runs-on': 'ubuntu-latest', 'steps': [{'name'...n/maid-runner\" && -f scripts/sync_claude_files.py ]]; then\\n  uv run python scripts/sync_claude_files.py\\nfi\\n'}, ...]}.get\n\ntests/ci/test_maid_workflow_environment_isolation.py:98: AssertionError\n=========================== short test summary info ============================\nFAILED tests/ci/test_publish_environment_isolation.py::test_publish_cold_import_does_not_mutate_shared_snapshot_dependencies\nFAILED tests/ci/test_maid_workflow_environment_isolation.py::test_maid_job_cold_import_keeps_dependency_environment_unchanged[maid-validation.yml-maid-validation]\nFAILED tests/ci/test_maid_workflow_environment_isolation.py::test_maid_job_cold_import_keeps_dependency_environment_unchanged[maid-test.yml-maid-test]\nFAILED tests/ci/test_maid_workflow_environment_isolation.py::test_maid_job_binds_uv_to_reusable_input_selected_interpreter[maid-validation.yml-maid-validation]\nFAILED tests/ci/test_maid_workflow_environment_isolation.py::test_maid_job_binds_uv_to_reusable_input_selected_interpreter[maid-test.yml-maid-test]\n5 failed, 60 passed in 25.56s",
+        "output_tail": "    def test_remove_tree_at_stays_on_pinned_parent_after_path_replacement(tmp_path):\n>       from maid_runner.core.uninstall import remove_tree_at\nE       ImportError: cannot import name 'remove_tree_at' from 'maid_runner.core.uninstall' (/home/atomrem/projects/codefrost-dev/maid-runner/maid_runner/core/uninstall.py)\n\ntests/core/test_descriptor_tree_removal_compatibility.py:32: ImportError\n____ test_remove_tree_at_rejects_root_links_and_traversal_without_mutation _____\n\ntmp_path = PosixPath('/tmp/pytest-of-atomrem/pytest-678/test_remove_tree_at_rejects_ro0')\n\n    @pytest.mark.skipif(os.name != \"posix\", reason=\"descriptor-relative POSIX boundary\")\n    def test_remove_tree_at_rejects_root_links_and_traversal_without_mutation(tmp_path):\n>       from maid_runner.core.uninstall import remove_tree_at\nE       ImportError: cannot import name 'remove_tree_at' from 'maid_runner.core.uninstall' (/home/atomrem/projects/codefrost-dev/maid-runner/maid_runner/core/uninstall.py)\n\ntests/core/test_descriptor_tree_removal_compatibility.py:55: ImportError\n=========================== short test summary info ============================\nFAILED tests/core/test_descriptor_tree_removal_compatibility.py::test_remove_tree_at_removes_nested_payload_without_following_links\nFAILED tests/core/test_descriptor_tree_removal_compatibility.py::test_remove_tree_at_stays_on_pinned_parent_after_path_replacement\nFAILED tests/core/test_descriptor_tree_removal_compatibility.py::test_remove_tree_at_rejects_root_links_and_traversal_without_mutation\n3 failed in 0.14s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_uninstall_cmd.py tests/cli/test_legacy_pre_commit_markers.py tests/cli/test_uninstall_windows_portability.py",
+        "exit_code": 0,
+        "output_tail": "................sssssssss.                                               [100%]\n17 passed, 9 skipped in 1.08s",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run --group docs python -m pytest -q tests/ci/test_publish_environment_isolation.py tests/ci/test_publish_workflow.py tests/core/test_knockout_snapshot.py tests/core/test_artifact_coverage_fallback_workers.py tests/core/test_knockout_snapshot_template.py tests/ci/test_maid_workflow_environment_isolation.py tests/ci/test_github_pytest_worker_wiring.py tests/ci/test_maid_workflow_pr_only_triggers.py tests/ci/test_ci_dependency_link_isolation.py tests/core/test_runtime_evidence.py tests/test_api_reference_docs.py",
+        "exit_code": 1,
+        "output_tail": "_ test_ci_installation_remains_unchanged_during_external_cache_linking[maid-test.yml-maid-test] _\n\ntmp_path = PosixPath('/tmp/pytest-of-atomrem/pytest-680/test_ci_installation_remains_u2')\nworkflow_name = 'maid-test.yml', job_name = 'maid-test'\n\n    @pytest.mark.parametrize(\"workflow_name,job_name\", _JOBS)\n    def test_ci_installation_remains_unchanged_during_external_cache_linking(\n        tmp_path, workflow_name, job_name\n    ):\n        workflow = yaml.safe_load((_ROOT / \".github/workflows\" / workflow_name).read_text())\n        mode = workflow[\"jobs\"][job_name].get(\"env\", {}).get(\"UV_LINK_MODE\")\n>       assert mode == \"copy\"\nE       AssertionError: assert None == 'copy'\n\ntests/ci/test_ci_dependency_link_isolation.py:54: AssertionError\n=========================== short test summary info ============================\nFAILED tests/ci/test_ci_dependency_link_isolation.py::test_ci_installation_remains_unchanged_during_external_cache_linking[publish.yml-test]\nFAILED tests/ci/test_ci_dependency_link_isolation.py::test_ci_installation_remains_unchanged_during_external_cache_linking[maid-validation.yml-maid-validation]\nFAILED tests/ci/test_ci_dependency_link_isolation.py::test_ci_installation_remains_unchanged_during_external_cache_linking[maid-test.yml-maid-test]\n3 failed, 105 passed in 35.40s",
         "classification": "red"
       }
+    ],
+    "sibling_dirty_paths": [
+      ".maid/last-failure-packet.json",
+      ".maid/plan-locks/121-08-collect-fixture-aware-runtime-evidence.lock.json",
+      ".maid/plan-locks/121-10-reuse-runtime-evidence-in-deep-verify.lock.json",
+      ".maid/plan-locks/121-15-parallelize-isolated-artifact-coverage-fallbacks.lock.json",
+      ".maid/plan-locks/121-17-isolate-nested-test-process-identities.lock.json",
+      ".maid/plan-locks/121-30-project-grouped-command-failures.lock.json",
+      ".maid/plan-locks/121-50-ignore-git-excluded-runtime-evidence-content.lock.json",
+      ".maid/plan-locks/fix-branch-introduced-e710-coverage-debt.lock.json",
+      ".maid/plan-locks/fix-runtime-digest-unrelated-git-config.lock.json",
+      ".maid/plan-locks/fix-runtime-preparation-snapshot-environment.lock.json",
+      ".maid/plan-locks/fix-sphinx-offline-validation.lock.json",
+      ".maid/plan-locks/snapshot-cli-commands--main-2.lock.json"
     ]
   },
   "legacy_baseline": null,
   "agent": null,
   "_manifest_contract": {
-    "artifacts": [],
+    "artifacts": [
+      "maid_runner/core/uninstall.py:function:remove_tree_at",
+      "maid_runner/core/uninstall.py:function:remove_tree_at:arg=name:type=str:default=None",
+      "maid_runner/core/uninstall.py:function:remove_tree_at:arg=parent_fd:type=int:default=None",
+      "maid_runner/core/uninstall.py:function:remove_tree_at:kind=function",
+      "maid_runner/core/uninstall.py:function:remove_tree_at:returns=None"
+    ],
     "files": {
       "create": [],
-      "edit": [],
+      "edit": [
+        "maid_runner/core/uninstall.py"
+      ],
       "read": [
         ".python-version",
+        "docs/reference/conf.py",
         "maid_runner/core/_artifact_coverage_fallback_worker.py",
         "maid_runner/core/_knockout_snapshot.py",
+        "maid_runner/core/_runtime_evidence_pytest_plugin.py",
         "manifests/fix-publish-matrix-diagnostics.manifest.yaml",
         "manifests/fix-publish-python-311-maid-tests.manifest.yaml",
+        "tests/ci/test_ci_dependency_link_isolation.py",
         "tests/ci/test_github_pytest_worker_wiring.py",
         "tests/ci/test_maid_workflow_environment_isolation.py",
         "tests/ci/test_maid_workflow_pr_only_triggers.py",
         "tests/ci/test_publish_environment_isolation.py",
         "tests/ci/test_publish_workflow.py",
+        "tests/cli/test_legacy_pre_commit_markers.py",
+        "tests/cli/test_uninstall_cmd.py",
+        "tests/cli/test_uninstall_windows_portability.py",
         "tests/core/test_artifact_coverage_fallback_workers.py",
+        "tests/core/test_descriptor_tree_removal_compatibility.py",
         "tests/core/test_knockout_snapshot.py",
-        "tests/core/test_knockout_snapshot_template.py"
+        "tests/core/test_knockout_snapshot_template.py",
+        "tests/core/test_runtime_evidence.py",
+        "tests/test_api_reference_docs.py"
       ],
       "scope": [
         ".github/workflows/maid-test.yml",
         ".github/workflows/maid-validation.yml",
-        ".github/workflows/publish.yml"
+        ".github/workflows/publish.yml",
+        "maid_runner/cli/commands/init.py",
+        "maid_runner/core/skill_install.py"
       ],
       "delete": [],
       "snapshot": []
     },
     "file_contract": {
+      "edit": [
+        {
+          "path": "maid_runner/core/uninstall.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "remove_tree_at",
+              "description": "Remove one directory entry relative to its pinned parent descriptor across supported Python versions without following symlink targets.",
+              "args": [
+                {
+                  "name": "name",
+                  "type": "str"
+                },
+                {
+                  "name": "parent_fd",
+                  "type": "int"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
       "read": [
         "tests/ci/test_publish_environment_isolation.py",
         "tests/ci/test_publish_workflow.py",
@@ -161,6 +403,15 @@
         "tests/ci/test_maid_workflow_environment_isolation.py",
         "tests/ci/test_github_pytest_worker_wiring.py",
         "tests/ci/test_maid_workflow_pr_only_triggers.py",
+        "tests/ci/test_ci_dependency_link_isolation.py",
+        "tests/core/test_runtime_evidence.py",
+        "tests/test_api_reference_docs.py",
+        "maid_runner/core/_runtime_evidence_pytest_plugin.py",
+        "docs/reference/conf.py",
+        "tests/core/test_descriptor_tree_removal_compatibility.py",
+        "tests/cli/test_uninstall_cmd.py",
+        "tests/cli/test_legacy_pre_commit_markers.py",
+        "tests/cli/test_uninstall_windows_portability.py",
         "maid_runner/core/_knockout_snapshot.py",
         "maid_runner/core/_artifact_coverage_fallback_worker.py",
         "manifests/fix-publish-python-311-maid-tests.manifest.yaml",
@@ -179,21 +430,38 @@
         {
           "path": ".github/workflows/maid-test.yml",
           "reason": "Apply cache redirection and reusable input-selected uv interpreter to the main MAID test and coverage job."
+        },
+        {
+          "path": "maid_runner/cli/commands/init.py",
+          "reason": "Delegate guarded directory deletion to the shared descriptor-relative compatibility boundary."
+        },
+        {
+          "path": "maid_runner/core/skill_install.py",
+          "reason": "Delegate owned skill directory deletion to the same compatibility boundary while preserving existing ownership and Windows checks."
         }
       ]
     },
     "test_files": [
+      "tests/ci/test_ci_dependency_link_isolation.py",
       "tests/ci/test_github_pytest_worker_wiring.py",
       "tests/ci/test_maid_workflow_environment_isolation.py",
       "tests/ci/test_maid_workflow_pr_only_triggers.py",
       "tests/ci/test_publish_environment_isolation.py",
       "tests/ci/test_publish_workflow.py",
+      "tests/cli/test_legacy_pre_commit_markers.py",
+      "tests/cli/test_uninstall_cmd.py",
+      "tests/cli/test_uninstall_windows_portability.py",
       "tests/core/test_artifact_coverage_fallback_workers.py",
+      "tests/core/test_descriptor_tree_removal_compatibility.py",
       "tests/core/test_knockout_snapshot.py",
-      "tests/core/test_knockout_snapshot_template.py"
+      "tests/core/test_knockout_snapshot_template.py",
+      "tests/core/test_runtime_evidence.py",
+      "tests/test_api_reference_docs.py"
     ],
     "validate_commands": [
-      "uv run python -m pytest -q tests/ci/test_publish_environment_isolation.py tests/ci/test_publish_workflow.py tests/core/test_knockout_snapshot.py tests/core/test_artifact_coverage_fallback_workers.py tests/core/test_knockout_snapshot_template.py tests/ci/test_maid_workflow_environment_isolation.py tests/ci/test_github_pytest_worker_wiring.py tests/ci/test_maid_workflow_pr_only_triggers.py"
+      "uv run python -m pytest -q tests/core/test_descriptor_tree_removal_compatibility.py",
+      "uv run python -m pytest -q tests/cli/test_uninstall_cmd.py tests/cli/test_legacy_pre_commit_markers.py tests/cli/test_uninstall_windows_portability.py",
+      "uv run --group docs python -m pytest -q tests/ci/test_publish_environment_isolation.py tests/ci/test_publish_workflow.py tests/core/test_knockout_snapshot.py tests/core/test_artifact_coverage_fallback_workers.py tests/core/test_knockout_snapshot_template.py tests/ci/test_maid_workflow_environment_isolation.py tests/ci/test_github_pytest_worker_wiring.py tests/ci/test_maid_workflow_pr_only_triggers.py tests/ci/test_ci_dependency_link_isolation.py tests/core/test_runtime_evidence.py tests/test_api_reference_docs.py"
     ],
     "acceptance_commands": []
   }

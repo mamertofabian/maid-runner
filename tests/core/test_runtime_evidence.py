@@ -184,7 +184,7 @@ def test_monitoring_ownership_failure_falls_back_and_restores_prior_profile(
         def use_tool_id(*args):
             raise ValueError("occupied")
 
-    monkeypatch.setattr(sys, "monitoring", UnavailableMonitoring())
+    monkeypatch.setattr(sys, "monitoring", UnavailableMonitoring(), raising=False)
     plugin = RuntimeEvidencePlugin(tmp_path / "evidence", frozenset())
     assert sys.getprofile() is not previous
     hook = SimpleNamespace(get_hookimpls=lambda: [])
@@ -263,7 +263,7 @@ def test_monitoring_success_and_post_claim_failure_preserve_tool_ownership(
     sys.setprofile(previous)
 
     successful = FakeMonitoring()
-    monkeypatch.setattr(sys, "monitoring", successful)
+    monkeypatch.setattr(sys, "monitoring", successful, raising=False)
     plugin = RuntimeEvidencePlugin(tmp_path / "success", frozenset())
     assert sys.getprofile() is previous
     required = {1, 2, 4, 8, 16, 32}
@@ -284,7 +284,7 @@ def test_monitoring_success_and_post_claim_failure_preserve_tool_ownership(
     assert sys.getprofile() is previous
 
     failing = FakeMonitoring(fail_registration=True)
-    monkeypatch.setattr(sys, "monitoring", failing)
+    monkeypatch.setattr(sys, "monitoring", failing, raising=False)
     fallback = RuntimeEvidencePlugin(tmp_path / "fallback", frozenset())
     assert failing.freed == failing.claimed
     assert sys.getprofile() is not previous
@@ -292,7 +292,7 @@ def test_monitoring_success_and_post_claim_failure_preserve_tool_ownership(
     assert sys.getprofile() is previous
 
     set_events_failure = FakeMonitoring(fail_set_events=True)
-    monkeypatch.setattr(sys, "monitoring", set_events_failure)
+    monkeypatch.setattr(sys, "monitoring", set_events_failure, raising=False)
     fallback = RuntimeEvidencePlugin(tmp_path / "set-events-fallback", frozenset())
     failed_id = set_events_failure.claimed[0]
     assert set_events_failure.event_sets[-1] == (failed_id, 0)

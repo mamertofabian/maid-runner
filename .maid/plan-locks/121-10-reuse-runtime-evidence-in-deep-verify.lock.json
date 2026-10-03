@@ -2,7 +2,7 @@
   "manifest_path": "manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml",
   "manifest_hash": "sha256-contract:2e046c0332c1c4908efc8be1fbec1031ee913ea68d41e51b12eaff353e9be30e",
   "test_hashes": {
-    "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:e90baae652d05e55fb5caba7f5f6f733b3161bdd7d8ad44bba8a0728afcbe332",
+    "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:356622fef7d9d1375a02c221061a95e4b302dd10ca585a83fab278a486d3c635",
     "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
     "tests/core/test_test_runner.py": "sha256-pyast:v2:2a46dba2a774564ad767b932024b33dee078631aa5e13903fe70bd0736e38a0a",
     "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
@@ -10,7 +10,7 @@
     "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:0bfcbeae6328eb1bda7ba15e14e5961d06a0be5e328c153788852292842c8a4a"
   },
   "created_at": "2026-08-11T09:54:08.840657+00:00",
-  "revision": 26,
+  "revision": 27,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:73a70a579499174395c1046abcb186f941ad946d9901876bd9993dc5d0257e81",
@@ -712,6 +712,28 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2e046c0332c1c4908efc8be1fbec1031ee913ea68d41e51b12eaff353e9be30e",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:e90baae652d05e55fb5caba7f5f6f733b3161bdd7d8ad44bba8a0728afcbe332",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_test_runner.py": "sha256-pyast:v2:2a46dba2a774564ad767b932024b33dee078631aa5e13903fe70bd0736e38a0a",
+        "tests/cli/test_artifact_coverage_cmd.py": "sha256-pyast:v2:d36e9db9099cb7a5501ef85f92f03ee8062ed5dfcbabe36b08daba10530acbb7",
+        "tests/cli/test_verify_cmd.py": "sha256-pyast:v2:45133617aad086a4931ce63872276ec1189bde54868eb889cdeac7ad6d43555d",
+        "tests/cli/test_verify_deep_evidence_reuse.py": "sha256-pyast:v2:0bfcbeae6328eb1bda7ba15e14e5961d06a0be5e328c153788852292842c8a4a"
+      },
+      "revised_at": "2026-10-02T22:42:28.458477+00:00",
+      "reason": "User-approved Python 3.10/3.11 shared test harness compatibility; preserve unchanged production contract and historical red evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -1145,6 +1167,7 @@
     "validate_commands": [
       "uv run python -m pytest -q tests/cli/test_verify_deep_evidence_reuse.py tests/core/test_runtime_evidence.py tests/core/test_artifact_coverage_from_runtime_evidence.py tests/core/test_test_runner.py tests/cli/test_artifact_coverage_cmd.py tests/cli/test_verify_cmd.py",
       "uv run maid validate manifests/121-10-reuse-runtime-evidence-in-deep-verify.manifest.yaml --mode schema --quiet"
-    ]
+    ],
+    "acceptance_commands": []
   }
 }

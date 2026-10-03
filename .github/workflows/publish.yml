@@ -11,6 +11,7 @@ jobs:
     name: Test on Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
     env:
+      UV_LINK_MODE: copy
       # Apply the matrix interpreter to every uv command, including nested test commands.
       UV_PYTHON: ${{ matrix.python-version }}
     # _publish_release_branch_python_diagnostics
