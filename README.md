@@ -256,6 +256,14 @@ no active task, the default fail-open policy allows the write with reason
 `no-active-task`; broken hook execution also fails open so an interactive editor
 is not bricked. Locked-down autonomous loops should pass `--strict`, which
 turns both no-active-task and internal-error outcomes into denies.
+While a task is active, paths that resolve outside the project root (for
+example an agent's plan file in the home directory) are allowed with reason
+`outside-project-root` in both modes, because no repository manifest governs
+them. The project root is the hook's working directory, and the allow applies
+only after the active manifest loads and only when that manifest lies under
+the project root's `manifests/` directory. Run from anywhere else, the normal
+scope decision applies. Another checkout of the same repository, such as a git
+worktree, counts as outside the project root.
 
 With an active task, the hook allows the manifest's `files.create`,
 `files.edit`, `files.scope`, and `files.delete` paths, the active manifest file,

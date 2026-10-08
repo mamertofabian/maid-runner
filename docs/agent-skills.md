@@ -58,7 +58,10 @@ Editor hooks and managed agent payloads may call `maid hook scope-check` before
 write/edit operations. Interactive sessions use the default fail-open policy:
 missing active-task state and internal hook errors allow the edit so a broken
 hook does not block the editor. Locked-down autonomous loops should pass `--strict`
-to deny both no-active-task and internal-error outcomes.
+to deny both no-active-task and internal-error outcomes. While a task is active and its
+manifest loads from the project root's `manifests/` directory, paths that resolve outside the
+project root are allowed with reason `outside-project-root` in both modes,
+because no repository manifest governs them.
 
 `maid init` installs the hook wiring through managed payloads. Claude PreToolUse settings handle write/edit tool events.
 Cursor `hooks.json` and Codex managed `AGENTS.md` guidance cover pre-edit scope

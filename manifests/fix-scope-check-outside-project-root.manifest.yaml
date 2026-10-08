@@ -1,0 +1,322 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Allow scope-check hook decisions for paths outside the project root
+type: fix
+created: '2026-10-08T05:18:41Z'
+metadata:
+  epic: 069-00-edit-time-scope-enforcement-hooks
+  tags:
+  - hooks
+  - claude
+  - scope-enforcement
+  priority: high
+description: |
+  Fix the bug reported in
+  `~/.maid/bug-report/20261008-123608-scope-check-outside-project-root.md`.
+  `maid init --tool claude` installs `maid hook scope-check --stdin` as a
+  PreToolUse `Write|Edit` hook. While a MAID task is active, every edit to a
+  file outside the repository (Claude Code's plan file under
+  `~/.claude/plans/`, `~/.claude/CLAUDE.md`, scratch files under `/tmp`) is
+  denied, because `_normalize_display_path` returns the raw absolute path when
+  `relative_to(project_root)` fails, and that path can never match a declared
+  repo-relative scope entry. Relative escapes such as `../sibling/file.md`
+  fail the same way. This makes Claude plan mode unusable during MAID tasks.
+
+  Decision: `scope_check_path` allows a candidate path that resolves outside
+  the project root with reason `outside-project-root`, because manifest scope
+  is a repo-relative contract and out-of-repo files can never be declared in
+  it. The allow is guarded by one invariant so that a wrong project root can
+  never turn into an allow:
+
+  1. A task must be active. With no active task the 069-02 rule 5 outcome is
+     unchanged (`no-active-task`: allow by default, deny under `--strict`).
+  2. The active manifest must load successfully; load failures keep the
+     existing `internal-error` outcome (deny under `--strict`).
+  3. The resolved active manifest must lie under the resolved project root's
+     `manifests/` directory (its root-relative path starts with
+     `manifests/`, matching this module's existing `manifests/drafts/`
+     convention), proving the root owns the active task. Merely containing
+     the manifest is not enough: a hook run from `repo/manifests/` or
+     `repo/manifests/drafts/` contains the manifest but is not the project
+     root. When the hook runs from a
+     directory that does not own the active manifest (a repo subdirectory, a
+     foreign directory, a different checkout with an absolute
+     `MAID_ACTIVE_MANIFEST`), the outside-root allow is skipped and the
+     baseline in-scope/out-of-scope decision applies unchanged.
+  4. Containment is decided on resolved paths (symlinks followed): a
+     repo-internal symlink pointing outside the repo counts as outside, an
+     absolute path that resolves inside the repo keeps the normal decision,
+     and resolution errors (including `ValueError` from `resolve()` such as
+     an embedded NUL byte) fall through to the normal decision.
+
+  With an active, owned task the allow is independent of `--strict`, because
+  an out-of-root path is not a failure; sandboxing writes outside the repo is
+  the agent harness's job, not the manifest scope hook's.
+
+  Design history: an earlier iteration of this unmerged task tried to infer
+  the project root in `cmd_hook` by walking up from the working directory
+  (`.git` / `.maid/` / `manifests/` markers). Six independent implementation
+  reviews kept finding fail-open edge cases in that heuristic (user-level
+  `~/.maid/`, nested repos, monorepo packages, stray markers, foreign
+  directories). Per the repo's validator-hardening guidance against
+  case-by-case growth, root discovery was removed: `cmd_hook` is unchanged
+  from baseline and keeps using the working directory as the project root
+  (Claude Code runs hooks from the project directory). The ownership
+  invariant above makes any root mismatch fall back to baseline behavior
+  instead of allowing.
+
+  Out of scope: project-root discovery for hooks run from subdirectories
+  (baseline behavior is kept), changing `cmd_hook`, its exit-code policy or
+  the Claude stdin envelope parser, init payloads, and `maid verify`
+  changed-scope checks. Known limitations: projects that configure a custom
+  `manifest_dir` in `.maidrc.yaml` do not get the outside-root allow and keep
+  baseline behavior (fail closed), because the hot hook path does not load
+  project config; on case-insensitive filesystems a
+  differently-cased path to an in-repo file is classified as outside, because
+  `Path.resolve()` does not canonicalize case (bind-mount aliases behave
+  similarly); and, by design, the project root is the hook's working
+  directory, so a hook run from another checkout of the same repository (for
+  example a git worktree) or from a nested MAID sub-project with its own
+  `manifests/` treats files of the other checkout or parent project as
+  outside-project-root, including under `--strict`; this cannot be exercised by a
+  deterministic test on Linux CI and is left for a follow-up.
+temptations:
+- risk: Do not make denials disappear by allowing every absolute path.
+  instead: Allow only paths whose resolved location is outside the resolved project root; absolute paths inside the repo must still be denied when undeclared.
+- risk: Do not widen declared_scope_paths or add out-of-repo entries to the allowed set.
+  instead: Decide outside-root containment as a separate branch in scope_check_path with its own `outside-project-root` reason, after the active manifest loads.
+- risk: Do not guess the project root with marker-walking heuristics.
+  instead: Keep the caller's project root and require the active manifest to lie under that root's manifests/ directory before the outside-root allow applies; any mismatch falls back to the baseline decision.
+- risk: Do not edit the plan-locked tests/cli/test_hook_cmd.py or test_hook_claude_stdin_envelope.py.
+  instead: Add regression coverage in a new manifest-owned test module and only run the older modules as regression checks.
+files:
+  edit:
+  - path: maid_runner/core/scope_check.py
+    artifacts:
+    - kind: function
+      name: scope_check_path
+      args:
+      - name: candidate_path
+        type: str
+      - name: active_manifest
+        type: str | None
+      - name: project_root
+        type: Union[str, Path]
+        default: '''.'''
+      - name: strict
+        type: bool
+        default: 'False'
+      returns: ScopeCheckDecision
+      description: Decide allow/deny for a candidate path; when a task is active, its manifest loads, and the manifest lies under the project root's manifests/ directory, paths that resolve outside the project root (absolute, relative escapes, or symlink escapes) are allowed with reason outside-project-root in default and strict mode; otherwise the 069-02 rules apply unchanged.
+  create:
+  - path: tests/core/test_scope_check_outside_project_root.py
+    artifacts:
+    - kind: test_function
+      name: test_scope_check_allows_absolute_path_outside_project_root
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: An absolute path outside the project root is allowed with reason outside-project-root while a task is active.
+    - kind: test_function
+      name: test_scope_check_allows_relative_escape_outside_project_root
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: A relative ../ path escaping the project root is allowed with reason outside-project-root.
+    - kind: test_function
+      name: test_scope_check_allows_outside_project_root_under_strict
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: With an active task, strict mode does not deny out-of-root paths.
+    - kind: test_function
+      name: test_scope_check_strict_without_active_task_denies_outside_path
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: Under strict mode with no active task, an out-of-root path is still denied with reason no-active-task (069-02 rule 5 unchanged).
+    - kind: test_function
+      name: test_scope_check_still_denies_undeclared_absolute_path_inside_project_root
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: An undeclared absolute path inside the project root remains denied as out-of-scope, and a declared absolute path is allowed as in-scope.
+    - kind: test_function
+      name: test_scope_check_treats_symlink_escape_as_outside_project_root
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: A repo-internal symlink whose target lives outside the project root is allowed as outside-project-root.
+    - kind: test_function
+      name: test_scope_check_skips_outside_allow_when_root_does_not_own_active_manifest
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: When the project root is a repo subdirectory that does not contain the absolute active manifest, a repo file outside that subdirectory is denied under strict mode instead of allowed as outside-project-root.
+    - kind: test_function
+      name: test_scope_check_unloadable_active_manifest_fails_closed_under_strict
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: When the active manifest cannot be loaded under the project root, an out-of-root path is denied as internal-error under strict mode instead of allowed as outside-project-root.
+    - kind: test_function
+      name: test_hook_allows_claude_edit_envelope_for_file_outside_project_root
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: capsys
+        type: pytest.CaptureFixture[str]
+      returns: None
+      description: The installed Claude PreToolUse Edit envelope targeting an out-of-repo plan file exits 0 with an allow outside-project-root JSON decision when the hook runs from the project root.
+    - kind: test_function
+      name: test_hook_from_subdirectory_does_not_allow_repo_files_as_outside_under_strict
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: capsys
+        type: pytest.CaptureFixture[str]
+      returns: None
+      description: Run from a repo subdirectory with an absolute MAID_ACTIVE_MANIFEST, an undeclared repo file outside that subdirectory is denied under --strict with exit 2.
+    - kind: test_function
+      name: test_scope_check_unresolvable_path_is_not_allowed_as_outside_under_strict
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: A candidate path that cannot be resolved (embedded NUL byte) is never allowed as outside-project-root; under strict mode it gets the normal deny decision.
+    - kind: test_function
+      name: test_scope_check_skips_outside_allow_when_root_is_the_manifests_directory
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: When the project root is the repo's manifests/ directory, which contains the absolute active manifest but is not the project root, a repo source file is denied under strict mode instead of allowed as outside-project-root.
+  scope:
+  - path: README.md
+    reason: Document that scope-check allows outside-project-root paths while an owned task is active.
+  - path: docs/agent-skills.md
+    reason: Keep the --strict policy description accurate now that outside-project-root paths are allowed while a task is active.
+  read:
+  - manifests/069-02-add-hook-scope-check-command.manifest.yaml
+  - manifests/fix-claude-scope-check-stdin-envelope.manifest.yaml
+  - maid_runner/cli/commands/hook.py
+  - maid_runner/core/active_task.py
+  - tests/cli/test_hook_cmd.py
+  - tests/cli/test_hook_claude_stdin_envelope.py
+validate:
+- uv run python -m pytest -q tests/core/test_scope_check_outside_project_root.py tests/cli/test_hook_cmd.py tests/cli/test_hook_claude_stdin_envelope.py
+outcome:
+  status: completed
+  completed_at: "2026-10-08T08:30:00Z"
+  summary: "`maid hook scope-check` now allows paths that resolve outside the project root (absolute paths, `../` escapes, symlink escapes) with reason `outside-project-root` while an active task's manifest loads from the root's `manifests/` directory, so Claude Code can edit its plan file and other out-of-repo files during MAID tasks; every other case keeps the 069-02 decision, so a wrong or foreign root falls back to baseline instead of allowing."
+  rationale: "Manifest scope is repo-relative, so out-of-repo files can never be declared and denying them only blocked agents. The allow is a single guarded branch in `scope_check_path` placed after the no-active-task and manifest-load steps and gated on an ownership invariant (manifest under the root's `manifests/`) plus resolution-error-as-unknown handling, rather than inferring the project root heuristically. `cmd_hook` is unchanged from baseline."
+  lessons:
+  - lesson_type: design
+    summary: "Heuristic project-root discovery (walking up for .git/.maid/manifests markers) produced a new fail-open edge case in each of six independent reviews (~/.maid, nested repos, monorepo packages, stray markers, foreign directories). Replacing it with an invariant that makes any root mismatch fall back to baseline behavior converged; prefer fail-closed invariants over better guessing for allow-widening security changes."
+    tags:
+    - hooks
+    - scope-enforcement
+    - fail-closed
+    paths:
+    - maid_runner/core/scope_check.py
+  - lesson_type: validation
+    summary: "When an allow branch is added to an enforcement hook, review it against baseline under --strict for every way the root can be wrong (subdirectory, manifests/ dir itself, foreign cwd, absolute vs relative active manifest) and for resolve() errors; `except ValueError` around `resolve().relative_to()` silently conflated 'outside' with 'unresolvable' (embedded NUL)."
+    tags:
+    - hooks
+    - review
+    - path-handling
+    paths:
+    - maid_runner/core/scope_check.py
+    - tests/core/test_scope_check_outside_project_root.py
+  - lesson_type: workflow
+    summary: "The draft was locked and promoted by a process outside the session and the promoted manifest was left 0 bytes while the lock recorded a valid hash; it was recovered exactly by re-rendering the draft through the promote renderer with the promotion timestamp. Reviewer packets must also forbid glob/relative `rm -rf` in scratch probes (a reviewer twice requested `cd /tmp/x && rm -rf *`)."
+    tags:
+    - plan-lock
+    - promotion
+    - reviewer-safety
+    paths:
+    - .maid/plan-locks/fix-scope-check-outside-project-root.lock.json
+  review_notes:
+  - source: independent-maid-implementation-reviewer-pass-1-to-8
+    severity: high
+    summary: "Eight read-only reviews returned needs changes / needs discussion; all findings were fixed via plan revisions 3-11 (subdirectory fail-open, nested manifests/ dir, ancestor ~/.maid, stray nested .maid, foreign cwd with absolute or relative active manifest, outside allow before manifest load, NUL-byte resolve error treated as outside, manifests/ dir accepted as owner)."
+  - source: independent-maid-implementation-reviewer-pass-9
+    severity: info
+    summary: "Ready to merge; non-blocking cross-checkout/nested-project behavior documented as a known limitation (revision 12) and an over-long README line rewrapped."
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - -q
+    - tests/core/test_scope_check_outside_project_root.py
+    - tests/cli/test_hook_cmd.py
+    - tests/cli/test_hook_claude_stdin_envelope.py
+    status: passed
+    summary: "Manifest validate command passed (19 tests); with hook payload, docs, and active-task suites 39 passed."
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: "332 manifests passed, 0 failed."
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: "306 commands passed, 0 failed."
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/
+    - -q
+    - -n
+    - auto
+    status: passed
+    summary: "5555 passed, 20 skipped."
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - 5bdd338f
+    - --summary
+    status: passed
+    summary: "Assessed deep handoff gate passed: 11 checks incl. artifact_coverage and knockout; only pre-existing E307 warnings."

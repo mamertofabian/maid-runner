@@ -60,6 +60,16 @@ def scope_check_path(
             active_manifest=active_manifest,
         )
 
+    # Only after the active manifest loads, and only when the root owns it, so
+    # a wrong project root falls back to the normal decision instead of allowing.
+    if _is_outside_project_root(candidate_path, root) and _root_owns_manifest(
+        active_manifest_path, root
+    ):
+        return ScopeCheckDecision(
+            decision="allow",
+            reason="outside-project-root",
+            active_manifest=active_manifest,
+        )
     if candidate in allowed_paths or _is_under_draft_manifests(candidate):
         return ScopeCheckDecision(
             decision="allow",
@@ -76,6 +86,47 @@ def scope_check_path(
         ),
         active_manifest=active_manifest,
     )
+
+
+def _is_outside_project_root(path: str, project_root: Path) -> bool:
+    """Return True when the path resolves outside the project root.
+
+    Manifest scope is repo-relative, so files outside the repository are not
+    governed by any manifest. Resolution failures are not treated as outside;
+    they fall through to the normal scope decision.
+    """
+    return _project_root_containment(Path(path), project_root) is False
+
+
+def _root_owns_manifest(manifest_path: Path, project_root: Path) -> bool:
+    """Return True only when the manifest provably lives in root's manifests/.
+
+    Containing the manifest is not enough: ``repo/manifests`` contains it but
+    is not the project root. Resolution failures count as not owned.
+    """
+    if not manifest_path.is_absolute():
+        manifest_path = project_root / manifest_path
+    try:
+        relative = manifest_path.resolve().relative_to(project_root.resolve())
+    except (OSError, RuntimeError, ValueError):
+        return False
+    return len(relative.parts) > 1 and relative.parts[0] == "manifests"
+
+
+def _project_root_containment(path: Path, project_root: Path) -> bool | None:
+    """Return True inside, False outside, or None when resolution fails."""
+    if not path.is_absolute():
+        path = project_root / path
+    try:
+        resolved_path = path.resolve()
+        resolved_root = project_root.resolve()
+    except (OSError, RuntimeError, ValueError):
+        return None
+    try:
+        resolved_path.relative_to(resolved_root)
+    except ValueError:
+        return False
+    return True
 
 
 def _declared_test_paths(manifest: Manifest, project_root: Path) -> set[str]:
