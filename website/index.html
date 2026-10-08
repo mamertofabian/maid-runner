@@ -119,7 +119,7 @@
             </p>
           </div>
 
-          <div class="hero-console" aria-label="Manifest and validation handoff preview">
+          <div class="hero-console" role="figure" aria-label="A manifest and the maid verify run that enforces it">
             <article class="console-panel manifest-panel">
               <div class="panel-header">
                 <span class="panel-file-icon" aria-hidden="true">□</span>
@@ -127,56 +127,44 @@
                 <span class="panel-dots" aria-hidden="true">•••</span>
               </div>
               <div class="code-window">
-                <div class="code-line">
-                  <span class="line-number">1</span>
-                  <code><b>goal:</b> Add password recovery</code>
-                </div>
-                <div class="code-line">
-                  <span class="line-number">2</span>
-                  <code><b>files:</b></code>
-                </div>
-                <div class="code-line">
-                  <span class="line-number">3</span>
-                  <code class="code-indent">- src/auth/service.ts</code>
-                </div>
-                <div class="code-line">
-                  <span class="line-number">4</span>
-                  <code><b>edit:</b></code>
-                </div>
-                <div class="code-line">
-                  <span class="line-number">5</span>
-                  <code><b>behavior:</b></code>
-                </div>
-                <div class="code-line">
-                  <span class="line-number">6</span>
-                  <code class="code-indent">- expired tokens are rejected</code>
-                </div>
-                <div class="code-line">
-                  <span class="line-number">7</span>
-                  <code class="code-indent">- valid tokens can only be</code>
-                </div>
-                <div class="code-line">
-                  <span class="line-number">8</span>
-                  <code class="code-indent code-indent-double">used once</code>
-                </div>
+                <div class="code-line"><span class="line-number">1</span><code><b>schema:</b> "2"</code></div>
+                <div class="code-line"><span class="line-number">2</span><code><b>goal:</b> Add password recovery</code></div>
+                <div class="code-line"><span class="line-number">3</span><code><b>type:</b> feature</code></div>
+                <div class="code-line"><span class="line-number">4</span><code><b>files:</b></code></div>
+                <div class="code-line"><span class="line-number">5</span><code>  <b>edit:</b></code></div>
+                <div class="code-line"><span class="line-number">6</span><code>    - <b>path:</b> src/auth/service.py</code></div>
+                <div class="code-line"><span class="line-number">7</span><code>      <b>artifacts:</b></code></div>
+                <div class="code-line"><span class="line-number">8</span><code>        - <b>kind:</b> function</code></div>
+                <div class="code-line"><span class="line-number">9</span><code>          <b>name:</b> reset_password</code></div>
+                <div class="code-line"><span class="line-number">10</span><code>          <b>args:</b></code></div>
+                <div class="code-line"><span class="line-number">11</span><code>            - <b>name:</b> email</code></div>
+                <div class="code-line"><span class="line-number">12</span><code>              <b>type:</b> str</code></div>
+                <div class="code-line"><span class="line-number">13</span><code>          <b>returns:</b> bool</code></div>
+                <div class="code-line"><span class="line-number">14</span><code><b>validate:</b></code></div>
+                <div class="code-line"><span class="line-number">15</span><code>  - pytest tests/test_reset.py</code></div>
               </div>
-              <div class="panel-status"><span>YAML</span><span>Ln 8, Col 1 <b class="status-dot"></b></span></div>
+              <div class="panel-status"><span>YAML</span><span>Ln 15, Col 1 <b class="status-dot"></b></span></div>
             </article>
 
             <article class="console-panel validation-panel">
               <div class="panel-header">
                 <span class="terminal-prompt" aria-hidden="true">&gt;_</span>
-                <span>maid validate</span>
+                <span>maid verify</span>
                 <span class="panel-dots" aria-hidden="true">•••</span>
               </div>
-              <ul class="validation-list">
-                <li><span class="validation-check">✓</span> Approved plan lock</li>
-                <li><span class="validation-check">✓</span> Red-phase evidence</li>
-                <li><span class="validation-check">✓</span> Declared file scope</li>
-                <li><span class="validation-check">✓</span> Structural contract</li>
-                <li><span class="validation-check">✓</span> Behavioral tests</li>
-                <li><span class="validation-check">✓</span> Independent review</li>
-              </ul>
+              <pre class="verify-transcript"><span class="term-cmd">$ maid verify --summary --since main</span>
+<span class="term-fail">VERIFY: FAIL (1 blocking, 0 warnings unique / 0 raw, 4 passed, 0 skipped)</span>
+BLOCKING (1):
+<span class="term-fail">  FAIL file_tracking</span>
+    Undeclared (1):
+<span class="term-fail">      src/auth/session.py</span>
+    Tracked (1):
+      src/auth/service.py
+PASSED (4): schema, behavioral, implementation, coherence
+<span class="term-cmd term-step">$ rm src/auth/session.py</span>
+<span class="term-cmd">$ maid verify --summary --since main</span>
+<span class="term-pass">VERIFY: PASS (0 blocking, 0 warnings unique / 0 raw, 8 passed, 0 skipped)</span>
+PASSED (8): schema, behavioral, implementation, coherence, file_tracking, worktree_scope, changed_scope, tests</pre>
               <p class="handoff-ready">HANDOFF READY</p>
             </article>
           </div>
@@ -424,15 +412,15 @@
             </p>
             <div class="practice-stats" aria-label="MAID Runner evidence">
               <div class="practice-stat">
-                <span class="practice-stat-value" data-stat="maidRunner.manifests">705</span>
+                <span class="practice-stat-value" data-stat="maidRunner.manifests">706</span>
                 <span class="practice-stat-label">validated manifests</span>
               </div>
               <div class="practice-stat">
-                <span class="practice-stat-value" data-stat="maidRunner.tests">5583</span>
+                <span class="practice-stat-value" data-stat="maidRunner.tests">5587</span>
                 <span class="practice-stat-label">passing tests</span>
               </div>
               <div class="practice-stat">
-                <span class="practice-stat-value" data-stat="maidRunner.maidCommandGroups">310</span>
+                <span class="practice-stat-value" data-stat="maidRunner.maidCommandGroups">312</span>
                 <span class="practice-stat-label">MAID validation command groups</span>
               </div>
               <div class="practice-stat">

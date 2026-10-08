@@ -1,0 +1,181 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Show a valid manifest and a real maid verify refusal in the homepage hero
+type: feature
+created: '2026-10-08T14:56:17Z'
+metadata:
+  planning_state: completed
+  tags:
+  - website
+  - hero
+  - content
+  - evidence
+  priority: high
+description: |
+  The 2026-10-08 Impeccable re-critique's second P1: the hero's manifest.yaml
+  mock is the first artifact a developer reads, and MAID would reject it. It
+  is not even parseable YAML ("used once" continues a list item without
+  quoting), it uses a `behavior:` key and an empty `edit:` that the v2 schema
+  does not define, and it has no `validate:`. The terminal panel claims an
+  "Independent review" check that no maid command performs, shows only green
+  ticks (the user chose to "show the refusal"), and at 820-1001px the
+  overlapping panels cover manifest code and the status bar.
+
+  Rework the hero preview in website/index.html and website/styles.css:
+  - The manifest panel shows a trimmed Python manifest that parses as YAML and
+    passes maid_runner.core.manifest.validate_manifest_schema: schema "2", a
+    goal, type feature, files.edit for src/auth/service.py declaring
+    reset_password with args and returns in block form (so every line
+    fits a 320px phone), and a pytest validate command. Each code line holds its real indentation as literal spaces
+    (white-space: pre) so the rendered text is the YAML.
+  - The terminal panel is the literal output of `maid verify --summary --since
+    main` run against that manifest. A plan review ran the real CLI and showed
+    that an undeclared changed file is refused by file_tracking (verify is
+    fail-fast and file_tracking runs before worktree_scope), not by E114, and
+    that plan_lock only runs with --require-plan-lock. So the transcript is:
+    run 1 refused (VERIFY: FAIL, BLOCKING (1), FAIL file_tracking, Undeclared
+    (1): src/auth/session.py, Tracked (1): src/auth/service.py, PASSED (4)),
+    `$ rm src/auth/session.py`, then run 2 passing (VERIFY: PASS ...,
+    PASSED (8): schema, behavioral, implementation, coherence, file_tracking,
+    worktree_scope, changed_scope, tests). Only the timing-dependent
+    "Duration:" lines and blank lines are trimmed. HANDOFF READY stays as the
+    result badge after the transcript, not as command output. The old tick
+    rows, including "Independent review", are removed.
+
+  Contract design: tests/test_website_hero_refusal.py makes the hero true by
+  construction. It writes the page's own manifest YAML into a scratch git repo
+  (main branch base, feature branch with the implementation and a stray file
+  named by the page's `$ rm` line), runs the real CLI twice, and requires the
+  page transcript to equal the trimmed real output line for line, so invented
+  stages, counts, glyphs, or wording cannot pass. A headless geometry test,
+  with pointer-events forced back on, requires every text line in both panels
+  to be visible (opacity, visibility, transparent color), inside its own panel,
+  on screen, not under the other panel, and hit-testable, with the rendered
+  manifest lines identical to the authored YAML, at 320, 360, 390, 820,
+  1001, 1440, and 1920px.
+
+  The locked strings other contracts assert on the homepage stay present
+  ("manifest.yaml", "maid validate", "HANDOFF READY"); "maid validate" remains
+  in the practice section's as-of line. Additive chain-merge onto the active
+  website contract (website-distill-why-section, website-install-trust,
+  website-polish-practice-mobile, website-dated-practice-stats); supersedes
+  nothing. The rendered type floor and pinned media conditions in
+  tests/test_website_rendered_typography.py still apply.
+
+  After implementation, rerun `uv run python scripts/update_practice_stats.py` so
+  the MAID in practice numbers include this change (they are refused, not
+  reused, if any run fails).
+temptations:
+- risk: Do not hand-write or tidy the verify transcript, or add stages, counts, glyphs, or ticks that
+    the real run did not print.
+  instead: Copy the trimmed output of maid verify --summary --since main from a scratch run of the page's
+    manifest; the real-run test regenerates it and must match line for line.
+- risk: Do not show YAML that differs from what renders, or hide code lines behind a visible fake manifest.
+  instead: Put the manifest's literal text, with real indentation, in the code elements; the geometry
+    test compares rendered lines to the authored YAML.
+- risk: Do not fix the panel overlap by shrinking code below the 12px floor, by pointer-events tricks,
+    or by hiding or clipping text.
+  instead: Lay the panels out as an offset stack (full width on phones) so every line is visible inside
+    its own panel at every checked width.
+- risk: Do not refuse a file the manifest declares, which would make the refusal false.
+  instead: Refuse a sibling file (src/auth/session.py) that appears in no files section of the hero manifest.
+files:
+  scope:
+  - path: website/index.html
+    reason: Hero manifest panel markup and the maid verify transcript panel.
+  - path: website/styles.css
+    reason: Literal-space code lines, refusal and pass styling, and a non-overlapping hero panel layout
+      at every breakpoint.
+  - path: website/data/practice-stats.json
+    reason: Refreshed by scripts/update_practice_stats.py after this change, so the published counts include
+      this change's tests and manifest; the script also rewrites the mirrored numbers in website/index.html.
+  create:
+  - path: tests/test_website_hero_refusal.py
+    artifacts:
+    - kind: test_function
+      name: test_hero_manifest_passes_the_real_v2_schema
+      args: []
+      returns: None
+    - kind: test_function
+      name: test_hero_transcript_is_a_real_maid_verify_run
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+    - kind: test_function
+      name: test_hero_refusal_names_a_file_the_manifest_does_not_declare
+      args: []
+      returns: None
+    - kind: test_function
+      name: test_hero_panels_show_all_their_text_without_overlap
+      args: []
+      returns: None
+  read:
+  - maid_runner/core/manifest.py
+  - maid_runner/cli/commands/_format.py
+  - maid_runner/cli/commands/verify.py
+  - maid_runner/schemas/manifest.v2.schema.json
+validate:
+- uv run python -m pytest -q tests/test_website_hero_refusal.py tests/test_website_static_contract.py
+  tests/test_website_rendered_typography.py tests/test_website_distilled_story.py tests/test_practice_stats_update.py
+- uv run maid validate manifests/website-hero-real-refusal.manifest.yaml --mode behavioral --quiet
+- uv run maid validate manifests/website-hero-real-refusal.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-10-08T17:30:00Z"
+  summary: "The homepage hero now shows a manifest MAID accepts and the gate refusing work. The manifest panel is a 15-line Python manifest that passes the v2 schema: files.edit for src/auth/service.py declaring reset_password with args and returns, plus a pytest validate command. The terminal is the literal trimmed output of maid verify --summary --since main for that manifest: refused by file_tracking for an undeclared src/auth/session.py, then rm, then VERIFY: PASS with eight real stages, then the HANDOFF READY badge. The invented tick rows, including 'Independent review', are gone, and the panels stack with an offset, so no text is covered at 320-1920px. Practice stats were refreshed afterwards to 706 / 5587 / 312."
+  rationale: "The re-critique's second P1: the first artifact a developer read was a manifest MAID would reject, beside a terminal claiming a check no command runs. The user chose to show the refusal. To keep the hero honest over time, the contract regenerates the transcript from a real CLI run of the page's own manifest rather than describing it."
+  lessons:
+    - lesson_type: validation
+      summary: "When a page shows CLI output, test it by running the CLI. A hand-written 'literal' transcript (E114 from worktree_scope, plan_lock in PASSED, VERIFY: PASS without --summary) passed two plan reviews' regex contracts before a reviewer ran the real CLI. verify is fail-fast and file_tracking runs before worktree_scope, so the real refusal is FAIL file_tracking / Undeclared. A scratch-repo run of the page's own manifest, compared line for line, made invented stages, counts, and glyphs impossible."
+      tags:
+        - runtime-evidence
+        - website
+        - cli-fidelity
+      paths:
+        - tests/test_website_hero_refusal.py
+    - lesson_type: validation
+      summary: "Geometry beats hit-testing for overlap checks. pointer-events: none, z-index: auto (NaN comparisons), opacity, transparent color, and text-indent all defeated elementFromPoint-only checks. The final test forces pointer-events back on, checks visibility with opacity and visibility properties, color alpha, containment in the panel and viewport, and rect intersection with the other panel."
+      tags:
+        - playwright
+        - test-quality
+      paths:
+        - tests/test_website_hero_refusal.py
+    - lesson_type: responsive
+      summary: "white-space: pre code at the 12px floor clips on 360-375px phones even when 390px fits. Include 320 and 360 in geometry widths, and keep example identifiers short enough that the longest line fits."
+      tags:
+        - responsive
+        - website
+      paths:
+        - website/index.html
+        - website/styles.css
+  review_notes:
+    - source: plan-review-subagents
+      severity: ready
+      summary: "Two plan reviews. The first found a pointer-events bypass of the overlap test, a blocklist stage check, a non-matching VERIFY format, and hideable manifest code. The second ran the real CLI and showed the planned transcript could not occur (file_tracking refuses first; plan_lock needs --require-plan-lock), plus five more test bypasses. This led to the real-run contract, which was prototyped in a scratch copy (all tests plus the locked static and typography tests passed) before lock."
+    - source: implementation-review-subagents
+      severity: ready
+      summary: "Review 1 (needs changes): manifest line 10 clipped at 360/375px. Fixed with block-form args, shorter names, and a narrower phone gutter; 320 and 360 added to the geometry widths; the real-run test isolated from machine git config with exit codes checked and the rm path confined; role=figure; a CSS-only gap before the rerun. Review 2: Ready to merge, after reproducing the transcript line for line in its own scratch repo. Lows applied without another review round (trivial): drop inherited PYTEST_/MAID_ variables in the real-run test (lock revision 6, red re-measured) and widen the terminal panel so VERIFY lines no longer wrap at 1440px (they still wrap at 1001px). Not applied: the HANDOFF READY badge follows verify without --require-plan-lock; it is a locked homepage string and the description explains the plain command."
+    - source: deferred-follow-ups
+      severity: ready
+      summary: "The hero is taller (about 887px on desktop, so HANDOFF READY sits below the fold at 1440x900; about 1477px on phones). Wrapped transcript lines have no hanging indent at narrower widths. A reviewer noted maid verify --require-plan-lock passed in the scratch repo with no lock file, likely because the manifest was committed on main (legacy baseline); worth confirming separately."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/test_website_hero_refusal.py, tests/test_website_static_contract.py, tests/test_website_rendered_typography.py, tests/test_website_distilled_story.py, tests/test_practice_stats_update.py]
+      status: passed
+      summary: "Manifest validate pytest command: 33 passed, including the real scratch-repo maid verify run."
+    - command: [uv, run, python, -m, pytest, tests/, -q, -n, "8"]
+      status: passed
+      summary: "Full suite: 5587 passed, 20 skipped; maid test 312 passed, 0 failed; repo-wide maid validate 706 manifests, 0 failed; ruff and black clean."
+    - command: [uv, run, python, scripts/update_practice_stats.py]
+      status: passed
+      summary: "Practice stats refreshed to 706 / 5587 / 312. The first attempt was correctly refused by a load-sensitive timing test (tests/core/test_artifact_coverage_fallback_workers.py), which passed 3/3 in isolation."
+    - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --file-tracking-scope, task, --plan-lock-scope, task, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, HEAD, --summary]
+      status: passed
+      summary: "Command printed by maid assess (deep tier): PASS, 0 blocking, 11 stages; only pre-existing E307 warnings."
+    - command: [headless-chromium-render-inspection]
+      status: passed
+      summary: "Hero rendered at 320-1920px: no overlap, no clipping; manifest lines fit at 320/360/375/390/414; VERIFY lines unwrapped at 1440/1920; orange refusal and green pass lines legible on the dark panel."

@@ -7,9 +7,9 @@
   },
   "maidRunner": {
     "updatedAt": "2026-10-08",
-    "manifests": 705,
-    "tests": 5583,
-    "maidCommandGroups": 310
+    "manifests": 706,
+    "tests": 5587,
+    "maidCommandGroups": 312
   },
   "csharpValidator": {
     "updatedAt": "2026-08-04",

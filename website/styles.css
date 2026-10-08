@@ -386,14 +386,16 @@ p {
   font-style: normal;
 }
 
+/* Stacked panels, offset for depth; neither ever covers the other's text. */
 .hero-console {
   position: relative;
-  min-height: 320px;
+  display: grid;
+  gap: 16px;
   margin-right: -25px;
 }
 
 .console-panel {
-  position: absolute;
+  position: relative;
   overflow: hidden;
   border: 1px solid var(--line-bright);
   border-radius: 10px;
@@ -403,17 +405,12 @@ p {
 }
 
 .manifest-panel {
-  top: 0;
-  left: 0;
-  z-index: 1;
-  width: 73%;
+  width: 86%;
 }
 
 .validation-panel {
-  right: 0;
-  bottom: 0;
-  z-index: 2;
-  width: 71%;
+  justify-self: end;
+  width: calc(100% + 25px);
 }
 
 .panel-header,
@@ -445,18 +442,17 @@ p {
 }
 
 .code-window {
-  min-height: 198px;
   padding: 12px 0 10px;
   font-family: "SFMono-Regular", Consolas, monospace;
   font-size: var(--type-code);
-  line-height: 2;
+  line-height: 1.7;
   overflow-x: auto;
 }
 
 .code-line {
   display: grid;
   grid-template-columns: 38px 1fr;
-  min-height: 22px;
+  min-height: 20px;
 }
 
 .line-number {
@@ -470,20 +466,12 @@ p {
 .code-line code {
   padding-left: 14px;
   color: var(--text);
-  white-space: nowrap;
+  white-space: pre;
 }
 
 .code-line b {
   color: #ffb32e;
   font-weight: 500;
-}
-
-.code-indent {
-  padding-left: 28px !important;
-}
-
-.code-indent-double {
-  padding-left: 46px !important;
 }
 
 .panel-status {
@@ -520,33 +508,37 @@ p {
   color: var(--text);
 }
 
-.validation-list {
-  display: grid;
-  gap: 8px;
-  margin: 18px 0 0;
-  padding: 0 22px;
-  color: var(--text);
+.verify-transcript {
+  margin: 0;
+  padding: 14px 18px 2px;
+  color: var(--text-muted);
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 12px;
-  line-height: 1.35;
-  list-style: none;
+  font-size: var(--type-code);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
-.validation-list li {
-  display: flex;
-  align-items: center;
-  gap: 11px;
+.verify-transcript .term-cmd {
+  color: var(--text);
 }
 
-.validation-check {
+/* Separate the rerun visually without adding a line to the real output. */
+.verify-transcript .term-step {
+  display: inline-block;
+  margin-top: 10px;
+}
+
+.verify-transcript .term-fail {
+  color: var(--orange);
+}
+
+.verify-transcript .term-pass {
   color: var(--green);
-  font-size: 20px;
-  line-height: 1;
-  text-shadow: 0 0 11px rgba(78, 228, 109, 0.5);
 }
 
 .handoff-ready {
-  margin: 21px 22px 22px;
+  margin: 12px 18px 18px;
   color: var(--green);
   font-family: "SFMono-Regular", Consolas, monospace;
   font-size: 20px;
@@ -1711,7 +1703,6 @@ body.js .primary-nav.is-open {
   }
 
   .hero-console {
-    min-height: 460px;
     max-width: 660px;
     margin: 0 auto;
     width: 100%;
@@ -1807,50 +1798,35 @@ body.js .primary-nav.is-open {
     line-height: 1.7;
   }
 
-  /* Stack the mock panels on phones so readable code is never covered. */
+  /* Full-width panels and a narrow gutter on phones so every manifest line
+     fits down to 320px. */
   .hero-console {
-    display: grid;
     gap: 14px;
-    min-height: 0;
   }
 
   .manifest-panel,
   .validation-panel {
-    position: relative;
     width: 100%;
   }
 
-  .code-window {
-    min-height: 0;
-    padding-top: 12px;
-  }
-
   .code-line {
-    grid-template-columns: 30px 1fr;
+    grid-template-columns: 24px 1fr;
   }
 
   .line-number {
-    padding-right: 7px;
+    padding-right: 5px;
   }
 
   .code-line code {
-    padding-left: 9px;
+    padding-left: 6px;
   }
 
-  .code-indent {
-    padding-left: 17px !important;
-  }
-
-  .code-indent-double {
-    padding-left: 29px !important;
-  }
-
-  .validation-list {
-    padding-inline: 15px;
+  .verify-transcript {
+    padding-inline: 14px;
   }
 
   .handoff-ready {
-    margin-inline: 15px;
+    margin-inline: 14px;
     font-size: 16px;
   }
 
