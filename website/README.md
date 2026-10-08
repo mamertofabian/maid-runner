@@ -51,3 +51,22 @@ Deleting the workflow does not disable GitHub Pages at the repository level.
 Before release, confirm Pages is disabled under **Settings → Pages**. This
 repository configuration can prevent future workflow deployments, but it
 cannot enforce that external setting.
+
+## Rendered typography tests
+
+`tests/test_website_rendered_typography.py` renders `index.html` and
+`404.html` in headless Chromium and checks the type floor the browser
+actually applies: no text below 12px, explanatory copy at 15px or larger,
+tracking no tighter than -0.04em, and balanced display headings, across
+phone, tablet, desktop, touch, no-JavaScript, and reduced-motion scenarios.
+Install the matching browser once after `uv sync --group dev`:
+
+```bash
+uv run playwright install chromium
+```
+
+On a fresh Linux machine, add `--with-deps` if Chromium fails to launch for
+missing system libraries.
+
+The test fails rather than skips when Chromium is missing. CI installs it
+before the MAID test, validation, and publish test steps.

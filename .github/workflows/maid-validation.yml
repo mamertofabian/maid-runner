@@ -90,6 +90,12 @@ jobs:
             uv run python scripts/sync_claude_files.py
           fi
 
+      - name: Install maid-runner website browser when available
+        run: |
+          if [[ "${{ github.repository }}" == "mamertofabian/maid-runner" ]]; then
+            uv run playwright install --with-deps chromium
+          fi
+
       - name: Run MAID validation gate
         env:
           MANIFEST_DIR: ${{ inputs['manifest-dir'] || 'manifests/' }}

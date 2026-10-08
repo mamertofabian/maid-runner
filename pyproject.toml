@@ -78,6 +78,7 @@ dev = [
     "tree-sitter-typescript>=0.23.2",
     "tree-sitter-svelte>=1.0.2",
     "pytest-xdist>=3.8.0",
+    "playwright>=1.63.0",
 ]
 
 [project.scripts]

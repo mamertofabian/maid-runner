@@ -1,0 +1,266 @@
+{
+  "manifest_path": "manifests/website-readable-type-floor.manifest.yaml",
+  "manifest_hash": "sha256-contract:2c9d5cf9a8f82934837e2968b1d994548800fec464aefe0967f2f1cbdeb8ea3e",
+  "test_hashes": {
+    "tests/test_website_rendered_typography.py": "sha256-pyast:v2:0ab2b14389065db9b6c99c039e022376b7199b0512b212f722bbb8f22b9137f4",
+    "tests/test_website_static_contract.py": "sha256-pyast:v2:4a1fd790c0a781920cd7dfe7aee56f695a65f4adda9c8d48175e1dae36e8de85",
+    "tests/ci/test_github_actions_templates.py": "sha256-pyast:v2:2e64c1d99aa26815c46901baa98d611cd4acb8698814a141d6d84ea5c9af1bab",
+    "tests/ci/test_publish_environment_isolation.py": "sha256-pyast:v2:198601a64efa355af63d4ef1777a90ec30eead0ba2595469c48698fd40d1ddc1",
+    "tests/ci/test_publish_workflow.py": "sha256-pyast:v2:799ef0c4341901b4622b4b8d0931c6ee70ec6aa3e6949cf29d060b56b9284dd5",
+    "tests/ci/test_maid_workflow_pr_only_triggers.py": "sha256-pyast:v2:108b2c75b4e9a4d96460c9f93fb9cd6096360cf44ab4b4cf5002ee2e2874ab64"
+  },
+  "created_at": "2026-10-08T08:56:38.679971+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:1bae232667e5a14f2a1b88632c672d4482c50a3f022645308d5ea28bd937d4fe",
+      "prior_test_hashes": {
+        "tests/test_website_rendered_typography.py": "sha256-pyast:v2:0ab2b14389065db9b6c99c039e022376b7199b0512b212f722bbb8f22b9137f4",
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:4a1fd790c0a781920cd7dfe7aee56f695a65f4adda9c8d48175e1dae36e8de85",
+        "tests/ci/test_github_actions_templates.py": "sha256-pyast:v2:2e64c1d99aa26815c46901baa98d611cd4acb8698814a141d6d84ea5c9af1bab",
+        "tests/ci/test_publish_environment_isolation.py": "sha256-pyast:v2:198601a64efa355af63d4ef1777a90ec30eead0ba2595469c48698fd40d1ddc1",
+        "tests/ci/test_publish_workflow.py": "sha256-pyast:v2:799ef0c4341901b4622b4b8d0931c6ee70ec6aa3e6949cf29d060b56b9284dd5",
+        "tests/ci/test_maid_workflow_pr_only_triggers.py": "sha256-pyast:v2:108b2c75b4e9a4d96460c9f93fb9cd6096360cf44ab4b4cf5002ee2e2874ab64"
+      },
+      "revised_at": "2026-10-08T08:56:56.526747+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/website-readable-type-floor.manifest.yaml -> manifests/website-readable-type-floor.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/website-readable-type-floor.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/website-readable-type-floor.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/website-readable-type-floor.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/website-readable-type-floor.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-08T08:57:11.573715+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_website_rendered_typography.py tests/test_website_static_contract.py tests/ci/test_github_actions_templates.py tests/ci/test_publish_environment_isolation.py tests/ci/test_publish_workflow.py tests/ci/test_maid_workflow_pr_only_triggers.py",
+        "exit_code": 1,
+        "output_tail": "            names = [step.get(\"name\", \"\") for step in steps]\n            installs = [\n                (index, step)\n                for index, step in enumerate(steps)\n                if install_command\n                in [line.strip() for line in step.get(\"run\", \"\").splitlines()]\n            ]\n    \n>           assert installs, f\"{filename} must install Chromium for browser tests\"\nE           AssertionError: maid-test.yml must install Chromium for browser tests\nE           assert []\n\ntests/test_website_rendered_typography.py:446: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_website_rendered_typography.py::test_no_rendered_text_is_smaller_than_twelve_pixels\nFAILED tests/test_website_rendered_typography.py::test_body_copy_renders_at_the_reading_floor\nFAILED tests/test_website_rendered_typography.py::test_rendered_tracking_never_tightens_past_the_legibility_floor\nFAILED tests/test_website_rendered_typography.py::test_display_headings_render_with_balanced_wrapping\nFAILED tests/test_website_rendered_typography.py::test_maid_runner_ci_installs_chromium_before_running_website_tests\n5 failed, 31 passed in 10.37s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/website-readable-type-floor.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/website-readable-type-floor.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/test_website_rendered_typography.py:test_body_copy_renders_at_the_reading_floor",
+      "tests/test_website_rendered_typography.py:test_body_copy_renders_at_the_reading_floor:kind=test_function",
+      "tests/test_website_rendered_typography.py:test_body_copy_renders_at_the_reading_floor:returns=None",
+      "tests/test_website_rendered_typography.py:test_display_headings_render_with_balanced_wrapping",
+      "tests/test_website_rendered_typography.py:test_display_headings_render_with_balanced_wrapping:kind=test_function",
+      "tests/test_website_rendered_typography.py:test_display_headings_render_with_balanced_wrapping:returns=None",
+      "tests/test_website_rendered_typography.py:test_maid_runner_ci_installs_chromium_before_running_website_tests",
+      "tests/test_website_rendered_typography.py:test_maid_runner_ci_installs_chromium_before_running_website_tests:kind=test_function",
+      "tests/test_website_rendered_typography.py:test_maid_runner_ci_installs_chromium_before_running_website_tests:returns=None",
+      "tests/test_website_rendered_typography.py:test_no_rendered_text_is_smaller_than_twelve_pixels",
+      "tests/test_website_rendered_typography.py:test_no_rendered_text_is_smaller_than_twelve_pixels:kind=test_function",
+      "tests/test_website_rendered_typography.py:test_no_rendered_text_is_smaller_than_twelve_pixels:returns=None",
+      "tests/test_website_rendered_typography.py:test_rendered_tracking_never_tightens_past_the_legibility_floor",
+      "tests/test_website_rendered_typography.py:test_rendered_tracking_never_tightens_past_the_legibility_floor:kind=test_function",
+      "tests/test_website_rendered_typography.py:test_rendered_tracking_never_tightens_past_the_legibility_floor:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/test_website_rendered_typography.py"
+      ],
+      "edit": [],
+      "read": [
+        "manifests/fix-google-search-vercel-deployment.manifest.yaml",
+        "manifests/surface-knockout-strength.manifest.yaml",
+        "website/404.html",
+        "website/index.html"
+      ],
+      "scope": [
+        ".github/workflows/maid-test.yml",
+        ".github/workflows/maid-validation.yml",
+        ".github/workflows/publish.yml",
+        "CONTRIBUTING.md",
+        "README.md",
+        "pyproject.toml",
+        "uv.lock",
+        "website/README.md",
+        "website/styles.css"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_website_rendered_typography.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_no_rendered_text_is_smaller_than_twelve_pixels",
+              "returns": "None",
+              "source_scenario": "A visitor reads labels, metadata, code, captions, and buttons on the homepage or 404 page at phone, tablet, and desktop widths.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "page.evaluate"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Every element with its own text on index.html and 404.html computes and renders at 12px or larger, including first-line, first-letter, and generated pseudo-element text, in every declared width, touch, landscape, no-JavaScript, reduced-motion, and open-navigation scenario, including list markers; the stylesheet uses only the pinned conditional groups; and nothing shrinks text through font-size-adjust, small caps, or @font-face size-adjust."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_body_copy_renders_at_the_reading_floor",
+              "returns": "None",
+              "source_scenario": "A visitor reads the explanatory copy that teaches the MAID method in cards and intros.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "page.evaluate"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Each declared body-copy selector matches rendered text on its page (index.html or 404.html) in every scenario, and all of that text, except the problem-answer label, renders at 15px or larger."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_rendered_tracking_never_tightens_past_the_legibility_floor",
+              "returns": "None",
+              "source_scenario": "A visitor reads the hero headline \"Don't just trust AI code. Verify it.\" and the section headings.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "page.evaluate"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "No rendered text, including first-line, first-letter, and generated pseudo-element text, on either page has letter-spacing tighter than -0.04 of its computed font size in any scenario."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_display_headings_render_with_balanced_wrapping",
+              "returns": "None",
+              "source_scenario": "A visitor on any screen width reads the hero and section headlines.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "page.evaluate"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The hero h1, every section h2, and the final CTA h2 compute text-wrap-style: balance and text-wrap-mode: wrap in every index.html scenario."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_maid_runner_ci_installs_chromium_before_running_website_tests",
+              "returns": "None",
+              "source_scenario": "CI runs the MAID test contract, the validation gate, or the publish test matrix after this browser test exists.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "yaml.safe_load"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "maid-test.yml, maid-validation.yml, and publish.yml each run exactly `uv run playwright install --with-deps chromium` before their MAID test or validation step, and the reusable workflows gate it with a step-level github.repository condition or the inline repository guard used by the npm and payload-sync steps."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "website/index.html",
+        "website/404.html",
+        "manifests/fix-google-search-vercel-deployment.manifest.yaml",
+        "manifests/surface-knockout-strength.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "website/styles.css",
+          "reason": "Type role sizes, tracking, text-wrap, and the card/panel spacing needed to fit larger text; covered by the rendered typography browser tests."
+        },
+        {
+          "path": "pyproject.toml",
+          "reason": "Adds playwright to the dev dependency group for the browser integration test."
+        },
+        {
+          "path": "uv.lock",
+          "reason": "Lockfile update for the playwright dev dependency."
+        },
+        {
+          "path": ".github/workflows/maid-test.yml",
+          "reason": "Installs Chromium for maid-runner's own MAID test job before the manifest test contract runs; gated so downstream callers are unaffected."
+        },
+        {
+          "path": ".github/workflows/maid-validation.yml",
+          "reason": "Installs Chromium for maid-runner's own validation gate, whose verify test stage runs manifest validate commands; gated so downstream callers are unaffected."
+        },
+        {
+          "path": ".github/workflows/publish.yml",
+          "reason": "Installs Chromium in the publish test matrix before MAID tests and the full suite run."
+        },
+        {
+          "path": "website/README.md",
+          "reason": "Documents the one-time local `uv run playwright install chromium` setup for the website browser tests."
+        },
+        {
+          "path": "CONTRIBUTING.md",
+          "reason": "Contributor setup gains the Chromium install step, since pytest, maid test, and the maid-verify hook now run the browser test."
+        },
+        {
+          "path": "README.md",
+          "reason": "The Development Setup section gains the Chromium install step for the same reason."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/ci/test_github_actions_templates.py",
+      "tests/ci/test_maid_workflow_pr_only_triggers.py",
+      "tests/ci/test_publish_environment_isolation.py",
+      "tests/ci/test_publish_workflow.py",
+      "tests/test_website_rendered_typography.py",
+      "tests/test_website_static_contract.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_website_rendered_typography.py tests/test_website_static_contract.py tests/ci/test_github_actions_templates.py tests/ci/test_publish_environment_isolation.py tests/ci/test_publish_workflow.py tests/ci/test_maid_workflow_pr_only_triggers.py",
+      "uv run maid validate manifests/website-readable-type-floor.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/website-readable-type-floor.manifest.yaml --mode schema --quiet"
+    ],
+    "acceptance_commands": []
+  }
+}

@@ -914,6 +914,7 @@ ValidatorRegistry.register(GoValidator)
 # Install dependencies
 uv sync
 uv sync --group dev
+uv run playwright install chromium  # website tests; add --with-deps on fresh Linux
 
 # Run tests
 uv run python -m pytest tests/ -v
