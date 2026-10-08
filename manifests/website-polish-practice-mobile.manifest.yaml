@@ -1,0 +1,139 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Polish the MAID in practice section on phones: uncovered private-projects heading and two-row stats"
+type: fix
+created: "2026-10-08T12:46:35Z"
+metadata:
+  planning_state: completed
+  tags:
+    - website
+    - static-site
+    - responsive
+    - polish
+  priority: medium
+description: |
+  Final Impeccable polish pass after the typeset, harden, and distill follow-ups
+  from the 2026-10-08 critique. A full desktop and phone render sweep (keyboard
+  walk, console, layout shift, overflow) found two defects, both present at
+  the pre-critique baseline 3ce5bb3d:
+
+  - At 560px and below, the "Private production projects" shield icon covers
+    the start of its heading (756-896 px² of overlap). The phone rule
+    `.practice-card { padding: 18px 16px 16px }` overrides the desktop
+    `.practice-card-private { padding-top: 54px }` that reserves room for the
+    absolutely positioned icon.
+  - At 560px and below, the four featured MAID Runner stats stack in a single
+    column (four rows, about 320px tall), which the critique flagged as
+    avoidable scrolling for phone visitors. A grid change alone does not fit:
+    at 280-320px "verification" and "Python 3.10–3.14" are wider than half a
+    card. The clean fix, prototyped against these tests, pairs two columns
+    with tighter phone stat padding (about 10px 9px) and gap (8px), 18px stat
+    values, and hyphens: auto; mid-word overflow-wrap: anywhere is not
+    acceptable for stat values.
+
+  Fix both in website/styles.css only, inside the existing
+  `@media (max-width: 560px)` block: keep the private card's top padding
+  large enough for the icon on phones, and give the featured and compact
+  practice stats two columns on phones (the compact three-stat grids then take
+  two rows). The tests assert the icon stays visible at full size inside its
+  card above the heading, at most two stat rows per grid on phones, every stat
+  inside its grid, and no page-level horizontal overflow. Markup, copy, colors, and section
+  order stay unchanged; no new media conditions (the typography browser test
+  pins the allowed set).
+
+  This is an additive chain-merge onto the active website contract
+  (website-distill-why-section and website-install-trust); it supersedes
+  nothing. Rendered-geometry assertions live in a dedicated browser test file
+  so no existing plan lock's sealed test files change.
+temptations:
+  - risk: "Do not hide the overlap by shrinking or removing the shield icon, or by moving it with a transform."
+    instead: "Restore the reserved top padding for .practice-card-private inside the phone breakpoint so the icon keeps its size and place above the heading."
+  - risk: "Do not fit two stat columns by shrinking stat text below the type floor, by mid-word breaking with overflow-wrap: anywhere, or by fixed-width columns that spill out of the card."
+    instead: "Inside the phone breakpoint, use two minmax(0, 1fr) columns with an 8px gap, about 10px 9px stat padding, 18px values with hyphens: auto, and labels on the existing tokens; rerun tests/test_website_rendered_typography.py."
+  - risk: "Do not add a new media query for these phone rules."
+    instead: "Edit the existing @media (max-width: 560px) block that already holds the conflicting rules."
+files:
+  scope:
+    - path: website/styles.css
+      reason: "Phone-breakpoint rules for the private practice card padding and the practice stats grid."
+  create:
+    - path: tests/test_website_practice_mobile.py
+      artifacts:
+        - kind: test_function
+          name: test_private_projects_icon_never_covers_its_heading
+          args: []
+          returns: None
+          source_scenario: "A visitor on any screen width reads the Private production projects card."
+          actions:
+            - type: api_call
+              subject:
+                function: page.evaluate
+          expected:
+            behavior: "At widths 280 through 1920 the private-projects shield icon stays visible at its full size (at least 24 by 28px), sits inside its card above the heading, and never overlaps the heading."
+        - kind: test_function
+          name: test_featured_practice_stats_fit_in_two_rows_on_phones
+          args: []
+          returns: None
+          source_scenario: "A phone visitor scrolls past the MAID Runner dogfooding stats."
+          actions:
+            - type: api_call
+              subject:
+                function: page.evaluate
+          expected:
+            behavior: "At 280, 320, 390, and 560px the four featured MAID Runner stats and each compact stats grid occupy at most two rows, every stat stays inside its grid, no stat value or label overflows its card, and the page does not scroll horizontally."
+  read:
+    - website/index.html
+    - manifests/website-distill-why-section.manifest.yaml
+validate:
+  - uv run python -m pytest -q tests/test_website_practice_mobile.py tests/test_website_rendered_typography.py tests/test_website_static_contract.py tests/test_website_distilled_story.py tests/test_website_install_section.py
+  - uv run maid validate manifests/website-polish-practice-mobile.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/website-polish-practice-mobile.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-10-08T14:20:00Z"
+  summary: "Final Impeccable polish pass on the landing page. A full render sweep found two pre-existing phone defects in MAID in practice. Both are fixed inside the existing 560px breakpoint: the private-projects shield icon no longer covers its heading (reserved 58px top padding), and practice stats use two columns, so the featured four take two rows instead of four and the compact three take two instead of three. Phone stats use 10px 9px padding, an 8px gap, and 18px values with hyphens: auto."
+  rationale: "Polish fixes defects across the whole path without redesign. The sweep (desktop and phone renders of both pages, a keyboard Tab walk with focus-ring checks, console, layout shift, overflow) found nothing else. An apparent 0.123 layout shift on phones was a measurement artifact of full-page screenshots; a controlled run measured 0 for both baseline and current."
+  lessons:
+    - lesson_type: validation
+      summary: "Geometry tests for a covered element must also pin that the element stays visible at full size and in place. An overlap-only assertion passed display:none, zero-size, and transform-away shortcuts until plan review added size, visibility, and containment checks."
+      tags:
+        - runtime-evidence
+        - test-quality
+        - website
+      paths:
+        - tests/test_website_practice_mobile.py
+    - lesson_type: environment
+      summary: "The 280-320px stat fit relies on hyphens: auto with the browser's English hyphenation dictionary ('Strict verification' overflows its card without it). The test fails rather than passes falsely on a Chromium without the dictionary. If CI ever fails here, revisit the stat copy instead of adding mid-word overflow-wrap."
+      tags:
+        - fonts
+        - hyphenation
+        - ci
+      paths:
+        - website/styles.css
+  review_notes:
+    - source: plan-review-subagent
+      severity: ready
+      summary: "Plan review found the icon test passed hiding, zero-sizing, and transform shortcuts; the stats test passed a fixed-width two-column grid spilling out of the card; the manifest's 'grid change alone' approach would fail its own test at 280-320px; and the compact stats claim was untested. All were fixed and prototyped in a scratch copy before lock: the clean fix passed while all three shortcuts failed."
+    - source: implementation-review-subagent
+      severity: ready
+      summary: "Ready to merge. Edits sit inside the existing 560px block with no new media conditions; the icon stays 28x32 and sits 8px above the heading on phones; tablet and desktop are unchanged; the 404 page is unaffected. Note: the 280-320px fit relies on hyphenation dictionary support (recorded as a lesson)."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/test_website_practice_mobile.py, tests/test_website_rendered_typography.py, tests/test_website_static_contract.py, tests/test_website_distilled_story.py, tests/test_website_install_section.py]
+      status: passed
+      summary: "Manifest validate pytest command: 27 passed."
+    - command: [uv, run, python, -m, pytest, tests/, -q, -n, "8"]
+      status: passed
+      summary: "Full suite: 5572 passed, 20 skipped."
+    - command: [uv, run, maid, test, --jobs, "2", --pytest-workers, "4"]
+      status: passed
+      summary: "All manifest validation commands: 308 passed, 0 failed."
+    - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --file-tracking-scope, task, --plan-lock-scope, task, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, HEAD, --summary]
+      status: passed
+      summary: "Command printed by maid assess (deep tier): PASS, 0 blocking, 11 stages; only pre-existing E307 warnings. Repo-wide maid validate 0 failed; ruff and black clean."
+    - command: [headless-chromium-render-inspection]
+      status: passed
+      summary: "Polish sweep at 1440 and 390 on both pages: no console errors, layout shift 0 under controlled measurement, a logical keyboard Tab order with a 2px focus ring on every stop, no text overflow. After the fix: the icon sits clear above its heading at 390 and 280, and the stats render 2x2 at 390 and 280 ('verification' hyphenates at 280)."

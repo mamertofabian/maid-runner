@@ -1863,13 +1863,24 @@ body.js .primary-nav.is-open {
     padding: 18px 16px 16px;
   }
 
+  /* Keep room above the heading for the absolutely positioned shield icon. */
+  .practice-card-private {
+    padding-top: 58px;
+  }
+
   .practice-stats,
   .practice-stats-compact {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .practice-stat {
+    padding: 10px 9px;
   }
 
   .practice-stat-value {
-    font-size: 20px;
+    font-size: 18px;
+    hyphens: auto;
   }
 
   .quickstart-card {

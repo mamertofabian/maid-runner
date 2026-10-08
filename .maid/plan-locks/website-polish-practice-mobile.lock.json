@@ -1,0 +1,159 @@
+{
+  "manifest_path": "manifests/website-polish-practice-mobile.manifest.yaml",
+  "manifest_hash": "sha256-contract:bd1e0a4daa2ecc541304a57666b41c4b734f5f52b0cb66eac361d528c0acfa68",
+  "test_hashes": {
+    "tests/test_website_practice_mobile.py": "sha256-pyast:v2:1637ae41570e483eb21259182a1dd078e00cfac4d5a56aa18aa1a7496817cc59",
+    "tests/test_website_rendered_typography.py": "sha256-pyast:v2:e5c2f19cda149ab54adb560cf6dbe0217992465f59aeff0510795ef85f5056fc",
+    "tests/test_website_static_contract.py": "sha256-pyast:v2:8b3dd4990d3962ddd8f8830be5a8fb676128b3848f2dd86fe78e118f225b2f18",
+    "tests/test_website_distilled_story.py": "sha256-pyast:v2:d6fe48b21ea30c4205956fd34d48944d133652d2643a40a8471c878e22613158",
+    "tests/test_website_install_section.py": "sha256-pyast:v2:260a9aaf7719697733a2d2d27d263c96eb7436768f82f8c4740c0f53bb9aa287"
+  },
+  "created_at": "2026-10-08T12:45:50.753366+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:68e40e496256bb70b1d8be57f66197a9f7eb6281ae2e0d24926de8cb87e6a2de",
+      "prior_test_hashes": {
+        "tests/test_website_practice_mobile.py": "sha256-pyast:v2:1637ae41570e483eb21259182a1dd078e00cfac4d5a56aa18aa1a7496817cc59",
+        "tests/test_website_rendered_typography.py": "sha256-pyast:v2:e5c2f19cda149ab54adb560cf6dbe0217992465f59aeff0510795ef85f5056fc",
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:8b3dd4990d3962ddd8f8830be5a8fb676128b3848f2dd86fe78e118f225b2f18",
+        "tests/test_website_distilled_story.py": "sha256-pyast:v2:d6fe48b21ea30c4205956fd34d48944d133652d2643a40a8471c878e22613158",
+        "tests/test_website_install_section.py": "sha256-pyast:v2:260a9aaf7719697733a2d2d27d263c96eb7436768f82f8c4740c0f53bb9aa287"
+      },
+      "revised_at": "2026-10-08T12:46:35.655353+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/website-polish-practice-mobile.manifest.yaml -> manifests/website-polish-practice-mobile.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/website-polish-practice-mobile.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/website-polish-practice-mobile.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/website-polish-practice-mobile.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/website-polish-practice-mobile.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-08T12:47:14.638695+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_website_practice_mobile.py tests/test_website_rendered_typography.py tests/test_website_static_contract.py tests/test_website_distilled_story.py tests/test_website_install_section.py",
+        "exit_code": 1,
+        "output_tail": "        spilling = {\n            width: (result[\"statsOutsideGrid\"], result[\"pageOverflow\"])\n            for width, result in measurements.items()\n            if result[\"statsOutsideGrid\"] or result[\"pageOverflow\"] > 0\n        }\n    \n        assert all(result[\"statCount\"] == 4 for result in measurements.values())\n>       assert compact_too_tall == {}, f\"Compact stats exceed two rows: {compact_too_tall}\"\nE       AssertionError: Compact stats exceed two rows: {280: [3], 320: [3], 390: [3], 560: [3]}\nE       assert {280: [3], 32...[3], 560: [3]} == {}\nE         \nE         Left contains 4 more items:\nE         {280: [3], 320: [3], 390: [3], 560: [3]}\nE         Use -v to get more diff\n\ntests/test_website_practice_mobile.py:176: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_website_practice_mobile.py::test_private_projects_icon_never_covers_its_heading\nFAILED tests/test_website_practice_mobile.py::test_featured_practice_stats_fit_in_two_rows_on_phones\n2 failed, 25 passed in 33.55s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/website-polish-practice-mobile.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/website-polish-practice-mobile.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/test_website_practice_mobile.py:test_featured_practice_stats_fit_in_two_rows_on_phones",
+      "tests/test_website_practice_mobile.py:test_featured_practice_stats_fit_in_two_rows_on_phones:kind=test_function",
+      "tests/test_website_practice_mobile.py:test_featured_practice_stats_fit_in_two_rows_on_phones:returns=None",
+      "tests/test_website_practice_mobile.py:test_private_projects_icon_never_covers_its_heading",
+      "tests/test_website_practice_mobile.py:test_private_projects_icon_never_covers_its_heading:kind=test_function",
+      "tests/test_website_practice_mobile.py:test_private_projects_icon_never_covers_its_heading:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/test_website_practice_mobile.py"
+      ],
+      "edit": [],
+      "read": [
+        "manifests/website-distill-why-section.manifest.yaml",
+        "website/index.html"
+      ],
+      "scope": [
+        "website/styles.css"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_website_practice_mobile.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_private_projects_icon_never_covers_its_heading",
+              "returns": "None",
+              "source_scenario": "A visitor on any screen width reads the Private production projects card.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "page.evaluate"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "At widths 280 through 1920 the private-projects shield icon stays visible at its full size (at least 24 by 28px), sits inside its card above the heading, and never overlaps the heading."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_featured_practice_stats_fit_in_two_rows_on_phones",
+              "returns": "None",
+              "source_scenario": "A phone visitor scrolls past the MAID Runner dogfooding stats.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "page.evaluate"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "At 280, 320, 390, and 560px the four featured MAID Runner stats and each compact stats grid occupy at most two rows, every stat stays inside its grid, no stat value or label overflows its card, and the page does not scroll horizontally."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "website/index.html",
+        "manifests/website-distill-why-section.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "website/styles.css",
+          "reason": "Phone-breakpoint rules for the private practice card padding and the practice stats grid."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/test_website_distilled_story.py",
+      "tests/test_website_install_section.py",
+      "tests/test_website_practice_mobile.py",
+      "tests/test_website_rendered_typography.py",
+      "tests/test_website_static_contract.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_website_practice_mobile.py tests/test_website_rendered_typography.py tests/test_website_static_contract.py tests/test_website_distilled_story.py tests/test_website_install_section.py",
+      "uv run maid validate manifests/website-polish-practice-mobile.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/website-polish-practice-mobile.manifest.yaml --mode schema --quiet"
+    ],
+    "acceptance_commands": []
+  }
+}
