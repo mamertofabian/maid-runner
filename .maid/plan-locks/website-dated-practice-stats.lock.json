@@ -1,0 +1,419 @@
+{
+  "manifest_path": "manifests/website-dated-practice-stats.manifest.yaml",
+  "manifest_hash": "sha256-contract:d083ae9a58760ec57f84f325da977b40b06692a7622319c68ed3b29305396b2e",
+  "test_hashes": {
+    "tests/test_website_static_contract.py": "sha256-pyast:v2:8b3dd4990d3962ddd8f8830be5a8fb676128b3848f2dd86fe78e118f225b2f18",
+    "tests/test_practice_stats_update.py": "sha256-pyast:v2:527087739de5ff6634665a1c92809713dd954c12d964d419f9a7adc335b7db4b",
+    "tests/test_website_rendered_typography.py": "sha256-pyast:v2:e5c2f19cda149ab54adb560cf6dbe0217992465f59aeff0510795ef85f5056fc",
+    "tests/test_website_practice_mobile.py": "sha256-pyast:v2:1637ae41570e483eb21259182a1dd078e00cfac4d5a56aa18aa1a7496817cc59"
+  },
+  "created_at": "2026-10-08T13:13:46.340811+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:b676748096a5b5f3f334bfdbb78a22428fa2baea8d2efa335dd9e204d427608c",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:8b3dd4990d3962ddd8f8830be5a8fb676128b3848f2dd86fe78e118f225b2f18",
+        "tests/test_practice_stats_update.py": "sha256-pyast:v2:637b54dd70c2147cb888a54b694af71d3e2e86bc52c0606ccc52643d76f24d2c",
+        "tests/test_website_rendered_typography.py": "sha256-pyast:v2:e5c2f19cda149ab54adb560cf6dbe0217992465f59aeff0510795ef85f5056fc",
+        "tests/test_website_practice_mobile.py": "sha256-pyast:v2:1637ae41570e483eb21259182a1dd078e00cfac4d5a56aa18aa1a7496817cc59"
+      },
+      "revised_at": "2026-10-08T13:14:13.713784+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/website-dated-practice-stats.manifest.yaml -> manifests/website-dated-practice-stats.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/website-dated-practice-stats.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/website-dated-practice-stats.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/website-dated-practice-stats.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/website-dated-practice-stats.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d083ae9a58760ec57f84f325da977b40b06692a7622319c68ed3b29305396b2e",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:8b3dd4990d3962ddd8f8830be5a8fb676128b3848f2dd86fe78e118f225b2f18",
+        "tests/test_practice_stats_update.py": "sha256-pyast:v2:637b54dd70c2147cb888a54b694af71d3e2e86bc52c0606ccc52643d76f24d2c",
+        "tests/test_website_rendered_typography.py": "sha256-pyast:v2:e5c2f19cda149ab54adb560cf6dbe0217992465f59aeff0510795ef85f5056fc",
+        "tests/test_website_practice_mobile.py": "sha256-pyast:v2:1637ae41570e483eb21259182a1dd078e00cfac4d5a56aa18aa1a7496817cc59"
+      },
+      "revised_at": "2026-10-08T13:52:12.352045+00:00",
+      "reason": "implementation review: pytest parser must use the final summary line; renderer must refuse a partially mirrored page (regression cases added to existing tests)",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d083ae9a58760ec57f84f325da977b40b06692a7622319c68ed3b29305396b2e",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:8b3dd4990d3962ddd8f8830be5a8fb676128b3848f2dd86fe78e118f225b2f18",
+        "tests/test_practice_stats_update.py": "sha256-pyast:v2:b40d4bc38b37c0e5b1dd63bd165e27df8c61f110764fa2b25d7d66c6f474d9dd",
+        "tests/test_website_rendered_typography.py": "sha256-pyast:v2:e5c2f19cda149ab54adb560cf6dbe0217992465f59aeff0510795ef85f5056fc",
+        "tests/test_website_practice_mobile.py": "sha256-pyast:v2:1637ae41570e483eb21259182a1dd078e00cfac4d5a56aa18aa1a7496817cc59"
+      },
+      "revised_at": "2026-10-08T14:20:21.299062+00:00",
+      "reason": "implementation re-review: parsers must read the pytest summary by its shape and the maid validate results as one block (regression cases added to existing tests)",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-08T14:20:44.378146+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_practice_stats_update.py tests/test_website_static_contract.py tests/test_website_rendered_typography.py tests/test_website_practice_mobile.py",
+        "exit_code": 1,
+        "output_tail": "E         \nE         Differing items:\nE         {1440: 0} != {1440: 2}\nE         {390: 0} != {390: 2}\nE         Use -v to get more diff\n\ntests/test_practice_stats_update.py:381: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_practice_stats_update.py::test_parsers_read_counts_from_command_output\nFAILED tests/test_practice_stats_update.py::test_parsers_refuse_failing_or_unrecognized_runs\nFAILED tests/test_practice_stats_update.py::test_collect_maid_runner_counts_uses_each_command_output\nFAILED tests/test_practice_stats_update.py::test_refresh_practice_stats_updates_only_maid_runner_and_its_date\nFAILED tests/test_practice_stats_update.py::test_render_practice_stats_html_mirrors_values_and_dates\nFAILED tests/test_practice_stats_update.py::test_render_practice_stats_html_rejects_unknown_stat_keys\nFAILED tests/test_practice_stats_update.py::test_run_command_returns_output_and_raises_on_failure\nFAILED tests/test_practice_stats_update.py::test_update_practice_stats_rewrites_json_and_page_together\nFAILED tests/test_practice_stats_update.py::test_update_practice_stats_leaves_files_untouched_when_a_run_fails\nFAILED tests/test_practice_stats_update.py::test_published_page_matches_practice_stats_json_with_visible_dates\nFAILED tests/test_practice_stats_update.py::test_practice_dates_render_visibly_on_desktop_and_phone\n11 failed, 17 passed in 18.30s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/website-dated-practice-stats.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/website-dated-practice-stats.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "scripts/update_practice_stats.py:function:collect_maid_runner_counts",
+      "scripts/update_practice_stats.py:function:collect_maid_runner_counts:arg=run:type=Callable[[list[str]], str]:default=None",
+      "scripts/update_practice_stats.py:function:collect_maid_runner_counts:kind=function",
+      "scripts/update_practice_stats.py:function:collect_maid_runner_counts:returns=dict[str, int]",
+      "scripts/update_practice_stats.py:function:parse_maid_test_command_count",
+      "scripts/update_practice_stats.py:function:parse_maid_test_command_count:arg=output:type=str:default=None",
+      "scripts/update_practice_stats.py:function:parse_maid_test_command_count:kind=function",
+      "scripts/update_practice_stats.py:function:parse_maid_test_command_count:returns=int",
+      "scripts/update_practice_stats.py:function:parse_pytest_passed_count",
+      "scripts/update_practice_stats.py:function:parse_pytest_passed_count:arg=output:type=str:default=None",
+      "scripts/update_practice_stats.py:function:parse_pytest_passed_count:kind=function",
+      "scripts/update_practice_stats.py:function:parse_pytest_passed_count:returns=int",
+      "scripts/update_practice_stats.py:function:parse_validated_manifest_count",
+      "scripts/update_practice_stats.py:function:parse_validated_manifest_count:arg=output:type=str:default=None",
+      "scripts/update_practice_stats.py:function:parse_validated_manifest_count:kind=function",
+      "scripts/update_practice_stats.py:function:parse_validated_manifest_count:returns=int",
+      "scripts/update_practice_stats.py:function:refresh_practice_stats",
+      "scripts/update_practice_stats.py:function:refresh_practice_stats:arg=counts:type=dict[str, int]:default=None",
+      "scripts/update_practice_stats.py:function:refresh_practice_stats:arg=stats:type=dict:default=None",
+      "scripts/update_practice_stats.py:function:refresh_practice_stats:arg=today:type=date:default=None",
+      "scripts/update_practice_stats.py:function:refresh_practice_stats:kind=function",
+      "scripts/update_practice_stats.py:function:refresh_practice_stats:returns=dict",
+      "scripts/update_practice_stats.py:function:render_practice_stats_html",
+      "scripts/update_practice_stats.py:function:render_practice_stats_html:arg=html:type=str:default=None",
+      "scripts/update_practice_stats.py:function:render_practice_stats_html:arg=stats:type=dict:default=None",
+      "scripts/update_practice_stats.py:function:render_practice_stats_html:kind=function",
+      "scripts/update_practice_stats.py:function:render_practice_stats_html:returns=str",
+      "scripts/update_practice_stats.py:function:run_command",
+      "scripts/update_practice_stats.py:function:run_command:arg=command:type=list[str]:default=None",
+      "scripts/update_practice_stats.py:function:run_command:kind=function",
+      "scripts/update_practice_stats.py:function:run_command:returns=str",
+      "scripts/update_practice_stats.py:function:update_practice_stats",
+      "scripts/update_practice_stats.py:function:update_practice_stats:arg=run:type=Callable[[list[str]], str]:default=None",
+      "scripts/update_practice_stats.py:function:update_practice_stats:arg=today:type=date:default=None",
+      "scripts/update_practice_stats.py:function:update_practice_stats:arg=website_dir:type=Path:default=None",
+      "scripts/update_practice_stats.py:function:update_practice_stats:kind=function",
+      "scripts/update_practice_stats.py:function:update_practice_stats:returns=dict",
+      "tests/test_practice_stats_update.py:test_collect_maid_runner_counts_uses_each_command_output",
+      "tests/test_practice_stats_update.py:test_collect_maid_runner_counts_uses_each_command_output:kind=test_function",
+      "tests/test_practice_stats_update.py:test_collect_maid_runner_counts_uses_each_command_output:returns=None",
+      "tests/test_practice_stats_update.py:test_parsers_read_counts_from_command_output",
+      "tests/test_practice_stats_update.py:test_parsers_read_counts_from_command_output:kind=test_function",
+      "tests/test_practice_stats_update.py:test_parsers_read_counts_from_command_output:returns=None",
+      "tests/test_practice_stats_update.py:test_parsers_refuse_failing_or_unrecognized_runs",
+      "tests/test_practice_stats_update.py:test_parsers_refuse_failing_or_unrecognized_runs:kind=test_function",
+      "tests/test_practice_stats_update.py:test_parsers_refuse_failing_or_unrecognized_runs:returns=None",
+      "tests/test_practice_stats_update.py:test_practice_dates_render_visibly_on_desktop_and_phone",
+      "tests/test_practice_stats_update.py:test_practice_dates_render_visibly_on_desktop_and_phone:kind=test_function",
+      "tests/test_practice_stats_update.py:test_practice_dates_render_visibly_on_desktop_and_phone:returns=None",
+      "tests/test_practice_stats_update.py:test_published_page_matches_practice_stats_json_with_visible_dates",
+      "tests/test_practice_stats_update.py:test_published_page_matches_practice_stats_json_with_visible_dates:kind=test_function",
+      "tests/test_practice_stats_update.py:test_published_page_matches_practice_stats_json_with_visible_dates:returns=None",
+      "tests/test_practice_stats_update.py:test_refresh_practice_stats_updates_only_maid_runner_and_its_date",
+      "tests/test_practice_stats_update.py:test_refresh_practice_stats_updates_only_maid_runner_and_its_date:kind=test_function",
+      "tests/test_practice_stats_update.py:test_refresh_practice_stats_updates_only_maid_runner_and_its_date:returns=None",
+      "tests/test_practice_stats_update.py:test_render_practice_stats_html_mirrors_values_and_dates",
+      "tests/test_practice_stats_update.py:test_render_practice_stats_html_mirrors_values_and_dates:kind=test_function",
+      "tests/test_practice_stats_update.py:test_render_practice_stats_html_mirrors_values_and_dates:returns=None",
+      "tests/test_practice_stats_update.py:test_render_practice_stats_html_rejects_unknown_stat_keys",
+      "tests/test_practice_stats_update.py:test_render_practice_stats_html_rejects_unknown_stat_keys:kind=test_function",
+      "tests/test_practice_stats_update.py:test_render_practice_stats_html_rejects_unknown_stat_keys:returns=None",
+      "tests/test_practice_stats_update.py:test_run_command_returns_output_and_raises_on_failure",
+      "tests/test_practice_stats_update.py:test_run_command_returns_output_and_raises_on_failure:kind=test_function",
+      "tests/test_practice_stats_update.py:test_run_command_returns_output_and_raises_on_failure:returns=None",
+      "tests/test_practice_stats_update.py:test_update_practice_stats_leaves_files_untouched_when_a_run_fails",
+      "tests/test_practice_stats_update.py:test_update_practice_stats_leaves_files_untouched_when_a_run_fails:arg=tmp_path:type=Path:default=None",
+      "tests/test_practice_stats_update.py:test_update_practice_stats_leaves_files_untouched_when_a_run_fails:kind=test_function",
+      "tests/test_practice_stats_update.py:test_update_practice_stats_leaves_files_untouched_when_a_run_fails:returns=None",
+      "tests/test_practice_stats_update.py:test_update_practice_stats_rewrites_json_and_page_together",
+      "tests/test_practice_stats_update.py:test_update_practice_stats_rewrites_json_and_page_together:arg=tmp_path:type=Path:default=None",
+      "tests/test_practice_stats_update.py:test_update_practice_stats_rewrites_json_and_page_together:kind=test_function",
+      "tests/test_practice_stats_update.py:test_update_practice_stats_rewrites_json_and_page_together:returns=None"
+    ],
+    "files": {
+      "create": [
+        "scripts/update_practice_stats.py",
+        "tests/test_practice_stats_update.py"
+      ],
+      "edit": [],
+      "read": [
+        "manifests/website-distill-why-section.manifest.yaml",
+        "tests/test_website_static_contract.py"
+      ],
+      "scope": [
+        "website/data/practice-stats.json",
+        "website/index.html",
+        "website/styles.css"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "scripts/update_practice_stats.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "parse_validated_manifest_count",
+              "args": [
+                {
+                  "name": "output",
+                  "type": "str"
+                }
+              ],
+              "returns": "int"
+            },
+            {
+              "kind": "function",
+              "name": "parse_pytest_passed_count",
+              "args": [
+                {
+                  "name": "output",
+                  "type": "str"
+                }
+              ],
+              "returns": "int"
+            },
+            {
+              "kind": "function",
+              "name": "parse_maid_test_command_count",
+              "args": [
+                {
+                  "name": "output",
+                  "type": "str"
+                }
+              ],
+              "returns": "int"
+            },
+            {
+              "kind": "function",
+              "name": "collect_maid_runner_counts",
+              "args": [
+                {
+                  "name": "run",
+                  "type": "Callable[[list[str]], str]"
+                }
+              ],
+              "returns": "dict[str, int]"
+            },
+            {
+              "kind": "function",
+              "name": "refresh_practice_stats",
+              "args": [
+                {
+                  "name": "stats",
+                  "type": "dict"
+                },
+                {
+                  "name": "counts",
+                  "type": "dict[str, int]"
+                },
+                {
+                  "name": "today",
+                  "type": "date"
+                }
+              ],
+              "returns": "dict"
+            },
+            {
+              "kind": "function",
+              "name": "render_practice_stats_html",
+              "args": [
+                {
+                  "name": "html",
+                  "type": "str"
+                },
+                {
+                  "name": "stats",
+                  "type": "dict"
+                }
+              ],
+              "returns": "str"
+            },
+            {
+              "kind": "function",
+              "name": "run_command",
+              "args": [
+                {
+                  "name": "command",
+                  "type": "list[str]"
+                }
+              ],
+              "returns": "str"
+            },
+            {
+              "kind": "function",
+              "name": "update_practice_stats",
+              "args": [
+                {
+                  "name": "website_dir",
+                  "type": "Path"
+                },
+                {
+                  "name": "run",
+                  "type": "Callable[[list[str]], str]"
+                },
+                {
+                  "name": "today",
+                  "type": "date"
+                }
+              ],
+              "returns": "dict"
+            }
+          ]
+        },
+        {
+          "path": "tests/test_practice_stats_update.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_parsers_read_counts_from_command_output",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_parsers_refuse_failing_or_unrecognized_runs",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_collect_maid_runner_counts_uses_each_command_output",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_refresh_practice_stats_updates_only_maid_runner_and_its_date",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_render_practice_stats_html_mirrors_values_and_dates",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_render_practice_stats_html_rejects_unknown_stat_keys",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_run_command_returns_output_and_raises_on_failure",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_update_practice_stats_rewrites_json_and_page_together",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_update_practice_stats_leaves_files_untouched_when_a_run_fails",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_published_page_matches_practice_stats_json_with_visible_dates",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_practice_dates_render_visibly_on_desktop_and_phone",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/website-distill-why-section.manifest.yaml",
+        "tests/test_website_static_contract.py"
+      ],
+      "scope": [
+        {
+          "path": "website/index.html",
+          "reason": "Stat values gain data-stat attributes, and each project card gains a visible \"as of\" <time data-stat-date>; numbers are refreshed by the script."
+        },
+        {
+          "path": "website/styles.css",
+          "reason": "Style for the as-of line inside the practice cards."
+        },
+        {
+          "path": "website/data/practice-stats.json",
+          "reason": "Per-project updatedAt; MAID Runner numbers refreshed by the script."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/test_practice_stats_update.py",
+      "tests/test_website_practice_mobile.py",
+      "tests/test_website_rendered_typography.py",
+      "tests/test_website_static_contract.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_practice_stats_update.py tests/test_website_static_contract.py tests/test_website_rendered_typography.py tests/test_website_practice_mobile.py",
+      "uv run maid validate manifests/website-dated-practice-stats.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/website-dated-practice-stats.manifest.yaml --mode schema --quiet"
+    ],
+    "acceptance_commands": []
+  }
+}
