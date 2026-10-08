@@ -518,25 +518,65 @@
               <span aria-hidden="true">→</span>
             </a>
           </div>
-          <div class="terminal-card" aria-label="MAID Runner installation commands">
+          <div class="terminal-card install-card" aria-label="MAID Runner installation commands">
             <div class="terminal-bar">
               <div class="terminal-controls" aria-hidden="true"><span></span><span></span><span></span></div>
               <span class="terminal-name">terminal</span>
+              <div class="install-tabs" role="tablist" aria-label="Choose your platform">
+                <button class="install-tab" type="button" role="tab" id="install-tab-unix" aria-controls="install-panel-unix" aria-selected="true" tabindex="0">macOS / Linux</button>
+                <button class="install-tab" type="button" role="tab" id="install-tab-windows" aria-controls="install-panel-windows" aria-selected="false" tabindex="-1" data-platform="windows">Windows</button>
+                <button class="install-tab" type="button" role="tab" id="install-tab-python" aria-controls="install-panel-python" aria-selected="false" tabindex="-1">uv / pip</button>
+              </div>
             </div>
-            <pre><code><span class="terminal-success"># macOS / Linux</span>
-<span class="terminal-prompt">$</span> curl -LsSf https://maidrunner.dev/install.sh | sh
-
-<span class="terminal-success"># Windows PowerShell</span>
-<span class="terminal-prompt">&gt;</span> irm https://maidrunner.dev/install.ps1 | iex
-
-<span class="terminal-prompt">$</span> maid init
+            <div class="install-panel" id="install-panel-unix">
+              <p class="install-panel-label">macOS / Linux</p>
+              <div class="copy-row" data-copy-row>
+                <code data-command>curl -LsSf https://maidrunner.dev/install.sh | sh</code>
+                <button class="copy-button" type="button" aria-label="Copy macOS / Linux install command" hidden>Copy</button>
+              </div>
+              <p class="install-note">
+                Installs uv if it is missing, then MAID Runner as a uv tool, and adds uv's tool directory to your PATH.
+                <a href="install.sh">Read install.sh</a> before you run it.
+              </p>
+              <p class="install-pin">
+                Pin a release:
+                <code>curl -LsSf https://maidrunner.dev/install.sh | sh -s -- --version &lt;version&gt;</code>
+              </p>
+            </div>
+            <div class="install-panel" id="install-panel-windows">
+              <p class="install-panel-label">Windows PowerShell</p>
+              <div class="copy-row" data-copy-row>
+                <code data-command>irm https://maidrunner.dev/install.ps1 | iex</code>
+                <button class="copy-button" type="button" aria-label="Copy Windows PowerShell install command" hidden>Copy</button>
+              </div>
+              <p class="install-note">
+                Installs uv if it is missing, then MAID Runner as a uv tool, and adds uv's tool directory to your PATH.
+                <a href="install.ps1">Read install.ps1</a> before you run it.
+              </p>
+              <p class="install-pin">
+                Pin a release:
+                <code>&amp; ([scriptblock]::Create((irm https://maidrunner.dev/install.ps1))) -Version &lt;version&gt;</code>
+              </p>
+            </div>
+            <div class="install-panel" id="install-panel-python">
+              <p class="install-panel-label">uv / pip</p>
+              <div class="copy-row" data-copy-row>
+                <code data-command>uv tool install maid-runner</code>
+                <button class="copy-button" type="button" aria-label="Copy uv install command" hidden>Copy</button>
+              </div>
+              <div class="copy-row" data-copy-row>
+                <code data-command>pip install maid-runner</code>
+                <button class="copy-button" type="button" aria-label="Copy pip install command" hidden>Copy</button>
+              </div>
+              <p class="install-note">Already manage Python tools? Install the package from PyPI directly.</p>
+            </div>
+            <p class="copy-status" data-copy-status role="status" aria-live="polite"></p>
+            <div class="install-next">
+              <p class="install-next-label">Then, in your project:</p>
+              <pre><code><span class="terminal-prompt">$</span> maid init
 <span class="terminal-prompt">$</span> maid howto --section quickstart
 <span class="terminal-success">✓</span> ready to write a verifiable change</code></pre>
-            <details>
-              <summary>Alternative installation methods</summary>
-              <p><code>uv tool install maid-runner</code></p>
-              <p><code>pip install maid-runner</code></p>
-            </details>
+            </div>
           </div>
         </div>
       </section>

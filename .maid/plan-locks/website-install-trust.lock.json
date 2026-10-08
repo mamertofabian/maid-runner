@@ -1,0 +1,275 @@
+{
+  "manifest_path": "manifests/website-install-trust.manifest.yaml",
+  "manifest_hash": "sha256-contract:6a2563fcb9cc4028b2737d37d57c63c9ba2ff5371f356c74271518e92c15264a",
+  "test_hashes": {
+    "tests/test_website_static_contract.py": "sha256-pyast:v2:4a1fd790c0a781920cd7dfe7aee56f695a65f4adda9c8d48175e1dae36e8de85",
+    "tests/test_bootstrap_installers.py": "sha256-pyast:v2:b05150f0383b8b6e12f735c7fda51ad0cdb1089dbb4b637669935ac46c1eefd1",
+    "tests/test_website_install_section.py": "sha256-pyast:v2:260a9aaf7719697733a2d2d27d263c96eb7436768f82f8c4740c0f53bb9aa287",
+    "tests/test_website_rendered_typography.py": "sha256-pyast:v2:0ab2b14389065db9b6c99c039e022376b7199b0512b212f722bbb8f22b9137f4",
+    "tests/test_website_google_analytics.py": "sha256-pyast:v2:82cd6c1a0b1408c17b2b16528e2613ee086c4a0aa0a38fb6aaff853b8fa923b2"
+  },
+  "created_at": "2026-10-08T10:46:11.399996+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:6fddb362fed23131c727f83435042e349c41635f8b9d313651abd803d5a95a60",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:4a1fd790c0a781920cd7dfe7aee56f695a65f4adda9c8d48175e1dae36e8de85",
+        "tests/test_bootstrap_installers.py": "sha256-pyast:v2:b05150f0383b8b6e12f735c7fda51ad0cdb1089dbb4b637669935ac46c1eefd1",
+        "tests/test_website_install_section.py": "sha256-pyast:v2:260a9aaf7719697733a2d2d27d263c96eb7436768f82f8c4740c0f53bb9aa287",
+        "tests/test_website_rendered_typography.py": "sha256-pyast:v2:0ab2b14389065db9b6c99c039e022376b7199b0512b212f722bbb8f22b9137f4",
+        "tests/test_website_google_analytics.py": "sha256-pyast:v2:82cd6c1a0b1408c17b2b16528e2613ee086c4a0aa0a38fb6aaff853b8fa923b2"
+      },
+      "revised_at": "2026-10-08T10:46:34.805324+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/website-install-trust.manifest.yaml -> manifests/website-install-trust.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/website-install-trust.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/website-install-trust.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/website-install-trust.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/website-install-trust.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-08T10:46:59.110011+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_website_install_section.py tests/test_website_rendered_typography.py tests/test_website_static_contract.py tests/test_bootstrap_installers.py tests/test_website_google_analytics.py",
+        "exit_code": 1,
+        "output_tail": "            )\n            visible_copy_buttons = sum(\n                copy_buttons.nth(index).is_visible()\n                for index in range(copy_buttons.count())\n            )\n    \n        for command in INSTALL_COMMANDS:\n>           assert command in commands\nE           AssertionError: assert 'curl -LsSf https://maidrunner.dev/install.sh | sh' in []\n\ntests/test_website_install_section.py:308: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_website_install_section.py::test_platform_tabs_show_one_installer_and_follow_the_keyboard\nFAILED tests/test_website_install_section.py::test_windows_visitors_see_the_powershell_installer_first\nFAILED tests/test_website_install_section.py::test_copy_buttons_copy_the_exact_command_and_confirm\nFAILED tests/test_website_install_section.py::test_copied_is_announced_only_after_the_clipboard_write_resolves\nFAILED tests/test_website_install_section.py::test_copy_failure_is_reported_instead_of_claiming_success\nFAILED tests/test_website_install_section.py::test_installer_scripts_are_linked_for_review_with_pinning_help\nFAILED tests/test_website_install_section.py::test_install_section_is_complete_without_javascript\n7 failed, 24 passed in 18.79s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/website-install-trust.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/website-install-trust.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/test_website_install_section.py:test_copied_is_announced_only_after_the_clipboard_write_resolves",
+      "tests/test_website_install_section.py:test_copied_is_announced_only_after_the_clipboard_write_resolves:kind=test_function",
+      "tests/test_website_install_section.py:test_copied_is_announced_only_after_the_clipboard_write_resolves:returns=None",
+      "tests/test_website_install_section.py:test_copy_buttons_copy_the_exact_command_and_confirm",
+      "tests/test_website_install_section.py:test_copy_buttons_copy_the_exact_command_and_confirm:kind=test_function",
+      "tests/test_website_install_section.py:test_copy_buttons_copy_the_exact_command_and_confirm:returns=None",
+      "tests/test_website_install_section.py:test_copy_failure_is_reported_instead_of_claiming_success",
+      "tests/test_website_install_section.py:test_copy_failure_is_reported_instead_of_claiming_success:kind=test_function",
+      "tests/test_website_install_section.py:test_copy_failure_is_reported_instead_of_claiming_success:returns=None",
+      "tests/test_website_install_section.py:test_install_section_is_complete_without_javascript",
+      "tests/test_website_install_section.py:test_install_section_is_complete_without_javascript:kind=test_function",
+      "tests/test_website_install_section.py:test_install_section_is_complete_without_javascript:returns=None",
+      "tests/test_website_install_section.py:test_installer_scripts_are_linked_for_review_with_pinning_help",
+      "tests/test_website_install_section.py:test_installer_scripts_are_linked_for_review_with_pinning_help:kind=test_function",
+      "tests/test_website_install_section.py:test_installer_scripts_are_linked_for_review_with_pinning_help:returns=None",
+      "tests/test_website_install_section.py:test_platform_tabs_show_one_installer_and_follow_the_keyboard",
+      "tests/test_website_install_section.py:test_platform_tabs_show_one_installer_and_follow_the_keyboard:kind=test_function",
+      "tests/test_website_install_section.py:test_platform_tabs_show_one_installer_and_follow_the_keyboard:returns=None",
+      "tests/test_website_install_section.py:test_windows_visitors_see_the_powershell_installer_first",
+      "tests/test_website_install_section.py:test_windows_visitors_see_the_powershell_installer_first:kind=test_function",
+      "tests/test_website_install_section.py:test_windows_visitors_see_the_powershell_installer_first:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/test_website_install_section.py"
+      ],
+      "edit": [],
+      "read": [
+        "manifests/website-readable-type-floor.manifest.yaml",
+        "tests/test_bootstrap_installers.py",
+        "tests/test_website_static_contract.py",
+        "website/install.ps1",
+        "website/install.sh"
+      ],
+      "scope": [
+        "website/index.html",
+        "website/script.js",
+        "website/styles.css"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_website_install_section.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_platform_tabs_show_one_installer_and_follow_the_keyboard",
+              "returns": "None",
+              "source_scenario": "A visitor on macOS or Linux reaches Quick start and switches platforms with the keyboard or mouse.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "page.keyboard.press"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Three platform tabs exist with roving tabindex (0, -1, -1); macOS / Linux is selected first and only its shell command is visible; ArrowRight selects and focuses Windows and shows only the PowerShell command; End shows the uv and pip commands; Home returns to macOS / Linux; ArrowLeft from the first tab wraps to uv / pip; clicking a tab selects it."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_windows_visitors_see_the_powershell_installer_first",
+              "returns": "None",
+              "source_scenario": "A visitor on Windows opens the homepage.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "page.goto"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "With a Windows user agent, the Windows tab is selected on load and the PowerShell command, not the shell command, is visible."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_copy_buttons_copy_the_exact_command_and_confirm",
+              "returns": "None",
+              "source_scenario": "A visitor clicks Copy next to each install command.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "navigator.clipboard.readText"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Every copy row in every tab copies exactly its own command text to the clipboard, covering the shell, PowerShell, uv, and pip commands, and the status region reads Copied after each click and not before the first one."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_copied_is_announced_only_after_the_clipboard_write_resolves",
+              "returns": "None",
+              "source_scenario": "A visitor clicks Copy while the browser is still completing the clipboard write.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "navigator.clipboard.writeText"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "While writeText is pending the status does not say Copied; once the write resolves the status says Copied."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_copy_failure_is_reported_instead_of_claiming_success",
+              "returns": "None",
+              "source_scenario": "A visitor's browser rejects clipboard access.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "navigator.clipboard.writeText"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "When writeText rejects or navigator.clipboard is missing, the visible status says Couldn't copy and to select the command manually, and never says Copied."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_installer_scripts_are_linked_for_review_with_pinning_help",
+              "returns": "None",
+              "source_scenario": "A cautious visitor wants to read the installer and pin a release before piping it to a shell.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "urllib.request.urlopen"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The install section links install.sh and install.ps1 with same-origin relative hrefs, each link serves bytes identical to the repository script, the macOS / Linux panel shows `curl -LsSf https://maidrunner.dev/install.sh | sh -s -- --version <version>`, and the Windows panel shows a PowerShell form with `-Version <version>`, using parameters the scripts define."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_install_section_is_complete_without_javascript",
+              "returns": "None",
+              "source_scenario": "A visitor loads the homepage with JavaScript disabled.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "page.goto"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "All four install commands are visible, and no tabs or Copy buttons are shown."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "website/install.sh",
+        "website/install.ps1",
+        "tests/test_website_static_contract.py",
+        "tests/test_bootstrap_installers.py",
+        "manifests/website-readable-type-floor.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "website/index.html",
+          "reason": "The #quickstart install card gains platform tabs, per-command copy rows with a status region, installer script links, and pinning examples; the details element is replaced by the uv / pip tab."
+        },
+        {
+          "path": "website/styles.css",
+          "reason": "Tab bar, copy rows, status message, script links, and no-JS presentation inside the terminal card."
+        },
+        {
+          "path": "website/script.js",
+          "reason": "Progressive enhancement: tab selection with keyboard support, Windows preselection, and clipboard copying with honest success and failure reporting."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/test_bootstrap_installers.py",
+      "tests/test_website_google_analytics.py",
+      "tests/test_website_install_section.py",
+      "tests/test_website_rendered_typography.py",
+      "tests/test_website_static_contract.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_website_install_section.py tests/test_website_rendered_typography.py tests/test_website_static_contract.py tests/test_bootstrap_installers.py tests/test_website_google_analytics.py",
+      "uv run maid validate manifests/website-install-trust.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/website-install-trust.manifest.yaml --mode schema --quiet"
+    ],
+    "acceptance_commands": []
+  }
+}

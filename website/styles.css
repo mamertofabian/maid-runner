@@ -1340,6 +1340,179 @@ p {
   color: var(--green);
 }
 
+body.js .install-card .terminal-bar {
+  justify-content: flex-start;
+  padding-left: 64px;
+}
+
+body.js .install-card .terminal-name {
+  display: none;
+}
+
+.install-tabs {
+  display: flex;
+  align-self: stretch;
+  gap: 2px;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+body.no-js .install-tabs {
+  display: none;
+}
+
+.install-tab {
+  flex: none;
+  padding: 0 12px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: var(--type-label);
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 180ms ease, border-color 180ms ease;
+}
+
+.install-tab:hover {
+  color: var(--text);
+}
+
+.install-tab[aria-selected="true"] {
+  border-bottom-color: var(--cyan);
+  color: var(--text);
+}
+
+.install-tab:focus-visible {
+  outline-offset: -2px;
+}
+
+.install-panel {
+  padding: 18px 18px 4px;
+}
+
+.install-panel[hidden] {
+  display: none;
+}
+
+.install-panel:focus-visible {
+  outline-offset: -4px;
+}
+
+body.no-js .install-panel + .install-panel {
+  border-top: 1px solid var(--line);
+}
+
+.install-panel-label {
+  margin: 0 0 10px;
+  color: var(--text-dim);
+  font-size: var(--type-label);
+  font-weight: 700;
+}
+
+body.js .install-panel-label {
+  display: none;
+}
+
+.copy-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 10px 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: rgba(23, 35, 42, 0.55);
+}
+
+.copy-row + .copy-row {
+  margin-top: 8px;
+}
+
+.copy-row code {
+  flex: 1;
+  min-width: 0;
+  color: var(--text);
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: var(--type-meta);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.copy-button {
+  flex: none;
+  min-height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--line-bright);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--cyan-bright);
+  font-size: var(--type-label);
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 180ms ease, background 180ms ease;
+}
+
+.copy-button:hover {
+  border-color: var(--cyan);
+  background: rgba(39, 215, 255, 0.08);
+}
+
+.install-note,
+.install-pin {
+  margin: 12px 0 0;
+  color: var(--text-muted);
+  font-size: var(--type-meta);
+  line-height: 1.55;
+}
+
+.install-note a {
+  color: var(--cyan-bright);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.install-pin code {
+  display: block;
+  margin-top: 4px;
+  color: var(--text);
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: var(--type-label);
+  overflow-wrap: break-word;
+}
+
+.install-next {
+  margin-top: 14px;
+  padding: 14px 18px 0;
+  border-top: 1px solid var(--line);
+}
+
+.install-next-label {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: var(--type-label);
+  font-weight: 700;
+}
+
+.install-card .install-next pre {
+  padding: 8px 0 14px;
+}
+
+.copy-status {
+  margin: 0;
+  padding: 10px 18px 0;
+  color: var(--green);
+  font-size: var(--type-meta);
+}
+
+.copy-status:empty {
+  padding-top: 0;
+}
+
+.copy-status.is-error {
+  color: var(--orange);
+}
+
 .terminal-success {
   color: var(--green);
   font-size: 17px;
@@ -1882,6 +2055,40 @@ body.js .primary-nav.is-open {
 
   .quickstart-card {
     padding: 22px 17px;
+  }
+
+  body.js .install-card .terminal-bar {
+    padding-left: 6px;
+  }
+
+  .install-card .terminal-controls {
+    display: none;
+  }
+
+  .install-tab {
+    padding: 0 7px;
+  }
+
+  /* Give the command the full row on phones; Copy sits below it. */
+  .copy-row {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+
+  .copy-row code {
+    flex-basis: 100%;
+  }
+
+  .copy-button {
+    margin-left: auto;
+  }
+
+  .install-panel {
+    padding-inline: 14px;
+  }
+
+  .install-next {
+    padding-inline: 14px;
   }
 
   /* Commands wrap at spaces, and a URL wider than the card breaks rather
