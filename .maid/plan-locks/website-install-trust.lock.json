@@ -1,15 +1,15 @@
 {
   "manifest_path": "manifests/website-install-trust.manifest.yaml",
-  "manifest_hash": "sha256-contract:6a2563fcb9cc4028b2737d37d57c63c9ba2ff5371f356c74271518e92c15264a",
+  "manifest_hash": "sha256-contract:d23d4d6ccf503113ca250fd6bf1a1aa82a991c39b009854c3b9e82e8465c293c",
   "test_hashes": {
-    "tests/test_website_static_contract.py": "sha256-pyast:v2:4a1fd790c0a781920cd7dfe7aee56f695a65f4adda9c8d48175e1dae36e8de85",
-    "tests/test_bootstrap_installers.py": "sha256-pyast:v2:b05150f0383b8b6e12f735c7fda51ad0cdb1089dbb4b637669935ac46c1eefd1",
+    "tests/test_website_static_contract.py": "sha256-pyast:v2:8b3dd4990d3962ddd8f8830be5a8fb676128b3848f2dd86fe78e118f225b2f18",
+    "tests/test_bootstrap_installers.py": "sha256-pyast:v2:55658cf0ec9ed809437a969202140aeda330a9edbff233ba7c732d2b3f036636",
     "tests/test_website_install_section.py": "sha256-pyast:v2:260a9aaf7719697733a2d2d27d263c96eb7436768f82f8c4740c0f53bb9aa287",
-    "tests/test_website_rendered_typography.py": "sha256-pyast:v2:0ab2b14389065db9b6c99c039e022376b7199b0512b212f722bbb8f22b9137f4",
+    "tests/test_website_rendered_typography.py": "sha256-pyast:v2:e5c2f19cda149ab54adb560cf6dbe0217992465f59aeff0510795ef85f5056fc",
     "tests/test_website_google_analytics.py": "sha256-pyast:v2:82cd6c1a0b1408c17b2b16528e2613ee086c4a0aa0a38fb6aaff853b8fa923b2"
   },
   "created_at": "2026-10-08T10:46:11.399996+00:00",
-  "revision": 2,
+  "revision": 3,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:6fddb362fed23131c727f83435042e349c41635f8b9d313651abd803d5a95a60",
@@ -36,6 +36,27 @@
           "uv run maid validate manifests/drafts/website-install-trust.manifest.yaml --mode behavioral --quiet",
           "uv run maid validate manifests/drafts/website-install-trust.manifest.yaml --mode schema --quiet"
         ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6a2563fcb9cc4028b2737d37d57c63c9ba2ff5371f356c74271518e92c15264a",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:4a1fd790c0a781920cd7dfe7aee56f695a65f4adda9c8d48175e1dae36e8de85",
+        "tests/test_bootstrap_installers.py": "sha256-pyast:v2:b05150f0383b8b6e12f735c7fda51ad0cdb1089dbb4b637669935ac46c1eefd1",
+        "tests/test_website_install_section.py": "sha256-pyast:v2:260a9aaf7719697733a2d2d27d263c96eb7436768f82f8c4740c0f53bb9aa287",
+        "tests/test_website_rendered_typography.py": "sha256-pyast:v2:0ab2b14389065db9b6c99c039e022376b7199b0512b212f722bbb8f22b9137f4",
+        "tests/test_website_google_analytics.py": "sha256-pyast:v2:82cd6c1a0b1408c17b2b16528e2613ee086c4a0aa0a38fb6aaff853b8fa923b2"
+      },
+      "revised_at": "2026-10-08T11:52:08.458064+00:00",
+      "reason": "accept approved shared-test change from website-distill-why-section (removed sections and re-bounded section slices); this manifest's own contract is unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
       }
     }
   ],

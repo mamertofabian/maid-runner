@@ -59,11 +59,9 @@ TRACKING_TOLERANCE_EM = 0.0005
 BODY_COPY_SELECTORS = {
     INDEX: (
         ".hero-lede",
-        ".strength-card p",
         ".problem-card p",
         ".problem-answer",
         ".workflow-step p",
-        ".capability-card p",
         ".practice-intro p:not(.practice-tagline)",
         ".practice-featured-card > p:not(.practice-kicker):not(.practice-workflow-rail)",
         ".practice-card > p:not(.practice-kicker):not(.practice-private-closing)",

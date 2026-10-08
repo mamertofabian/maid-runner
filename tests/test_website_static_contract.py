@@ -38,7 +38,6 @@ def test_homepage_matches_mockup_story_and_navigation() -> None:
     for section_id in (
         "why-maid",
         "workflow",
-        "capabilities",
         "maid-in-practice",
         "quickstart",
     ):
@@ -47,7 +46,6 @@ def test_homepage_matches_mockup_story_and_navigation() -> None:
     for label in (
         "Why MAID Runner",
         "From plan to evidence",
-        "Capabilities",
         "MAID in practice",
         "The tool is developed under the rules it enforces.",
         "Works with your existing tools",
@@ -59,7 +57,6 @@ def test_homepage_matches_mockup_story_and_navigation() -> None:
     for link in (
         'href="#why-maid"',
         'href="#workflow"',
-        'href="#capabilities"',
         'href="#maid-in-practice"',
         'href="#quickstart"',
         'href="https://github.com/mamertofabian/maid-runner"',
@@ -72,7 +69,6 @@ def test_homepage_matches_mockup_story_and_navigation() -> None:
         "Python, TypeScript, JavaScript, Svelte",
         "Plan drift",
         "Test rewriting",
-        "Scope expansion",
     ):
         assert label in homepage
 
@@ -82,14 +78,15 @@ def test_homepage_leads_with_core_strengths() -> None:
 
     # The page leads with what makes MAID different, not a single "follow the
     # plan" note: it governs the artifacts agents produce, across any harness.
+    # Each differentiator is stated once, as MAID's answer to an agent failure.
     assert "Governs the artifacts your agents produce" in homepage
     assert "not just the prompts they follow" in homepage
 
     for strength in (
-        "Machine-checkable contracts",
-        "Tamper-evident planning",
-        "Portable across agents",
-        "Evidence-backed handoff",
+        "An approved plan lock becomes the contract",
+        "Tests must fail before the change",
+        "then independently reviewed before handoff",
+        "The manifest is the contract, so MAID runs the same",
     ):
         assert strength in homepage
 
@@ -101,23 +98,20 @@ def test_homepage_leads_with_core_strengths() -> None:
 def test_homepage_surfaces_knockout_strength() -> None:
     homepage = _read(HOMEPAGE)
 
-    # Differential knockout is surfaced as a strength: deep verification can
-    # delete a declared function's body and require the tests to fail, proving
-    # the tests exercise the code rather than just executing a line. This is the
-    # README-documented --knockout gate, presented without over-promising.
-    assert "Proven, not just covered" in homepage
+    # Differential knockout is surfaced in the "test rewriting" answer: deep
+    # verification can delete a declared function's body and require the tests
+    # to fail, so a gutted test that no longer asserts anything cannot quietly
+    # pass. This is the README-documented --knockout gate, presented without
+    # over-promising: it is Python-only and opt-in.
     assert "delete a function's body and require your tests to fail" in homepage
-
-    # The "test rewriting" answer names the knockout defense, so a gutted test
-    # that no longer asserts anything cannot quietly pass.
-    assert "knock out the code to confirm a test actually fails without it" in homepage
+    assert "so a gutted test can't pass" in homepage
+    assert "Knockout: Python, opt-in" in homepage
 
 
 def test_homepage_renders_workflow_capabilities_tools_and_quickstart() -> None:
     homepage = _read(HOMEPAGE)
 
     assert len(re.findall(r'class="workflow-step(?:\s|")', homepage)) == 7
-    assert len(re.findall(r'class="capability-card(?:\s|")', homepage)) == 6
 
     for label in (
         "Plan",
@@ -133,9 +127,9 @@ def test_homepage_renders_workflow_capabilities_tools_and_quickstart() -> None:
     for tool in ("Claude Code", "Codex", "Cursor", "Windsurf", "Generic"):
         assert tool in homepage
 
-    quickstart = homepage.split('id="quickstart"', 1)[1].split('class="final-cta"', 1)[
-        0
-    ]
+    quickstart = homepage.split('id="quickstart"', 1)[1].split(
+        'id="maid-in-practice"', 1
+    )[0]
     for command in (
         "pip install maid-runner",
         "maid init",
@@ -150,7 +144,7 @@ def test_homepage_renders_maid_in_practice_section() -> None:
     homepage = _read(HOMEPAGE)
     stats = json.loads(_read(PRACTICE_STATS))
     practice = homepage.split('id="maid-in-practice"', 1)[1].split(
-        'id="quickstart"', 1
+        'class="final-cta"', 1
     )[0]
 
     assert "MAID Runner is not only a workflow we recommend" in practice

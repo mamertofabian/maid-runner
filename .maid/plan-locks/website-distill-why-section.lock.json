@@ -1,0 +1,828 @@
+{
+  "manifest_path": "manifests/website-distill-why-section.manifest.yaml",
+  "manifest_hash": "sha256-contract:cacbf10d79231c633e9dc25d7b97b9281e7270ef2e594c3f107aa2d39913ddcf",
+  "test_hashes": {
+    "tests/test_website_distilled_story.py": "sha256-pyast:v2:d6fe48b21ea30c4205956fd34d48944d133652d2643a40a8471c878e22613158",
+    "tests/test_website_static_contract.py": "sha256-pyast:v2:8b3dd4990d3962ddd8f8830be5a8fb676128b3848f2dd86fe78e118f225b2f18",
+    "tests/test_website_google_analytics.py": "sha256-pyast:v2:82cd6c1a0b1408c17b2b16528e2613ee086c4a0aa0a38fb6aaff853b8fa923b2",
+    "tests/test_bootstrap_installers.py": "sha256-pyast:v2:55658cf0ec9ed809437a969202140aeda330a9edbff233ba7c732d2b3f036636",
+    "tests/test_website_rendered_typography.py": "sha256-pyast:v2:e5c2f19cda149ab54adb560cf6dbe0217992465f59aeff0510795ef85f5056fc",
+    "tests/test_website_install_section.py": "sha256-pyast:v2:260a9aaf7719697733a2d2d27d263c96eb7436768f82f8c4740c0f53bb9aa287",
+    "tests/ci/test_github_actions_templates.py": "sha256-pyast:v2:2e64c1d99aa26815c46901baa98d611cd4acb8698814a141d6d84ea5c9af1bab",
+    "tests/ci/test_publish_environment_isolation.py": "sha256-pyast:v2:198601a64efa355af63d4ef1777a90ec30eead0ba2595469c48698fd40d1ddc1",
+    "tests/ci/test_publish_workflow.py": "sha256-pyast:v2:799ef0c4341901b4622b4b8d0931c6ee70ec6aa3e6949cf29d060b56b9284dd5",
+    "tests/ci/test_maid_workflow_pr_only_triggers.py": "sha256-pyast:v2:108b2c75b4e9a4d96460c9f93fb9cd6096360cf44ab4b4cf5002ee2e2874ab64"
+  },
+  "created_at": "2026-10-08T11:48:26.035421+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:240894cd0abc4b4116d58b94168a3bc730a084988e19fa41d8bf82db378bf795",
+      "prior_test_hashes": {
+        "tests/test_website_distilled_story.py": "sha256-pyast:v2:d6fe48b21ea30c4205956fd34d48944d133652d2643a40a8471c878e22613158",
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:8b3dd4990d3962ddd8f8830be5a8fb676128b3848f2dd86fe78e118f225b2f18",
+        "tests/test_website_google_analytics.py": "sha256-pyast:v2:82cd6c1a0b1408c17b2b16528e2613ee086c4a0aa0a38fb6aaff853b8fa923b2",
+        "tests/test_bootstrap_installers.py": "sha256-pyast:v2:55658cf0ec9ed809437a969202140aeda330a9edbff233ba7c732d2b3f036636",
+        "tests/test_website_rendered_typography.py": "sha256-pyast:v2:e5c2f19cda149ab54adb560cf6dbe0217992465f59aeff0510795ef85f5056fc",
+        "tests/test_website_install_section.py": "sha256-pyast:v2:260a9aaf7719697733a2d2d27d263c96eb7436768f82f8c4740c0f53bb9aa287",
+        "tests/ci/test_github_actions_templates.py": "sha256-pyast:v2:2e64c1d99aa26815c46901baa98d611cd4acb8698814a141d6d84ea5c9af1bab",
+        "tests/ci/test_publish_environment_isolation.py": "sha256-pyast:v2:198601a64efa355af63d4ef1777a90ec30eead0ba2595469c48698fd40d1ddc1",
+        "tests/ci/test_publish_workflow.py": "sha256-pyast:v2:799ef0c4341901b4622b4b8d0931c6ee70ec6aa3e6949cf29d060b56b9284dd5",
+        "tests/ci/test_maid_workflow_pr_only_triggers.py": "sha256-pyast:v2:108b2c75b4e9a4d96460c9f93fb9cd6096360cf44ab4b4cf5002ee2e2874ab64"
+      },
+      "revised_at": "2026-10-08T11:48:57.278936+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/website-distill-why-section.manifest.yaml -> manifests/website-distill-why-section.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/website-distill-why-section.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/website-distill-why-section.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/website-distill-why-section.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/website-distill-why-section.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-08T11:49:30.027144+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_website_distilled_story.py tests/test_website_static_contract.py tests/test_website_google_analytics.py tests/test_bootstrap_installers.py tests/test_website_rendered_typography.py tests/test_website_install_section.py tests/ci/test_github_actions_templates.py tests/ci/test_publish_environment_isolation.py tests/ci/test_publish_workflow.py tests/ci/test_maid_workflow_pr_only_triggers.py",
+        "exit_code": 1,
+        "output_tail": "        homepage = _read(HOMEPAGE)\n    \n        # Differential knockout is surfaced in the \"test rewriting\" answer: deep\n        # verification can delete a declared function's body and require the tests\n        # to fail, so a gutted test that no longer asserts anything cannot quietly\n        # pass. This is the README-documented --knockout gate, presented without\n        # over-promising: it is Python-only and opt-in.\n        assert \"delete a function's body and require your tests to fail\" in homepage\n        assert \"so a gutted test can't pass\" in homepage\n>       assert \"Knockout: Python, opt-in\" in homepage\nE       assert 'Knockout: Python, opt-in' in '<!doctype html>\\n<html lang=\"en\">\\n  <head>\\n    <meta charset=\"utf-8\" />\\n    <meta name=\"viewport\" content=\"width=d...</a>\\n        </nav>\\n      </div>\\n    </footer>\\n\\n    <script src=\"script.js\" defer></script>\\n  </body>\\n</html>\\n'\n\ntests/test_website_static_contract.py:108: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_website_distilled_story.py::test_why_section_pairs_four_problems_with_their_answers\nFAILED tests/test_website_distilled_story.py::test_homepage_states_each_differentiator_in_one_place\nFAILED tests/test_website_distilled_story.py::test_navigation_and_sections_put_quick_start_after_the_workflow\nFAILED tests/test_website_static_contract.py::test_homepage_leads_with_core_strengths\nFAILED tests/test_website_static_contract.py::test_homepage_surfaces_knockout_strength\n5 failed, 50 passed in 27.15s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/website-distill-why-section.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/website-distill-why-section.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/test_bootstrap_installers.py:test_installer_smoke_workflow_runs_local_scripts_on_all_supported_platforms",
+      "tests/test_bootstrap_installers.py:test_installer_smoke_workflow_runs_local_scripts_on_all_supported_platforms:kind=test_function",
+      "tests/test_bootstrap_installers.py:test_installer_smoke_workflow_runs_local_scripts_on_all_supported_platforms:returns=None",
+      "tests/test_bootstrap_installers.py:test_powershell_installer_contract_is_auditable_and_fail_closed",
+      "tests/test_bootstrap_installers.py:test_powershell_installer_contract_is_auditable_and_fail_closed:kind=test_function",
+      "tests/test_bootstrap_installers.py:test_powershell_installer_contract_is_auditable_and_fail_closed:returns=None",
+      "tests/test_bootstrap_installers.py:test_readme_and_landing_page_publish_bootstrap_installers_as_primary",
+      "tests/test_bootstrap_installers.py:test_readme_and_landing_page_publish_bootstrap_installers_as_primary:kind=test_function",
+      "tests/test_bootstrap_installers.py:test_readme_and_landing_page_publish_bootstrap_installers_as_primary:returns=None",
+      "tests/test_bootstrap_installers.py:test_shell_installer_bootstraps_uv_when_missing",
+      "tests/test_bootstrap_installers.py:test_shell_installer_bootstraps_uv_when_missing:kind=test_function",
+      "tests/test_bootstrap_installers.py:test_shell_installer_bootstraps_uv_when_missing:returns=None",
+      "tests/test_bootstrap_installers.py:test_shell_installer_passes_shellcheck",
+      "tests/test_bootstrap_installers.py:test_shell_installer_passes_shellcheck:kind=test_function",
+      "tests/test_bootstrap_installers.py:test_shell_installer_passes_shellcheck:returns=None",
+      "tests/test_bootstrap_installers.py:test_shell_installer_propagates_download_and_tool_failures",
+      "tests/test_bootstrap_installers.py:test_shell_installer_propagates_download_and_tool_failures:kind=test_function",
+      "tests/test_bootstrap_installers.py:test_shell_installer_propagates_download_and_tool_failures:returns=None",
+      "tests/test_bootstrap_installers.py:test_shell_installer_rejects_unsafe_or_incomplete_arguments",
+      "tests/test_bootstrap_installers.py:test_shell_installer_rejects_unsafe_or_incomplete_arguments:kind=test_function",
+      "tests/test_bootstrap_installers.py:test_shell_installer_rejects_unsafe_or_incomplete_arguments:returns=None",
+      "tests/test_bootstrap_installers.py:test_shell_installer_uses_existing_uv_installs_requested_version_and_verifies_maid",
+      "tests/test_bootstrap_installers.py:test_shell_installer_uses_existing_uv_installs_requested_version_and_verifies_maid:kind=test_function",
+      "tests/test_bootstrap_installers.py:test_shell_installer_uses_existing_uv_installs_requested_version_and_verifies_maid:returns=None",
+      "tests/test_website_distilled_story.py:test_homepage_states_each_differentiator_in_one_place",
+      "tests/test_website_distilled_story.py:test_homepage_states_each_differentiator_in_one_place:kind=test_function",
+      "tests/test_website_distilled_story.py:test_homepage_states_each_differentiator_in_one_place:returns=None",
+      "tests/test_website_distilled_story.py:test_navigation_and_sections_put_quick_start_after_the_workflow",
+      "tests/test_website_distilled_story.py:test_navigation_and_sections_put_quick_start_after_the_workflow:kind=test_function",
+      "tests/test_website_distilled_story.py:test_navigation_and_sections_put_quick_start_after_the_workflow:returns=None",
+      "tests/test_website_distilled_story.py:test_why_section_pairs_four_problems_with_their_answers",
+      "tests/test_website_distilled_story.py:test_why_section_pairs_four_problems_with_their_answers:kind=test_function",
+      "tests/test_website_distilled_story.py:test_why_section_pairs_four_problems_with_their_answers:returns=None",
+      "tests/test_website_google_analytics.py:test_every_html_page_loads_configured_google_analytics_tag",
+      "tests/test_website_google_analytics.py:test_every_html_page_loads_configured_google_analytics_tag:kind=test_function",
+      "tests/test_website_google_analytics.py:test_every_html_page_loads_configured_google_analytics_tag:returns=None",
+      "tests/test_website_rendered_typography.py:test_body_copy_renders_at_the_reading_floor",
+      "tests/test_website_rendered_typography.py:test_body_copy_renders_at_the_reading_floor:kind=test_function",
+      "tests/test_website_rendered_typography.py:test_body_copy_renders_at_the_reading_floor:returns=None",
+      "tests/test_website_rendered_typography.py:test_display_headings_render_with_balanced_wrapping",
+      "tests/test_website_rendered_typography.py:test_display_headings_render_with_balanced_wrapping:kind=test_function",
+      "tests/test_website_rendered_typography.py:test_display_headings_render_with_balanced_wrapping:returns=None",
+      "tests/test_website_rendered_typography.py:test_maid_runner_ci_installs_chromium_before_running_website_tests",
+      "tests/test_website_rendered_typography.py:test_maid_runner_ci_installs_chromium_before_running_website_tests:kind=test_function",
+      "tests/test_website_rendered_typography.py:test_maid_runner_ci_installs_chromium_before_running_website_tests:returns=None",
+      "tests/test_website_rendered_typography.py:test_no_rendered_text_is_smaller_than_twelve_pixels",
+      "tests/test_website_rendered_typography.py:test_no_rendered_text_is_smaller_than_twelve_pixels:kind=test_function",
+      "tests/test_website_rendered_typography.py:test_no_rendered_text_is_smaller_than_twelve_pixels:returns=None",
+      "tests/test_website_rendered_typography.py:test_rendered_tracking_never_tightens_past_the_legibility_floor",
+      "tests/test_website_rendered_typography.py:test_rendered_tracking_never_tightens_past_the_legibility_floor:kind=test_function",
+      "tests/test_website_rendered_typography.py:test_rendered_tracking_never_tightens_past_the_legibility_floor:returns=None",
+      "tests/test_website_static_contract.py:test_dark_surface_accessibility_contract_is_declared",
+      "tests/test_website_static_contract.py:test_dark_surface_accessibility_contract_is_declared:kind=test_function",
+      "tests/test_website_static_contract.py:test_dark_surface_accessibility_contract_is_declared:returns=None",
+      "tests/test_website_static_contract.py:test_homepage_leads_with_core_strengths",
+      "tests/test_website_static_contract.py:test_homepage_leads_with_core_strengths:kind=test_function",
+      "tests/test_website_static_contract.py:test_homepage_leads_with_core_strengths:returns=None",
+      "tests/test_website_static_contract.py:test_homepage_matches_mockup_story_and_navigation",
+      "tests/test_website_static_contract.py:test_homepage_matches_mockup_story_and_navigation:kind=test_function",
+      "tests/test_website_static_contract.py:test_homepage_matches_mockup_story_and_navigation:returns=None",
+      "tests/test_website_static_contract.py:test_homepage_renders_maid_in_practice_section",
+      "tests/test_website_static_contract.py:test_homepage_renders_maid_in_practice_section:kind=test_function",
+      "tests/test_website_static_contract.py:test_homepage_renders_maid_in_practice_section:returns=None",
+      "tests/test_website_static_contract.py:test_homepage_renders_workflow_capabilities_tools_and_quickstart",
+      "tests/test_website_static_contract.py:test_homepage_renders_workflow_capabilities_tools_and_quickstart:kind=test_function",
+      "tests/test_website_static_contract.py:test_homepage_renders_workflow_capabilities_tools_and_quickstart:returns=None",
+      "tests/test_website_static_contract.py:test_homepage_surfaces_knockout_strength",
+      "tests/test_website_static_contract.py:test_homepage_surfaces_knockout_strength:kind=test_function",
+      "tests/test_website_static_contract.py:test_homepage_surfaces_knockout_strength:returns=None",
+      "tests/test_website_static_contract.py:test_homepage_uses_final_local_brand_and_social_assets",
+      "tests/test_website_static_contract.py:test_homepage_uses_final_local_brand_and_social_assets:kind=test_function",
+      "tests/test_website_static_contract.py:test_homepage_uses_final_local_brand_and_social_assets:returns=None",
+      "tests/test_website_static_contract.py:test_mobile_navigation_covers_javascript_and_no_javascript_paths",
+      "tests/test_website_static_contract.py:test_mobile_navigation_covers_javascript_and_no_javascript_paths:kind=test_function",
+      "tests/test_website_static_contract.py:test_mobile_navigation_covers_javascript_and_no_javascript_paths:returns=None",
+      "tests/test_website_static_contract.py:test_static_fallback_and_search_metadata_target_canonical_domain",
+      "tests/test_website_static_contract.py:test_static_fallback_and_search_metadata_target_canonical_domain:kind=test_function",
+      "tests/test_website_static_contract.py:test_static_fallback_and_search_metadata_target_canonical_domain:returns=None",
+      "tests/test_website_static_contract.py:test_vercel_is_the_only_declared_website_deployment",
+      "tests/test_website_static_contract.py:test_vercel_is_the_only_declared_website_deployment:kind=test_function",
+      "tests/test_website_static_contract.py:test_vercel_is_the_only_declared_website_deployment:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/test_website_distilled_story.py"
+      ],
+      "edit": [
+        "tests/test_bootstrap_installers.py",
+        "tests/test_website_google_analytics.py",
+        "tests/test_website_rendered_typography.py",
+        "tests/test_website_static_contract.py"
+      ],
+      "read": [
+        "manifests/website-install-trust.manifest.yaml"
+      ],
+      "scope": [
+        ".github/workflows/maid-test.yml",
+        ".github/workflows/maid-validation.yml",
+        ".github/workflows/publish.yml",
+        ".github/workflows/test-installers.yml",
+        "CONTRIBUTING.md",
+        "README.md",
+        "pyproject.toml",
+        "uv.lock",
+        "vercel.json",
+        "website/404.html",
+        "website/README.md",
+        "website/assets/logo.png",
+        "website/assets/social-card.png",
+        "website/data/practice-stats.json",
+        "website/index.html",
+        "website/install.ps1",
+        "website/install.sh",
+        "website/robots.txt",
+        "website/script.js",
+        "website/sitemap.xml",
+        "website/styles.css"
+      ],
+      "delete": [
+        ".github/workflows/deploy-website.yml",
+        "website/assets/logo.svg",
+        "website/assets/mockup-redesign.png",
+        "website/assets/social-card-v2.png"
+      ],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_website_distilled_story.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_why_section_pairs_four_problems_with_their_answers",
+              "returns": "None",
+              "source_scenario": "A visitor reads the Why section to learn what MAID prevents.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The Why section leads with governing the artifacts agents produce and holds exactly four problem cards in order: Plan drift, Test rewriting, Self-reported \"done\", and Rules that live in one tool. Each names MAID's answer: a plan lock an agent can't quietly rewrite plus declared files; failing tests first plus Python-only, opt-in knockout; verification plus independent review; and a deterministic, AST-level manifest contract that runs the same under Claude Code, Codex, Cursor, and Windsurf."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_homepage_states_each_differentiator_in_one_place",
+              "returns": "None",
+              "source_scenario": "A visitor scrolls the homepage without meeting the same claim three times.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The separate Strengths band and Capabilities section, their card classes, the Capabilities anchor, and all eight retired duplicate card titles are gone, and the knockout, plan-lock, and independent-review claims each appear exactly once."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_navigation_and_sections_put_quick_start_after_the_workflow",
+              "returns": "None",
+              "source_scenario": "A visitor ready to install looks for Quick start right after learning the workflow.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The primary navigation links exactly why-maid, workflow, quickstart, and maid-in-practice in that order, the sections appear in the same order, and the final CTA follows them."
+              }
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "tests/test_website_static_contract.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_homepage_matches_mockup_story_and_navigation",
+              "returns": "None",
+              "source_scenario": "A visitor opens the canonical MAID Runner homepage and scans the product story.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The homepage exposes the hero, primary actions, navigation anchors for Why MAID Runner, Workflow, Quick start, and MAID in practice, validation panels, the Plan drift and Test rewriting problems, and semantic page sections."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_homepage_leads_with_core_strengths",
+              "returns": "None",
+              "source_scenario": "A visitor scans the Why section for MAID Runner's differentiated value.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The page leads with governing the artifacts agents produce and states each differentiator once as MAID's answer: an approved plan lock as the contract, tests that must fail before the change, verification plus independent review before handoff, and a manifest contract that runs the same under any agent."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_homepage_renders_workflow_capabilities_tools_and_quickstart",
+              "returns": "None",
+              "source_scenario": "A visitor scrolls through the homepage to understand the MAID loop and how to start.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The page renders the seven-step plan-to-evidence workflow, tool compatibility, and the supported quick-start commands without suggesting maid verify on an empty repository."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_homepage_renders_maid_in_practice_section",
+              "returns": "None",
+              "source_scenario": "A visitor looks for evidence that MAID is used on real software.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The practice section renders JSON-mirrored public stats, private-production language, and inspectable project links without unsupported ecosystem claims."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_homepage_uses_final_local_brand_and_social_assets",
+              "returns": "None",
+              "source_scenario": "A browser or social crawler loads the canonical homepage assets.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "All local asset references resolve to final PNG assets and disposable design inputs remain absent."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_mobile_navigation_covers_javascript_and_no_javascript_paths",
+              "returns": "None",
+              "source_scenario": "A visitor uses compact navigation with JavaScript enabled or disabled.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Navigation supports open, close, link dismissal, Escape dismissal, focus return, and a usable no-JavaScript fallback."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_dark_surface_accessibility_contract_is_declared",
+              "returns": "None",
+              "source_scenario": "A visitor reads and navigates the dark site across desktop and mobile.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The stylesheet retains readable tokens, visible focus states, responsive rules, and reduced-motion handling."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_static_fallback_and_search_metadata_target_canonical_domain",
+              "returns": "None",
+              "source_scenario": "A crawler reads canonical metadata, robots policy, and the sitemap.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The fallback links home, robots points to the HTTPS apex sitemap, and the homepage canonical plus sitemap locations contain only https://maidrunner.dev/."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_vercel_is_the_only_declared_website_deployment",
+              "returns": "None",
+              "source_scenario": "A website change is deployed and a maintainer audits the repository's hosting contract.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "json.loads"
+                  }
+                },
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Root vercel.json serves website/ as the output directory; deployment docs distinguish repository automation from external Pages settings; every workflow is free of Pages deployment markers; and crawl surfaces never advertise HTTP or www aliases."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_homepage_surfaces_knockout_strength",
+              "returns": "None",
+              "source_scenario": "A visitor checks whether MAID's tests actually catch bugs rather than just execute lines.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The test-rewriting answer surfaces differential knockout: deep verification can delete a function's body and require the tests to fail so a gutted test can't pass, disclosed as Python-only and opt-in."
+              }
+            }
+          ]
+        },
+        {
+          "path": "tests/test_website_google_analytics.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_every_html_page_loads_configured_google_analytics_tag",
+              "returns": "None",
+              "source_scenario": "A visitor loads any HTML page published by Vercel.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Every shipped HTML page loads gtag.js asynchronously and initializes Google Analytics exactly once inside its head with measurement ID G-B6F335E4MM."
+              }
+            }
+          ]
+        },
+        {
+          "path": "tests/test_bootstrap_installers.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_shell_installer_uses_existing_uv_installs_requested_version_and_verifies_maid",
+              "returns": "None",
+              "source_scenario": "A macOS or Linux user already has uv and requests a reproducible MAID Runner version.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "subprocess.run"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The installer keeps existing uv, installs the requested version with Python 3.12, refreshes PATH, and verifies maid before succeeding."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_shell_installer_bootstraps_uv_when_missing",
+              "returns": "None",
+              "source_scenario": "A macOS or Linux user runs the installer without uv.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "subprocess.run"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The installer retrieves Astral's official uv installer, discovers uv, installs MAID Runner, and verifies the command."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_shell_installer_rejects_unsafe_or_incomplete_arguments",
+              "returns": "None",
+              "source_scenario": "A caller supplies an unsafe version, omits a value, or uses an unsupported option.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "subprocess.run"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The installer exits nonzero with usage guidance before invoking uv."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_shell_installer_propagates_download_and_tool_failures",
+              "returns": "None",
+              "source_scenario": "The uv download or MAID Runner installation fails.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "subprocess.run"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The installer exits nonzero, skips later verification, and never prints success."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_powershell_installer_contract_is_auditable_and_fail_closed",
+              "returns": "None",
+              "source_scenario": "A reviewer inspects the Windows bootstrapper without PowerShell execution support.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The script validates versions, uses Astral's HTTPS installer, checks exits, installs with Python 3.12, refreshes PATH, and verifies maid before success."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_shell_installer_passes_shellcheck",
+              "returns": "None",
+              "source_scenario": "A maintainer validates the POSIX bootstrapper.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "subprocess.run"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "ShellCheck accepts the installer with no diagnostics."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_readme_and_landing_page_publish_bootstrap_installers_as_primary",
+              "returns": "None",
+              "source_scenario": "A newcomer scans the README or landing page for installation.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "Path.read_text"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Both surfaces present first-party shell and PowerShell installers before uv and pip alternatives and include first-run commands."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_installer_smoke_workflow_runs_local_scripts_on_all_supported_platforms",
+              "returns": "None",
+              "source_scenario": "An installer or installer-workflow change is proposed or lands on main.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "yaml.load"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "A path-scoped workflow executes checked-out shell installers on Ubuntu/macOS and PowerShell on Windows with least-privilege contents access."
+              }
+            }
+          ]
+        },
+        {
+          "path": "tests/test_website_rendered_typography.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_no_rendered_text_is_smaller_than_twelve_pixels",
+              "returns": "None",
+              "source_scenario": "A visitor reads labels, metadata, code, captions, and buttons on the homepage or 404 page at phone, tablet, and desktop widths.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "page.evaluate"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Every element with its own text on index.html and 404.html computes and renders at 12px or larger, including first-line, first-letter, and generated pseudo-element text, in every declared width, touch, landscape, no-JavaScript, reduced-motion, and open-navigation scenario, including list markers; the stylesheet uses only the pinned conditional groups; and nothing shrinks text through font-size-adjust, small caps, or @font-face size-adjust."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_body_copy_renders_at_the_reading_floor",
+              "returns": "None",
+              "source_scenario": "A visitor reads the explanatory copy that teaches the MAID method in cards and intros.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "page.evaluate"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "Each declared body-copy selector (hero lede, Why-section problem and answer copy, workflow captions, practice copy, quick-start copy, and the 404 paragraph) matches rendered text on its page in every scenario, and all of that text except the problem-answer label renders at 15px or larger."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_rendered_tracking_never_tightens_past_the_legibility_floor",
+              "returns": "None",
+              "source_scenario": "A visitor reads the hero headline \"Don't just trust AI code. Verify it.\" and the section headings.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "page.evaluate"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "No rendered text, including first-line, first-letter, and generated pseudo-element text, on either page has letter-spacing tighter than -0.04 of its computed font size in any scenario."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_display_headings_render_with_balanced_wrapping",
+              "returns": "None",
+              "source_scenario": "A visitor on any screen width reads the hero and section headlines.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "page.evaluate"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "The hero h1, every section h2, and the final CTA h2 compute text-wrap-style: balance and text-wrap-mode: wrap in every index.html scenario."
+              }
+            },
+            {
+              "kind": "test_function",
+              "name": "test_maid_runner_ci_installs_chromium_before_running_website_tests",
+              "returns": "None",
+              "source_scenario": "CI runs the MAID test contract, the validation gate, or the publish test matrix after this browser test exists.",
+              "actions": [
+                {
+                  "type": "api_call",
+                  "subject": {
+                    "function": "yaml.safe_load"
+                  }
+                }
+              ],
+              "expected": {
+                "behavior": "maid-test.yml, maid-validation.yml, and publish.yml each run exactly `uv run playwright install --with-deps chromium` before their MAID test or validation step, and the reusable workflows gate it with a step-level github.repository condition or the inline repository guard used by the npm and payload-sync steps."
+              }
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/website-install-trust.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "website/index.html",
+          "reason": "The Strengths, Why, and Capabilities sections merge into one four-row problem-to-answer Why section; Quick start moves directly after the workflow; navigation drops the Capabilities anchor. Hero, workflow, install card, practice section, final CTA, canonical metadata, and analytics are otherwise preserved."
+        },
+        {
+          "path": "website/styles.css",
+          "reason": "Strength-card, capability-card, and tools styles are removed or folded into the four-row Why section; the readable type floor, tokens, and existing breakpoints are preserved."
+        },
+        {
+          "path": "website/script.js",
+          "reason": "Existing progressive-enhancement navigation remains part of the complete website contract."
+        },
+        {
+          "path": "website/404.html",
+          "reason": "Existing static fallback remains part of the complete website contract."
+        },
+        {
+          "path": "website/robots.txt",
+          "reason": "Crawler policy must continue pointing only to the canonical HTTPS apex sitemap."
+        },
+        {
+          "path": "website/sitemap.xml",
+          "reason": "Search discovery must continue listing only the final 200-status canonical homepage."
+        },
+        {
+          "path": "website/assets/logo.png",
+          "reason": "The production PNG remains the authoritative brand asset."
+        },
+        {
+          "path": "website/assets/social-card.png",
+          "reason": "The social preview remains part of the website asset contract."
+        },
+        {
+          "path": "website/data/practice-stats.json",
+          "reason": "The evidence-backed practice statistics remain the canonical data source for homepage copy."
+        },
+        {
+          "path": "website/install.sh",
+          "reason": "The existing POSIX bootstrap endpoint remains part of the complete website contract."
+        },
+        {
+          "path": "website/install.ps1",
+          "reason": "The existing PowerShell bootstrap endpoint remains part of the complete website contract."
+        },
+        {
+          "path": "README.md",
+          "reason": "The existing bootstrap installer onboarding hierarchy remains part of the superseded installer contract."
+        },
+        {
+          "path": ".github/workflows/test-installers.yml",
+          "reason": "The cross-platform installer smoke workflow remains active and distinct from website publishing."
+        },
+        {
+          "path": "vercel.json",
+          "reason": "Repository-owned Vercel configuration serves the static website/ directory without relying on stale Pages automation."
+        },
+        {
+          "path": "website/README.md",
+          "reason": "Deployment documentation records Vercel as the only publisher and explains intentional canonical-domain redirects."
+        },
+        {
+          "path": "pyproject.toml",
+          "reason": "Adds playwright to the dev dependency group for the browser integration test."
+        },
+        {
+          "path": "uv.lock",
+          "reason": "Lockfile update for the playwright dev dependency."
+        },
+        {
+          "path": ".github/workflows/maid-test.yml",
+          "reason": "Installs Chromium for maid-runner's own MAID test job before the manifest test contract runs; gated so downstream callers are unaffected."
+        },
+        {
+          "path": ".github/workflows/maid-validation.yml",
+          "reason": "Installs Chromium for maid-runner's own validation gate, whose verify test stage runs manifest validate commands; gated so downstream callers are unaffected."
+        },
+        {
+          "path": ".github/workflows/publish.yml",
+          "reason": "Installs Chromium in the publish test matrix before MAID tests and the full suite run."
+        },
+        {
+          "path": "CONTRIBUTING.md",
+          "reason": "Contributor setup gains the Chromium install step, since pytest, maid test, and the maid-verify hook now run the browser test."
+        }
+      ],
+      "delete": [
+        {
+          "path": ".github/workflows/deploy-website.yml",
+          "reason": "The GitHub Pages publisher is obsolete now that Vercel serves the production domain."
+        },
+        {
+          "path": "website/assets/logo.svg",
+          "reason": "The removed generated logo variant must remain absent."
+        },
+        {
+          "path": "website/assets/mockup-redesign.png",
+          "reason": "The disposable design reference must remain absent."
+        },
+        {
+          "path": "website/assets/social-card-v2.png",
+          "reason": "The disposable social-card source variant must remain absent."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/ci/test_github_actions_templates.py",
+      "tests/ci/test_maid_workflow_pr_only_triggers.py",
+      "tests/ci/test_publish_environment_isolation.py",
+      "tests/ci/test_publish_workflow.py",
+      "tests/test_bootstrap_installers.py",
+      "tests/test_website_distilled_story.py",
+      "tests/test_website_google_analytics.py",
+      "tests/test_website_install_section.py",
+      "tests/test_website_rendered_typography.py",
+      "tests/test_website_static_contract.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_website_distilled_story.py tests/test_website_static_contract.py tests/test_website_google_analytics.py tests/test_bootstrap_installers.py tests/test_website_rendered_typography.py tests/test_website_install_section.py tests/ci/test_github_actions_templates.py tests/ci/test_publish_environment_isolation.py tests/ci/test_publish_workflow.py tests/ci/test_maid_workflow_pr_only_triggers.py",
+      "uv run maid validate manifests/website-distill-why-section.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/website-distill-why-section.manifest.yaml --mode schema --quiet"
+    ],
+    "acceptance_commands": []
+  }
+}
