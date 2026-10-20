@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import ast
 import keyword as keyword_module
+import os
 from pathlib import Path
 from typing import Optional, Union
 
@@ -57,6 +58,25 @@ _PythonAstCacheKey = tuple[str, int, int]
 _PythonAstCacheEntry = tuple[ast.Module, str]
 
 _PYTHON_AST_CACHE: dict[_PythonAstCacheKey, _PythonAstCacheEntry] = {}
+
+
+def _python_source_identity(file_path: Union[str, Path], project_root: Path) -> str:
+    path = Path(file_path)
+    relative = path
+    if path.is_absolute():
+        try:
+            relative = path.relative_to(project_root)
+        except ValueError:
+            pass
+    relative = Path(os.path.normpath(relative))
+    # Dots inside a filesystem component are not Python package separators.
+    # Keep these identities opaque so gunicorn.conf.py cannot alias
+    # gunicorn/conf.py (and a.b/conf.py cannot alias a/b/conf.py).
+    if path.suffix == ".py" and any(
+        "." in part.lstrip(".") for part in relative.with_suffix("").parts
+    ):
+        return "@python-file:" + relative.as_posix()
+    return file_to_module_path(file_path, project_root)
 
 
 def get_cached_python_ast(file_path: Union[str, Path]) -> tuple[ast.Module, str]:
@@ -246,7 +266,7 @@ class PythonValidator(BaseValidator):
         file_path: Union[str, Path],
         project_root: Path,
     ) -> Optional[str]:
-        return file_to_module_path(file_path, project_root) or None
+        return _python_source_identity(file_path, project_root) or None
 
     def resolve_reexport(
         self,
@@ -311,6 +331,11 @@ class _BehavioralCollector(ast.NodeVisitor):
 
     def __init__(self, file_path: str = "") -> None:
         self.artifacts: list[FoundArtifact] = []
+        self._loader_file_path = file_path
+        self._loader_bindings: dict[str, ast.AST] = {}
+        self._loader_module_bound_names: set[str] = set()
+        self._loader_rebound_names: set[str] = set()
+        self._loader_global_writes: set[str] = set()
         self._seen: set[
             tuple[
                 str,
@@ -368,6 +393,7 @@ class _BehavioralCollector(ast.NodeVisitor):
 
         if not isinstance(tree, ast.Module):
             return
+        self._index_literal_loader_bindings(tree)
         self._scanning_module_bindings = True
         try:
             for statement in tree.body:
@@ -1630,7 +1656,239 @@ class _BehavioralCollector(ast.NodeVisitor):
         importlib_module = self._literal_importlib_import_module_path(node)
         if importlib_module is not None:
             return importlib_module
+        loaded_module = self._literal_loader_helper_module_path(node)
+        if loaded_module is not None:
+            return loaded_module
         return self._literal_hyphenated_load_module_path(node)
+
+    def _index_literal_loader_bindings(self, tree: ast.Module) -> None:
+        """Index unique module bindings, using the existing binding collectors."""
+        candidates: dict[str, ast.AST] = {}
+        counts: dict[str, int] = {}
+        for statement in tree.body:
+            names: set[str] = set()
+            _collect_statement_bindings(statement, names)
+            _collect_import_statement_bindings(statement, names)
+            for name in names:
+                counts[name] = counts.get(name, 0) + 1
+            if isinstance(statement, ast.FunctionDef):
+                candidates[statement.name] = statement
+            elif (
+                isinstance(statement, ast.Assign)
+                and len(statement.targets) == 1
+                and isinstance(statement.targets[0], ast.Name)
+            ):
+                candidates[statement.targets[0].id] = statement.value
+        # A helper that writes globals invalidates a supposedly unchanged root
+        # or helper binding. Do not attempt to evaluate those effects.
+        globals_declared = {
+            name
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Global)
+            for name in node.names
+        }
+        self._loader_module_bound_names = set(counts)
+        self._loader_rebound_names = {
+            name for name, count in counts.items() if count > 1
+        }
+        self._loader_global_writes = globals_declared
+        self._loader_bindings = {
+            name: value
+            for name, value in candidates.items()
+            if counts.get(name) == 1 and name not in globals_declared
+        }
+
+    def _loader_global_import(self, node: ast.AST) -> Optional[str]:
+        """Resolve helper syntax in its globals, never the caller's locals."""
+        attrs: list[str] = []
+        while isinstance(node, ast.Attribute):
+            attrs.append(node.attr)
+            node = node.value
+        if (
+            not isinstance(node, ast.Name)
+            or node.id in self._module_shadowed_imports
+            or node.id in self._loader_global_writes
+            or node.id in self._loader_rebound_names
+        ):
+            return None
+        identity = self._imported_names.get(node.id)
+        if identity is None:
+            return None
+        source, original = identity
+        if attrs:
+            namespace = self._module_imports.get(node.id)
+            return ".".join([namespace, *reversed(attrs)]) if namespace else None
+        return f"{source}.{original or node.id}" if source else None
+
+    def _literal_loader_path(
+        self, node: ast.AST, seen: frozenset[str] = frozenset()
+    ) -> Optional[Path]:
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            return Path(node.value) if "\0" not in node.value else None
+        if isinstance(node, ast.Name):
+            if node.id == "__file__":
+                if (
+                    node.id in self._loader_module_bound_names
+                    or node.id in self._loader_global_writes
+                ):
+                    return None
+                return (
+                    Path(self._loader_file_path).absolute()
+                    if self._loader_file_path
+                    else None
+                )
+            value = self._loader_bindings.get(node.id)
+            if value is not None and node.id not in seen:
+                return self._literal_loader_path(value, seen | {node.id})
+            return None
+        if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
+            left = self._literal_loader_path(node.left, seen)
+            if (
+                left is not None
+                and isinstance(node.right, ast.Constant)
+                and isinstance(node.right.value, str)
+                and "\0" not in node.right.value
+                and not Path(node.right.value).is_absolute()
+            ):
+                return left / node.right.value
+            return None
+        if isinstance(node, ast.Attribute) and node.attr == "parent":
+            value = self._literal_loader_path(node.value, seen)
+            return value.parent if value is not None else None
+        if (
+            isinstance(node, ast.Subscript)
+            and isinstance(node.value, ast.Attribute)
+            and node.value.attr == "parents"
+        ):
+            value = self._literal_loader_path(node.value.value, seen)
+            try:
+                index = ast.literal_eval(node.slice)
+                return (
+                    value.parents[index]
+                    if value is not None and type(index) is int
+                    else None
+                )
+            except (ValueError, TypeError, IndexError):
+                return None
+        if isinstance(node, ast.Call) and not node.keywords:
+            if (
+                self._loader_global_import(node.func) == "pathlib.Path"
+                and len(node.args) == 1
+            ):
+                return self._literal_loader_path(node.args[0], seen)
+            if (
+                isinstance(node.func, ast.Attribute)
+                and node.func.attr == "resolve"
+                and not node.args
+            ):
+                value = self._literal_loader_path(node.func.value, seen)
+                try:
+                    return value.resolve() if value is not None else None
+                except (OSError, RuntimeError):
+                    return None
+        return None
+
+    def _literal_loader_helper_module_path(
+        self, node: Optional[ast.AST]
+    ) -> Optional[str]:
+        if (
+            not isinstance(node, ast.Call)
+            or not isinstance(node.func, ast.Name)
+            or node.args
+            or node.keywords
+        ):
+            return None
+        name = node.func.id
+        if (
+            self._name_is_argument(name)
+            or any(name in scope for scope in self._local_module_alias_shadow_scopes)
+            or any(name in scope for scope in self._local_import_scopes)
+        ):
+            return None
+        helper = self._loader_bindings.get(name)
+        if (
+            not isinstance(helper, ast.FunctionDef)
+            or helper.decorator_list
+            or getattr(helper, "type_params", ())
+            or any(
+                (
+                    helper.args.posonlyargs,
+                    helper.args.args,
+                    helper.args.kwonlyargs,
+                    helper.args.vararg,
+                    helper.args.kwarg,
+                )
+            )
+            or len(helper.body) != 4
+        ):
+            return None
+        spec, module, execute, returned = helper.body
+        if not (
+            isinstance(spec, ast.Assign)
+            and len(spec.targets) == 1
+            and isinstance(spec.targets[0], ast.Name)
+            and isinstance(spec.value, ast.Call)
+            and len(spec.value.args) == 2
+            and not spec.value.keywords
+            and self._loader_global_import(spec.value.func)
+            == "importlib.util.spec_from_file_location"
+            and isinstance(spec.value.args[0], ast.Constant)
+            and isinstance(spec.value.args[0].value, str)
+            and isinstance(module, ast.Assign)
+            and len(module.targets) == 1
+            and isinstance(module.targets[0], ast.Name)
+            and isinstance(module.value, ast.Call)
+            and len(module.value.args) == 1
+            and not module.value.keywords
+            and self._loader_global_import(module.value.func)
+            == "importlib.util.module_from_spec"
+        ):
+            return None
+        spec_name, module_name = spec.targets[0].id, module.targets[0].id
+        if any(
+            isinstance(part, ast.Name) and part.id in {spec_name, module_name}
+            for expression in (spec.value.func, spec.value.args[1], module.value.func)
+            for part in ast.walk(expression)
+        ):
+            # These targets are helper locals, so they cannot provide the
+            # global loader/path identities required by this exact pattern.
+            return None
+        if (
+            spec_name == module_name
+            or not isinstance(module.value.args[0], ast.Name)
+            or module.value.args[0].id != spec_name
+        ):
+            return None
+        if not (
+            isinstance(execute, ast.Expr)
+            and isinstance(execute.value, ast.Call)
+            and not execute.value.keywords
+            and len(execute.value.args) == 1
+            and isinstance(execute.value.args[0], ast.Name)
+            and execute.value.args[0].id == module_name
+            and isinstance(execute.value.func, ast.Attribute)
+            and execute.value.func.attr == "exec_module"
+            and isinstance(execute.value.func.value, ast.Attribute)
+            and execute.value.func.value.attr == "loader"
+            and isinstance(execute.value.func.value.value, ast.Name)
+            and execute.value.func.value.value.id == spec_name
+            and isinstance(returned, ast.Return)
+            and isinstance(returned.value, ast.Name)
+            and returned.value.id == module_name
+        ):
+            return None
+        path = self._literal_loader_path(spec.value.args[1])
+        if path is None:
+            return None
+        path = Path(os.path.normpath(path))
+        if path.is_absolute():
+            try:
+                path = path.relative_to(Path.cwd())
+            except ValueError:
+                return None
+        if path.suffix != ".py" or ".." in path.parts:
+            return None
+        return _python_source_identity(path, Path("."))
 
     def _literal_hyphenated_load_module_path(
         self,
@@ -1670,7 +1928,7 @@ class _BehavioralCollector(ast.NodeVisitor):
             for part in module_parts
         ):
             return None
-        return file_to_module_path(relative_path, Path("."))
+        return _python_source_identity(relative_path, Path("."))
 
     def _record_assignment_owner_bindings(
         self,

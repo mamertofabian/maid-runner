@@ -580,6 +580,29 @@ still apply.
     evaluation; malformed or unresolved expressions remain unproven. Generic
     parameters and PEP 695 alias bindings retain their own scope.
 
+    Python path-loaded hook references support a bounded standard importlib helper:
+    a unique undecorated module-level zero-argument function containing exactly
+    spec creation with `importlib.util.spec_from_file_location`, module creation
+    with `module_from_spec`, `spec.loader.exec_module(module)`, and return of that
+    module. Trusted imported aliases are supported; the runtime module label
+    does not identify the source file. Paths may be literal Python file paths or
+    `Path(__file__)` with argument-free `resolve()`, `parent`, constant `parents`
+    indexing and literal `/` joins, optionally via an unchanged module root
+    constant. Helper globals determine loader/path identity independently of
+    caller-local names. Ancestry is anchored to an absolute source path and must
+    remain inside the project. Rebound or globally writable `__file__`, loader
+    and Path imports remain unproven, including multiply-bound imports restored
+    after root initialization. Unknown paths, rebinding, decorators and extra
+    helper statements remain unproven. Interior-dotted Python filesystem components retain
+    exact file-path identity: `gunicorn.conf.py` differs from `gunicorn/conf.py`,
+    and `a.b/conf.py` differs from `a/b/conf.py`. Ordinary package identities and
+    imports are unchanged, including existing sys.path imports from hidden
+    .codex/.claude and hyphenated skill directories without interior dots. A
+    leading hidden-directory dot alone keeps its existing identity. No source
+    execution or general helper/control-flow
+    evaluation occurs during collection. Existing literal `load_module` path
+    support keeps its validation rules and uses the same exact file identity.
+
     Python variadic parameters use starred argument names: `*items` for positional
     variadics and `**options` for keyword variadics. Their annotations describe
     each positional element or keyword value. Snapshot roundtrips retain these
