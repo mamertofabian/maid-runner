@@ -550,8 +550,16 @@ still apply.
     The validator automatically detects the language based on file extension and routes to the appropriate parser. All validation features (behavioral tests, implementation validation, snapshot generation, test stub generation) work seamlessly across languages.
 
     **Supported Artifact Types:**
-    - **Common (Python & TypeScript):** `class`, `function`, `attribute`, `enum`
-    - **TypeScript-Specific:** `interface`, `type`, `namespace`
+    - **Common (Python & TypeScript):** `class`, `function`, `attribute`, `enum`, `type`
+    - **TypeScript-Specific:** `interface`, `namespace`
+
+    Python module-level type aliases support both the legacy `Name: TypeAlias = ...`
+    form and PEP 695 `type Name[...] = ...` on Python 3.12+ interpreters.
+    Alias targets use the existing type renderer; generic names, bounds and
+    variadic markers populate `type_parameters` and survive snapshot roundtrips.
+    Alias names follow normal module binding invalidation, while their type
+    parameters remain local. Existing class/local alias behavior is unchanged.
+    Earlier interpreters retain explicit syntax errors for unsupported syntax.
 
     Python enum artifacts use a deliberately narrow syntactic boundary. A class
     directly subclassing a standard-library `enum.Enum`, `IntEnum`, `StrEnum`,

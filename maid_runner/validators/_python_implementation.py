@@ -225,6 +225,29 @@ class _ImplementationCollector(ast.NodeVisitor):
                                 )
                             )
 
+    def visit_TypeAlias(self, node: ast.AST) -> None:
+        # Dispatch by node name keeps this module importable before Python 3.12.
+        # PEP695 alias values/type parameters have their own lazy scope, so
+        # their names must not be walked as module binding events.
+        if self._current_class is not None or self._in_function:
+            return
+        name = getattr(node, "name")
+        value = getattr(node, "value")
+        self._add(
+            FoundArtifact(
+                kind=ArtifactKind.TYPE,
+                name=name.id,
+                type_annotation=_ast_to_alias_type_string(value),
+                type_parameters=tuple(
+                    ast.unparse(parameter)
+                    for parameter in getattr(node, "type_params", ())
+                ),
+                line=getattr(node, "lineno"),
+                column=getattr(node, "col_offset"),
+            )
+        )
+        self._unbind_module_target(name)
+
     def visit_AnnAssign(self, node: ast.AnnAssign) -> None:
         if not node.target:
             return
