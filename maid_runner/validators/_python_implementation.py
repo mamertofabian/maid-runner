@@ -798,6 +798,8 @@ def _ast_to_type_string(node: Optional[ast.AST]) -> Optional[str]:
             return str(node.value)
         if isinstance(node, ast.Subscript):
             base = _ast_to_type_string(node.value)
+            if str(base).rsplit(".", 1)[-1] in {"Literal", "Annotated"}:
+                return _ast_to_alias_member_string(node)
             if isinstance(node.slice, ast.Tuple):
                 args = [_ast_to_type_string(elt) for elt in node.slice.elts]
                 return f"{base}[{', '.join(str(a) for a in args)}]"

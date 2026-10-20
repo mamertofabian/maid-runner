@@ -571,6 +571,13 @@ still apply.
     evaluation; malformed or unresolved expressions remain unproven. Generic
     parameters and PEP 695 alias bindings retain their own scope.
 
+    Python signature comparison normalizes supported nested pipe unions, Optional
+    and Union type positions symmetrically, including generic and Callable
+    arguments. Literal strings retain their quotes and remain distinct from
+    numeric values; Annotated metadata remains value data. The shared matcher
+    retains its existing path for unsupported language syntax, and Python's
+    legacy tuple-ellipsis compatibility remains available.
+
     Python enum artifacts use a deliberately narrow syntactic boundary. A class
     directly subclassing a standard-library `enum.Enum`, `IntEnum`, `StrEnum`,
     `Flag`, or `IntFlag` base validates as one `kind: enum` artifact when the

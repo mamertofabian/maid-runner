@@ -6,11 +6,11 @@
     "tests/validators/test_python_parser_replacement_boundaries.py": "sha256-pyast:v2:f823f96053b8a216634fc34b1b62bf743520f0b53df60a8fc8b2d67de4615175",
     "tests/validators/test_python.py": "sha256-pyast:v2:8d2e094f21edad8c3dea08e89cb437cfa87e9833d1157a8a216bcc65d6d00a4e",
     "tests/validators/test_python_enum_artifacts.py": "sha256-pyast:v2:15d1329957ead7a5a293952a008889577cfb042761855a590f8a2bcababa0092",
-    "tests/validators/test_python_type_alias.py": "sha256-pyast:v2:ba92cc06e1b653745764adb15b9e02a252e64ada14e15197d2202779b16b993d",
+    "tests/validators/test_python_type_alias.py": "sha256-pyast:v2:5f429bee4c19761eb010d2030bfe57d92787b28f9412244f0847cd592cc3d4ff",
     "tests/core/test_default_hook_stub_exemption.py": "sha256-pyast:v2:5e8ddab693cecacc061549ca8c62c27633885d3dfe9d852af677a24856d9a08b"
   },
   "created_at": "2026-10-20T17:51:47.387287+00:00",
-  "revision": 4,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:e569241ea08297c698a591bd6d546073231e80c27691d5411e4b71891808f3ab",
@@ -81,6 +81,28 @@
           "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_member_assignment_forms_are_not_exempt:kind=test_function",
           "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_member_assignment_forms_are_not_exempt:returns=None"
         ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:342c018c10b2cf6c91fbb4938252cab82cf70060ad6671cbbf462b77021e95b1",
+      "prior_test_hashes": {
+        "tests/core/test_fix_protocol_interface_stub_detection.py": "sha256-pyast:v2:cadc4e7c61fc10efc8b537a0f08ad74f87b40f7ccce9bd6883cc8e670636f57c",
+        "tests/validators/test_python_parser_replacement_boundaries.py": "sha256-pyast:v2:f823f96053b8a216634fc34b1b62bf743520f0b53df60a8fc8b2d67de4615175",
+        "tests/validators/test_python.py": "sha256-pyast:v2:8d2e094f21edad8c3dea08e89cb437cfa87e9833d1157a8a216bcc65d6d00a4e",
+        "tests/validators/test_python_enum_artifacts.py": "sha256-pyast:v2:15d1329957ead7a5a293952a008889577cfb042761855a590f8a2bcababa0092",
+        "tests/validators/test_python_type_alias.py": "sha256-pyast:v2:ba92cc06e1b653745764adb15b9e02a252e64ada14e15197d2202779b16b993d",
+        "tests/core/test_default_hook_stub_exemption.py": "sha256-pyast:v2:5e8ddab693cecacc061549ca8c62c27633885d3dfe9d852af677a24856d9a08b"
+      },
+      "revised_at": "2026-10-20T20:16:31.603504+00:00",
+      "reason": "Accept approved shared Literal fixture evolution for value-preserving signatures with unchanged commands",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
         "artifacts_removed": [],
         "files_added": [],
         "files_removed": [],

@@ -3,14 +3,14 @@
   "manifest_hash": "sha256-contract:50a5c0b04a7dadaf27ab958e1ce3cbe522f7be1b8843c23a0c16778b40a1f7b9",
   "test_hashes": {
     "tests/validators/test_fix_python_pep695_type_alias_artifacts.py": "sha256-pyast:v2:c970dfcebbf89d1979ad7aba6557b61df30b00c1b96afe8c97f9fad377c296e0",
-    "tests/validators/test_python_type_alias.py": "sha256-pyast:v2:ba92cc06e1b653745764adb15b9e02a252e64ada14e15197d2202779b16b993d",
+    "tests/validators/test_python_type_alias.py": "sha256-pyast:v2:5f429bee4c19761eb010d2030bfe57d92787b28f9412244f0847cd592cc3d4ff",
     "tests/core/test_fix_protocol_interface_stub_detection.py": "sha256-pyast:v2:cadc4e7c61fc10efc8b537a0f08ad74f87b40f7ccce9bd6883cc8e670636f57c",
     "tests/validators/test_python_parser_replacement_boundaries.py": "sha256-pyast:v2:f823f96053b8a216634fc34b1b62bf743520f0b53df60a8fc8b2d67de4615175",
     "tests/core/test_snapshot.py": "sha256-pyast:v2:958d2124e474510fa0e549263200fd640dfa3657a2db0ef284f1464103060e43",
     "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d"
   },
   "created_at": "2026-10-20T19:09:03.652921+00:00",
-  "revision": 2,
+  "revision": 3,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:33c01dd2c87999d731093abcdba65a82edada7720a6ae3e88880b58034efd665",
@@ -36,6 +36,28 @@
         "validate_commands_removed": [
           "uv run maid validate manifests/drafts/fix-python-pep695-type-alias-artifacts.manifest.yaml --mode schema --quiet"
         ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:50a5c0b04a7dadaf27ab958e1ce3cbe522f7be1b8843c23a0c16778b40a1f7b9",
+      "prior_test_hashes": {
+        "tests/validators/test_fix_python_pep695_type_alias_artifacts.py": "sha256-pyast:v2:c970dfcebbf89d1979ad7aba6557b61df30b00c1b96afe8c97f9fad377c296e0",
+        "tests/validators/test_python_type_alias.py": "sha256-pyast:v2:ba92cc06e1b653745764adb15b9e02a252e64ada14e15197d2202779b16b993d",
+        "tests/core/test_fix_protocol_interface_stub_detection.py": "sha256-pyast:v2:cadc4e7c61fc10efc8b537a0f08ad74f87b40f7ccce9bd6883cc8e670636f57c",
+        "tests/validators/test_python_parser_replacement_boundaries.py": "sha256-pyast:v2:f823f96053b8a216634fc34b1b62bf743520f0b53df60a8fc8b2d67de4615175",
+        "tests/core/test_snapshot.py": "sha256-pyast:v2:958d2124e474510fa0e549263200fd640dfa3657a2db0ef284f1464103060e43",
+        "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d"
+      },
+      "revised_at": "2026-10-20T20:16:31.844068+00:00",
+      "reason": "Accept approved shared Literal fixture evolution for value-preserving signatures with unchanged commands",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
       }
     }
   ],

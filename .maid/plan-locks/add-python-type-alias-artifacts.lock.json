@@ -2,10 +2,10 @@
   "manifest_path": "manifests/add-python-type-alias-artifacts.manifest.yaml",
   "manifest_hash": "sha256-contract:4433833394a1bd52fea066b8908c35abcbe5d9cb2e941a05573aa8196b334aad",
   "test_hashes": {
-    "tests/validators/test_python_type_alias.py": "sha256-pyast:v2:ba92cc06e1b653745764adb15b9e02a252e64ada14e15197d2202779b16b993d"
+    "tests/validators/test_python_type_alias.py": "sha256-pyast:v2:5f429bee4c19761eb010d2030bfe57d92787b28f9412244f0847cd592cc3d4ff"
   },
   "created_at": "2026-08-19T23:55:06.484030+00:00",
-  "revision": 10,
+  "revision": 11,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:74df749916a1691bc20d6dfb1d47d7b9faf88b054dc515c9d528462587bb8005",
@@ -169,6 +169,23 @@
       },
       "revised_at": "2026-08-20T00:36:23.994177+00:00",
       "reason": "Capture post-review Outcome evidence",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4433833394a1bd52fea066b8908c35abcbe5d9cb2e941a05573aa8196b334aad",
+      "prior_test_hashes": {
+        "tests/validators/test_python_type_alias.py": "sha256-pyast:v2:ba92cc06e1b653745764adb15b9e02a252e64ada14e15197d2202779b16b993d"
+      },
+      "revised_at": "2026-10-20T20:16:31.361841+00:00",
+      "reason": "Accept approved shared Literal fixture evolution for value-preserving signatures with unchanged commands",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
@@ -364,6 +381,7 @@
     ],
     "validate_commands": [
       "uv run python -m pytest -q tests/validators/test_python_type_alias.py"
-    ]
+    ],
+    "acceptance_commands": []
   }
 }

@@ -1,0 +1,390 @@
+{
+  "manifest_path": "manifests/fix-python-signature-type-normalization.manifest.yaml",
+  "manifest_hash": "sha256-contract:fe04936d3166ff3cd9b31aa0de324f016b82dbdc63efcd6fe04db391164c30fd",
+  "test_hashes": {
+    "tests/validators/test_fix_python_signature_type_normalization.py": "sha256-pyast:v2:2a98913836b149b8dab7b81093d92f403d28b9184605a7acd6c6757db6b163af",
+    "tests/validators/test_python_type_alias.py": "sha256-pyast:v2:5f429bee4c19761eb010d2030bfe57d92787b28f9412244f0847cd592cc3d4ff",
+    "tests/core/test_type_compare.py": "sha256-pyast:v2:5ed287c46153e44029029e6953c00f0e90be16e33faa01486cec2811991825a7",
+    "tests/validators/test_python_variadic_tuple_annotations.py": "sha256-pyast:v2:a6ce4800368617751a6e80456ccf5850a9f7b9b10b70347ea45f7c383b50c539",
+    "tests/validators/test_python.py": "sha256-pyast:v2:8d2e094f21edad8c3dea08e89cb437cfa87e9833d1157a8a216bcc65d6d00a4e",
+    "tests/validators/test_python_parser_replacement_boundaries.py": "sha256-pyast:v2:f823f96053b8a216634fc34b1b62bf743520f0b53df60a8fc8b2d67de4615175",
+    "tests/core/test_ts_return_contracts.py": "sha256-pyast:v2:0c3ba859a4f787493983b01cf9c60482892bba339dd1010ab79e4a93db19221b",
+    "tests/core/test_typescript_return_validation.py": "sha256-pyast:v2:358bc05c211fb8f802f7c5ad5c83309e35cea71ce6efebad6227bd1cd9043a45",
+    "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d"
+  },
+  "created_at": "2026-10-20T20:08:11.423614+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:835cc71889df2366e877a45443f0baf5438eef2ade61e1cb995b4fd295072def",
+      "prior_test_hashes": {
+        "tests/validators/test_fix_python_signature_type_normalization.py": "sha256-pyast:v2:2a98913836b149b8dab7b81093d92f403d28b9184605a7acd6c6757db6b163af",
+        "tests/core/test_type_compare.py": "sha256-pyast:v2:5ed287c46153e44029029e6953c00f0e90be16e33faa01486cec2811991825a7",
+        "tests/validators/test_python_type_alias.py": "sha256-pyast:v2:ba92cc06e1b653745764adb15b9e02a252e64ada14e15197d2202779b16b993d",
+        "tests/validators/test_python_variadic_tuple_annotations.py": "sha256-pyast:v2:a6ce4800368617751a6e80456ccf5850a9f7b9b10b70347ea45f7c383b50c539",
+        "tests/validators/test_python.py": "sha256-pyast:v2:8d2e094f21edad8c3dea08e89cb437cfa87e9833d1157a8a216bcc65d6d00a4e",
+        "tests/validators/test_python_parser_replacement_boundaries.py": "sha256-pyast:v2:f823f96053b8a216634fc34b1b62bf743520f0b53df60a8fc8b2d67de4615175",
+        "tests/core/test_ts_return_contracts.py": "sha256-pyast:v2:0c3ba859a4f787493983b01cf9c60482892bba339dd1010ab79e4a93db19221b",
+        "tests/core/test_typescript_return_validation.py": "sha256-pyast:v2:358bc05c211fb8f802f7c5ad5c83309e35cea71ce6efebad6227bd1cd9043a45",
+        "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d"
+      },
+      "revised_at": "2026-10-20T20:08:30.593252+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-python-signature-type-normalization.manifest.yaml -> manifests/fix-python-signature-type-normalization.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-python-signature-type-normalization.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-python-signature-type-normalization.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:39f5a11041ddec531c93352e48a269ce2dca4dfbfd04cff1af84b18dd8e408c8",
+      "prior_test_hashes": {
+        "tests/validators/test_fix_python_signature_type_normalization.py": "sha256-pyast:v2:2a98913836b149b8dab7b81093d92f403d28b9184605a7acd6c6757db6b163af",
+        "tests/core/test_type_compare.py": "sha256-pyast:v2:5ed287c46153e44029029e6953c00f0e90be16e33faa01486cec2811991825a7",
+        "tests/validators/test_python_type_alias.py": "sha256-pyast:v2:ba92cc06e1b653745764adb15b9e02a252e64ada14e15197d2202779b16b993d",
+        "tests/validators/test_python_variadic_tuple_annotations.py": "sha256-pyast:v2:a6ce4800368617751a6e80456ccf5850a9f7b9b10b70347ea45f7c383b50c539",
+        "tests/validators/test_python.py": "sha256-pyast:v2:8d2e094f21edad8c3dea08e89cb437cfa87e9833d1157a8a216bcc65d6d00a4e",
+        "tests/validators/test_python_parser_replacement_boundaries.py": "sha256-pyast:v2:f823f96053b8a216634fc34b1b62bf743520f0b53df60a8fc8b2d67de4615175",
+        "tests/core/test_ts_return_contracts.py": "sha256-pyast:v2:0c3ba859a4f787493983b01cf9c60482892bba339dd1010ab79e4a93db19221b",
+        "tests/core/test_typescript_return_validation.py": "sha256-pyast:v2:358bc05c211fb8f802f7c5ad5c83309e35cea71ce6efebad6227bd1cd9043a45",
+        "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d"
+      },
+      "revised_at": "2026-10-20T20:14:55.399683+00:00",
+      "reason": "Evolve pinned alias-only Literal fixture under value-preserving signature contract and retain unquoted negative guard",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:tests/validators/test_python_type_alias.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-20T20:15:15.285100+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/validators/test_fix_python_signature_type_normalization.py -q",
+        "exit_code": 1,
+        "output_tail": "\ntests/validators/test_fix_python_signature_type_normalization.py:178: AssertionError\n=========================== short test summary info ============================\nFAILED tests/validators/test_fix_python_signature_type_normalization.py::test_nested_type_equivalence_is_symmetric_and_canonical[list[int | None]-list[Union[None, int]]]\nFAILED tests/validators/test_fix_python_signature_type_normalization.py::test_nested_type_equivalence_is_symmetric_and_canonical[dict[str, dict[str, float | None]]-dict[str, dict[str, Union[float, None]]]]\nFAILED tests/validators/test_fix_python_signature_type_normalization.py::test_nested_type_equivalence_is_symmetric_and_canonical[tuple[list[int | str], dict[str, Optional[float]]]-tuple[list[Union[str, int]], dict[str, float | None]]]\nFAILED tests/validators/test_fix_python_signature_type_normalization.py::test_nested_type_equivalence_is_symmetric_and_canonical[Callable[[int | None, str], list[str | None]]-Callable[[Union[None, int], str], list[Optional[str]]]]\nFAILED tests/validators/test_fix_python_signature_type_normalization.py::test_nested_type_equivalence_is_symmetric_and_canonical[list[Union[int, Union[str, None]]]-list[None | str | int]]\nFAILED tests/validators/test_fix_python_signature_type_normalization.py::test_nested_type_equivalence_is_symmetric_and_canonical[Annotated[list[int | None], \"label | note\"]-Annotated[list[Optional[int]], 'label | note']]\nFAILED tests/validators/test_fix_python_signature_type_normalization.py::test_python_source_signature_validates_and_snapshot_roundtrips[list[int | None]]\nFAILED tests/validators/test_fix_python_signature_type_normalization.py::test_python_source_signature_validates_and_snapshot_roundtrips[dict[str, dict[str, float | None]]]\nFAILED tests/validators/test_fix_python_signature_type_normalization.py::test_python_source_signature_validates_and_snapshot_roundtrips[tuple[list[int | str], dict[str, Optional[float]]]]\nFAILED tests/validators/test_fix_python_signature_type_normalization.py::test_python_source_signature_validates_and_snapshot_roundtrips[Callable[[int | None], list[str | None]]]\nFAILED tests/validators/test_fix_python_signature_type_normalization.py::test_python_source_signature_validates_and_snapshot_roundtrips[Literal[\"PROXY\", \"CANDIDATE\"]]\nFAILED tests/validators/test_fix_python_signature_type_normalization.py::test_python_source_signature_validates_and_snapshot_roundtrips[Literal[\"A|B\", \"a,b\", \"a b\", \"None\"]]\nFAILED tests/validators/test_fix_python_signature_type_normalization.py::test_python_source_signature_validates_and_snapshot_roundtrips[typing.Literal[\"PROXY\", 1, None, True]]\nFAILED tests/validators/test_fix_python_signature_type_normalization.py::test_python_source_signature_validates_and_snapshot_roundtrips[Annotated[Literal[\"PROXY\"], \"label | note\", 1]]\nFAILED tests/validators/test_fix_python_signature_type_normalization.py::test_python_source_signature_validates_and_snapshot_roundtrips[Annotated[list[int | None], \" spaced metadata \"]]\nFAILED tests/validators/test_fix_python_signature_type_normalization.py::test_public_signature_validation_rejects_semantic_differences[Literal[\"1\"]-Literal[1]]\n16 failed, 25 passed in 0.24s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest tests/core/test_type_compare.py tests/validators/test_python_type_alias.py tests/validators/test_python_variadic_tuple_annotations.py tests/validators/test_python.py tests/validators/test_python_parser_replacement_boundaries.py tests/core/test_ts_return_contracts.py tests/core/test_typescript_return_validation.py tests/docs/test_chain_merge_docs.py -q",
+        "exit_code": 1,
+        "output_tail": "      read:\n        - tests/test_mode.py\n    validate:\n      - pytest tests/test_mode.py -q\n    \"\"\"\n        )\n    \n        result = ValidationEngine(project_root=tmp_path).validate(\n            manifest_path, mode=ValidationMode.IMPLEMENTATION\n        )\n    \n>       assert result.success is True, [error.message for error in result.errors]\nE       AssertionError: [\"Type mismatch for parameter 'mode' in function 'choose': expected 'Literal['read', 'write']', got 'Literal[read, write]'\", \"Return type mismatch for function 'choose': expected 'Literal['read', 'write']', got 'Literal[read, write]'\"]\nE       assert False is True\nE        +  where False = ValidationResult(success=False, manifest_slug='mode', manifest_path='/tmp/pytest-of-atomrem/pytest-1568/test_literal_v...ne, end_line=None, end_column=None), suggestion=None)], warnings=[], file_tracking=None, duration_ms=1.812962000258267).success\n\ntests/validators/test_python_type_alias.py:266: AssertionError\n=========================== short test summary info ============================\nFAILED tests/validators/test_python_type_alias.py::test_literal_value_rendering_change_is_scoped_to_alias_targets\n1 failed, 237 passed in 18.94s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-python-signature-type-normalization.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_type_compare.py:function:normalize_type",
+      "maid_runner/core/_type_compare.py:function:normalize_type:arg=type_str:type=Optional[str]:default=None",
+      "maid_runner/core/_type_compare.py:function:normalize_type:kind=function",
+      "maid_runner/core/_type_compare.py:function:normalize_type:returns=Optional[str]",
+      "maid_runner/core/_type_compare.py:function:types_match",
+      "maid_runner/core/_type_compare.py:function:types_match:arg=impl_type:type=Optional[str]:default=None",
+      "maid_runner/core/_type_compare.py:function:types_match:arg=manifest_type:type=Optional[str]:default=None",
+      "maid_runner/core/_type_compare.py:function:types_match:kind=function",
+      "maid_runner/core/_type_compare.py:function:types_match:returns=bool",
+      "maid_runner/validators/_python_implementation.py:function:collect_implementation_artifacts",
+      "maid_runner/validators/_python_implementation.py:function:collect_implementation_artifacts:arg=file_path:type=str:default=None",
+      "maid_runner/validators/_python_implementation.py:function:collect_implementation_artifacts:arg=tree:type=ast.AST:default=None",
+      "maid_runner/validators/_python_implementation.py:function:collect_implementation_artifacts:kind=function",
+      "maid_runner/validators/_python_implementation.py:function:collect_implementation_artifacts:returns=list[FoundArtifact]",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_existing_nonpython_type_spelling_compatibility_is_preserved",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_existing_nonpython_type_spelling_compatibility_is_preserved:arg=left:type=str:default=None",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_existing_nonpython_type_spelling_compatibility_is_preserved:arg=right:type=str:default=None",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_existing_nonpython_type_spelling_compatibility_is_preserved:kind=test_function",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_existing_nonpython_type_spelling_compatibility_is_preserved:returns=None",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_nested_type_equivalence_is_symmetric_and_canonical",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_nested_type_equivalence_is_symmetric_and_canonical:arg=left:type=str:default=None",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_nested_type_equivalence_is_symmetric_and_canonical:arg=right:type=str:default=None",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_nested_type_equivalence_is_symmetric_and_canonical:kind=test_function",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_nested_type_equivalence_is_symmetric_and_canonical:returns=None",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_public_signature_validation_rejects_semantic_differences",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_public_signature_validation_rejects_semantic_differences:arg=expected:type=str:default=None",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_public_signature_validation_rejects_semantic_differences:arg=source:type=str:default=None",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_public_signature_validation_rejects_semantic_differences:arg=tmp_path:type=Path:default=None",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_public_signature_validation_rejects_semantic_differences:kind=test_function",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_public_signature_validation_rejects_semantic_differences:returns=None",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_python_legacy_tuple_ellipsis_validation_is_preserved",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_python_legacy_tuple_ellipsis_validation_is_preserved:arg=annotation:type=str:default=None",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_python_legacy_tuple_ellipsis_validation_is_preserved:arg=tmp_path:type=Path:default=None",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_python_legacy_tuple_ellipsis_validation_is_preserved:kind=test_function",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_python_legacy_tuple_ellipsis_validation_is_preserved:returns=None",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_python_source_signature_validates_and_snapshot_roundtrips",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_python_source_signature_validates_and_snapshot_roundtrips:arg=annotation:type=str:default=None",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_python_source_signature_validates_and_snapshot_roundtrips:arg=tmp_path:type=Path:default=None",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_python_source_signature_validates_and_snapshot_roundtrips:kind=test_function",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_python_source_signature_validates_and_snapshot_roundtrips:returns=None",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_type_values_metadata_and_plugin_types_remain_distinct",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_type_values_metadata_and_plugin_types_remain_distinct:arg=left:type=str:default=None",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_type_values_metadata_and_plugin_types_remain_distinct:arg=right:type=str:default=None",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_type_values_metadata_and_plugin_types_remain_distinct:kind=test_function",
+      "tests/validators/test_fix_python_signature_type_normalization.py:test_type_values_metadata_and_plugin_types_remain_distinct:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/validators/test_fix_python_signature_type_normalization.py"
+      ],
+      "edit": [
+        "maid_runner/core/_type_compare.py",
+        "maid_runner/validators/_python_implementation.py"
+      ],
+      "read": [
+        "docs/draft-manifest-workflow.md",
+        "docs/unit-testing-rules.md",
+        "maid_runner/core/_implementation_validation.py",
+        "maid_runner/core/snapshot.py",
+        "maid_runner/core/types.py",
+        "maid_runner/validators/base.py",
+        "maid_runner/validators/python.py"
+      ],
+      "scope": [
+        ".maid/docs/maid_specs.md",
+        "docs/maid_specs.md",
+        "docs/plans/bug-report-triage-2026-10-20.md",
+        "maid_runner/docs/maid_specs.md",
+        "tests/validators/test_python_type_alias.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/validators/test_fix_python_signature_type_normalization.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_nested_type_equivalence_is_symmetric_and_canonical",
+              "description": "nested type equivalence is symmetric and canonical",
+              "args": [
+                {
+                  "name": "left",
+                  "type": "str"
+                },
+                {
+                  "name": "right",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_type_values_metadata_and_plugin_types_remain_distinct",
+              "description": "type values metadata and plugin types remain distinct",
+              "args": [
+                {
+                  "name": "left",
+                  "type": "str"
+                },
+                {
+                  "name": "right",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_python_source_signature_validates_and_snapshot_roundtrips",
+              "description": "python source signature validates and snapshot roundtrips",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "annotation",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_public_signature_validation_rejects_semantic_differences",
+              "description": "public signature validation rejects semantic differences",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "source",
+                  "type": "str"
+                },
+                {
+                  "name": "expected",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_python_legacy_tuple_ellipsis_validation_is_preserved",
+              "description": "python legacy tuple ellipsis validation is preserved",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "annotation",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_existing_nonpython_type_spelling_compatibility_is_preserved",
+              "description": "existing nonpython type spelling compatibility is preserved",
+              "args": [
+                {
+                  "name": "left",
+                  "type": "str"
+                },
+                {
+                  "name": "right",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/_type_compare.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "normalize_type",
+              "description": "Canonicalize supported nested type positions while retaining value metadata and fallback behavior.",
+              "args": [
+                {
+                  "name": "type_str",
+                  "type": "Optional[str]"
+                }
+              ],
+              "returns": "Optional[str]"
+            },
+            {
+              "kind": "function",
+              "name": "types_match",
+              "description": "Preserve symmetric public comparison and wildcard semantics.",
+              "args": [
+                {
+                  "name": "manifest_type",
+                  "type": "Optional[str]"
+                },
+                {
+                  "name": "impl_type",
+                  "type": "Optional[str]"
+                }
+              ],
+              "returns": "bool"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/validators/_python_implementation.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "collect_implementation_artifacts",
+              "description": "Preserve public collection while retaining Literal/Annotated value quoting in signature types.",
+              "args": [
+                {
+                  "name": "tree",
+                  "type": "ast.AST"
+                },
+                {
+                  "name": "file_path",
+                  "type": "str"
+                }
+              ],
+              "returns": "list[FoundArtifact]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "docs/unit-testing-rules.md",
+        "docs/draft-manifest-workflow.md",
+        "maid_runner/validators/python.py",
+        "maid_runner/validators/base.py",
+        "maid_runner/core/_implementation_validation.py",
+        "maid_runner/core/snapshot.py",
+        "maid_runner/core/types.py"
+      ],
+      "scope": [
+        {
+          "path": "docs/maid_specs.md",
+          "reason": "Document nested type comparison and value preservation."
+        },
+        {
+          "path": "maid_runner/docs/maid_specs.md",
+          "reason": "Keep packaged spec mirror identical."
+        },
+        {
+          "path": ".maid/docs/maid_specs.md",
+          "reason": "Keep initialized spec mirror identical."
+        },
+        {
+          "path": "docs/plans/bug-report-triage-2026-10-20.md",
+          "reason": "Reconcile promoted contract and resolved canonical reports."
+        },
+        {
+          "path": "tests/validators/test_python_type_alias.py",
+          "reason": "Evolve historical alias-only Literal signature fixture under this value-preserving contract; preserve test identity and strengthen the unquoted-negative guard."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_ts_return_contracts.py",
+      "tests/core/test_type_compare.py",
+      "tests/core/test_typescript_return_validation.py",
+      "tests/docs/test_chain_merge_docs.py",
+      "tests/validators/test_fix_python_signature_type_normalization.py",
+      "tests/validators/test_python.py",
+      "tests/validators/test_python_parser_replacement_boundaries.py",
+      "tests/validators/test_python_type_alias.py",
+      "tests/validators/test_python_variadic_tuple_annotations.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/validators/test_fix_python_signature_type_normalization.py -q",
+      "uv run python -m pytest tests/core/test_type_compare.py tests/validators/test_python_type_alias.py tests/validators/test_python_variadic_tuple_annotations.py tests/validators/test_python.py tests/validators/test_python_parser_replacement_boundaries.py tests/core/test_ts_return_contracts.py tests/core/test_typescript_return_validation.py tests/docs/test_chain_merge_docs.py -q",
+      "uv run maid validate manifests/fix-python-signature-type-normalization.manifest.yaml --mode schema --quiet"
+    ],
+    "acceptance_commands": []
+  }
+}

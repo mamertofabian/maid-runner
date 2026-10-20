@@ -221,6 +221,7 @@ JsonObject: TypeAlias = Annotated[str, "tag"]
 def test_literal_value_rendering_change_is_scoped_to_alias_targets(
     tmp_path: Path,
 ) -> None:
+    """Retain this historical guard under the signature value-preservation contract."""
     (tmp_path / "manifests").mkdir()
     (tmp_path / "src").mkdir()
     (tmp_path / "tests").mkdir()
@@ -239,7 +240,7 @@ def choose(mode: Literal["read", "write"]) -> Literal["read", "write"]:
     manifest_path = tmp_path / "manifests" / "mode.manifest.yaml"
     manifest_path.write_text(
         """schema: "2"
-goal: "Keep ordinary Literal annotations stable"
+goal: "Preserve exact Literal string values in signatures"
 type: fix
 created: "2026-08-20T00:00:00Z"
 files:
@@ -249,8 +250,8 @@ files:
         - kind: function
           name: choose
           args:
-            - {name: mode, type: "Literal[read, write]"}
-          returns: "Literal[read, write]"
+            - {name: mode, type: "Literal['read', 'write']"}
+          returns: "Literal['read', 'write']"
   read:
     - tests/test_mode.py
 validate:
@@ -263,6 +264,16 @@ validate:
     )
 
     assert result.success is True, [error.message for error in result.errors]
+
+    manifest_path.write_text(
+        manifest_path.read_text().replace(
+            "Literal['read', 'write']", "Literal[read, write]"
+        )
+    )
+    unquoted = ValidationEngine(project_root=tmp_path).validate(
+        manifest_path, mode=ValidationMode.IMPLEMENTATION
+    )
+    assert ErrorCode.TYPE_MISMATCH in {error.code for error in unquoted.errors}
 
 
 def test_ordinary_annotated_assignment_does_not_satisfy_type_artifact(
