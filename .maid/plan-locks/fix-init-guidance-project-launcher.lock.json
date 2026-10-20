@@ -1,0 +1,524 @@
+{
+  "manifest_path": "manifests/fix-init-guidance-project-launcher.manifest.yaml",
+  "manifest_hash": "sha256-contract:648a21955e60b08c4f601a192469b86b5875f1e3a178e44bbbe2b13cafbd668e",
+  "test_hashes": {
+    "tests/cli/test_init_cmd.py": "sha256-pyast:v2:b5dd22dc7087908b789c52c60bdfd5f0e027487dfcb5b7ca910cbe5e3ad8801e",
+    "tests/test_init_draft_workflow_payload.py": "sha256-pyast:v2:baefcbd8b435c0d860c58e0b49ba5aafc3e10016285234646a192a974c3462ea",
+    "tests/cli/test_init_stash_revise_guidance.py": "sha256-pyast:v2:bd0a62bc47233af2dbe64b010b1d6cc3c58a7b4ad404c0a3303210cd6e5a570c",
+    "tests/cli/test_init_validator_plugin_guidance.py": "sha256-pyast:v2:27bbccd51061254b5984cb5f003e5b581fa86e96c78c58058c1019d50207c6c3",
+    "tests/cli/test_init_hook_payloads.py": "sha256-pyast:v2:9f10a769ca952c8e8937e91ee7958f0c0a33588f3c34164be90bd8a50755e16a",
+    "tests/cli/test_init_payload_portability.py": "sha256-pyast:v2:dd65b53bd7df51414718770fcc73646db987b0d30c782be73dcc31cd10d79ea0",
+    "tests/cli/test_fix_init_guidance_project_launcher.py": "sha256-pyast:v2:9235ec584603834584f8b1deee3faa63c6ac3a6be955a84ced9cfbd869582d60"
+  },
+  "created_at": "2026-10-20T22:27:52.785409+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:a1b72b8d3a663ac0339157414b97706419b2fe952f40ee5defe7942b86ae4445",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256-pyast:v2:b5dd22dc7087908b789c52c60bdfd5f0e027487dfcb5b7ca910cbe5e3ad8801e",
+        "tests/test_init_draft_workflow_payload.py": "sha256-pyast:v2:baefcbd8b435c0d860c58e0b49ba5aafc3e10016285234646a192a974c3462ea",
+        "tests/cli/test_init_stash_revise_guidance.py": "sha256-pyast:v2:bd0a62bc47233af2dbe64b010b1d6cc3c58a7b4ad404c0a3303210cd6e5a570c",
+        "tests/cli/test_init_validator_plugin_guidance.py": "sha256-pyast:v2:27bbccd51061254b5984cb5f003e5b581fa86e96c78c58058c1019d50207c6c3",
+        "tests/cli/test_init_hook_payloads.py": "sha256-pyast:v2:9f10a769ca952c8e8937e91ee7958f0c0a33588f3c34164be90bd8a50755e16a",
+        "tests/cli/test_init_payload_portability.py": "sha256-pyast:v2:dd65b53bd7df51414718770fcc73646db987b0d30c782be73dcc31cd10d79ea0",
+        "tests/cli/test_fix_init_guidance_project_launcher.py": "sha256-pyast:v2:ce73ab6ea7d7a0550bcaeb12759252a07f89f86a73b801e138e70058884f0bcd"
+      },
+      "revised_at": "2026-10-20T22:27:54.714099+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-init-guidance-project-launcher.manifest.yaml -> manifests/fix-init-guidance-project-launcher.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-init-guidance-project-launcher.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-init-guidance-project-launcher.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:bf0996fd45d28afbe6168663523f7cde6260034fb431b8986d0ebe7025b56b8e",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256-pyast:v2:b5dd22dc7087908b789c52c60bdfd5f0e027487dfcb5b7ca910cbe5e3ad8801e",
+        "tests/test_init_draft_workflow_payload.py": "sha256-pyast:v2:baefcbd8b435c0d860c58e0b49ba5aafc3e10016285234646a192a974c3462ea",
+        "tests/cli/test_init_stash_revise_guidance.py": "sha256-pyast:v2:bd0a62bc47233af2dbe64b010b1d6cc3c58a7b4ad404c0a3303210cd6e5a570c",
+        "tests/cli/test_init_validator_plugin_guidance.py": "sha256-pyast:v2:27bbccd51061254b5984cb5f003e5b581fa86e96c78c58058c1019d50207c6c3",
+        "tests/cli/test_init_hook_payloads.py": "sha256-pyast:v2:9f10a769ca952c8e8937e91ee7958f0c0a33588f3c34164be90bd8a50755e16a",
+        "tests/cli/test_init_payload_portability.py": "sha256-pyast:v2:dd65b53bd7df51414718770fcc73646db987b0d30c782be73dcc31cd10d79ea0",
+        "tests/cli/test_fix_init_guidance_project_launcher.py": "sha256-pyast:v2:ce73ab6ea7d7a0550bcaeb12759252a07f89f86a73b801e138e70058884f0bcd"
+      },
+      "revised_at": "2026-10-20T22:35:14.223046+00:00",
+      "reason": "Declare generated read-only Claude payload prerequisites for isolated init baseline; commands and behavioral tests unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "read:maid_runner/claude/agents/maid-implementation-reviewer.md",
+          "read:maid_runner/claude/manifest.json",
+          "read:maid_runner/claude/settings.json",
+          "read:maid_runner/claude/skills/maid-auditor/SKILL.md",
+          "read:maid_runner/claude/skills/maid-evolver/SKILL.md",
+          "read:maid_runner/claude/skills/maid-implement-draft/SKILL.md",
+          "read:maid_runner/claude/skills/maid-implementation-review/SKILL.md",
+          "read:maid_runner/claude/skills/maid-implementer/SKILL.md",
+          "read:maid_runner/claude/skills/maid-incident-logger/SKILL.md",
+          "read:maid_runner/claude/skills/maid-outcome-enrich/SKILL.md",
+          "read:maid_runner/claude/skills/maid-plan-review/SKILL.md",
+          "read:maid_runner/claude/skills/maid-planner/SKILL.md",
+          "read:maid_runner/claude/skills/maid-run-review/SKILL.md"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:704b630f25f34bf6eb7484403a440d11825c5e9cbb516ab68a28f825ac101db6",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256-pyast:v2:b5dd22dc7087908b789c52c60bdfd5f0e027487dfcb5b7ca910cbe5e3ad8801e",
+        "tests/test_init_draft_workflow_payload.py": "sha256-pyast:v2:baefcbd8b435c0d860c58e0b49ba5aafc3e10016285234646a192a974c3462ea",
+        "tests/cli/test_init_stash_revise_guidance.py": "sha256-pyast:v2:bd0a62bc47233af2dbe64b010b1d6cc3c58a7b4ad404c0a3303210cd6e5a570c",
+        "tests/cli/test_init_validator_plugin_guidance.py": "sha256-pyast:v2:27bbccd51061254b5984cb5f003e5b581fa86e96c78c58058c1019d50207c6c3",
+        "tests/cli/test_init_hook_payloads.py": "sha256-pyast:v2:9f10a769ca952c8e8937e91ee7958f0c0a33588f3c34164be90bd8a50755e16a",
+        "tests/cli/test_init_payload_portability.py": "sha256-pyast:v2:dd65b53bd7df51414718770fcc73646db987b0d30c782be73dcc31cd10d79ea0",
+        "tests/cli/test_fix_init_guidance_project_launcher.py": "sha256-pyast:v2:ce73ab6ea7d7a0550bcaeb12759252a07f89f86a73b801e138e70058884f0bcd"
+      },
+      "revised_at": "2026-10-20T22:37:32.538685+00:00",
+      "reason": "Build actual agent payloads in disposable fixture and inject owned filesystem adapter for honest isolated baseline; preserve launcher contract",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_fix_init_guidance_project_launcher.py:test_wrapper_is_used_for_all_runnable_owned_maid_commands:arg=_real_payload:type=Path:default=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "read:.claude/AGENTS.md",
+          "read:.claude/README.md",
+          "read:.claude/agents/maid-implementation-reviewer.md",
+          "read:.claude/manifest.json",
+          "read:.claude/settings.json",
+          "read:.claude/skills/maid-auditor/SKILL.md",
+          "read:.claude/skills/maid-evolver/SKILL.md",
+          "read:.claude/skills/maid-implement-draft/SKILL.md",
+          "read:.claude/skills/maid-implementation-review/SKILL.md",
+          "read:.claude/skills/maid-implementer/SKILL.md",
+          "read:.claude/skills/maid-incident-logger/SKILL.md",
+          "read:.claude/skills/maid-onboard/SKILL.md",
+          "read:.claude/skills/maid-outcome-enrich/SKILL.md",
+          "read:.claude/skills/maid-plan-review/SKILL.md",
+          "read:.claude/skills/maid-planner/SKILL.md",
+          "read:.claude/skills/maid-run-review/SKILL.md",
+          "read:.claude/skills/maid-runner-cleanup-and-refactor/SKILL.md",
+          "read:.claude/skills/maid-runner-draft-implement/SKILL.md",
+          "read:.claude/skills/maid-runner-performance-optimization/SKILL.md",
+          "read:.claude/skills/maid-runner-self-improvement/SKILL.md",
+          "read:.claude/skills/maid-validate-hardening/SKILL.md",
+          "read:.codex/skills/maid-auditor/SKILL.md",
+          "read:.codex/skills/maid-auditor/agents/openai.yaml",
+          "read:.codex/skills/maid-evolver/SKILL.md",
+          "read:.codex/skills/maid-evolver/agents/openai.yaml",
+          "read:.codex/skills/maid-implement-draft/SKILL.md",
+          "read:.codex/skills/maid-implement-draft/agents/openai.yaml",
+          "read:.codex/skills/maid-implementation-review/SKILL.md",
+          "read:.codex/skills/maid-implementation-review/agents/openai.yaml",
+          "read:.codex/skills/maid-implementer/SKILL.md",
+          "read:.codex/skills/maid-implementer/agents/openai.yaml",
+          "read:.codex/skills/maid-incident-logger/SKILL.md",
+          "read:.codex/skills/maid-incident-logger/agents/openai.yaml",
+          "read:.codex/skills/maid-onboard/SKILL.md",
+          "read:.codex/skills/maid-onboard/agents/openai.yaml",
+          "read:.codex/skills/maid-outcome-enrich/SKILL.md",
+          "read:.codex/skills/maid-outcome-enrich/agents/openai.yaml",
+          "read:.codex/skills/maid-plan-review/SKILL.md",
+          "read:.codex/skills/maid-plan-review/agents/openai.yaml",
+          "read:.codex/skills/maid-planner/SKILL.md",
+          "read:.codex/skills/maid-planner/agents/openai.yaml",
+          "read:.codex/skills/maid-run-review/SKILL.md",
+          "read:.codex/skills/maid-run-review/agents/openai.yaml",
+          "read:.codex/skills/maid-runner-cleanup-and-refactor/SKILL.md",
+          "read:.codex/skills/maid-runner-cleanup-and-refactor/agents/openai.yaml",
+          "read:.codex/skills/maid-runner-draft-implement/SKILL.md",
+          "read:.codex/skills/maid-runner-performance-optimization/SKILL.md",
+          "read:.codex/skills/maid-runner-performance-optimization/agents/openai.yaml",
+          "read:.codex/skills/maid-runner-self-improvement/SKILL.md",
+          "read:.codex/skills/maid-runner-self-improvement/agents/openai.yaml",
+          "read:.codex/skills/maid-validate-hardening/SKILL.md",
+          "read:.codex/skills/maid-validate-hardening/agents/openai.yaml",
+          "read:.cursor/hooks.json",
+          "read:.cursor/rules/maid-runner-rules.mdc",
+          "read:.cursor/rules/unit-testing-rules.mdc",
+          "read:scripts/sync_claude_files.py"
+        ],
+        "files_removed": [
+          "read:maid_runner/claude/agents/maid-implementation-reviewer.md",
+          "read:maid_runner/claude/manifest.json",
+          "read:maid_runner/claude/settings.json",
+          "read:maid_runner/claude/skills/maid-auditor/SKILL.md",
+          "read:maid_runner/claude/skills/maid-evolver/SKILL.md",
+          "read:maid_runner/claude/skills/maid-implement-draft/SKILL.md",
+          "read:maid_runner/claude/skills/maid-implementation-review/SKILL.md",
+          "read:maid_runner/claude/skills/maid-implementer/SKILL.md",
+          "read:maid_runner/claude/skills/maid-incident-logger/SKILL.md",
+          "read:maid_runner/claude/skills/maid-outcome-enrich/SKILL.md",
+          "read:maid_runner/claude/skills/maid-plan-review/SKILL.md",
+          "read:maid_runner/claude/skills/maid-planner/SKILL.md",
+          "read:maid_runner/claude/skills/maid-run-review/SKILL.md"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-20T22:37:35.435106+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/cli/test_fix_init_guidance_project_launcher.py -q",
+        "exit_code": 1,
+        "output_tail": "  Created: .maidrc.yaml\n  Created: docs/draft-manifest-workflow.md\n  Created: docs/manifest-outcome-records.md\n  Created: manifests/drafts/README.md\n  Updated: .pre-commit-config.yaml\n  Current: .gitignore\n  Updated: .codex/\n  Updated: AGENTS.md\n  Ensure your Git hook runner invokes .pre-commit-config.yaml (standard setup: pre-commit install).\n  If core.hooksPath is configured, keep its dispatcher and have it run the project pre-commit configuration.\n\nNext steps:\n  maid howto quickstart\n=========================== short test summary info ============================\nFAILED tests/cli/test_fix_init_guidance_project_launcher.py::test_wrapper_is_used_for_all_runnable_owned_maid_commands[claude-CLAUDE.md]\nFAILED tests/cli/test_fix_init_guidance_project_launcher.py::test_wrapper_is_used_for_all_runnable_owned_maid_commands[codex-AGENTS.md]\nFAILED tests/cli/test_fix_init_guidance_project_launcher.py::test_force_init_preserves_user_text_and_managed_launcher_idempotently[claude-CLAUDE.md]\nFAILED tests/cli/test_fix_init_guidance_project_launcher.py::test_force_init_preserves_user_text_and_managed_launcher_idempotently[codex-AGENTS.md]\nFAILED tests/cli/test_fix_init_guidance_project_launcher.py::test_force_refresh_tracks_wrapper_presence_without_rewriting_user_text\n5 failed, 2 passed in 1.13s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest tests/cli/test_init_cmd.py tests/test_init_draft_workflow_payload.py tests/cli/test_init_stash_revise_guidance.py tests/cli/test_init_validator_plugin_guidance.py tests/cli/test_init_hook_payloads.py tests/cli/test_init_payload_portability.py -q",
+        "exit_code": 0,
+        "output_tail": "................................                                         [100%]\n32 passed in 1.07s",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-init-guidance-project-launcher.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/init.py:function:cmd_init",
+      "maid_runner/cli/commands/init.py:function:cmd_init:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/init.py:function:cmd_init:kind=function",
+      "maid_runner/cli/commands/init.py:function:cmd_init:returns=int",
+      "tests/cli/test_fix_init_guidance_project_launcher.py:test_force_init_preserves_user_text_and_managed_launcher_idempotently",
+      "tests/cli/test_fix_init_guidance_project_launcher.py:test_force_init_preserves_user_text_and_managed_launcher_idempotently:arg=file:type=str:default=None",
+      "tests/cli/test_fix_init_guidance_project_launcher.py:test_force_init_preserves_user_text_and_managed_launcher_idempotently:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_fix_init_guidance_project_launcher.py:test_force_init_preserves_user_text_and_managed_launcher_idempotently:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_fix_init_guidance_project_launcher.py:test_force_init_preserves_user_text_and_managed_launcher_idempotently:arg=tool:type=str:default=None",
+      "tests/cli/test_fix_init_guidance_project_launcher.py:test_force_init_preserves_user_text_and_managed_launcher_idempotently:kind=test_function",
+      "tests/cli/test_fix_init_guidance_project_launcher.py:test_force_init_preserves_user_text_and_managed_launcher_idempotently:returns=None",
+      "tests/cli/test_fix_init_guidance_project_launcher.py:test_force_refresh_tracks_wrapper_presence_without_rewriting_user_text",
+      "tests/cli/test_fix_init_guidance_project_launcher.py:test_force_refresh_tracks_wrapper_presence_without_rewriting_user_text:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_fix_init_guidance_project_launcher.py:test_force_refresh_tracks_wrapper_presence_without_rewriting_user_text:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_fix_init_guidance_project_launcher.py:test_force_refresh_tracks_wrapper_presence_without_rewriting_user_text:kind=test_function",
+      "tests/cli/test_fix_init_guidance_project_launcher.py:test_force_refresh_tracks_wrapper_presence_without_rewriting_user_text:returns=None",
+      "tests/cli/test_fix_init_guidance_project_launcher.py:test_without_wrapper_preserves_existing_project_guidance",
+      "tests/cli/test_fix_init_guidance_project_launcher.py:test_without_wrapper_preserves_existing_project_guidance:arg=file:type=str:default=None",
+      "tests/cli/test_fix_init_guidance_project_launcher.py:test_without_wrapper_preserves_existing_project_guidance:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_fix_init_guidance_project_launcher.py:test_without_wrapper_preserves_existing_project_guidance:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_fix_init_guidance_project_launcher.py:test_without_wrapper_preserves_existing_project_guidance:arg=tool:type=str:default=None",
+      "tests/cli/test_fix_init_guidance_project_launcher.py:test_without_wrapper_preserves_existing_project_guidance:kind=test_function",
+      "tests/cli/test_fix_init_guidance_project_launcher.py:test_without_wrapper_preserves_existing_project_guidance:returns=None",
+      "tests/cli/test_fix_init_guidance_project_launcher.py:test_wrapper_is_used_for_all_runnable_owned_maid_commands",
+      "tests/cli/test_fix_init_guidance_project_launcher.py:test_wrapper_is_used_for_all_runnable_owned_maid_commands:arg=_real_payload:type=Path:default=None",
+      "tests/cli/test_fix_init_guidance_project_launcher.py:test_wrapper_is_used_for_all_runnable_owned_maid_commands:arg=file:type=str:default=None",
+      "tests/cli/test_fix_init_guidance_project_launcher.py:test_wrapper_is_used_for_all_runnable_owned_maid_commands:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_fix_init_guidance_project_launcher.py:test_wrapper_is_used_for_all_runnable_owned_maid_commands:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_fix_init_guidance_project_launcher.py:test_wrapper_is_used_for_all_runnable_owned_maid_commands:arg=tool:type=str:default=None",
+      "tests/cli/test_fix_init_guidance_project_launcher.py:test_wrapper_is_used_for_all_runnable_owned_maid_commands:kind=test_function",
+      "tests/cli/test_fix_init_guidance_project_launcher.py:test_wrapper_is_used_for_all_runnable_owned_maid_commands:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_fix_init_guidance_project_launcher.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/init.py"
+      ],
+      "read": [
+        ".claude/AGENTS.md",
+        ".claude/README.md",
+        ".claude/agents/maid-implementation-reviewer.md",
+        ".claude/manifest.json",
+        ".claude/settings.json",
+        ".claude/skills/maid-auditor/SKILL.md",
+        ".claude/skills/maid-evolver/SKILL.md",
+        ".claude/skills/maid-implement-draft/SKILL.md",
+        ".claude/skills/maid-implementation-review/SKILL.md",
+        ".claude/skills/maid-implementer/SKILL.md",
+        ".claude/skills/maid-incident-logger/SKILL.md",
+        ".claude/skills/maid-onboard/SKILL.md",
+        ".claude/skills/maid-outcome-enrich/SKILL.md",
+        ".claude/skills/maid-plan-review/SKILL.md",
+        ".claude/skills/maid-planner/SKILL.md",
+        ".claude/skills/maid-run-review/SKILL.md",
+        ".claude/skills/maid-runner-cleanup-and-refactor/SKILL.md",
+        ".claude/skills/maid-runner-draft-implement/SKILL.md",
+        ".claude/skills/maid-runner-performance-optimization/SKILL.md",
+        ".claude/skills/maid-runner-self-improvement/SKILL.md",
+        ".claude/skills/maid-validate-hardening/SKILL.md",
+        ".codex/skills/maid-auditor/SKILL.md",
+        ".codex/skills/maid-auditor/agents/openai.yaml",
+        ".codex/skills/maid-evolver/SKILL.md",
+        ".codex/skills/maid-evolver/agents/openai.yaml",
+        ".codex/skills/maid-implement-draft/SKILL.md",
+        ".codex/skills/maid-implement-draft/agents/openai.yaml",
+        ".codex/skills/maid-implementation-review/SKILL.md",
+        ".codex/skills/maid-implementation-review/agents/openai.yaml",
+        ".codex/skills/maid-implementer/SKILL.md",
+        ".codex/skills/maid-implementer/agents/openai.yaml",
+        ".codex/skills/maid-incident-logger/SKILL.md",
+        ".codex/skills/maid-incident-logger/agents/openai.yaml",
+        ".codex/skills/maid-onboard/SKILL.md",
+        ".codex/skills/maid-onboard/agents/openai.yaml",
+        ".codex/skills/maid-outcome-enrich/SKILL.md",
+        ".codex/skills/maid-outcome-enrich/agents/openai.yaml",
+        ".codex/skills/maid-plan-review/SKILL.md",
+        ".codex/skills/maid-plan-review/agents/openai.yaml",
+        ".codex/skills/maid-planner/SKILL.md",
+        ".codex/skills/maid-planner/agents/openai.yaml",
+        ".codex/skills/maid-run-review/SKILL.md",
+        ".codex/skills/maid-run-review/agents/openai.yaml",
+        ".codex/skills/maid-runner-cleanup-and-refactor/SKILL.md",
+        ".codex/skills/maid-runner-cleanup-and-refactor/agents/openai.yaml",
+        ".codex/skills/maid-runner-draft-implement/SKILL.md",
+        ".codex/skills/maid-runner-performance-optimization/SKILL.md",
+        ".codex/skills/maid-runner-performance-optimization/agents/openai.yaml",
+        ".codex/skills/maid-runner-self-improvement/SKILL.md",
+        ".codex/skills/maid-runner-self-improvement/agents/openai.yaml",
+        ".codex/skills/maid-validate-hardening/SKILL.md",
+        ".codex/skills/maid-validate-hardening/agents/openai.yaml",
+        ".cursor/hooks.json",
+        ".cursor/rules/maid-runner-rules.mdc",
+        ".cursor/rules/unit-testing-rules.mdc",
+        "docs/draft-manifest-workflow.md",
+        "docs/unit-testing-rules.md",
+        "scripts/sync_claude_files.py",
+        "tests/cli/test_init_cmd.py",
+        "tests/cli/test_init_hook_payloads.py",
+        "tests/cli/test_init_payload_portability.py",
+        "tests/cli/test_init_stash_revise_guidance.py",
+        "tests/cli/test_init_validator_plugin_guidance.py",
+        "tests/test_init_draft_workflow_payload.py"
+      ],
+      "scope": [
+        "docs/plans/bug-report-triage-2026-10-20.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_fix_init_guidance_project_launcher.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_wrapper_is_used_for_all_runnable_owned_maid_commands",
+              "description": "wrapper is used for all runnable owned maid commands",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "tool",
+                  "type": "str"
+                },
+                {
+                  "name": "file",
+                  "type": "str"
+                },
+                {
+                  "name": "_real_payload",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_force_init_preserves_user_text_and_managed_launcher_idempotently",
+              "description": "force init preserves user text and managed launcher idempotently",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "tool",
+                  "type": "str"
+                },
+                {
+                  "name": "file",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_without_wrapper_preserves_existing_project_guidance",
+              "description": "without wrapper preserves existing project guidance",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "tool",
+                  "type": "str"
+                },
+                {
+                  "name": "file",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_force_refresh_tracks_wrapper_presence_without_rewriting_user_text",
+              "description": "force refresh tracks wrapper presence without rewriting user text",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/init.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_init",
+              "description": "Existing public seam exercised by the planned regression scenarios; preserve its signature.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "docs/unit-testing-rules.md",
+        "docs/draft-manifest-workflow.md",
+        "tests/cli/test_init_cmd.py",
+        "tests/test_init_draft_workflow_payload.py",
+        "tests/cli/test_init_stash_revise_guidance.py",
+        "tests/cli/test_init_validator_plugin_guidance.py",
+        "tests/cli/test_init_hook_payloads.py",
+        "tests/cli/test_init_payload_portability.py",
+        "scripts/sync_claude_files.py",
+        ".claude/AGENTS.md",
+        ".claude/README.md",
+        ".claude/agents/maid-implementation-reviewer.md",
+        ".claude/manifest.json",
+        ".claude/settings.json",
+        ".claude/skills/maid-auditor/SKILL.md",
+        ".claude/skills/maid-evolver/SKILL.md",
+        ".claude/skills/maid-implement-draft/SKILL.md",
+        ".claude/skills/maid-implementation-review/SKILL.md",
+        ".claude/skills/maid-implementer/SKILL.md",
+        ".claude/skills/maid-incident-logger/SKILL.md",
+        ".claude/skills/maid-onboard/SKILL.md",
+        ".claude/skills/maid-outcome-enrich/SKILL.md",
+        ".claude/skills/maid-plan-review/SKILL.md",
+        ".claude/skills/maid-planner/SKILL.md",
+        ".claude/skills/maid-run-review/SKILL.md",
+        ".claude/skills/maid-runner-cleanup-and-refactor/SKILL.md",
+        ".claude/skills/maid-runner-draft-implement/SKILL.md",
+        ".claude/skills/maid-runner-performance-optimization/SKILL.md",
+        ".claude/skills/maid-runner-self-improvement/SKILL.md",
+        ".claude/skills/maid-validate-hardening/SKILL.md",
+        ".codex/skills/maid-auditor/SKILL.md",
+        ".codex/skills/maid-auditor/agents/openai.yaml",
+        ".codex/skills/maid-evolver/SKILL.md",
+        ".codex/skills/maid-evolver/agents/openai.yaml",
+        ".codex/skills/maid-implement-draft/SKILL.md",
+        ".codex/skills/maid-implement-draft/agents/openai.yaml",
+        ".codex/skills/maid-implementation-review/SKILL.md",
+        ".codex/skills/maid-implementation-review/agents/openai.yaml",
+        ".codex/skills/maid-implementer/SKILL.md",
+        ".codex/skills/maid-implementer/agents/openai.yaml",
+        ".codex/skills/maid-incident-logger/SKILL.md",
+        ".codex/skills/maid-incident-logger/agents/openai.yaml",
+        ".codex/skills/maid-onboard/SKILL.md",
+        ".codex/skills/maid-onboard/agents/openai.yaml",
+        ".codex/skills/maid-outcome-enrich/SKILL.md",
+        ".codex/skills/maid-outcome-enrich/agents/openai.yaml",
+        ".codex/skills/maid-plan-review/SKILL.md",
+        ".codex/skills/maid-plan-review/agents/openai.yaml",
+        ".codex/skills/maid-planner/SKILL.md",
+        ".codex/skills/maid-planner/agents/openai.yaml",
+        ".codex/skills/maid-run-review/SKILL.md",
+        ".codex/skills/maid-run-review/agents/openai.yaml",
+        ".codex/skills/maid-runner-cleanup-and-refactor/SKILL.md",
+        ".codex/skills/maid-runner-cleanup-and-refactor/agents/openai.yaml",
+        ".codex/skills/maid-runner-draft-implement/SKILL.md",
+        ".codex/skills/maid-runner-performance-optimization/SKILL.md",
+        ".codex/skills/maid-runner-performance-optimization/agents/openai.yaml",
+        ".codex/skills/maid-runner-self-improvement/SKILL.md",
+        ".codex/skills/maid-runner-self-improvement/agents/openai.yaml",
+        ".codex/skills/maid-validate-hardening/SKILL.md",
+        ".codex/skills/maid-validate-hardening/agents/openai.yaml",
+        ".cursor/hooks.json",
+        ".cursor/rules/maid-runner-rules.mdc",
+        ".cursor/rules/unit-testing-rules.mdc"
+      ],
+      "scope": [
+        {
+          "path": "docs/plans/bug-report-triage-2026-10-20.md",
+          "reason": "Reconcile source report and promoted contract after verified completion."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_fix_init_guidance_project_launcher.py",
+      "tests/cli/test_init_cmd.py",
+      "tests/cli/test_init_hook_payloads.py",
+      "tests/cli/test_init_payload_portability.py",
+      "tests/cli/test_init_stash_revise_guidance.py",
+      "tests/cli/test_init_validator_plugin_guidance.py",
+      "tests/test_init_draft_workflow_payload.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/cli/test_fix_init_guidance_project_launcher.py -q",
+      "uv run python -m pytest tests/cli/test_init_cmd.py tests/test_init_draft_workflow_payload.py tests/cli/test_init_stash_revise_guidance.py tests/cli/test_init_validator_plugin_guidance.py tests/cli/test_init_hook_payloads.py tests/cli/test_init_payload_portability.py -q",
+      "uv run maid validate manifests/fix-init-guidance-project-launcher.manifest.yaml --mode schema --quiet"
+    ],
+    "acceptance_commands": []
+  }
+}
