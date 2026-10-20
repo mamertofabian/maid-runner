@@ -1527,10 +1527,8 @@ def _repository_identity(root: Path) -> str | None:
     digest = hashlib.sha256()
     for args in (
         ("rev-parse", "HEAD"),
-        ("for-each-ref", "--format=%(refname)%00%(objectname)"),
         ("status", "--porcelain=v1", "-z", "--untracked-files=all"),
         ("config", "--local", "--null", "--list"),
-        ("worktree", "list", "--porcelain"),
     ):
         output = _git_stdout(root, *args)
         if output is None:
@@ -1553,15 +1551,6 @@ def _repository_identity(root: Path) -> str | None:
         if control.is_file():
             digest.update(control.read_bytes())
         digest.update(b"\0")
-    objects = common / "objects"
-    if objects.is_dir():
-        for path in sorted(item for item in objects.rglob("*") if item.is_file()):
-            metadata = path.stat()
-            digest.update(path.relative_to(objects).as_posix().encode())
-            digest.update(
-                f":{metadata.st_size}:{metadata.st_mtime_ns}:{metadata.st_ctime_ns}".encode()
-            )
-            digest.update(b"\0")
     return digest.hexdigest()
 
 
@@ -1587,7 +1576,7 @@ def _verify_repository_identity(root: Path, expected: str | None) -> str | None:
 
 
 def _repository_control_identity(root: Path) -> str | None:
-    """Hash Git control state directly for inexpensive between-command checks."""
+    """Hash this worktree's controls and semantically resolved current HEAD."""
     marker = root / ".git"
     if marker.is_dir():
         git_dir = marker.resolve()
@@ -1613,7 +1602,6 @@ def _repository_control_identity(root: Path) -> str | None:
         git_dir / "index",
         git_dir / "config.worktree",
         common_dir / "config",
-        common_dir / "packed-refs",
     )
     for path in controls:
         digest.update(str(path).encode())
@@ -1621,16 +1609,13 @@ def _repository_control_identity(root: Path) -> str | None:
         if path.is_file():
             digest.update(path.read_bytes())
         digest.update(b"\0")
-    for directory in (git_dir / "refs", common_dir / "refs", common_dir / "objects"):
-        if not directory.is_dir():
-            continue
-        for path in sorted(item for item in directory.rglob("*") if item.is_file()):
-            metadata = path.stat()
-            digest.update(path.relative_to(directory).as_posix().encode())
-            digest.update(
-                f":{metadata.st_size}:{metadata.st_mtime_ns}:{metadata.st_ctime_ns}".encode()
-            )
-            digest.update(b"\0")
+    # A sibling can add objects, refs or worktrees without changing this task.
+    # Git resolves the current branch equally through loose and packed refs.
+    head = _git_stdout(root, "rev-parse", "HEAD")
+    if head is None:
+        raise RuntimeError("Snapshot could not capture source repository HEAD identity")
+    digest.update(head)
+    digest.update(b"\0")
     return digest.hexdigest()
 
 

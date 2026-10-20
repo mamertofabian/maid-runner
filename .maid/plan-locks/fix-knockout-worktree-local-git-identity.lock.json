@@ -1,0 +1,238 @@
+{
+  "manifest_path": "manifests/fix-knockout-worktree-local-git-identity.manifest.yaml",
+  "manifest_hash": "sha256-contract:8b090404f775460636e70476dcb34022a9c1e7aaa8f44cd3f5f3d95070c16f18",
+  "test_hashes": {
+    "tests/core/test_fix_knockout_worktree_local_git_identity.py": "sha256-pyast:v2:310993326328645f082aa83e4d2e1194105afb2fe7d6c3abf8262f7ec8cc1161",
+    "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:235da5154eb612bdd088aee7a4dfeb9df1ff32dca5352ce6c486e7e66e5d0aa6",
+    "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:4dc08f1cc7886ba96a6c50cc9f4fbe1b6f20f84bc547b52075afacf361688eb7"
+  },
+  "created_at": "2026-10-20T21:12:51.432790+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:761bcf581d4075ab5e428f2b2cbc69e8de3e9d2c88caca02ca3d0cea7c7c9f67",
+      "prior_test_hashes": {
+        "tests/core/test_fix_knockout_worktree_local_git_identity.py": "sha256-pyast:v2:310993326328645f082aa83e4d2e1194105afb2fe7d6c3abf8262f7ec8cc1161",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:235da5154eb612bdd088aee7a4dfeb9df1ff32dca5352ce6c486e7e66e5d0aa6",
+        "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:4dc08f1cc7886ba96a6c50cc9f4fbe1b6f20f84bc547b52075afacf361688eb7"
+      },
+      "revised_at": "2026-10-20T21:13:21.943277+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-knockout-worktree-local-git-identity.manifest.yaml -> manifests/fix-knockout-worktree-local-git-identity.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-knockout-worktree-local-git-identity.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-knockout-worktree-local-git-identity.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-20T21:13:53.470271+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_fix_knockout_worktree_local_git_identity.py -q",
+        "exit_code": 1,
+        "output_tail": "E       AssertionError: KnockoutReport(results=(), errors=(ValidationError(code=<ErrorCode.KNOCKOUT_HARNESS_FAILURE: 'E712'>, message='Knockou...rror'>, location=Location(file='target.py', line=None, column=None, end_line=None, end_column=None), suggestion=None)))\nE       assert False\nE        +  where False = KnockoutReport(results=(), errors=(ValidationError(code=<ErrorCode.KNOCKOUT_HARNESS_FAILURE: 'E712'>, message='Knockou...rror'>, location=Location(file='target.py', line=None, column=None, end_line=None, end_column=None), suggestion=None))).success\n\ntests/core/test_fix_knockout_worktree_local_git_identity.py:232: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_fix_knockout_worktree_local_git_identity.py::test_sibling_git_changes_do_not_invalidate_public_snapshot[commit-False]\nFAILED tests/core/test_fix_knockout_worktree_local_git_identity.py::test_sibling_git_changes_do_not_invalidate_public_snapshot[commit-True]\nFAILED tests/core/test_fix_knockout_worktree_local_git_identity.py::test_sibling_git_changes_do_not_invalidate_public_snapshot[object-False]\nFAILED tests/core/test_fix_knockout_worktree_local_git_identity.py::test_sibling_git_changes_do_not_invalidate_public_snapshot[object-True]\nFAILED tests/core/test_fix_knockout_worktree_local_git_identity.py::test_sibling_git_changes_do_not_invalidate_public_snapshot[ref-False]\nFAILED tests/core/test_fix_knockout_worktree_local_git_identity.py::test_sibling_git_changes_do_not_invalidate_public_snapshot[ref-True]\nFAILED tests/core/test_fix_knockout_worktree_local_git_identity.py::test_sibling_git_changes_do_not_invalidate_public_snapshot[worktree-False]\nFAILED tests/core/test_fix_knockout_worktree_local_git_identity.py::test_sibling_git_changes_do_not_invalidate_public_snapshot[worktree-True]\nFAILED tests/core/test_fix_knockout_worktree_local_git_identity.py::test_real_knockout_batch_accepts_sibling_changes_during_command_group[commit]\nFAILED tests/core/test_fix_knockout_worktree_local_git_identity.py::test_real_knockout_batch_accepts_sibling_changes_during_command_group[object]\nFAILED tests/core/test_fix_knockout_worktree_local_git_identity.py::test_real_knockout_batch_accepts_sibling_changes_during_command_group[ref]\nFAILED tests/core/test_fix_knockout_worktree_local_git_identity.py::test_real_knockout_batch_accepts_sibling_changes_during_command_group[pack-refs]\nFAILED tests/core/test_fix_knockout_worktree_local_git_identity.py::test_real_knockout_batch_accepts_sibling_changes_during_command_group[worktree]\n13 failed, 8 passed in 15.57s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest tests/core/test_knockout_snapshot.py tests/core/test_knockout_snapshot_template.py -q",
+        "exit_code": 0,
+        "output_tail": "..............................                                           [100%]\n30 passed in 14.89s",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-knockout-worktree-local-git-identity.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_knockout_snapshot.py:method:SharedEnvironmentProjectSnapshotBackend.create",
+      "maid_runner/core/_knockout_snapshot.py:method:SharedEnvironmentProjectSnapshotBackend.create:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_knockout_snapshot.py:method:SharedEnvironmentProjectSnapshotBackend.create:arg=required_paths:type=Sequence[str]:default=None",
+      "maid_runner/core/_knockout_snapshot.py:method:SharedEnvironmentProjectSnapshotBackend.create:arg=worker_id:type=str:default=None",
+      "maid_runner/core/_knockout_snapshot.py:method:SharedEnvironmentProjectSnapshotBackend.create:kind=method",
+      "maid_runner/core/_knockout_snapshot.py:method:SharedEnvironmentProjectSnapshotBackend.create:of=SharedEnvironmentProjectSnapshotBackend",
+      "maid_runner/core/_knockout_snapshot.py:method:SharedEnvironmentProjectSnapshotBackend.create:returns=AbstractContextManager[KnockoutProjectSnapshot]",
+      "tests/core/test_fix_knockout_worktree_local_git_identity.py:test_own_worktree_changes_remain_blocking",
+      "tests/core/test_fix_knockout_worktree_local_git_identity.py:test_own_worktree_changes_remain_blocking:arg=change:type=str:default=None",
+      "tests/core/test_fix_knockout_worktree_local_git_identity.py:test_own_worktree_changes_remain_blocking:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_knockout_worktree_local_git_identity.py:test_own_worktree_changes_remain_blocking:kind=test_function",
+      "tests/core/test_fix_knockout_worktree_local_git_identity.py:test_own_worktree_changes_remain_blocking:returns=None",
+      "tests/core/test_fix_knockout_worktree_local_git_identity.py:test_real_knockout_batch_accepts_sibling_changes_during_command_group",
+      "tests/core/test_fix_knockout_worktree_local_git_identity.py:test_real_knockout_batch_accepts_sibling_changes_during_command_group:arg=operation:type=str:default=None",
+      "tests/core/test_fix_knockout_worktree_local_git_identity.py:test_real_knockout_batch_accepts_sibling_changes_during_command_group:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_knockout_worktree_local_git_identity.py:test_real_knockout_batch_accepts_sibling_changes_during_command_group:kind=test_function",
+      "tests/core/test_fix_knockout_worktree_local_git_identity.py:test_real_knockout_batch_accepts_sibling_changes_during_command_group:returns=None",
+      "tests/core/test_fix_knockout_worktree_local_git_identity.py:test_sibling_git_changes_do_not_invalidate_public_snapshot",
+      "tests/core/test_fix_knockout_worktree_local_git_identity.py:test_sibling_git_changes_do_not_invalidate_public_snapshot:arg=linked:type=bool:default=None",
+      "tests/core/test_fix_knockout_worktree_local_git_identity.py:test_sibling_git_changes_do_not_invalidate_public_snapshot:arg=operation:type=str:default=None",
+      "tests/core/test_fix_knockout_worktree_local_git_identity.py:test_sibling_git_changes_do_not_invalidate_public_snapshot:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_knockout_worktree_local_git_identity.py:test_sibling_git_changes_do_not_invalidate_public_snapshot:kind=test_function",
+      "tests/core/test_fix_knockout_worktree_local_git_identity.py:test_sibling_git_changes_do_not_invalidate_public_snapshot:returns=None",
+      "tests/core/test_fix_knockout_worktree_local_git_identity.py:test_snapshot_command_writing_source_is_still_detected",
+      "tests/core/test_fix_knockout_worktree_local_git_identity.py:test_snapshot_command_writing_source_is_still_detected:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_knockout_worktree_local_git_identity.py:test_snapshot_command_writing_source_is_still_detected:kind=test_function",
+      "tests/core/test_fix_knockout_worktree_local_git_identity.py:test_snapshot_command_writing_source_is_still_detected:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_fix_knockout_worktree_local_git_identity.py"
+      ],
+      "edit": [
+        "maid_runner/core/_knockout_snapshot.py"
+      ],
+      "read": [
+        "docs/draft-manifest-workflow.md",
+        "docs/unit-testing-rules.md",
+        "maid_runner/core/knockout.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/types.py"
+      ],
+      "scope": [
+        "docs/plans/bug-report-triage-2026-10-20.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_fix_knockout_worktree_local_git_identity.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_sibling_git_changes_do_not_invalidate_public_snapshot",
+              "description": "sibling git changes do not invalidate public snapshot",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "linked",
+                  "type": "bool"
+                },
+                {
+                  "name": "operation",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_own_worktree_changes_remain_blocking",
+              "description": "own worktree changes remain blocking",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "change",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_snapshot_command_writing_source_is_still_detected",
+              "description": "snapshot command writing source is still detected",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_real_knockout_batch_accepts_sibling_changes_during_command_group",
+              "description": "real knockout batch accepts sibling changes during command group",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "operation",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/_knockout_snapshot.py",
+          "artifacts": [
+            {
+              "kind": "method",
+              "name": "create",
+              "description": "Retain isolated snapshot creation and scoped repository integrity checks.",
+              "of": "SharedEnvironmentProjectSnapshotBackend",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "required_paths",
+                  "type": "Sequence[str]"
+                },
+                {
+                  "name": "worker_id",
+                  "type": "str"
+                }
+              ],
+              "returns": "AbstractContextManager[KnockoutProjectSnapshot]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "docs/unit-testing-rules.md",
+        "docs/draft-manifest-workflow.md",
+        "maid_runner/core/knockout.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/types.py"
+      ],
+      "scope": [
+        {
+          "path": "docs/plans/bug-report-triage-2026-10-20.md",
+          "reason": "Reconcile promoted contract and resolved report."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_fix_knockout_worktree_local_git_identity.py",
+      "tests/core/test_knockout_snapshot.py",
+      "tests/core/test_knockout_snapshot_template.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_fix_knockout_worktree_local_git_identity.py -q",
+      "uv run python -m pytest tests/core/test_knockout_snapshot.py tests/core/test_knockout_snapshot_template.py -q",
+      "uv run maid validate manifests/fix-knockout-worktree-local-git-identity.manifest.yaml --mode schema --quiet"
+    ],
+    "acceptance_commands": []
+  }
+}
