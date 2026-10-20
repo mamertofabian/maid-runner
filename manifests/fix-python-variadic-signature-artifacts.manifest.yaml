@@ -1,0 +1,214 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Represent Python variadic parameters faithfully in artifact signatures
+type: fix
+created: '2026-10-20T20:31:18Z'
+description: Represent Python *args and **kwargs with starred ArgSpec.name spellings (*items and **options),
+  retaining their element/value annotation and no default. Preserve Python declaration order (positional,
+  varargs, keyword-only, kwargs), existing positional/self/cls/default handling, async and method collection.
+  Existing ArgSpec, loader, schema and exact name/type comparison already represent this without extension;
+  do not add fields or broaden empty-args validation policy. Both public collection seams and downstream
+  validation/snapshot roundtrip are covered. Initial inventory recall had no related records; hardened-scope
+  recall found signature normalization, PEP695, Protocol and enum Outcomes. Reuse existing annotation
+  rendering and preserve public signatures with exact identity/type negatives. Their import/binding/control-flow
+  lessons do not require scope expansion.
+temptations:
+- risk: Drop variadic parameters or conflate plain, single-star and double-star names.
+  instead: Preserve distinct starred names through both public collectors, snapshot save/load and exact
+    downstream negative validation.
+- risk: Add schema flags or alter argument validation globally for a producer omission.
+  instead: Reuse current ArgSpec names and existing name/type mismatch checks; bound production edits
+    to the extractor and retain regular/default/order controls.
+files:
+  edit:
+  - path: maid_runner/validators/_python_implementation.py
+    artifacts:
+    - kind: function
+      name: collect_implementation_artifacts
+      args:
+      - name: tree
+        type: ast.AST
+      - name: file_path
+        type: str
+      returns: list[FoundArtifact]
+      description: Collect exact Python callable signatures including variadic names.
+  create:
+  - path: tests/validators/test_fix_python_variadic_signature_artifacts.py
+    artifacts:
+    - kind: test_function
+      name: test_variadic_names_types_and_order_survive_both_collectors
+      args:
+      - name: definition
+        type: str
+      - name: expected
+        type: list
+      returns: None
+      description: variadic names types and order survive both collectors
+    - kind: test_function
+      name: test_variadic_parameter_validates_and_snapshot_roundtrips
+      args:
+      - name: tmp_path
+        type: Path
+      - name: parameter
+        type: str
+      returns: None
+      description: variadic parameter validates and snapshot roundtrips
+    - kind: test_function
+      name: test_variadic_and_regular_parameters_do_not_match_accidentally
+      args:
+      - name: tmp_path
+        type: Path
+      - name: actual
+        type: str
+      - name: declared
+        type: str
+      returns: None
+      description: variadic and regular parameters do not match accidentally
+    - kind: test_function
+      name: test_variadic_type_mismatch_remains_blocking
+      args:
+      - name: tmp_path
+        type: Path
+      - name: parameter
+        type: str
+      returns: None
+      description: variadic type mismatch remains blocking
+  read:
+  - docs/unit-testing-rules.md
+  - docs/draft-manifest-workflow.md
+  - maid_runner/validators/python.py
+  - maid_runner/core/types.py
+  - maid_runner/core/manifest.py
+  - maid_runner/core/_implementation_validation.py
+  - maid_runner/core/snapshot.py
+  - maid_runner/schemas/manifest.v2.schema.json
+  scope:
+  - path: docs/maid_specs.md
+    reason: Document starred Python argument names and keep specification mirrors synchronized.
+  - path: maid_runner/docs/maid_specs.md
+    reason: Document starred Python argument names and keep specification mirrors synchronized.
+  - path: .maid/docs/maid_specs.md
+    reason: Document starred Python argument names and keep specification mirrors synchronized.
+  - path: docs/plans/bug-report-triage-2026-10-20.md
+    reason: Reconcile completed contract and archived report.
+validate:
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/validators/test_fix_python_variadic_signature_artifacts.py
+  - -q
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/validators/test_python.py
+  - tests/validators/test_python_variadic_tuple_annotations.py
+  - tests/validators/test_python_type_alias.py
+  - tests/validators/test_fix_python_signature_type_normalization.py
+  - tests/docs/test_chain_merge_docs.py
+  - -q
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/fix-python-variadic-signature-artifacts.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+outcome:
+  status: completed
+  completed_at: '2026-10-20T20:37:23.839618+00:00'
+  summary: Collect Python variadic parameters as distinct starred argument names with existing ArgSpec.
+    Preserve annotations, declaration order, defaults and method/async behavior through public validation
+    and snapshots without schema or matcher changes.
+  lessons:
+  - lesson_type: artifact-identity
+    summary: 'A producer omission can use an existing representation: starred names preserve positional/keyword
+      variadic identity through exact argument matching. Keep regular/star/double-star and annotation
+      mismatch negatives instead of adding parallel flags.'
+    tags:
+    - python
+    - variadic
+    - signature
+    paths:
+    - maid_runner/validators/_python_implementation.py
+    - tests/validators/test_fix_python_variadic_signature_artifacts.py
+  review_notes:
+  - source: independent-read-only-implementation_review_variadic
+    severity: ready
+    summary: Ready to merge; no blocking findings.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/validators/test_fix_python_variadic_signature_artifacts.py
+    - -q
+    status: passed
+    summary: '18 dedicated plus 151 adjacent cases passed; real fixture pytest executions pass. Scoped
+      implementation, Ruff/Black/diff and lock test hashes pass. Original baseline: 11 failed / 7 passed.'
+  - command:
+    - uv
+    - run
+    - --no-project
+    - --isolated
+    - --python
+    - '3.10'
+    - --with-editable
+    - .
+    - --with
+    - pytest
+    - --with
+    - pytest-xdist
+    - python
+    - -m
+    - pytest
+    - tests/validators/test_fix_python_variadic_signature_artifacts.py
+    - -q
+    status: passed
+    summary: Actual Python 3.10 all 18 cases passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --packet
+    status: passed
+    summary: 345 active manifests passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: All 317 declared commands passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - 43c66a89f24b9791ff7bf21bbd4c5ada516cfd3f
+    status: passed
+    summary: All 11 assessment-directed deep stages passed with required plan-lock/red evidence.

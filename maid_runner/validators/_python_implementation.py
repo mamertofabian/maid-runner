@@ -750,6 +750,11 @@ def _extract_args(
             default_val = _ast_to_default_string(padded_defaults[i])
         result.append(ArgSpec(name=arg.arg, type=type_ann, default=default_val))
 
+    if args.vararg is not None:
+        arg = args.vararg
+        type_ann = _ast_to_type_string(arg.annotation) if arg.annotation else None
+        result.append(ArgSpec(name="*" + arg.arg, type=type_ann))
+
     for i, arg in enumerate(args.kwonlyargs):
         type_ann = _ast_to_type_string(arg.annotation) if arg.annotation else None
         default_val = None
@@ -757,6 +762,11 @@ def _extract_args(
         if kw_default is not None:
             default_val = _ast_to_default_string(kw_default)
         result.append(ArgSpec(name=arg.arg, type=type_ann, default=default_val))
+
+    if args.kwarg is not None:
+        arg = args.kwarg
+        type_ann = _ast_to_type_string(arg.annotation) if arg.annotation else None
+        result.append(ArgSpec(name="**" + arg.arg, type=type_ann))
 
     return tuple(result)
 

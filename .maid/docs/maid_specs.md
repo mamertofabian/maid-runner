@@ -571,6 +571,12 @@ still apply.
     evaluation; malformed or unresolved expressions remain unproven. Generic
     parameters and PEP 695 alias bindings retain their own scope.
 
+    Python variadic parameters use starred argument names: `*items` for positional
+    variadics and `**options` for keyword variadics. Their annotations describe
+    each positional element or keyword value. Snapshot roundtrips retain these
+    names, annotations and declaration order; ordinary and starred names remain
+    distinct in signature validation. No additional argument schema flags apply.
+
     Python signature comparison normalizes supported nested pipe unions, Optional
     and Union type positions symmetrically, including generic and Callable
     arguments. Literal strings retain their quotes and remain distinct from
