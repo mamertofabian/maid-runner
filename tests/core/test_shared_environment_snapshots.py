@@ -30,7 +30,10 @@ def test_shared_environment_snapshot_reuses_source_venv_without_copying(
         root, ("src/target.py",), "shared-env"
     ) as snapshot:
         assert not (snapshot.root / ".venv").exists()
-        assert not (snapshot.root / "node_modules").exists()
+        assert (snapshot.root / "node_modules").is_dir()
+        assert (snapshot.root / "node_modules").resolve() == (
+            root / "node_modules"
+        ).resolve()
         assert (snapshot.root / "src/target.py").is_file()
         assert (
             Path(snapshot.environment_overrides["VIRTUAL_ENV"]).resolve()

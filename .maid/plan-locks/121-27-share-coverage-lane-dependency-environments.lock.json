@@ -4,10 +4,10 @@
   "test_hashes": {
     "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:235da5154eb612bdd088aee7a4dfeb9df1ff32dca5352ce6c486e7e66e5d0aa6",
     "tests/core/test_artifact_coverage_lanes.py": "sha256-pyast:v2:aaecbbe382ce292fccd2cf520a575072d1ed266b30faba4f0dae058535fa1689",
-    "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c"
+    "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:6448d990b81f756d4cea4bf4ab553147091350c7e5ac782e2539702bc0c882a5"
   },
   "created_at": "2026-08-13T09:10:51.160902+00:00",
-  "revision": 5,
+  "revision": 6,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:96343f8e239a635cde4fea9f13f21cee3718c94abd30ef8ac1a2685ef5f6702e",
@@ -79,6 +79,25 @@
       },
       "revised_at": "2026-08-20T23:17:20.626691+00:00",
       "reason": "accept shared snapshot-test dependency optimization",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:93bb8929d51f2facab7f8f440e5db4e21c32e655c9780ecfbece060f2b9901e1",
+      "prior_test_hashes": {
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:235da5154eb612bdd088aee7a4dfeb9df1ff32dca5352ce6c486e7e66e5d0aa6",
+        "tests/core/test_artifact_coverage_lanes.py": "sha256-pyast:v2:aaecbbe382ce292fccd2cf520a575072d1ed266b30faba4f0dae058535fa1689",
+        "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:cc0b68ac0d66f015b84c7231c2b9af9a72b4ddd665690a855479692b4cfbd56c"
+      },
+      "revised_at": "2026-10-20T22:09:09.037979+00:00",
+      "reason": "Accept managed Node-path shared-test evolution without cloning dependency trees",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],
@@ -265,6 +284,7 @@
     "validate_commands": [
       "uv run python -m pytest -q tests/core/test_shared_environment_snapshots.py tests/core/test_knockout_snapshot.py tests/core/test_artifact_coverage_lanes.py",
       "uv run maid validate manifests/121-27-share-coverage-lane-dependency-environments.manifest.yaml --mode schema --quiet"
-    ]
+    ],
+    "acceptance_commands": []
   }
 }

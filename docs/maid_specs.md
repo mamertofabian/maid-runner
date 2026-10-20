@@ -410,6 +410,15 @@ deprecated compatibility no-op. Knockouts remain sequential in manifest
 declaration order, `--knockout-limit` bounds the artifact count, and knockout is
 not full mutation testing.
 
+Snapshots retain root Node dependencies and `node_modules` at subproject roots
+whose `package.json` is among the snapshot inputs. Relative paths preserve
+nearest-package versions, hoisted imports and contained pnpm store/bin links.
+Shared environments retain dependency mutation checks; retained workers reuse
+private copies. Dependency roots must be real directories, and dependency
+symlinks must stay within the selected managed Node environments. Subproject
+roots are not added to global module or executable search paths. Other nested dependency directories are not discovered, and
+snapshot creation never installs packages.
+
 The changed-scope baseline that defines the task window resolves from
 `--since <commit>`, `--base-ref <ref>` (merge-base with HEAD), or
 `metadata.maid_task_base`. Because `maid_task_base` is a current-task

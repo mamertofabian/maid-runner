@@ -530,7 +530,7 @@ def _open_materialized_snapshot(
     try:
         input_paths = _project_input_paths(source_root, normalized_required)
         before_state = _input_stat_identity(source_root, input_paths)
-        dependency_sources = _dependency_sources(source_root)
+        dependency_sources = _dependency_sources(source_root, input_paths)
         dependency_identity = _source_dependency_identity(dependency_sources)
         copy_file = _copy_strategy(source_root, temp_root, normalized_required)
         _copy_project_inputs(source_root, temp_root, input_paths, copy_file)
@@ -571,7 +571,9 @@ def _open_materialized_snapshot(
                 source_root,
                 temp_root,
                 shared_dependencies=(
-                    dependency_sources if share_dependency_environments else None
+                    dependency_sources
+                    if share_dependency_environments
+                    else {name: temp_root / name for name in dependency_sources}
                 ),
                 disable_bytecode_writes=share_dependency_environments,
             ),
@@ -899,13 +901,15 @@ def _copy_dependency_environments(
 ) -> None:
     for name, source in sources.items():
         target = destination / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        copy_source = source.resolve() if Path(name).name == "node_modules" else source
         result = subprocess.run(
             (
                 "cp",
                 "--archive",
                 "--reflink=auto",
                 "--",
-                str(source),
+                str(copy_source),
                 str(target),
             ),
             capture_output=True,
@@ -916,7 +920,17 @@ def _copy_dependency_environments(
             if target.exists():
                 shutil.rmtree(target)
             shutil.copytree(source, target, symlinks=True, copy_function=shutil.copy2)
-        _verify_dependency_copy_isolated(root, source, target)
+    node_targets = tuple(
+        destination / name for name in sources if Path(name).name == "node_modules"
+    )
+    for name, source in sources.items():
+        target = destination / name
+        _verify_dependency_copy_isolated(
+            root,
+            source,
+            target,
+            allowed_roots=node_targets if Path(name).name == "node_modules" else (),
+        )
         if name == ".venv":
             _rewrite_dependency_paths(
                 target,
@@ -927,7 +941,9 @@ def _copy_dependency_environments(
             )
 
 
-def _verify_dependency_copy_isolated(root: Path, source: Path, target: Path) -> None:
+def _verify_dependency_copy_isolated(
+    root: Path, source: Path, target: Path, *, allowed_roots: Sequence[Path] = ()
+) -> None:
     source_text = os.fspath(source)
     target_text = os.fspath(target)
     for directory, directory_names, file_names in os.walk(
@@ -952,7 +968,10 @@ def _verify_dependency_copy_isolated(root: Path, source: Path, target: Path) -> 
                         "Snapshot dependency symlink points into source project: "
                         f"{copied.relative_to(target)}"
                     )
-                if not _is_relative_to(resolved, target) and not (
+                contained = _is_relative_to(resolved, target) or any(
+                    _is_relative_to(resolved, allowed) for allowed in allowed_roots
+                )
+                if not contained and not (
                     source.name == ".venv"
                     and relative.parts
                     and relative.parts[0] in {"bin", "Scripts"}
@@ -1053,7 +1072,7 @@ def _rebind_copied_python_project_root(
                 path.write_bytes(rewritten)
 
 
-def _dependency_sources(root: Path) -> dict[str, Path]:
+def _dependency_sources(root: Path, input_paths: Sequence[str] = ()) -> dict[str, Path]:
     sources: dict[str, Path] = {}
     project_venv = root / ".venv"
     if project_venv.is_dir():
@@ -1067,7 +1086,50 @@ def _dependency_sources(root: Path) -> dict[str, Path]:
     node_modules = root / "node_modules"
     if node_modules.is_dir():
         sources["node_modules"] = node_modules
+    for relative in input_paths:
+        package = Path(relative)
+        if package.name != "package.json":
+            continue
+        dependency = package.parent / "node_modules"
+        candidate = root / dependency
+        if candidate.is_dir():
+            sources[dependency.as_posix()] = candidate
+    _validate_node_dependency_sources(root, sources)
     return sources
+
+
+def _validate_node_dependency_sources(root: Path, sources: Mapping[str, Path]) -> None:
+    nodes = tuple(
+        source for name, source in sources.items() if Path(name).name == "node_modules"
+    )
+    for source in nodes:
+        if source.is_symlink():
+            raise RuntimeError(
+                f"Snapshot dependency root must be a real directory, not a symlink: {source}"
+            )
+    allowed = tuple(source.resolve(strict=True) for source in nodes)
+    for source, resolved_root in zip(nodes, allowed):
+        if not _is_relative_to(resolved_root, root):
+            raise RuntimeError(
+                f"Snapshot Node dependency root escapes project: {source}"
+            )
+        for directory, directories, files in os.walk(source, followlinks=False):
+            for name in (*directories, *files):
+                path = Path(directory) / name
+                if not path.is_symlink():
+                    continue
+                try:
+                    resolved = path.resolve(strict=True)
+                except (OSError, RuntimeError) as exc:
+                    raise RuntimeError(
+                        f"Snapshot dependency symlink cannot be resolved: {path}"
+                    ) from exc
+                if not any(
+                    _is_relative_to(resolved, environment) for environment in allowed
+                ):
+                    raise RuntimeError(
+                        f"Snapshot dependency symlink escapes managed Node environments: {path}"
+                    )
 
 
 def _source_dependency_identity(sources: Mapping[str, Path]) -> dict[str, str]:
@@ -1432,17 +1494,32 @@ def _snapshot_environment(
         executable_paths.append(
             virtual_environment / ("Scripts" if os.name == "nt" else "bin")
         )
-    node_modules = shared.get("node_modules")
-    if node_modules is None:
-        copied_node_modules = snapshot_root / "node_modules"
-        if copied_node_modules.is_dir():
-            node_modules = copied_node_modules
-    if node_modules is not None and node_modules.is_dir():
-        overrides["NODE_PATH"] = _prepend_path(
-            node_modules,
-            None,
-        )
-        executable_paths.append(node_modules / ".bin")
+    nodes = {
+        name: source
+        for name, source in shared.items()
+        if Path(name).name == "node_modules"
+    }
+    if "node_modules" not in nodes and (snapshot_root / "node_modules").is_dir():
+        nodes["node_modules"] = snapshot_root / "node_modules"
+    for name in sorted(nodes, key=lambda key: (len(Path(key).parts), key)):
+        relative = Path(name)
+        if relative.is_absolute() or ".." in relative.parts:
+            raise RuntimeError(f"Invalid snapshot Node dependency path: {name}")
+        visible = snapshot_root / relative
+        source = nodes[name]
+        if visible.exists() or visible.is_symlink():
+            if visible.resolve(strict=True) != source.resolve(strict=True):
+                raise RuntimeError(
+                    f"Snapshot Node dependency path conflicts with project inputs: {name}"
+                )
+        else:
+            visible.parent.mkdir(parents=True, exist_ok=True)
+            _link_retained_dependency(visible, source)
+        # Subproject lookup belongs to Node/pnpm's relative package context;
+        # exposing these roots globally would change root-module resolution.
+        if name == "node_modules":
+            overrides["NODE_PATH"] = str(visible)
+            executable_paths.append(visible / ".bin")
     if executable_paths:
         current_path = _paths_outside_root(os.environ.get("PATH"), source_root) or ""
         overrides["PATH"] = os.pathsep.join(
