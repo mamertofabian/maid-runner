@@ -1,0 +1,237 @@
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Keep unrelated read-only sibling dependencies present during stash-backed revision
+type: fix
+created: '2026-10-20T16:11:40Z'
+description: 'Preserve verified CURRENT sibling-task read dependencies during stash
+  revision only with explicit --allow-sibling-dirty. Current ownership requires a
+  new/dirty active sibling manifest or lock, exact implementation-writable ownership
+  outside the active writable set, and a matching lock with intact test hashes, command
+  identity and valid evidence. Preserve source and consumed owner metadata/test inputs,
+  audit retained dirty paths and fingerprint them across capture/restoration. Invalid
+  or competing current claims fail before stashing with files.scope guidance. Clean
+  historical owners do not prove sibling ownership and retain baseline legacy read-wiring
+  stashing; unowned legacy wiring and scope-only read rules remain unchanged. Current
+  writable ownership always wins. Do not overwrite readonly context changed by validation
+  or another task: refuse lock save, restore only this task implementation, and identify
+  changed paths. No custom static analysis or blanket files.read exemption. Exact
+  current ownership uses create/edit/scope/delete task declarations, not broad snapshot
+  inventory alone. Context checks cover both initial capture and restoration validation.
+  Resolve ownership in the configured or selected manifest directory; refuse symlink-backed
+  consumed context before mutation.'
+temptations:
+- risk: Infer a current sibling task from ordinary historical file coverage, a basename
+    match or an unverified owner record.
+  instead: Require a dirty/new active sibling manifest or lock, exact non-current
+    writable ownership, matching lock/test/evidence identities and exactly one current
+    claimant. Clean historical coverage retains baseline legacy wiring behavior.
+- risk: Use --allow-sibling-dirty as a blanket files.read or active-scope bypass.
+  instead: Retain only verified current dependency context with explicit flag; active
+    writable paths remain targets, invalid/competing claims refuse with files.scope
+    guidance, and existing legacy wiring/scope-only/undeclared-dirt rules stay enforced.
+- risk: Save evidence after a sibling dependency or its ownership proof changed, or
+    overwrite another task changes while recovering.
+  instead: Fingerprint retained source, owner manifest/lock and proof test inputs
+    across command capture/restoration; abort on change, report exact paths, preserve
+    existing stash restoration guarantees for own implementation, and leave unowned
+    mutations visible.
+files:
+  create:
+  - path: tests/core/test_fix_stash_readonly_sibling_dependencies.py
+    artifacts:
+    - kind: test_function
+      name: test_dirty_readonly_sibling_survives_stash_revise
+      args:
+      - name: tmp_path
+        type: Path
+      - name: owner_state
+        type: str
+      returns: None
+      description: dirty readonly sibling survives stash revise
+    - kind: test_function
+      name: test_actual_read_listed_wiring_is_stashed
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: actual read listed wiring is stashed
+    - kind: test_function
+      name: test_failed_revision_restores_all_original_bytes
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: failed revision restores all original bytes
+    - kind: test_function
+      name: test_invalid_current_sibling_ownership_refuses_without_stash
+      args:
+      - name: tmp_path
+        type: Path
+      - name: owner_case
+        type: str
+      - name: capsys
+        type: CaptureFixture[str]
+      returns: None
+      description: Missing, mismatched, unreadable or competing current ownership
+        fails with actionable scope guidance and untouched bytes.
+    - kind: test_function
+      name: test_sibling_flag_is_required_for_current_dependency_context
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: Explicit sibling-dirty authorization remains required.
+    - kind: test_function
+      name: test_current_writable_ownership_is_not_exempted_as_sibling_context
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: An active writable path cannot be exempted through a sibling claim
+        or allow flag.
+    - kind: test_function
+      name: test_changed_readonly_context_blocks_lock_save
+      args:
+      - name: tmp_path
+        type: Path
+      - name: context
+        type: str
+      - name: phase
+        type: str
+      - name: capsys
+        type: CaptureFixture[str]
+      returns: None
+      description: Changed sibling source, manifest or lock aborts evidence save,
+        restores own implementation, and reports the unowned context mutation without
+        overwriting it.
+    - kind: test_function
+      name: test_context_inventory_is_not_current_writable_ownership
+      args:
+      - name: tmp_path
+        type: Path
+      - name: role
+        type: str
+      returns: None
+      description: Current snapshot/read inventory cannot substitute for implementation-writable
+        ownership.
+    - kind: test_function
+      name: test_unsupported_sibling_context_refuses_before_stashing
+      args:
+      - name: tmp_path
+        type: Path
+      - name: context
+        type: str
+      - name: capsys
+        type: CaptureFixture[str]
+      returns: None
+      description: Refuse nonregular or symlink-backed retained inputs before stash
+        or evidence changes.
+  read:
+  - docs/unit-testing-rules.md
+  - docs/draft-manifest-workflow.md
+  - maid_runner/core/chain.py
+  - maid_runner/core/plan_lock.py
+  - maid_runner/core/config.py
+  edit:
+  - path: maid_runner/cli/commands/plan.py
+    artifacts:
+    - kind: function
+      name: cmd_plan_revise
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Existing public seam exercised by the planned regression scenarios;
+        preserve its signature.
+  scope:
+  - path: docs/draft-manifest-workflow.md
+    reason: Document the narrow verified-current sibling context exception while retaining
+      legacy read-wiring and scope-only rules.
+  - path: docs/plans/bug-report-triage-2026-10-20.md
+    reason: Synchronize promoted fix link and resolved canonical report disposition.
+  - path: maid_runner/docs/draft-manifest-workflow.md
+    reason: Synchronize packaged workflow documentation with source.
+validate:
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/core/test_fix_stash_readonly_sibling_dependencies.py
+  - -q
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/cli/test_stash_revise_files_read_targets.py
+  - tests/cli/test_stash_revise_session_robustness.py
+  - tests/cli/test_plan_cmd_stash_scope_targets.py
+  - tests/cli/test_plan_cmd_stash_import_obstruction.py
+  - -q
+outcome:
+  status: completed
+  completed_at: '2026-10-20T17:00:11.142112+00:00'
+  summary: Retain only verified current sibling read dependencies with explicit authorization;
+    preserve historical wiring behavior, exact writable precedence, regular proof
+    input identity and own-stash recovery. Refuse invalid/competing ownership or context
+    mutation without overwriting sibling work.
+  lessons:
+  - lesson_type: validation-trust
+    summary: Historical coverage does not prove current task ownership. Retained context
+      needs exact pending ownership, intact command/test/evidence binding and unchanged
+      regular source/proof files across both capture phases. Reject unsupported input
+      kinds instead of claiming recursive or symlink content is pinned.
+    tags:
+    - plan-lock
+    - stash
+    - ownership
+    paths:
+    - maid_runner/cli/commands/plan.py
+  review_notes:
+  - source: independent-read-only-implementation_review_sibling_v5
+    severity: ready
+    summary: Ready to merge; no blocking findings in complete contract/diff/tests/lock.
+      Ownership proof, regular-file preflight, retained-context checks and restoration
+      match the declared behavior.
+  validation:
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: 338 active manifests passed; scoped implementation validation, 112 focused/adjacent
+      regression cases, Ruff, Black and diff checks passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: All 312 declared commands passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - 714497cd2cbd6eefe76b2392618a835064ea837a
+    status: passed
+    summary: All 11 assessed deep stages passed; existing E307 warnings only. Revision8
+      retains genuine preimplementation stash-backed red.

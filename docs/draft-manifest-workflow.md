@@ -93,6 +93,28 @@ stash explicitly declared `files.read` epic inventory at
 capture and restored afterward, including untracked epics. This exception does
 not admit ordinary read-only source context or authorize production edits.
 
+For contracted plans, `--allow-sibling-dirty` also retains a dirty read-only
+dependency when exactly one current sibling task owns it. Its active manifest
+or lock must be new or dirty, its create/edit/scope/delete declaration must
+name the exact path, and its matching lock must have intact behavioral-test
+pins and valid evidence bound to its commands. A clean historical owner,
+snapshot inventory, or read listing alone does not establish current task
+ownership; legacy wiring keeps its existing stash behavior. Active writable
+paths always remain stash targets. Invalid or competing current ownership
+claims refuse revision with guidance to reconcile the sibling plan or declare
+active wiring under `files.scope`.
+
+Retained dependency paths are included in the sibling-dirt audit. The dependency,
+owner manifest and lock, and consumed proof tests must remain unchanged through
+capture and restoration validation. If that context changes, MAID refuses to
+save evidence and restores its own implementation stash. It reports the changed
+context paths and leaves concurrent sibling edits visible rather than
+overwriting another task's work.
+
+Retained proof inputs must be regular files; symlink-backed context is refused
+before stashing. Ownership is resolved in the configured manifest directory or
+the selected contract directory.
+
 Recall is advisory planning context only. It can inform selected-draft
 hardening, test focus, and implementation risks, but it does not expand the
 draft scope or replace red evidence, behavioral validation, plan lock,
