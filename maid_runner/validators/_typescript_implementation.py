@@ -1083,7 +1083,10 @@ def _extract_arg_spec(parameter, source: bytes) -> Optional[ArgSpec]:
     seen_default_marker = False
 
     for child in parameter.children:
-        if child.type == "identifier":
+        if seen_default_marker and child.type not in (",", "comment"):
+            default = _text(child, source).strip()
+            seen_default_marker = False
+        elif child.type == "identifier":
             name = _text(child, source)
         elif child.type == "rest_pattern":
             name = _pattern_text(child, source)
@@ -1093,9 +1096,6 @@ def _extract_arg_spec(parameter, source: bytes) -> Optional[ArgSpec]:
             type_annotation = _extract_type_text(child, source)
         elif child.type == "=":
             seen_default_marker = True
-        elif seen_default_marker and child.type not in (",", "comment"):
-            default = _text(child, source).strip()
-            seen_default_marker = False
 
     if not name:
         return None
