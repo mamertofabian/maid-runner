@@ -1,0 +1,112 @@
+# manifest-kind: implementation
+schema: '2'
+goal: Report unsupported coverage instrumentation instead of asserting nonexecution
+type: fix
+created: '2026-10-20T15:00:00Z'
+metadata:
+  planning_state: handoff-inventory
+  promotion_ready: false
+  tests_status: planned-not-created
+  priority: high
+  tags:
+  - bug-triage
+  - '2026-10-20'
+description: 'Planning handoff only: tests are planned, red evidence is not captured, and this draft is
+  not promotion-ready.
+
+
+  Evidence: run_artifact_coverage silently continues for non-pytest commands, then emits E710 from empty
+  execution data; applies to unittest, Django and isolated Docker wrappers.
+
+
+  Design and acceptance: First inspect the runtime-evidence command abstraction and reuse supported collectors.
+  For unsupported execution, emit an explicit blocking instrumentation diagnostic, distinguishing unknown
+  execution from observed zero execution. Do not run isolated Django tests on the host or alter container
+  safety. Supporting arbitrary Docker instrumentation is outside this child; cover exact and batched coverage
+  paths. Confirm diagnostic code and public report shape during hardening.
+
+
+  Scope: preserve existing public signatures; finalize exact public artifact declarations before behavioral
+  approval. Private implementation wiring below is provisionally scoped and must be narrowed after characterization.
+  No fix is implemented by this triage.
+
+
+  Expected red: the planned downstream scenario fails for the reported behavior on the current implementation;
+  first distinguish unsupported syntax and environment failures from the intended assertion failure.
+
+
+  Advisory lessons: use dedicated behavioral modules to avoid shared-lock churn; retain exact identity
+  and negative cases; do not weaken evidence gates to resolve false positives.
+
+  '
+temptations:
+- risk: Treat the reported report unsupported coverage instrumentation instead of asserting nonexecution
+    scenario as a reason to bypass existing validation.
+  instead: First inspect the runtime-evidence command abstraction and reuse supported collectors. For
+    unsupported execution, emit an explicit blocking instrumentation diagnostic, distinguishing unknown
+    execution from observed zero execution. Do not run isolated Django tests on the host or alter container
+    safety. Supporting arbitrary Docker instrumentation is outside this child; cover exact and batched
+    coverage paths. Confirm diagnostic code and public report shape during hardening.
+- risk: Use private-helper assertions that pass while the downstream failure remains.
+  instead: Exercise run_artifact_coverage through the named regression scenarios, including the negative
+    cases, before locking this draft.
+files:
+  create:
+  - path: tests/core/test_fix_unsupported_coverage_runner_diagnostics.py
+    artifacts:
+    - kind: test_function
+      name: test_unittest_coverage_is_supported_or_explicitly_unavailable
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: unittest coverage is supported or explicitly unavailable
+    - kind: test_function
+      name: test_isolated_docker_wrapper_reports_instrumentation_limit
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: isolated docker wrapper reports instrumentation limit
+    - kind: test_function
+      name: test_mixed_supported_and_unsupported_commands_do_not_claim_complete_evidence
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: mixed supported and unsupported commands do not claim complete evidence
+  read:
+  - docs/unit-testing-rules.md
+  - docs/draft-manifest-workflow.md
+  - maid_runner/core/_runtime_command_executor.py
+  edit:
+  - path: maid_runner/core/artifact_coverage.py
+    artifacts:
+    - kind: function
+      name: run_artifact_coverage
+      args:
+      - name: manifest
+        type: Manifest
+      - name: project_root
+        type: Path
+      - name: executor
+        type: Union[RuntimeCommandExecutor, None]
+        default: None
+      returns: ArtifactCoverageReport
+      description: Existing public seam exercised by the planned regression scenarios; preserve its signature.
+validate:
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/core/test_fix_unsupported_coverage_runner_diagnostics.py
+  - -q
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/drafts/fix-unsupported-coverage-runner-diagnostics.manifest.yaml
+  - --mode
+  - schema
+  - --quiet

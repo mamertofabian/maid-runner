@@ -1,0 +1,97 @@
+# manifest-kind: implementation
+schema: '2'
+goal: Bind dynamically path-loaded Python hook functions to their declared file identity
+type: fix
+created: '2026-10-20T15:00:00Z'
+metadata:
+  planning_state: handoff-inventory
+  promotion_ready: false
+  tests_status: planned-not-created
+  priority: high
+  tags:
+  - bug-triage
+  - '2026-10-20'
+description: 'Planning handoff only; not promotion-ready.
+
+
+  Evidence: Public behavioral validation still emits E200 for conf.post_worker_init loaded from gunicorn.conf.py
+  via spec_from_file_location and module_from_spec.
+
+
+  Design and acceptance: Extend the existing path-backed importlib identity seam only for bounded literal/standard
+  path-building loader forms. Keep source identity through module_from_spec and exec_module; reject unrelated
+  files, shadowed loaders and unknown paths. Do not restore name-only matching. Existing fix-python-importlib-dynamic-import-e200
+  covers simpler loaders, so add compatibility tests instead of duplicating its implementation.
+
+
+  Expected red: public behavioral validation emits E200 for the exact loaded hook despite the test calling
+  it. Harden with exact public symbols and behavioral tests before locking.'
+temptations:
+- risk: Treat the reported bind dynamically path-loaded python hook functions to their declared file identity
+    scenario as a reason to bypass existing validation.
+  instead: Extend the existing path-backed importlib identity seam only for bounded literal/standard path-building
+    loader forms. Keep source identity through module_from_spec and exec_module; reject unrelated files,
+    shadowed loaders and unknown paths. Do not restore name-only matching. Existing fix-python-importlib-dynamic-import-e200
+    covers simpler loaders, so add compatibility tests instead of duplicating its implementation.
+- risk: Use private-helper assertions that pass while the downstream failure remains.
+  instead: Exercise PythonValidator.collect_behavioral_artifacts through the named regression scenarios,
+    including the negative cases, before locking this draft.
+files:
+  scope:
+  - path: maid_runner/validators/_python_behavioral_references.py
+    reason: Preserve exact loaded-file function identity through existing private collector wiring.
+  - path: maid_runner/core/identity.py
+    reason: Preserve exact loaded-file function identity through existing private collector wiring.
+  create:
+  - path: tests/core/test_python_path_loaded_hook_identity.py
+    artifacts:
+    - kind: test_function
+      name: test_literal_importlib_hook_call_satisfies_e200
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+    - kind: test_function
+      name: test_different_loaded_path_does_not_cover_hook
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+    - kind: test_function
+      name: test_dynamic_unknown_path_stays_unproven
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+  read:
+  - docs/unit-testing-rules.md
+  - docs/draft-manifest-workflow.md
+  edit:
+  - path: maid_runner/validators/python.py
+    artifacts:
+    - kind: method
+      name: collect_behavioral_artifacts
+      of: PythonValidator
+      args:
+      - name: source
+        type: str
+      - name: file_path
+        type: Union[str, Path]
+      returns: CollectionResult
+      description: Existing public seam exercised by the planned regression scenarios; preserve its signature.
+validate:
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/core/test_python_path_loaded_hook_identity.py
+  - -q
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/drafts/fix-python-path-loaded-hook-identity.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
