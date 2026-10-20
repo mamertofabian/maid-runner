@@ -561,6 +561,16 @@ still apply.
     parameters remain local. Existing class/local alias behavior is unchanged.
     Earlier interpreters retain explicit syntax errors for unsupported syntax.
 
+    Imported type aliases used in Python parameter, return and variable annotations
+    count as behavioral type references, including nested generics/unions and
+    quoted forward expressions. These references preserve import/alias identity
+    and lexical shadowing and cover only `type`/`interface` artifacts; they do
+    not establish runtime use of functions, classes or attributes. Known
+    `typing`/`typing_extensions` Literal arguments and Annotated metadata are
+    value positions, not type proof. Forward expressions are parsed without
+    evaluation; malformed or unresolved expressions remain unproven. Generic
+    parameters and PEP 695 alias bindings retain their own scope.
+
     Python enum artifacts use a deliberately narrow syntactic boundary. A class
     directly subclassing a standard-library `enum.Enum`, `IntEnum`, `StrEnum`,
     `Flag`, or `IntFlag` base validates as one `kind: enum` artifact when the

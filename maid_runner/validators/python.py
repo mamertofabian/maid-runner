@@ -413,6 +413,13 @@ class _BehavioralCollector(ast.NodeVisitor):
             self._apply_module_assignment_binding(statement.targets, statement.value)
             return
 
+        if isinstance(statement, getattr(ast, "TypeAlias", ())):
+            self._unbind_module_level_bindings(
+                {getattr(statement, "name").id},
+                position=_node_end_position(statement),
+            )
+            return
+
         if isinstance(statement, ast.AnnAssign):
             if statement.value is None:
                 self._apply_module_expression_bindings(statement.annotation)
@@ -815,6 +822,100 @@ class _BehavioralCollector(ast.NodeVisitor):
     def visit_arg(self, node: ast.arg) -> None:
         return None
 
+    def _visit_type_annotation(self, node: ast.AST) -> None:
+        """Record bounded type positions without evaluating annotation expressions."""
+        if isinstance(node, ast.Name):
+            if any(
+                node.id in scope.module_alias_shadows or node.id in scope.local_values
+                for scope in self._class_scope_markers
+            ):
+                return
+            identity = self._keyword_import_identity_for_name(node.id)
+            if identity is not None:
+                source, original = identity
+                self._add_reference(
+                    node.id,
+                    import_source=source,
+                    alias_of=original,
+                    reference_context="type",
+                )
+        elif isinstance(node, ast.Attribute):
+            if _callable_root_name(node) is None:
+                return
+            if self._attribute_root_is_shadowed(
+                node
+            ) or self._attribute_root_is_local_value(node):
+                return
+            resolved = self._resolve_attribute_chain(node)
+            if resolved is not None:
+                name, source = resolved
+                self._add_reference(
+                    name, import_source=source, reference_context="type"
+                )
+        elif isinstance(node, ast.Constant) and isinstance(node.value, str):
+            try:
+                expression = ast.parse(node.value, mode="eval")
+            except SyntaxError:
+                return
+            # Parsed text has synthetic positions. Resolve its names at the
+            # annotation's source position, including same-line import events.
+            for part in ast.walk(expression):
+                if hasattr(part, "lineno"):
+                    ast.copy_location(part, node)
+            self._visit_type_annotation(expression.body)
+        elif isinstance(node, ast.Subscript):
+            root = node.value
+            while isinstance(root, (ast.Attribute, ast.Subscript)):
+                root = root.value
+            if not isinstance(root, ast.Name):
+                return
+            self._visit_type_annotation(node.value)
+            identity = None
+            if isinstance(node.value, ast.Name):
+                identity = self._keyword_import_identity_for_name(node.value.id)
+            elif isinstance(node.value, ast.Attribute):
+                resolved = self._resolve_attribute_chain(node.value)
+                if resolved is not None:
+                    name, source = resolved
+                    identity = source, name
+            elements = (
+                node.slice.elts if isinstance(node.slice, ast.Tuple) else (node.slice,)
+            )
+            if identity is not None and identity[0] in {"typing", "typing_extensions"}:
+                if identity[1] == "Literal":
+                    return
+                if identity[1] == "Annotated":
+                    elements = elements[:1]
+            for element in elements:
+                self._visit_type_annotation(element)
+        elif isinstance(node, ast.BinOp) and isinstance(node.op, ast.BitOr):
+            self._visit_type_annotation(node.left)
+            self._visit_type_annotation(node.right)
+        elif isinstance(node, (ast.Tuple, ast.List)):
+            for element in node.elts:
+                self._visit_type_annotation(element)
+        elif isinstance(node, ast.Starred):
+            self._visit_type_annotation(node.value)
+
+    def _type_parameter_names(self, node: ast.AST) -> set[str]:
+        return {
+            getattr(parameter, "name") for parameter in getattr(node, "type_params", ())
+        }
+
+    def visit_TypeAlias(self, node: ast.AST) -> None:
+        name = getattr(node, "name").id
+        self._unbind_module_aliases({name})
+        self._local_value_scopes[-1].add(name)
+        self._push_expression_shadow_scope(self._type_parameter_names(node))
+        try:
+            for parameter in getattr(node, "type_params", ()):
+                bound = getattr(parameter, "bound", None)
+                if bound is not None:
+                    self._visit_type_annotation(bound)
+            self._visit_type_annotation(getattr(node, "value"))
+        finally:
+            self._pop_expression_shadow_scope()
+
     def visit_Assign(self, node: ast.Assign) -> None:
         names: set[str] = set()
         for target in node.targets:
@@ -831,6 +932,7 @@ class _BehavioralCollector(ast.NodeVisitor):
         names: set[str] = set()
         _collect_target_bindings(node.target, names)
         self.visit(node.target)
+        self._visit_type_annotation(node.annotation)
         if node.value is None:
             return
         self.visit(node.value)
@@ -1227,10 +1329,12 @@ class _BehavioralCollector(ast.NodeVisitor):
             object_owner_scopes=self._object_owner_scopes,
         )
         self._class_scope_markers.append(class_scope)
+        self._push_expression_shadow_scope(self._type_parameter_names(node))
         try:
             for statement in node.body:
                 self.visit(statement)
         finally:
+            self._pop_expression_shadow_scope()
             self._class_scope_markers.pop()
             class_scope.pop_from(
                 local_import_scopes=self._local_import_scopes,
@@ -1250,14 +1354,28 @@ class _BehavioralCollector(ast.NodeVisitor):
         node: ast.FunctionDef | ast.AsyncFunctionDef,
     ) -> None:
         self._visit_runtime_definition_expressions(node)
-        self._unbind_module_aliases({node.name})
-        self._local_value_scopes[-1].add(node.name)
-        if self._is_pytest_discoverable_test_function(node.name):
-            self._reference_recorder.add_test_function_reference(
-                node.name,
-                node.lineno,
-            )
-        self._visit_function_body_without_class_scopes(node)
+        self._push_expression_shadow_scope(self._type_parameter_names(node))
+        try:
+            arguments = [*node.args.posonlyargs, *node.args.args, *node.args.kwonlyargs]
+            if node.args.vararg is not None:
+                arguments.append(node.args.vararg)
+            if node.args.kwarg is not None:
+                arguments.append(node.args.kwarg)
+            for argument in arguments:
+                if argument.annotation is not None:
+                    self._visit_type_annotation(argument.annotation)
+            if node.returns is not None:
+                self._visit_type_annotation(node.returns)
+            self._unbind_module_aliases({node.name})
+            self._local_value_scopes[-1].add(node.name)
+            if self._is_pytest_discoverable_test_function(node.name):
+                self._reference_recorder.add_test_function_reference(
+                    node.name,
+                    node.lineno,
+                )
+            self._visit_function_body_without_class_scopes(node)
+        finally:
+            self._pop_expression_shadow_scope()
 
     def _visit_function_body_without_class_scopes(
         self,
