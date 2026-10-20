@@ -632,7 +632,9 @@ def revision_preserves_red_evidence(
         return False
     root = Path(project_root)
     manifest = load_manifest(manifest_path)
-    preserves_red = _red_evidence_dict_is_valid(existing.red_evidence)
+    preserves_red = _red_evidence_dict_is_valid(
+        existing.red_evidence, root, existing.test_hashes
+    )
     preserves_test_only_green = _test_only_green_payload_is_valid(existing.red_evidence)
     preserves_legacy_baseline = _legacy_baseline_is_valid(
         existing.legacy_baseline,
@@ -1153,7 +1155,7 @@ def enforce_plan_locks(
                 )
             elif (
                 lock.red_evidence is not None
-                and _red_evidence_is_valid(lock.red_evidence)
+                and _red_evidence_is_valid(lock.red_evidence, root, lock.test_hashes)
                 and lock.legacy_baseline is None
             ):
                 pass
@@ -1258,9 +1260,15 @@ def _hash_test_files(project_root: Path, paths: list[str]) -> dict[str, str]:
     return hashes
 
 
-def _red_evidence_dict_is_valid(evidence: dict | None) -> bool:
+def _red_evidence_dict_is_valid(
+    evidence: dict | None,
+    project_root: Path | None = None,
+    behavioral_test_files: Collection[str] = (),
+) -> bool:
     """Return whether a lock's red_evidence dict is valid red-phase evidence."""
-    return isinstance(evidence, dict) and _red_evidence_is_valid(evidence)
+    return isinstance(evidence, dict) and _red_evidence_is_valid(
+        evidence, project_root, behavioral_test_files
+    )
 
 
 def _current_test_hash_or_none(
@@ -1861,7 +1869,11 @@ def _red_evidence_contract_command_groups(
     return validate_commands, acceptance_commands
 
 
-def _red_evidence_is_valid(evidence: dict) -> bool:
+def _red_evidence_is_valid(
+    evidence: dict,
+    project_root: Path | None = None,
+    behavioral_test_files: Collection[str] = (),
+) -> bool:
     if not isinstance(evidence, dict) or evidence.get("red") is not True:
         return False
     if evidence.get("command_source") not in {
@@ -1871,7 +1883,9 @@ def _red_evidence_is_valid(evidence: dict) -> bool:
         return False
     mode = evidence.get("mode")
     if mode == "stash_restoration":
-        return _stash_restoration_red_evidence_is_valid(evidence)
+        return _stash_restoration_red_evidence_is_valid(
+            evidence, project_root, behavioral_test_files
+        )
     if mode is not None:
         return False
     commands = evidence.get("commands")
@@ -1883,7 +1897,11 @@ def _red_evidence_is_valid(evidence: dict) -> bool:
     return "red" in classifications and "invalid" not in classifications
 
 
-def _stash_restoration_red_evidence_is_valid(evidence: dict) -> bool:
+def _stash_restoration_red_evidence_is_valid(
+    evidence: dict,
+    project_root: Path | None,
+    behavioral_test_files: Collection[str],
+) -> bool:
     """Validate mixed red evidence proven by an exact-stash restoration run."""
     commands = evidence.get("commands")
     restored_commands = evidence.get("restored_commands")
@@ -1904,10 +1922,73 @@ def _stash_restoration_red_evidence_is_valid(evidence: dict) -> bool:
         return False
     if any(command["classification"] == "invalid" for command in restored_commands):
         return False
-    return all(
+    if not all(
         command["command"] == restored_command["command"]
         for command, restored_command in zip(commands, restored_commands)
+    ):
+        return False
+    attribution = _stash_restoration_behavioral_red_commands(
+        evidence, project_root, behavioral_test_files
     )
+    return bool(attribution) and (
+        "behavioral_red_commands" not in evidence
+        or evidence["behavioral_red_commands"] == attribution
+    )
+
+
+def _stash_restoration_behavioral_red_commands(
+    evidence: dict,
+    project_root: Path | None,
+    behavioral_test_files: Collection[str],
+) -> list[dict]:
+    """Attribute failed execution through the existing bounded target resolver."""
+    from functools import partial
+
+    from maid_runner.core._django_test_targets import (
+        django_test_paths_from_validate_segment,
+    )
+    from maid_runner.core._test_command_targets import (
+        test_files_covered_by_validate_command,
+    )
+    from maid_runner.core.config import load_config
+
+    if project_root is None or not behavioral_test_files:
+        return []
+    wrappers = load_config(project_root).test_runner_wrappers
+    attribution: list[dict] = []
+    for phase, key in (("stashed", "commands"), ("restored", "restored_commands")):
+        commands = evidence.get(key)
+        if not isinstance(commands, list):
+            return []
+        for command in commands:
+            if not isinstance(command, dict) or command.get("classification") != "red":
+                continue
+            command_text = command.get("command")
+            if not isinstance(command_text, str):
+                continue
+            try:
+                argv = tuple(shlex.split(command_text))
+            except ValueError:
+                continue
+            covered = test_files_covered_by_validate_command(
+                argv,
+                sorted(behavioral_test_files),
+                project_root,
+                django_test_paths_from_validate_segment=partial(
+                    django_test_paths_from_validate_segment,
+                    test_runner_wrappers=wrappers,
+                ),
+                test_runner_wrappers=wrappers,
+            )
+            if covered:
+                attribution.append(
+                    {
+                        "phase": phase,
+                        "command": command_text,
+                        "test_files": sorted(covered),
+                    }
+                )
+    return attribution
 
 
 def _red_command_payload_is_consistent(command: object) -> bool:

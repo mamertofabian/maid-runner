@@ -1,0 +1,252 @@
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Require behavioral test failure evidence instead of lint-only red in stash restoration
+type: fix
+created: '2026-10-20T15:27:37Z'
+description: Require a failing executing behavioral runner in stash-restoration evidence,
+  derived through existing command-target APIs against the locked behavioral inventory
+  and current registered-wrapper configuration. A lint-only hidden failure plus invalid
+  behavioral collection and restored-green tests is invalid, including forged provenance.
+  Retain genuine behavioral red from either phase, exact restoration checks and ordinary
+  acceptance red. Persist precise phase/command/test provenance and recompute it when
+  verifying or preserving evidence; never trust output text or the stored attribution
+  alone. No broad runner parser or ordinary evidence-policy expansion.
+temptations:
+- risk: Trust a stored behavioral attribution label or parse pytest output text as
+    proof.
+  instead: Derive executing test targets from existing command APIs against the locked
+    behavioral inventory and registered wrapper context; recompute any persisted phase/command/test
+    attribution at validation.
+- risk: Reject all import-obstruction recovery or accept a lint-only red because restored
+    commands are valid.
+  instead: Retain genuine behavioral failures from either captured phase, preserve
+    exact command matching and all restored-state safety checks, reject restored-green/lint-only
+    proof, and preserve historical honest payloads without the new advisory attribution
+    field.
+- risk: Expand ordinary capture policy or build a new runner parser during this focused
+    fix.
+  instead: Change only stash-restoration attribution, reuse bounded runner target
+    APIs, and retain ordinary acceptance red plus contract/test-hash preservation
+    rules.
+files:
+  scope:
+  - path: maid_runner/cli/commands/plan.py
+    reason: Require behavioral test failure evidence instead of lint-only red in stash
+      restoration; preserve public API unless refined in this same draft.
+  - path: docs/plans/bug-report-triage-2026-10-20.md
+    reason: Synchronize promoted fix link and canonical resolved report disposition.
+  - path: maid_runner/core/run_evaluation.py
+    reason: Thread owning root and locked test inventory into private evidence-status
+      classification so evaluate agrees with enforcement; preserve public evaluation
+      API.
+  create:
+  - path: tests/core/test_fix_behavioral_red_command_attribution.py
+    artifacts:
+    - kind: test_function
+      name: test_lint_red_cannot_replace_invalid_behavioral_test
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: lint red cannot replace invalid behavioral test
+    - kind: test_function
+      name: test_restored_green_does_not_turn_collection_error_into_behavioral_red
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: restored green does not turn collection error into behavioral red
+    - kind: test_function
+      name: test_genuine_behavioral_red_remains_accepted
+      args:
+      - name: tmp_path
+        type: Path
+      - name: red_phase
+        type: str
+      returns: None
+      description: genuine behavioral red remains accepted
+    - kind: test_function
+      name: test_changed_behavioral_contract_cannot_preserve_stale_red
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: changed behavioral contract cannot preserve stale red
+    - kind: test_function
+      name: test_acceptance_behavioral_red_remains_accepted
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: Ordinary acceptance runner red remains valid.
+    - kind: test_function
+      name: test_registered_wrapper_red_is_attributed
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: Registered repository wrapper failures retain exact behavioral
+        command attribution.
+    - kind: test_function
+      name: test_nonexecuting_runner_cannot_supply_behavioral_red
+      args:
+      - name: tmp_path
+        type: Path
+      - name: mode
+        type: str
+      returns: None
+      description: Collection/help/version invocations cannot provide behavioral red
+        attribution.
+  read:
+  - docs/unit-testing-rules.md
+  - docs/draft-manifest-workflow.md
+  - maid_runner/core/_test_command_targets.py
+  - maid_runner/core/_django_test_targets.py
+  - maid_runner/core/config.py
+  edit:
+  - path: maid_runner/core/plan_lock.py
+    artifacts:
+    - kind: function
+      name: capture_red_phase_evidence
+      args:
+      - name: manifest_path
+        type: Path
+      - name: project_root
+        type: Path
+      - name: command_timeout_seconds
+        type: int
+        default: '300'
+      returns: RedPhaseEvidence
+      description: Existing public seam exercised by the planned regression scenarios;
+        preserve its signature.
+    - kind: function
+      name: revision_preserves_red_evidence
+      args:
+      - name: existing
+        type: PlanLock
+      - name: manifest_path
+        type: Path
+      - name: project_root
+        type: Path
+      - name: prior_contract
+        type: Union[dict, None]
+      returns: bool
+      description: Existing public seam exercised by the planned regression scenarios;
+        preserve its signature.
+    - kind: function
+      name: enforce_plan_locks
+      args:
+      - name: chain
+        type: ManifestChain
+      - name: project_root
+        type: Path
+      - name: require_plan_lock
+        type: bool
+      - name: require_red_evidence
+        type: bool
+      - name: changed_paths
+        type: Collection[str] | None
+        default: None
+      - name: plan_lock_scope
+        type: str
+        default: repository
+      returns: tuple[ValidationError, ...]
+      description: Reject stash-restoration evidence without actual behavioral red,
+        recomputing exact attribution in the owning project context.
+validate:
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/core/test_fix_behavioral_red_command_attribution.py
+  - -q
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/cli/test_plan_cmd_stash_import_obstruction.py
+  - tests/core/test_plan_lock_red_evidence.py
+  - tests/cli/test_plan_revise_auto_preserve.py
+  - tests/core/test_acceptance_red_evidence.py
+  - tests/core/test_run_evaluation.py
+  - -q
+outcome:
+  status: completed
+  completed_at: '2026-10-20T15:43:12.474740+00:00'
+  summary: Rejected lint-only stash-restoration proof and forged attribution, retained
+    genuine behavioral red from either phase with recomputed phase/command/test provenance,
+    and kept enforcement, preservation and run evaluation consistent.
+  lessons:
+  - lesson_type: validation-trust
+    summary: Recompute behavioral command attribution from the owning project and
+      locked test inventory in every evidence consumer, including evaluation. Restored-green
+      tests cannot legitimize lint-only red; honest legacy payloads can remain valid
+      without trusting stored attribution labels.
+    tags:
+    - red-evidence
+    - provenance
+    - maid-runner-feedback
+    paths:
+    - maid_runner/core/plan_lock.py
+    - maid_runner/cli/commands/plan.py
+    - maid_runner/core/run_evaluation.py
+  - lesson_type: test-design
+    summary: Same-second, same-size Python bytecode caches can make a restored-green
+      fixture appear behaviorally red. Use distinct fixture source lengths rather
+      than sleeps so stash restoration tests measure the intended state.
+    tags:
+    - testing
+    - determinism
+    paths:
+    - tests/core/test_fix_behavioral_red_command_attribution.py
+  review_notes:
+  - source: independent-read-only-implementation_review_attribution_v2
+    severity: ready
+    summary: No blocking or advisory findings. Reviewer inspected complete scope,
+      evidence callers, restoration safety, registered-wrapper and legacy behavior;
+      independently passed 57 focused/adjacent cases and scoped implementation validation.
+  validation:
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --quiet
+    status: passed
+    summary: Full active-manifest validation passed; scoped implementation validation
+      and 296 broader plan-lock/plan/promotion/evaluation regression tests also passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: All 312 declared commands passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - b3d890d3
+    status: passed
+    summary: All 11 stages passed with zero blockers; existing E307 warnings only.
+      Revision4 carries genuine preimplementation 9-failure/1-pass evidence and 47 passing
+      adjacent regressions.

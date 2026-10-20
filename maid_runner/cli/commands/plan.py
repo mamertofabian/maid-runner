@@ -12,6 +12,7 @@ import subprocess
 import sys
 import uuid
 from collections import Counter
+from collections.abc import Collection
 from dataclasses import replace
 from pathlib import Path
 
@@ -297,6 +298,8 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
         existing.red_evidence,
         existing.legacy_baseline,
         ctx.lock_path,
+        project_root=ctx.project_root,
+        behavioral_test_files=existing.test_hashes,
     )
     if preserve_red_evidence and preserved_evidence_class is None:
         print_error(
@@ -539,18 +542,31 @@ def _manifest_status_errors() -> tuple[type[Exception], ...]:
     return (YAMLError, OSError, ValueError)
 
 
-def _red_evidence_payload_is_valid(evidence: dict | None) -> bool:
+def _red_evidence_payload_is_valid(
+    evidence: dict | None,
+    project_root: Path | None = None,
+    behavioral_test_files: Collection[str] = (),
+) -> bool:
     """Return whether an existing lock payload is valid red evidence."""
     from maid_runner.core.plan_lock import _red_evidence_is_valid
 
-    return isinstance(evidence, dict) and _red_evidence_is_valid(evidence)
+    return isinstance(evidence, dict) and _red_evidence_is_valid(
+        evidence, project_root, behavioral_test_files
+    )
 
 
 def _stash_restoration_evidence_payload(
-    stashed_evidence: dict, restored_evidence: dict
+    stashed_evidence: dict,
+    restored_evidence: dict,
+    *,
+    project_root: Path,
+    behavioral_test_files: Collection[str],
 ) -> dict | None:
     """Build auditable recovery evidence when restoration resolves invalid runs."""
-    from maid_runner.core.plan_lock import _red_evidence_is_valid
+    from maid_runner.core.plan_lock import (
+        _red_evidence_is_valid,
+        _stash_restoration_behavioral_red_commands,
+    )
 
     payload = {
         **stashed_evidence,
@@ -559,7 +575,14 @@ def _stash_restoration_evidence_payload(
         "restored_captured_at": restored_evidence.get("captured_at"),
         "restored_commands": restored_evidence.get("commands"),
     }
-    return payload if _red_evidence_is_valid(payload) else None
+    payload["behavioral_red_commands"] = _stash_restoration_behavioral_red_commands(
+        payload, project_root, behavioral_test_files
+    )
+    return (
+        payload
+        if _red_evidence_is_valid(payload, project_root, behavioral_test_files)
+        else None
+    )
 
 
 def _has_mixed_red_and_invalid_commands(evidence: dict) -> bool:
@@ -680,10 +703,17 @@ def _preservable_evidence_class(
     evidence: object,
     legacy_baseline: object = None,
     lock_path: Path | None = None,
+    *,
+    project_root: Path | None = None,
+    behavioral_test_files: Collection[str] = (),
 ) -> str | None:
     if evidence is not None and legacy_baseline is not None:
         return None
-    if _red_evidence_payload_is_valid(evidence if isinstance(evidence, dict) else None):
+    if _red_evidence_payload_is_valid(
+        evidence if isinstance(evidence, dict) else None,
+        project_root,
+        behavioral_test_files,
+    ):
         return "red"
     if _test_only_green_payload_is_valid(evidence):
         return "test-only-green"
@@ -1162,14 +1192,19 @@ def _cmd_plan_revise_with_stashed_implementation(
                     )
                     return 2
                 recovery_evidence = _stash_restoration_evidence_payload(
-                    evidence, restored_evidence
+                    evidence,
+                    restored_evidence,
+                    project_root=ctx.project_root,
+                    behavioral_test_files=revised.test_hashes,
                 )
                 _drop_stash_entry(ctx.project_root, stash_hash)
                 restored = True
                 implementation_applied = False
                 if recovery_evidence is not None:
                     evidence = recovery_evidence
-            if not _red_evidence_payload_is_valid(evidence):
+            if not _red_evidence_payload_is_valid(
+                evidence, ctx.project_root, revised.test_hashes
+            ):
                 details = _format_red_evidence_capture_details(evidence)
                 if restored_evidence is not None:
                     details += (

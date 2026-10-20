@@ -106,7 +106,7 @@ def evaluate_run(manifest_path: Path, project_root: Path) -> RunEvaluation:
     ) = _classify_revisions(lock)
     findings.extend(revision_findings)
 
-    red_evidence_status = _red_evidence_status(lock_state)
+    red_evidence_status = _red_evidence_status(lock_state, root)
     findings.append(
         _red_evidence_finding(manifest.slug, red_evidence_status, lock_state)
     )
@@ -308,7 +308,7 @@ def _classify_delta(delta: ContractDelta) -> str:
     return "neutral"
 
 
-def _red_evidence_status(lock_state: _LockState) -> str:
+def _red_evidence_status(lock_state: _LockState, project_root: Path) -> str:
     if not lock_state.present:
         return "no-lock"
     if lock_state.lock is None:
@@ -316,7 +316,11 @@ def _red_evidence_status(lock_state: _LockState) -> str:
     if lock_state.lock.red_evidence is None:
         return "missing"
     return (
-        "valid" if _red_evidence_is_valid(lock_state.lock.red_evidence) else "invalid"
+        "valid"
+        if _red_evidence_is_valid(
+            lock_state.lock.red_evidence, project_root, lock_state.lock.test_hashes
+        )
+        else "invalid"
     )
 
 
