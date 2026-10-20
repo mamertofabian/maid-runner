@@ -379,6 +379,11 @@ Likely cause: A declared artifact still contains a placeholder body such as
 `pass`, `TODO`, or `NotImplementedError`.
 
 Fix: Replace the placeholder with real behavior that passes the declared tests.
+Known module-level `typing.Protocol` and `typing_extensions.Protocol`
+interfaces, including supported import aliases and generic bases, may retain
+signature-only docstring, `pass`, or ellipsis bodies without `E310`. Concrete
+Protocol defaults retain normal stub checks. Shadowed or uncertain local
+bindings remain subject to ordinary checks; arbitrary runtime bases are not inferred.
 If the artifact is intentionally abstract, make sure it uses supported abstract
 method conventions. If a callable is an intentional documented default hook
 whose neutral implementation is part of the contract, acknowledge that exact

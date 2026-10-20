@@ -1,0 +1,373 @@
+{
+  "manifest_path": "manifests/fix-protocol-interface-stub-detection.manifest.yaml",
+  "manifest_hash": "sha256-contract:342c018c10b2cf6c91fbb4938252cab82cf70060ad6671cbbf462b77021e95b1",
+  "test_hashes": {
+    "tests/core/test_fix_protocol_interface_stub_detection.py": "sha256-pyast:v2:cadc4e7c61fc10efc8b537a0f08ad74f87b40f7ccce9bd6883cc8e670636f57c",
+    "tests/validators/test_python_parser_replacement_boundaries.py": "sha256-pyast:v2:f823f96053b8a216634fc34b1b62bf743520f0b53df60a8fc8b2d67de4615175",
+    "tests/validators/test_python.py": "sha256-pyast:v2:8d2e094f21edad8c3dea08e89cb437cfa87e9833d1157a8a216bcc65d6d00a4e",
+    "tests/validators/test_python_enum_artifacts.py": "sha256-pyast:v2:15d1329957ead7a5a293952a008889577cfb042761855a590f8a2bcababa0092",
+    "tests/validators/test_python_type_alias.py": "sha256-pyast:v2:ba92cc06e1b653745764adb15b9e02a252e64ada14e15197d2202779b16b993d",
+    "tests/core/test_default_hook_stub_exemption.py": "sha256-pyast:v2:5e8ddab693cecacc061549ca8c62c27633885d3dfe9d852af677a24856d9a08b"
+  },
+  "created_at": "2026-10-20T17:51:47.387287+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:e569241ea08297c698a591bd6d546073231e80c27691d5411e4b71891808f3ab",
+      "prior_test_hashes": {
+        "tests/core/test_fix_protocol_interface_stub_detection.py": "sha256-pyast:v2:22b6ca60873993bba2bc76d974c57e9cd5b207c66ca6a69f41de9b0450e21c49",
+        "tests/validators/test_python.py": "sha256-pyast:v2:8d2e094f21edad8c3dea08e89cb437cfa87e9833d1157a8a216bcc65d6d00a4e",
+        "tests/validators/test_python_enum_artifacts.py": "sha256-pyast:v2:15d1329957ead7a5a293952a008889577cfb042761855a590f8a2bcababa0092",
+        "tests/validators/test_python_type_alias.py": "sha256-pyast:v2:ba92cc06e1b653745764adb15b9e02a252e64ada14e15197d2202779b16b993d",
+        "tests/validators/test_python_parser_replacement_boundaries.py": "sha256-pyast:v2:427e788bd0a36f5c1b2b4cd8035b63b10b6631c40f7901bafb975169dc1f8c07",
+        "tests/core/test_default_hook_stub_exemption.py": "sha256-pyast:v2:5e8ddab693cecacc061549ca8c62c27633885d3dfe9d852af677a24856d9a08b"
+      },
+      "revised_at": "2026-10-20T17:52:19.700440+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-protocol-interface-stub-detection.manifest.yaml -> manifests/fix-protocol-interface-stub-detection.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6f45b096e8dadc5b4c628a818f54310ac752bb8b5500a68730469425bd64ba48",
+      "prior_test_hashes": {
+        "tests/core/test_fix_protocol_interface_stub_detection.py": "sha256-pyast:v2:22b6ca60873993bba2bc76d974c57e9cd5b207c66ca6a69f41de9b0450e21c49",
+        "tests/validators/test_python.py": "sha256-pyast:v2:8d2e094f21edad8c3dea08e89cb437cfa87e9833d1157a8a216bcc65d6d00a4e",
+        "tests/validators/test_python_enum_artifacts.py": "sha256-pyast:v2:15d1329957ead7a5a293952a008889577cfb042761855a590f8a2bcababa0092",
+        "tests/validators/test_python_type_alias.py": "sha256-pyast:v2:ba92cc06e1b653745764adb15b9e02a252e64ada14e15197d2202779b16b993d",
+        "tests/validators/test_python_parser_replacement_boundaries.py": "sha256-pyast:v2:427e788bd0a36f5c1b2b4cd8035b63b10b6631c40f7901bafb975169dc1f8c07",
+        "tests/core/test_default_hook_stub_exemption.py": "sha256-pyast:v2:5e8ddab693cecacc061549ca8c62c27633885d3dfe9d852af677a24856d9a08b"
+      },
+      "revised_at": "2026-10-20T17:54:45.390721+00:00",
+      "reason": "Evolve old parser Protocol characterization under the declared interface semantics",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:tests/validators/test_python_parser_replacement_boundaries.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4f142e562af57999aa51fb99c41862e8e2d0a41b43c87014ffb60b2ac03db6f5",
+      "prior_test_hashes": {
+        "tests/core/test_fix_protocol_interface_stub_detection.py": "sha256-pyast:v2:22b6ca60873993bba2bc76d974c57e9cd5b207c66ca6a69f41de9b0450e21c49",
+        "tests/validators/test_python_parser_replacement_boundaries.py": "sha256-pyast:v2:f823f96053b8a216634fc34b1b62bf743520f0b53df60a8fc8b2d67de4615175",
+        "tests/validators/test_python.py": "sha256-pyast:v2:8d2e094f21edad8c3dea08e89cb437cfa87e9833d1157a8a216bcc65d6d00a4e",
+        "tests/validators/test_python_enum_artifacts.py": "sha256-pyast:v2:15d1329957ead7a5a293952a008889577cfb042761855a590f8a2bcababa0092",
+        "tests/validators/test_python_type_alias.py": "sha256-pyast:v2:ba92cc06e1b653745764adb15b9e02a252e64ada14e15197d2202779b16b993d",
+        "tests/core/test_default_hook_stub_exemption.py": "sha256-pyast:v2:5e8ddab693cecacc061549ca8c62c27633885d3dfe9d852af677a24856d9a08b"
+      },
+      "revised_at": "2026-10-20T17:56:40.955644+00:00",
+      "reason": "Cover existing annotated/augmented Protocol binding events before finalizing shared guard evolution",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_member_annotation_without_assignment_keeps_binding",
+          "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_member_annotation_without_assignment_keeps_binding:kind=test_function",
+          "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_member_annotation_without_assignment_keeps_binding:returns=None",
+          "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_member_assignment_forms_are_not_exempt",
+          "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_member_assignment_forms_are_not_exempt:arg=statement:type=str:default=None",
+          "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_member_assignment_forms_are_not_exempt:kind=test_function",
+          "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_member_assignment_forms_are_not_exempt:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-20T17:56:42.091109+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_fix_protocol_interface_stub_detection.py -q",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/core/test_fix_protocol_interface_stub_detection.py::test_protocol_signature_is_not_e310[True-\"Read contract.\"-from typing_extensions import Protocol as P-P]\nFAILED tests/core/test_fix_protocol_interface_stub_detection.py::test_protocol_signature_is_not_e310[True-\"Read contract.\"-import typing_extensions as t-t.Protocol]\nFAILED tests/core/test_fix_protocol_interface_stub_detection.py::test_protocol_signature_is_not_e310[True-\"Read contract.\"-from typing import *-Protocol]\nFAILED tests/core/test_fix_protocol_interface_stub_detection.py::test_protocol_signature_is_not_e310[True-\"Read contract.\"-from typing_extensions import *-Protocol]\nFAILED tests/core/test_fix_protocol_interface_stub_detection.py::test_protocol_signature_is_not_e310[True-\"Read contract.\"-import typing as t\\nfrom typing import TypeVar\\n_T = TypeVar('_T')-t.Protocol[_T]]\nFAILED tests/core/test_fix_protocol_interface_stub_detection.py::test_protocol_signature_is_not_e310[True-\"Read contract.\"-from typing import Protocol, TypeVar\\n_T = TypeVar('_T')-Protocol[_T]]\nFAILED tests/core/test_fix_protocol_interface_stub_detection.py::test_protocol_signature_is_not_e310[True-\"Read contract.\"\\n...-from typing import Protocol-Protocol]\nFAILED tests/core/test_fix_protocol_interface_stub_detection.py::test_protocol_signature_is_not_e310[True-\"Read contract.\"\\n...-from typing import Protocol as P-P]\nFAILED tests/core/test_fix_protocol_interface_stub_detection.py::test_protocol_signature_is_not_e310[True-\"Read contract.\"\\n...-import typing-typing.Protocol]\nFAILED tests/core/test_fix_protocol_interface_stub_detection.py::test_protocol_signature_is_not_e310[True-\"Read contract.\"\\n...-import typing as t-t.Protocol]\nFAILED tests/core/test_fix_protocol_interface_stub_detection.py::test_protocol_signature_is_not_e310[True-\"Read contract.\"\\n...-from typing_extensions import Protocol-Protocol]\nFAILED tests/core/test_fix_protocol_interface_stub_detection.py::test_protocol_signature_is_not_e310[True-\"Read contract.\"\\n...-from typing_extensions import Protocol as P-P]\nFAILED tests/core/test_fix_protocol_interface_stub_detection.py::test_protocol_signature_is_not_e310[True-\"Read contract.\"\\n...-import typing_extensions as t-t.Protocol]\nFAILED tests/core/test_fix_protocol_interface_stub_detection.py::test_protocol_signature_is_not_e310[True-\"Read contract.\"\\n...-from typing import *-Protocol]\nFAILED tests/core/test_fix_protocol_interface_stub_detection.py::test_protocol_signature_is_not_e310[True-\"Read contract.\"\\n...-from typing_extensions import *-Protocol]\nFAILED tests/core/test_fix_protocol_interface_stub_detection.py::test_protocol_signature_is_not_e310[True-\"Read contract.\"\\n...-import typing as t\\nfrom typing import TypeVar\\n_T = TypeVar('_T')-t.Protocol[_T]]\nFAILED tests/core/test_fix_protocol_interface_stub_detection.py::test_protocol_signature_is_not_e310[True-\"Read contract.\"\\n...-from typing import Protocol, TypeVar\\n_T = TypeVar('_T')-Protocol[_T]]\nFAILED tests/core/test_fix_protocol_interface_stub_detection.py::test_async_protocol_parameters_are_preserved\nFAILED tests/core/test_fix_protocol_interface_stub_detection.py::test_protocol_member_annotation_without_assignment_keeps_binding\n90 failed, 27 passed in 0.45s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest tests/validators/test_python.py tests/validators/test_python_enum_artifacts.py tests/validators/test_python_type_alias.py tests/validators/test_python_parser_replacement_boundaries.py tests/core/test_default_hook_stub_exemption.py -q",
+        "exit_code": 1,
+        "output_tail": "        def resize(self, factor: float) -> None: ...\n        def get_label(self) -> str: ...\n    \"\"\"\n        result = validator.collect_implementation_artifacts(source, \"protocols.py\")\n    \n        drawable = _find(result.artifacts, \"Drawable\", kind=ArtifactKind.CLASS)\n        assert drawable is not None, \"Protocol class itself must be collected\"\n        assert \"Protocol\" in drawable.bases, \"Protocol base must be preserved\"\n    \n        draw = _find(result.artifacts, \"draw\", kind=ArtifactKind.METHOD, of=\"Drawable\")\n        assert draw is not None, \"Protocol method draw must be collected\"\n>       assert draw.is_stub is False, \"Protocol signature is an interface contract\"\nE       AssertionError: Protocol signature is an interface contract\nE       assert True is False\nE        +  where True = FoundArtifact(kind=<ArtifactKind.METHOD: 'method'>, name='draw', of='Drawable', args=(ArgSpec(name='canvas', type='str...dule_path='protocols', import_source=None, alias_of=None, reference_context=None, signature=None, _canonical_kind=None).is_stub\n\ntests/validators/test_python_parser_replacement_boundaries.py:107: AssertionError\n=========================== short test summary info ============================\nFAILED tests/validators/test_python_parser_replacement_boundaries.py::test_protocol_methods_follow_current_class_method_collection\n1 failed, 88 passed in 0.30s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/validators/_python_implementation.py:function:collect_implementation_artifacts",
+      "maid_runner/validators/_python_implementation.py:function:collect_implementation_artifacts:arg=file_path:type=str:default=None",
+      "maid_runner/validators/_python_implementation.py:function:collect_implementation_artifacts:arg=tree:type=ast.AST:default=None",
+      "maid_runner/validators/_python_implementation.py:function:collect_implementation_artifacts:kind=function",
+      "maid_runner/validators/_python_implementation.py:function:collect_implementation_artifacts:returns=list[FoundArtifact]",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_async_protocol_parameters_are_preserved",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_async_protocol_parameters_are_preserved:kind=test_function",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_async_protocol_parameters_are_preserved:returns=None",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_concrete_signature_placeholders_remain_e310",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_concrete_signature_placeholders_remain_e310:arg=body:type=str:default=None",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_concrete_signature_placeholders_remain_e310:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_concrete_signature_placeholders_remain_e310:kind=test_function",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_concrete_signature_placeholders_remain_e310:returns=None",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_existing_abstract_method_exemption_is_preserved",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_existing_abstract_method_exemption_is_preserved:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_existing_abstract_method_exemption_is_preserved:kind=test_function",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_existing_abstract_method_exemption_is_preserved:returns=None",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_context_does_not_leak_to_free_functions",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_context_does_not_leak_to_free_functions:kind=test_function",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_context_does_not_leak_to_free_functions:returns=None",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_default_bodies_keep_concrete_stub_policy",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_default_bodies_keep_concrete_stub_policy:arg=body:type=str:default=None",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_default_bodies_keep_concrete_stub_policy:arg=stub:type=bool:default=None",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_default_bodies_keep_concrete_stub_policy:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_default_bodies_keep_concrete_stub_policy:kind=test_function",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_default_bodies_keep_concrete_stub_policy:returns=None",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_member_annotation_without_assignment_keeps_binding",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_member_annotation_without_assignment_keeps_binding:kind=test_function",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_member_annotation_without_assignment_keeps_binding:returns=None",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_member_assignment_forms_are_not_exempt",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_member_assignment_forms_are_not_exempt:arg=statement:type=str:default=None",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_member_assignment_forms_are_not_exempt:kind=test_function",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_member_assignment_forms_are_not_exempt:returns=None",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_signature_is_not_e310",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_signature_is_not_e310:arg=async_method:type=bool:default=None",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_signature_is_not_e310:arg=base:type=str:default=None",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_signature_is_not_e310:arg=body:type=str:default=None",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_signature_is_not_e310:arg=imports:type=str:default=None",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_signature_is_not_e310:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_signature_is_not_e310:kind=test_function",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_protocol_signature_is_not_e310:returns=None",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_unknown_or_shadowed_protocol_base_is_not_exempt",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_unknown_or_shadowed_protocol_base_is_not_exempt:arg=source:type=str:default=None",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_unknown_or_shadowed_protocol_base_is_not_exempt:kind=test_function",
+      "tests/core/test_fix_protocol_interface_stub_detection.py:test_unknown_or_shadowed_protocol_base_is_not_exempt:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_fix_protocol_interface_stub_detection.py"
+      ],
+      "edit": [
+        "maid_runner/validators/_python_implementation.py"
+      ],
+      "read": [
+        "docs/draft-manifest-workflow.md",
+        "docs/unit-testing-rules.md",
+        "maid_runner/core/module_paths.py",
+        "maid_runner/core/result.py",
+        "maid_runner/core/types.py",
+        "maid_runner/core/validate.py",
+        "maid_runner/validators/base.py",
+        "maid_runner/validators/python.py"
+      ],
+      "scope": [
+        "docs/plans/bug-report-triage-2026-10-20.md",
+        "docs/troubleshooting.md",
+        "tests/validators/test_python_parser_replacement_boundaries.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_fix_protocol_interface_stub_detection.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_protocol_signature_is_not_e310",
+              "description": "protocol signature is not e310",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "imports",
+                  "type": "str"
+                },
+                {
+                  "name": "base",
+                  "type": "str"
+                },
+                {
+                  "name": "body",
+                  "type": "str"
+                },
+                {
+                  "name": "async_method",
+                  "type": "bool"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_concrete_signature_placeholders_remain_e310",
+              "description": "concrete signature placeholders remain e310",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "body",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unknown_or_shadowed_protocol_base_is_not_exempt",
+              "description": "unknown or shadowed protocol base is not exempt",
+              "args": [
+                {
+                  "name": "source",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_protocol_default_bodies_keep_concrete_stub_policy",
+              "description": "protocol default bodies keep concrete stub policy",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "body",
+                  "type": "str"
+                },
+                {
+                  "name": "stub",
+                  "type": "bool"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_protocol_context_does_not_leak_to_free_functions",
+              "description": "protocol context does not leak to free functions",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_existing_abstract_method_exemption_is_preserved",
+              "description": "existing abstract method exemption is preserved",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_async_protocol_parameters_are_preserved",
+              "description": "async protocol parameters are preserved",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_protocol_member_assignment_forms_are_not_exempt",
+              "description": "Preserve direct Protocol member binding semantics across existing assignment syntax.",
+              "args": [
+                {
+                  "name": "statement",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_protocol_member_annotation_without_assignment_keeps_binding",
+              "description": "Preserve direct Protocol member binding semantics across existing assignment syntax.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/validators/_python_implementation.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "collect_implementation_artifacts",
+              "description": "Preserve the public collection seam while correcting known Protocol signature stub metadata.",
+              "args": [
+                {
+                  "name": "tree",
+                  "type": "ast.AST"
+                },
+                {
+                  "name": "file_path",
+                  "type": "str"
+                }
+              ],
+              "returns": "list[FoundArtifact]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "docs/unit-testing-rules.md",
+        "docs/draft-manifest-workflow.md",
+        "maid_runner/validators/python.py",
+        "maid_runner/validators/base.py",
+        "maid_runner/core/types.py",
+        "maid_runner/core/result.py",
+        "maid_runner/core/validate.py",
+        "maid_runner/core/module_paths.py"
+      ],
+      "scope": [
+        {
+          "path": "docs/troubleshooting.md",
+          "reason": "Document bounded Protocol signature exemption and retained concrete default checks."
+        },
+        {
+          "path": "docs/plans/bug-report-triage-2026-10-20.md",
+          "reason": "Reconcile promoted fix and partial canonical report resolution; PEP695 child remains open."
+        },
+        {
+          "path": "tests/validators/test_python_parser_replacement_boundaries.py",
+          "reason": "Evolve pinned old Protocol is_stub characterization under this declared semantic change; preserve and strengthen method identity/signature assertions."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_default_hook_stub_exemption.py",
+      "tests/core/test_fix_protocol_interface_stub_detection.py",
+      "tests/validators/test_python.py",
+      "tests/validators/test_python_enum_artifacts.py",
+      "tests/validators/test_python_parser_replacement_boundaries.py",
+      "tests/validators/test_python_type_alias.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_fix_protocol_interface_stub_detection.py -q",
+      "uv run python -m pytest tests/validators/test_python.py tests/validators/test_python_enum_artifacts.py tests/validators/test_python_type_alias.py tests/validators/test_python_parser_replacement_boundaries.py tests/core/test_default_hook_stub_exemption.py -q"
+    ],
+    "acceptance_commands": []
+  }
+}

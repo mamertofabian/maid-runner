@@ -82,13 +82,10 @@ class Config:
 
 
 def test_protocol_methods_follow_current_class_method_collection(validator):
-    """Protocol abstract methods are collected identically to regular class methods.
+    """Protocol signatures preserve their method identities and public types.
 
-    The stdlib-ast collector has no special handling for typing.Protocol
-    subclasses. Protocol methods with stub bodies (``...``) are collected as
-    METHOD artifacts with is_stub=True, exactly like a regular abstract base
-    class method. Any library replacement that adds Protocol-aware semantics
-    must first declare that behavior change in a new manifest.
+    The Protocol interface contract intentionally marks signature-only members
+    non-stub while retaining their bases, parameters and return annotations.
     """
     source = """\
 from typing import Protocol, runtime_checkable
@@ -107,17 +104,22 @@ class Drawable(Protocol):
 
     draw = _find(result.artifacts, "draw", kind=ArtifactKind.METHOD, of="Drawable")
     assert draw is not None, "Protocol method draw must be collected"
-    assert draw.is_stub is True, "ellipsis body must be recognized as stub"
+    assert draw.is_stub is False, "Protocol signature is an interface contract"
+    assert [(argument.name, argument.type) for argument in draw.args] == [
+        ("canvas", "str")
+    ]
+    assert draw.returns == "None"
 
     resize = _find(result.artifacts, "resize", kind=ArtifactKind.METHOD, of="Drawable")
     assert resize is not None, "Protocol method resize must be collected"
-    assert resize.is_stub is True
+    assert resize.is_stub is False
 
     get_label = _find(
         result.artifacts, "get_label", kind=ArtifactKind.METHOD, of="Drawable"
     )
     assert get_label is not None, "Protocol method get_label must be collected"
     assert get_label.returns == "str"
+    assert get_label.is_stub is False
 
 
 def test_all_reexports_do_not_expand_star_exports_without_manifest_evolution(
