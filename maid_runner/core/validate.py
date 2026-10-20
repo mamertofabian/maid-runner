@@ -217,6 +217,9 @@ class ValidationEngine:
             if chain_dir.exists():
                 chain = ManifestChain(chain_dir, self._project_root)
 
+        if chain is not None:
+            chain = chain._with_selected_draft(manifest)
+
         if mode == ValidationMode.BEHAVIORAL:
             errors = self.validate_behavioral(
                 manifest, chain, check_assertions=check_assertions

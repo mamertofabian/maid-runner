@@ -35,6 +35,13 @@ Normal validation and test execution should target promoted manifests in
 Early inventory drafts may reference planned test files that do not exist yet;
 that makes them not promotion-ready, but it is not by itself a planning defect.
 
+Chained validation of an explicitly selected superseding draft uses a temporary
+proposed chain containing that draft. Its `supersedes` declarations apply during
+validation, so replacement test names can be checked before promotion. Other
+drafts stay inactive, normal active validation keeps its current contracts, and
+supersession integrity and dropped-artifact audits still apply. Validation does
+not persist the proposed chain or modify a supplied chain object.
+
 ## Lifecycle
 
 1. Define the larger goal in an issue, spec, roadmap, or epic draft.

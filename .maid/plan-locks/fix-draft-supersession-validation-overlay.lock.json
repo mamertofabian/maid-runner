@@ -1,0 +1,457 @@
+{
+  "manifest_path": "manifests/fix-draft-supersession-validation-overlay.manifest.yaml",
+  "manifest_hash": "sha256-contract:ff47c19aea97b7d8ff7e042892a547d83cf1d2a73952ae32f49337229d3bef23",
+  "test_hashes": {
+    "tests/core/test_fix_draft_supersession_validation_overlay.py": "sha256-pyast:v2:d0982c608443dd063bae0f980d07ac09dca939ceb3d7f081dc88389d8d4a7d9f",
+    "tests/core/test_chain.py": "sha256-pyast:v2:ac8d40d023b5df4932fa907b97a23792da87a112c5763857d0559efc4924669f",
+    "tests/core/test_supersession_audit.py": "sha256-pyast:v2:adda81462215f9e1c1c9a9ad630363a7afc748b307675abb66e09d3392f2fed0",
+    "tests/core/validation/test_validate_all_chain.py": "sha256-pyast:v2:7002c4ebcd9e940603d6c109c1674be94caf8cea4a9c1f31623ef44d20958a35",
+    "tests/core/validation/test_behavioral_coverage.py": "sha256-pyast:v2:947ef5a68bc824910f74a46bfbbcb8b4dc20b548ac880ca34c95529aa9719683",
+    "tests/test_init_draft_workflow_payload.py": "sha256-pyast:v2:baefcbd8b435c0d860c58e0b49ba5aafc3e10016285234646a192a974c3462ea"
+  },
+  "created_at": "2026-10-20T20:52:37.377195+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:139179371c33c2642f953e63323caf457129e89161b03f1e0887014a32d2ad44",
+      "prior_test_hashes": {
+        "tests/core/test_fix_draft_supersession_validation_overlay.py": "sha256-pyast:v2:3734ae333c124c11c7bf0f473de12b87f6df08af3a4ef5f739be929f51021252",
+        "tests/core/test_chain.py": "sha256-pyast:v2:ac8d40d023b5df4932fa907b97a23792da87a112c5763857d0559efc4924669f",
+        "tests/core/test_supersession_audit.py": "sha256-pyast:v2:adda81462215f9e1c1c9a9ad630363a7afc748b307675abb66e09d3392f2fed0",
+        "tests/core/validation/test_validate_all_chain.py": "sha256-pyast:v2:7002c4ebcd9e940603d6c109c1674be94caf8cea4a9c1f31623ef44d20958a35",
+        "tests/core/validation/test_behavioral_coverage.py": "sha256-pyast:v2:947ef5a68bc824910f74a46bfbbcb8b4dc20b548ac880ca34c95529aa9719683",
+        "tests/test_init_draft_workflow_payload.py": "sha256-pyast:v2:baefcbd8b435c0d860c58e0b49ba5aafc3e10016285234646a192a974c3462ea"
+      },
+      "revised_at": "2026-10-20T20:52:40.656641+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-draft-supersession-validation-overlay.manifest.yaml -> manifests/fix-draft-supersession-validation-overlay.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-draft-supersession-validation-overlay.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-draft-supersession-validation-overlay.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9f8c5afa381392fb7a4c1f50c951c8b8648fc6fe2ce97700d42b79de33f81aa9",
+      "prior_test_hashes": {
+        "tests/core/test_fix_draft_supersession_validation_overlay.py": "sha256-pyast:v2:3734ae333c124c11c7bf0f473de12b87f6df08af3a4ef5f739be929f51021252",
+        "tests/core/test_chain.py": "sha256-pyast:v2:ac8d40d023b5df4932fa907b97a23792da87a112c5763857d0559efc4924669f",
+        "tests/core/test_supersession_audit.py": "sha256-pyast:v2:adda81462215f9e1c1c9a9ad630363a7afc748b307675abb66e09d3392f2fed0",
+        "tests/core/validation/test_validate_all_chain.py": "sha256-pyast:v2:7002c4ebcd9e940603d6c109c1674be94caf8cea4a9c1f31623ef44d20958a35",
+        "tests/core/validation/test_behavioral_coverage.py": "sha256-pyast:v2:947ef5a68bc824910f74a46bfbbcb8b4dc20b548ac880ca34c95529aa9719683",
+        "tests/test_init_draft_workflow_payload.py": "sha256-pyast:v2:baefcbd8b435c0d860c58e0b49ba5aafc3e10016285234646a192a974c3462ea"
+      },
+      "revised_at": "2026-10-20T20:53:52.617964+00:00",
+      "reason": "Correct draft lifecycle fixture markers, retain E109 negative, and scope packaged workflow mirror",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_preserves_unmarked_draft_rejection",
+          "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_preserves_unmarked_draft_rejection:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_preserves_unmarked_draft_rejection:kind=test_function",
+          "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_preserves_unmarked_draft_rejection:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:maid_runner/docs/draft-manifest-workflow.md"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:60ac8eeafc3bc9cd7e4a1eb7200eb2ddbd04a3b59883a636e1b07a963b3f8c17",
+      "prior_test_hashes": {
+        "tests/core/test_fix_draft_supersession_validation_overlay.py": "sha256-pyast:v2:e831f40fab4fc9d17538c93f434c5a2ca4929b0c067124c28783327c8ce9a30c",
+        "tests/core/test_chain.py": "sha256-pyast:v2:ac8d40d023b5df4932fa907b97a23792da87a112c5763857d0559efc4924669f",
+        "tests/core/test_supersession_audit.py": "sha256-pyast:v2:adda81462215f9e1c1c9a9ad630363a7afc748b307675abb66e09d3392f2fed0",
+        "tests/core/validation/test_validate_all_chain.py": "sha256-pyast:v2:7002c4ebcd9e940603d6c109c1674be94caf8cea4a9c1f31623ef44d20958a35",
+        "tests/core/validation/test_behavioral_coverage.py": "sha256-pyast:v2:947ef5a68bc824910f74a46bfbbcb8b4dc20b548ac880ca34c95529aa9719683",
+        "tests/test_init_draft_workflow_payload.py": "sha256-pyast:v2:baefcbd8b435c0d860c58e0b49ba5aafc3e10016285234646a192a974c3462ea"
+      },
+      "revised_at": "2026-10-20T20:55:43.213624+00:00",
+      "reason": "Preserve selected draft metadata in proposed lifecycle context while retaining unrelated active E117",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_preserves_unrelated_active_lifecycle_error",
+          "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_preserves_unrelated_active_lifecycle_error:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_preserves_unrelated_active_lifecycle_error:kind=test_function",
+          "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_preserves_unrelated_active_lifecycle_error:returns=None",
+          "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_retains_metadata_without_active_status_error",
+          "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_retains_metadata_without_active_status_error:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_retains_metadata_without_active_status_error:kind=test_function",
+          "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_retains_metadata_without_active_status_error:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-20T20:55:46.464250+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_fix_draft_supersession_validation_overlay.py -q",
+        "exit_code": 1,
+        "output_tail": "        result = validate(\n            replacement, mode=ValidationMode.BEHAVIORAL, project_root=tmp_path\n        )\n>       assert result.success, result.errors\nE       AssertionError: [ValidationError(code=<ErrorCode.TEST_FUNCTION_MISSING_IN_CODE: 'E600'>, message=\"Test function 'test_old' declared in...ior.py', line=None, column=None, end_line=None, end_column=None), suggestion='Add the test function to the test file')]\nE       assert False\nE        +  where False = ValidationResult(success=False, manifest_slug='replacement', manifest_path='/tmp/pytest-of-atomrem/pytest-1788/test_se... suggestion='Add the test function to the test file')], warnings=[], file_tracking=None, duration_ms=5.219710990786552).success\n\ntests/core/test_fix_draft_supersession_validation_overlay.py:237: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_fix_draft_supersession_validation_overlay.py::test_selected_draft_can_replace_old_test_name[behavioral]\nFAILED tests/core/test_fix_draft_supersession_validation_overlay.py::test_selected_draft_can_replace_old_test_name[implementation]\nFAILED tests/core/test_fix_draft_supersession_validation_overlay.py::test_supplied_chain_and_files_remain_unchanged_after_draft_validation\nFAILED tests/core/test_fix_draft_supersession_validation_overlay.py::test_selected_draft_does_not_activate_unrelated_drafts_or_bypass_active_contracts\nFAILED tests/core/test_fix_draft_supersession_validation_overlay.py::test_selected_draft_preserves_missing_target_diagnostic\nFAILED tests/core/test_fix_draft_supersession_validation_overlay.py::test_selected_draft_preserves_cycle_diagnostic\nFAILED tests/core/test_fix_draft_supersession_validation_overlay.py::test_selected_draft_preserves_production_drop_audit\nFAILED tests/core/test_fix_draft_supersession_validation_overlay.py::test_selected_draft_uses_configured_manifest_directory\nFAILED tests/core/test_fix_draft_supersession_validation_overlay.py::test_selected_draft_retains_metadata_without_active_status_error\n9 failed, 3 passed in 1.60s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest tests/core/test_chain.py tests/core/test_supersession_audit.py tests/core/validation/test_validate_all_chain.py tests/core/validation/test_behavioral_coverage.py tests/test_init_draft_workflow_payload.py -q",
+        "exit_code": 0,
+        "output_tail": "........................................................................ [ 42%]\n........................................................................ [ 85%]\n........................                                                 [100%]\n168 passed in 0.98s",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-draft-supersession-validation-overlay.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/validate.py:function:validate",
+      "maid_runner/core/validate.py:function:validate:arg=check_assertions:type=bool:default=False",
+      "maid_runner/core/validate.py:function:validate:arg=check_stubs:type=bool:default=False",
+      "maid_runner/core/validate.py:function:validate:arg=fail_on_warnings:type=bool:default=False",
+      "maid_runner/core/validate.py:function:validate:arg=manifest_dir:type=Union[str, Path]:default='manifests/'",
+      "maid_runner/core/validate.py:function:validate:arg=manifest_path:type=Union[str, Path]:default=None",
+      "maid_runner/core/validate.py:function:validate:arg=mode:type=ValidationMode:default=ValidationMode.IMPLEMENTATION",
+      "maid_runner/core/validate.py:function:validate:arg=project_root:type=Union[str, Path]:default='.'",
+      "maid_runner/core/validate.py:function:validate:arg=registry:type=ValidatorRegistry | None:default=None",
+      "maid_runner/core/validate.py:function:validate:arg=use_chain:type=bool:default=True",
+      "maid_runner/core/validate.py:function:validate:kind=function",
+      "maid_runner/core/validate.py:function:validate:returns=ValidationResult",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_can_replace_old_test_name",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_can_replace_old_test_name:arg=mode:type=ValidationMode:default=None",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_can_replace_old_test_name:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_can_replace_old_test_name:kind=test_function",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_can_replace_old_test_name:returns=None",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_does_not_activate_unrelated_drafts_or_bypass_active_contracts",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_does_not_activate_unrelated_drafts_or_bypass_active_contracts:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_does_not_activate_unrelated_drafts_or_bypass_active_contracts:kind=test_function",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_does_not_activate_unrelated_drafts_or_bypass_active_contracts:returns=None",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_preserves_cycle_diagnostic",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_preserves_cycle_diagnostic:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_preserves_cycle_diagnostic:kind=test_function",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_preserves_cycle_diagnostic:returns=None",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_preserves_missing_target_diagnostic",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_preserves_missing_target_diagnostic:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_preserves_missing_target_diagnostic:kind=test_function",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_preserves_missing_target_diagnostic:returns=None",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_preserves_production_drop_audit",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_preserves_production_drop_audit:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_preserves_production_drop_audit:kind=test_function",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_preserves_production_drop_audit:returns=None",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_preserves_unmarked_draft_rejection",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_preserves_unmarked_draft_rejection:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_preserves_unmarked_draft_rejection:kind=test_function",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_preserves_unmarked_draft_rejection:returns=None",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_preserves_unrelated_active_lifecycle_error",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_preserves_unrelated_active_lifecycle_error:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_preserves_unrelated_active_lifecycle_error:kind=test_function",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_preserves_unrelated_active_lifecycle_error:returns=None",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_retains_metadata_without_active_status_error",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_retains_metadata_without_active_status_error:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_retains_metadata_without_active_status_error:kind=test_function",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_retains_metadata_without_active_status_error:returns=None",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_uses_configured_manifest_directory",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_uses_configured_manifest_directory:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_uses_configured_manifest_directory:kind=test_function",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_selected_draft_uses_configured_manifest_directory:returns=None",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_supplied_chain_and_files_remain_unchanged_after_draft_validation",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_supplied_chain_and_files_remain_unchanged_after_draft_validation:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_supplied_chain_and_files_remain_unchanged_after_draft_validation:kind=test_function",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_supplied_chain_and_files_remain_unchanged_after_draft_validation:returns=None",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_unselected_draft_does_not_change_active_chain",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_unselected_draft_does_not_change_active_chain:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_unselected_draft_does_not_change_active_chain:kind=test_function",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py:test_unselected_draft_does_not_change_active_chain:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_fix_draft_supersession_validation_overlay.py"
+      ],
+      "edit": [
+        "maid_runner/core/validate.py"
+      ],
+      "read": [
+        "docs/unit-testing-rules.md",
+        "maid_runner/core/_behavioral_validation.py",
+        "maid_runner/core/_test_function_contracts.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/supersession_audit.py",
+        "maid_runner/core/types.py"
+      ],
+      "scope": [
+        "docs/draft-manifest-workflow.md",
+        "docs/plans/bug-report-triage-2026-10-20.md",
+        "maid_runner/core/chain.py",
+        "maid_runner/docs/draft-manifest-workflow.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_fix_draft_supersession_validation_overlay.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_selected_draft_can_replace_old_test_name",
+              "description": "selected draft can replace old test name",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "mode",
+                  "type": "ValidationMode"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_supplied_chain_and_files_remain_unchanged_after_draft_validation",
+              "description": "supplied chain and files remain unchanged after draft validation",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unselected_draft_does_not_change_active_chain",
+              "description": "unselected draft does not change active chain",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_selected_draft_does_not_activate_unrelated_drafts_or_bypass_active_contracts",
+              "description": "selected draft does not activate unrelated drafts or bypass active contracts",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_selected_draft_preserves_missing_target_diagnostic",
+              "description": "selected draft preserves missing target diagnostic",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_selected_draft_preserves_cycle_diagnostic",
+              "description": "selected draft preserves cycle diagnostic",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_selected_draft_preserves_production_drop_audit",
+              "description": "selected draft preserves production drop audit",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_selected_draft_uses_configured_manifest_directory",
+              "description": "selected draft uses configured manifest directory",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_selected_draft_preserves_unmarked_draft_rejection",
+              "description": "Preserve E109 rejection for unmarked inactive draft files.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_selected_draft_retains_metadata_without_active_status_error",
+              "description": "selected draft retains metadata without active status error",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_selected_draft_preserves_unrelated_active_lifecycle_error",
+              "description": "selected draft preserves unrelated active lifecycle error",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/validate.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "validate",
+              "description": "Validate selected contracts through the existing public entry point and isolated chained context.",
+              "args": [
+                {
+                  "name": "manifest_path",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "mode",
+                  "type": "ValidationMode",
+                  "default": "ValidationMode.IMPLEMENTATION"
+                },
+                {
+                  "name": "use_chain",
+                  "type": "bool",
+                  "default": "True"
+                },
+                {
+                  "name": "manifest_dir",
+                  "type": "Union[str, Path]",
+                  "default": "'manifests/'"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]",
+                  "default": "'.'"
+                },
+                {
+                  "name": "check_stubs",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "check_assertions",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "fail_on_warnings",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "registry",
+                  "type": "ValidatorRegistry | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "ValidationResult"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "docs/unit-testing-rules.md",
+        "maid_runner/core/_behavioral_validation.py",
+        "maid_runner/core/_test_function_contracts.py",
+        "maid_runner/core/supersession_audit.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/types.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/chain.py",
+          "reason": "Add bounded private proposed-chain view construction preserving source chain state."
+        },
+        {
+          "path": "docs/draft-manifest-workflow.md",
+          "reason": "Explain explicitly selected superseding draft validation without persistent activation."
+        },
+        {
+          "path": "docs/plans/bug-report-triage-2026-10-20.md",
+          "reason": "Reconcile promoted contract and resolved report."
+        },
+        {
+          "path": "maid_runner/docs/draft-manifest-workflow.md",
+          "reason": "Keep packaged workflow guidance identical to the scoped source document."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_chain.py",
+      "tests/core/test_fix_draft_supersession_validation_overlay.py",
+      "tests/core/test_supersession_audit.py",
+      "tests/core/validation/test_behavioral_coverage.py",
+      "tests/core/validation/test_validate_all_chain.py",
+      "tests/test_init_draft_workflow_payload.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_fix_draft_supersession_validation_overlay.py -q",
+      "uv run python -m pytest tests/core/test_chain.py tests/core/test_supersession_audit.py tests/core/validation/test_validate_all_chain.py tests/core/validation/test_behavioral_coverage.py tests/test_init_draft_workflow_payload.py -q",
+      "uv run maid validate manifests/fix-draft-supersession-validation-overlay.manifest.yaml --mode schema --quiet"
+    ],
+    "acceptance_commands": []
+  }
+}

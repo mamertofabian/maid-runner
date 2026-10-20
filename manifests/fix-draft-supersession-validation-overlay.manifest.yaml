@@ -1,0 +1,294 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Validate an explicitly selected superseding draft against its proposed active chain
+type: fix
+created: '2026-10-20T20:52:40Z'
+description: For chained validation of an explicitly selected superseding draft under the selected manifest
+  directory drafts subtree, construct an ephemeral proposed chain containing that draft and active/history
+  contracts. Honor its supersedes while excluding every unselected draft. Reuse normal chain merge, supersession
+  integrity and production dropped-artifact audit diagnostics. Never mutate caller-provided or cached
+  chain state, disk manifests or global active inventory. Preserve direct active validation and configured
+  manifest directories. Implement only bounded private chain-view wiring and the existing validate entry
+  point; no global draft activation, no-chain bypass, parser or evidence-policy changes. Both inventory
+  and hardened-scope recall returned no related records. Reuse existing chain/audit mechanisms and apply
+  exact identity/isolated-view regression discipline; no advisory lesson requires broader scope. Fixtures
+  execute genuine pytest before validation. Temporary draft fixtures carry required implementation markers;
+  an explicit unmarked negative retains E109. Update source and packaged workflow documentation together.
+  The selected proposal retains exact inactive metadata without receiving active-only E117; unrelated
+  active lifecycle errors remain enforced. This exception belongs only to the isolated selected-source
+  context.
+temptations:
+- risk: Make a superseding draft pass by disabling chain checks or activating all drafts.
+  instead: Add only the explicitly selected proposal to an isolated chain view and retain unrelated active
+    test-name demands plus missing-target/cycle/E110 diagnostics.
+- risk: Mutate a supplied or cached chain or persist draft activation during validation.
+  instead: Construct a separate view and assert supplied public chain queries, normal active validation
+    and all fixture bytes remain unchanged.
+files:
+  edit:
+  - path: maid_runner/core/validate.py
+    artifacts:
+    - kind: function
+      name: validate
+      args:
+      - name: manifest_path
+        type: Union[str, Path]
+      - name: mode
+        type: ValidationMode
+        default: ValidationMode.IMPLEMENTATION
+      - name: use_chain
+        type: bool
+        default: 'True'
+      - name: manifest_dir
+        type: Union[str, Path]
+        default: '''manifests/'''
+      - name: project_root
+        type: Union[str, Path]
+        default: '''.'''
+      - name: check_stubs
+        type: bool
+        default: 'False'
+      - name: check_assertions
+        type: bool
+        default: 'False'
+      - name: fail_on_warnings
+        type: bool
+        default: 'False'
+      - name: registry
+        type: ValidatorRegistry | None
+        default: None
+      returns: ValidationResult
+      description: Validate selected contracts through the existing public entry point and isolated chained
+        context.
+  create:
+  - path: tests/core/test_fix_draft_supersession_validation_overlay.py
+    artifacts:
+    - kind: test_function
+      name: test_selected_draft_can_replace_old_test_name
+      args:
+      - name: tmp_path
+        type: Path
+      - name: mode
+        type: ValidationMode
+      returns: None
+      description: selected draft can replace old test name
+    - kind: test_function
+      name: test_supplied_chain_and_files_remain_unchanged_after_draft_validation
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: supplied chain and files remain unchanged after draft validation
+    - kind: test_function
+      name: test_unselected_draft_does_not_change_active_chain
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: unselected draft does not change active chain
+    - kind: test_function
+      name: test_selected_draft_does_not_activate_unrelated_drafts_or_bypass_active_contracts
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: selected draft does not activate unrelated drafts or bypass active contracts
+    - kind: test_function
+      name: test_selected_draft_preserves_missing_target_diagnostic
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: selected draft preserves missing target diagnostic
+    - kind: test_function
+      name: test_selected_draft_preserves_cycle_diagnostic
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: selected draft preserves cycle diagnostic
+    - kind: test_function
+      name: test_selected_draft_preserves_production_drop_audit
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: selected draft preserves production drop audit
+    - kind: test_function
+      name: test_selected_draft_uses_configured_manifest_directory
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: selected draft uses configured manifest directory
+    - kind: test_function
+      name: test_selected_draft_preserves_unmarked_draft_rejection
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: Preserve E109 rejection for unmarked inactive draft files.
+    - kind: test_function
+      name: test_selected_draft_retains_metadata_without_active_status_error
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: selected draft retains metadata without active status error
+    - kind: test_function
+      name: test_selected_draft_preserves_unrelated_active_lifecycle_error
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: selected draft preserves unrelated active lifecycle error
+  scope:
+  - path: maid_runner/core/chain.py
+    reason: Add bounded private proposed-chain view construction preserving source chain state.
+  - path: docs/draft-manifest-workflow.md
+    reason: Explain explicitly selected superseding draft validation without persistent activation.
+  - path: docs/plans/bug-report-triage-2026-10-20.md
+    reason: Reconcile promoted contract and resolved report.
+  - path: maid_runner/docs/draft-manifest-workflow.md
+    reason: Keep packaged workflow guidance identical to the scoped source document.
+  read:
+  - docs/unit-testing-rules.md
+  - maid_runner/core/_behavioral_validation.py
+  - maid_runner/core/_test_function_contracts.py
+  - maid_runner/core/supersession_audit.py
+  - maid_runner/core/manifest.py
+  - maid_runner/core/types.py
+validate:
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/core/test_fix_draft_supersession_validation_overlay.py
+  - -q
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/core/test_chain.py
+  - tests/core/test_supersession_audit.py
+  - tests/core/validation/test_validate_all_chain.py
+  - tests/core/validation/test_behavioral_coverage.py
+  - tests/test_init_draft_workflow_payload.py
+  - -q
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/fix-draft-supersession-validation-overlay.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+outcome:
+  status: completed
+  completed_at: '2026-10-20T21:02:09.579095+00:00'
+  summary: Validate an explicitly selected superseding draft using an isolated proposed chain. Apply its
+    supersedes without activating other drafts or mutating supplied/cached chains or disk. Preserve normal
+    audits and integrity checks, configured directories, E109 marking and unrelated active E117 lifecycle
+    enforcement.
+  lessons:
+  - lesson_type: contract-evolution
+    summary: A planner needs proposed-chain semantics before promotion, while durable chain state must
+      stay unchanged. Reuse normal chain resolution and diagnostics in a separate view; selected draft
+      metadata is proposed context while other active lifecycle checks remain intact.
+    tags:
+    - draft
+    - supersession
+    - isolation
+    paths:
+    - maid_runner/core/chain.py
+    - maid_runner/core/validate.py
+  - lesson_type: validation-trust
+    summary: 'Regression fixtures must satisfy lifecycle prerequisites: missing draft markers can mask
+      intended E600 failures. Correct fixtures through sanctioned stash-backed revision, retain an explicit
+      E109 negative and scope packaged documentation mirrors together.'
+    tags:
+    - plan-lock
+    - fixture
+    - lifecycle
+    paths:
+    - tests/core/test_fix_draft_supersession_validation_overlay.py
+  review_notes:
+  - source: independent-read-only-implementation_review_overlay
+    severity: ready
+    summary: Ready to merge; no blocking findings.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/core/test_fix_draft_supersession_validation_overlay.py
+    - -q
+    status: passed
+    summary: '12 dedicated plus 168 adjacent cases passed. Fixtures execute real pytest; both validation
+      modes, source/supplied-chain isolation, configured directory, E109/E117 and missing-target/cycle/E110
+      controls pass. Scoped implementation/Ruff/Black/lock hashes pass. Fresh stashed baseline: 9 failed
+      / 3 passed.'
+  - command:
+    - uv
+    - run
+    - --no-project
+    - --isolated
+    - --python
+    - '3.10'
+    - --with-editable
+    - .
+    - --with
+    - pytest
+    - --with
+    - pytest-xdist
+    - python
+    - -m
+    - pytest
+    - tests/core/test_fix_draft_supersession_validation_overlay.py
+    - -q
+    status: passed
+    summary: Actual Python 3.10 all 12 cases passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --packet
+    status: passed
+    summary: 347 active manifests passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: All 319 declared commands passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - a61c71550b8f4ed0711368e7a6f186d95afd36fa
+    status: passed
+    summary: All 11 assessed deep stages passed with required plan-lock/red-evidence checks.
