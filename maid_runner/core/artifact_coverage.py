@@ -1243,6 +1243,8 @@ class _ArtifactLineSpan:
     body_lines: set[int]
     qualname: str
     abstract_contract: bool = False
+    definition_line: int = 0
+    definition_column: int = 0
 
 
 def _line_index_for_file(
@@ -1259,8 +1261,27 @@ def _line_index_for_file(
 
 def _build_line_index(file_path: Path) -> _ArtifactLineIndex:
     tree = ast.parse(file_path.read_text(), filename=str(file_path))
-    visitor = _LineIndexVisitor(_stdlib_abstractmethod_bindings(tree))
-    visitor.visit(tree)
+    return _build_line_index_from_tree(tree)
+
+
+def _build_line_index_from_tree(
+    tree: ast.Module, *, direct_only: bool = False
+) -> _ArtifactLineIndex:
+    from maid_runner.validators._python_implementation import (
+        _protocol_contract_positions,
+    )
+
+    visitor = _LineIndexVisitor(
+        _stdlib_abstractmethod_bindings(tree),
+        _protocol_contract_positions(tree),
+        direct_only=direct_only,
+    )
+    if direct_only:
+        for child in tree.body:
+            if isinstance(child, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
+                visitor.visit(child)
+    else:
+        visitor.visit(tree)
     return _ArtifactLineIndex(
         functions=visitor.functions,
         methods=visitor.methods,
@@ -1268,17 +1289,40 @@ def _build_line_index(file_path: Path) -> _ArtifactLineIndex:
 
 
 class _LineIndexVisitor(ast.NodeVisitor):
-    def __init__(self, abstractmethod_bindings: frozenset[str]) -> None:
+    def __init__(
+        self,
+        abstractmethod_bindings: frozenset[str],
+        protocol_positions: dict[tuple[int, int], frozenset[tuple[int, int]]],
+        *,
+        direct_only: bool = False,
+    ) -> None:
         self.functions: dict[str, _ArtifactLineSpan] = {}
         self.methods: dict[tuple[str, str], _ArtifactLineSpan] = {}
         self._class_stack: list[str] = []
         self._abstractmethod_bindings = abstractmethod_bindings
+        self._protocol_positions = protocol_positions
+        self._protocol_stack: list[frozenset[tuple[int, int]] | None] = []
+        self._direct_only = direct_only
+        self._module_class_names: set[str] = set()
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
+        if not self._class_stack:
+            # A replacement module class has its own namespace, including
+            # absent members. Nested owners cannot replace this namespace.
+            self._module_class_names.add(node.name)
+            for key in [key for key in self.methods if key[0] == node.name]:
+                del self.methods[key]
         self._class_stack.append(node.name)
+        self._protocol_stack.append(
+            self._protocol_positions.get((node.lineno, node.col_offset))
+        )
         for child in node.body:
-            self.visit(child)
+            if not self._direct_only or isinstance(
+                child, (ast.FunctionDef, ast.AsyncFunctionDef)
+            ):
+                self.visit(child)
         self._class_stack.pop()
+        self._protocol_stack.pop()
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         self._record_function(node)
@@ -1292,8 +1336,18 @@ class _LineIndexVisitor(ast.NodeVisitor):
             node,
             qualname=qualname,
             abstractmethod_bindings=self._abstractmethod_bindings,
+            protocol_contract=(
+                bool(self._protocol_stack)
+                and self._protocol_stack[-1] is not None
+                and (node.lineno, node.col_offset) in self._protocol_stack[-1]
+            ),
         )
         if self._class_stack:
+            if (
+                len(self._class_stack) > 1
+                and self._class_stack[-1] in self._module_class_names
+            ):
+                return
             self.methods[(self._class_stack[-1], node.name)] = lines
         else:
             self.functions[node.name] = lines
@@ -1304,6 +1358,7 @@ def _body_lines(
     *,
     qualname: str,
     abstractmethod_bindings: frozenset[str],
+    protocol_contract: bool = False,
 ) -> _ArtifactLineSpan:
     statements = list(node.body)
     if (
@@ -1324,7 +1379,10 @@ def _body_lines(
     return _ArtifactLineSpan(
         body_lines=body_lines,
         qualname=qualname,
-        abstract_contract=_is_abstract_contract(node, abstractmethod_bindings),
+        abstract_contract=protocol_contract
+        or _is_abstract_contract(node, abstractmethod_bindings),
+        definition_line=node.lineno,
+        definition_column=node.col_offset,
     )
 
 

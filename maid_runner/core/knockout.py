@@ -389,10 +389,7 @@ def _knockout_target_is_abstract_contract(
 ) -> bool:
     if target_path.suffix != ".py":
         return False
-    from maid_runner.core.artifact_coverage import (
-        _is_abstract_contract,
-        _stdlib_abstractmethod_bindings,
-    )
+    from maid_runner.core.artifact_coverage import _build_line_index_from_tree
 
     try:
         tree = ast.parse(target_path.read_text(encoding="utf-8"))
@@ -404,9 +401,13 @@ def _knockout_target_is_abstract_contract(
         artifact_kind,
         parent_class,
     )
-    return isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and (
-        _is_abstract_contract(node, _stdlib_abstractmethod_bindings(tree))
+    index = _build_line_index_from_tree(tree, direct_only=True)
+    span = (
+        index.functions.get(artifact_name)
+        if artifact_kind == ArtifactKind.FUNCTION.value
+        else index.methods.get((parent_class, artifact_name))
     )
+    return node is not None and span is not None and span.abstract_contract
 
 
 def _mutation_target(
@@ -1151,10 +1152,29 @@ def _find_artifact_node(
     artifact_kind: str,
     parent_class: str | None,
 ) -> ast.FunctionDef | ast.AsyncFunctionDef | None:
+    from maid_runner.core.artifact_coverage import _build_line_index_from_tree
+
+    if not isinstance(tree, ast.Module):
+        return None
+    index = _build_line_index_from_tree(tree, direct_only=True)
+    span = (
+        index.functions.get(artifact_name)
+        if artifact_kind == ArtifactKind.FUNCTION.value
+        else index.methods.get((parent_class, artifact_name))
+    )
+    if span is None:
+        return None
+
+    def matches(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
+        return (node.lineno, node.col_offset) == (
+            span.definition_line,
+            span.definition_column,
+        )
+
     if artifact_kind == ArtifactKind.FUNCTION.value:
         for child in getattr(tree, "body", []):
             if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                if child.name == artifact_name:
+                if child.name == artifact_name and matches(child):
                     return child
         return None
 
@@ -1166,7 +1186,7 @@ def _find_artifact_node(
             continue
         for class_child in child.body:
             if isinstance(class_child, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                if class_child.name == artifact_name:
+                if class_child.name == artifact_name and matches(class_child):
                     return class_child
     return None
 

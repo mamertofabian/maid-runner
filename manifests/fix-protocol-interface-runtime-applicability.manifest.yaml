@@ -1,0 +1,394 @@
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Treat Protocol interface-only members as inapplicable to runtime body coverage
+type: fix
+created: '2026-10-20T18:32:24Z'
+description: 'Treat only signature-only members of producer-proven known typing/typing_extensions Protocol
+  classes as runtime-inapplicable. Reuse the existing Python collector import/binding policy and explicit
+  source-position proof for both classes and members, including Protocol properties; ordinary property
+  metadata is not proof. Preserve concrete defaults, fake/rebound Protocol names, ordinary empty/data
+  classes, concrete adapters, ABC behavior and unsupported-instrumentation diagnostics. No new static
+  analyzer, public schema or public signature. Share authoritative source identity between runtime applicability
+  and knockout mutation selection: same-name redefinitions select the effective last direct definition,
+  and real concrete mutations must be detected and restored. Apply through direct/batch and exact/derived
+  coverage evidence plus public knockout planning/execution. Empty/attribute-only classes preserve existing
+  non-body policy. Getter probes explicitly target callable bodies as METHOD; ordinary ATTRIBUTE exclusion
+  remains unchanged. Removed methods must not survive a later same-name class definition as interface
+  proof. Preserve knockout direct-definition scope: nested same-name classes must not displace direct
+  targets. Coverage replacement clearing is scoped to direct class identity; nested same-short-name classes
+  must not erase or displace direct targets, while nested-only indexing stays compatible.'
+temptations:
+- risk: Infer interfaces from a name, generic is_stub=False metadata, or missing method positions.
+  instead: Reuse producer-proven class and signature member source positions; retain concrete and unknown
+    targets.
+- risk: Skip mutation with one identity but rewrite another same-name definition.
+  instead: Use authoritative exact source identity consistently and execute both redefinition directions
+    with restoration assertions.
+- risk: Hide unsupported runner or concrete nonexecution failures.
+  instead: Only exempt proven interface bodies before existing runtime policy; preserve observations and
+    explicit failures.
+files:
+  create:
+  - path: tests/core/test_fix_protocol_interface_runtime_applicability.py
+    artifacts:
+    - kind: test_function
+      name: test_protocol_signatures_have_no_runtime_body_requirement
+      args:
+      - name: tmp_path
+        type: Path
+      - name: mode
+        type: str
+      - name: imports
+        type: str
+      - name: base
+        type: str
+      - name: body
+        type: str
+      - name: async_method
+        type: bool
+      - name: getter
+        type: bool
+      returns: None
+      description: protocol signatures have no runtime body requirement
+    - kind: test_function
+      name: test_concrete_protocol_defaults_still_require_execution
+      args:
+      - name: tmp_path
+        type: Path
+      - name: mode
+        type: str
+      - name: body
+        type: str
+      returns: None
+      description: concrete protocol defaults still require execution
+    - kind: test_function
+      name: test_unknown_or_redefined_classes_do_not_inherit_interface_exemption
+      args:
+      - name: tmp_path
+        type: Path
+      - name: source
+        type: str
+      returns: None
+      description: unknown or redefined classes do not inherit interface exemption
+    - kind: test_function
+      name: test_ordinary_property_metadata_is_not_interface_proof
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: ordinary property metadata is not interface proof
+    - kind: test_function
+      name: test_attribute_only_and_empty_classes_preserve_existing_runtime_policy
+      args:
+      - name: tmp_path
+        type: Path
+      - name: source
+        type: str
+      returns: None
+      description: attribute only and empty classes preserve existing runtime policy
+    - kind: test_function
+      name: test_knockout_skips_protocol_signature_without_mutating_source
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: knockout skips protocol signature without mutating source
+    - kind: test_function
+      name: test_executed_concrete_default_remains_covered_and_knockout_eligible
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: executed concrete default remains covered and knockout eligible
+    - kind: test_function
+      name: test_knockout_uses_effective_redefined_class_and_restores_source
+      args:
+      - name: tmp_path
+        type: Path
+      - name: final_interface
+        type: bool
+      returns: None
+      description: knockout uses effective redefined class and restores source
+    - kind: test_function
+      name: test_interface_only_unittest_needs_no_body_instrumentation
+      args:
+      - name: tmp_path
+        type: Path
+      - name: mode
+        type: str
+      returns: None
+      description: interface only unittest needs no body instrumentation
+    - kind: test_function
+      name: test_mixed_interface_and_adapter_preserve_real_runtime_observations
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: mixed interface and adapter preserve real runtime observations
+    - kind: test_function
+      name: test_knockout_direct_method_is_not_displaced_by_nested_class_name
+      args:
+      - name: tmp_path
+        type: Path
+      - name: nested_member
+        type: bool
+      returns: None
+      description: Real coverage and knockout preserve direct targets and source restoration under empty
+        or populated nested same-name classes; public rewrite leaves nested code intact.
+  edit:
+  - path: maid_runner/core/artifact_coverage.py
+    artifacts:
+    - kind: function
+      name: run_artifact_coverage
+      args:
+      - name: manifest
+        type: Manifest
+      - name: project_root
+        type: Path
+      - name: executor
+        type: Union[RuntimeCommandExecutor, None]
+        default: None
+      returns: ArtifactCoverageReport
+      description: Existing public seam exercised by the planned regression scenarios; preserve its signature.
+    - kind: function
+      name: run_artifact_coverage_batch
+      args:
+      - name: manifests
+        type: Sequence[Manifest]
+      - name: project_root
+        type: Path
+      - name: executor
+        type: RuntimeCommandExecutor | None
+        default: None
+      - name: jobs
+        type: int | None
+        default: None
+      - name: max_processes
+        type: int | None
+        default: None
+      - name: snapshot_backend
+        type: ProjectSnapshotBackend | None
+        default: None
+      - name: isolated_runner
+        type: Callable[[Sequence[RuntimeCommandIdentity], Path, Mapping[RuntimeCommandIdentity, set[str]],
+          ProjectSnapshotBackend, RuntimeCommandExecutor, int, int], ArtifactCoverageFallbackRun] | None
+        default: None
+      returns: dict[str, ArtifactCoverageReport]
+      description: Existing shared-command batch. None jobs/max_processes resolve from artifact_coverage.fallback_jobs
+        and test_execution.max_processes; jobs above one routes unique commands through the isolated runner
+        with unioned targets and replays only escalated identities in place; jobs of one preserves the
+        serial in-place loop byte-for-byte. Keyword-only additions keep every existing call site valid.
+    - kind: function
+      name: evaluate_artifact_coverage_from_evidence
+      args:
+      - name: manifests
+        type: Sequence[Manifest]
+      - name: project_root
+        type: Path
+      - name: evidence
+        type: RuntimeEvidenceBundle
+      - name: fallback_executor
+        type: RuntimeCommandExecutor | None
+        default: None
+      - name: fallback_jobs
+        type: int
+        default: '1'
+      - name: max_processes
+        type: int
+        default: '1'
+      - name: snapshot_backend
+        type: ProjectSnapshotBackend | None
+        default: None
+      - name: isolated_runner
+        type: Callable[[Sequence[RuntimeCommandIdentity], Path, Mapping[RuntimeCommandIdentity, set[str]],
+          ProjectSnapshotBackend, RuntimeCommandExecutor, int, int], ArtifactCoverageFallbackRun] | None
+        default: None
+      - name: evidence_mode
+        type: str
+        default: exact
+      returns: EvidenceArtifactCoverageResult
+      description: Projects digest-approved fixture execution into derived per-manifest coverage while
+        preserving fail-closed exclusion of unapproved lifecycles.
+  - path: maid_runner/core/knockout.py
+    artifacts:
+    - kind: function
+      name: rewrite_artifact_body
+      args:
+      - name: source
+        type: str
+      - name: artifact_name
+        type: str
+      - name: artifact_kind
+        type: str
+      - name: parent_class
+        type: str | None
+        default: None
+      returns: str
+      description: Replace the named Python function or method body while preserving its decorators, signature,
+        and newline convention.
+    - kind: function
+      name: run_knockout
+      args:
+      - name: manifest
+        type: Manifest
+      - name: project_root
+        type: Path
+      - name: limit
+        type: int | None
+        default: None
+      - name: allow_dirty
+        type: bool
+        default: 'False'
+      - name: evidence
+        type: RuntimeEvidenceBundle | None
+        default: None
+      - name: executor
+        type: KnockoutCommandExecutor | None
+        default: None
+      - name: snapshot_backend
+        type: ProjectSnapshotBackend | None
+        default: None
+      returns: KnockoutReport
+      description: Preserves differential detection compatibility while each declaration executes in a
+        fresh snapshot and allow_dirty becomes unnecessary.
+    - kind: function
+      name: build_knockout_mutation_specs
+      args:
+      - name: manifests
+        type: Sequence[Manifest]
+      - name: project_root
+        type: Path
+      - name: limit
+        type: int | None
+        default: None
+      returns: tuple[KnockoutMutationSpec, ...]
+  scope:
+  - path: maid_runner/validators/_python_implementation.py
+    reason: Expose private producer-proven Protocol class/member positions without changing public collector
+      output.
+  - path: docs/maid_specs.md
+    reason: Document interface runtime applicability.
+  - path: maid_runner/docs/maid_specs.md
+    reason: Keep packaged spec mirror identical.
+  - path: .maid/docs/maid_specs.md
+    reason: Keep initialized spec mirror identical.
+  - path: docs/plans/bug-report-triage-2026-10-20.md
+    reason: Reconcile current queue location and completion.
+  read:
+  - docs/unit-testing-rules.md
+  - docs/draft-manifest-workflow.md
+validate:
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/core/test_fix_protocol_interface_runtime_applicability.py
+  - -q
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/core/test_artifact_coverage.py
+  - tests/core/test_knockout.py
+  - tests/core/test_knockout_abstract_contracts.py
+  - tests/core/test_fix_unsupported_coverage_runner_diagnostics.py
+  - tests/docs/test_chain_merge_docs.py
+  - -q
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/fix-protocol-interface-runtime-applicability.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+outcome:
+  status: completed
+  completed_at: '2026-10-20T19:01:34.501227+00:00'
+  summary: Exclude producer-proven known Protocol signature-only members from runtime coverage and knockout,
+    retaining concrete defaults, adapters, unknown origins and ordinary property policy. Share exact node
+    identity for eligibility and mutation; preserve direct knockout scope, replacement-class namespaces
+    and unrelated nested owners.
+  lessons:
+  - lesson_type: validation-trust
+    summary: Interface exemption requires explicit producer-proven class and member positions; generic
+      non-stub or property metadata does not prove an interface. Reuse the existing bounded binding collector
+      instead of duplicating a static analyzer.
+    tags:
+    - python
+    - protocol
+    - runtime-evidence
+    paths:
+    - maid_runner/validators/_python_implementation.py
+    - maid_runner/core/artifact_coverage.py
+  - lesson_type: artifact-identity
+    summary: Applicability and mutation must use the same effective source definition within supported
+      scope. Exercise real coverage and mutation/restoration across redefinitions, removed members and
+      nested owner collisions; a rewrite-only control cannot establish coverage compatibility.
+    tags:
+    - knockout
+    - source-identity
+    - coverage
+    paths:
+    - maid_runner/core/artifact_coverage.py
+    - maid_runner/core/knockout.py
+  review_notes:
+  - source: independent-read-only-implementation_review_protocol_runtime_v3
+    severity: ready
+    summary: Ready to merge; no blocking or advisory findings. Independently passed 74 dedicated/ABC cases
+      and scoped implementation. Earlier direct/nested selection and namespace-clearing findings were
+      corrected with actual coverage, mutation/restoration and public rewrite controls.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/core/test_fix_protocol_interface_runtime_applicability.py
+    - -q
+    status: passed
+    summary: 72 dedicated behavioral cases passed; 285 expanded coverage/knockout/producer/docs compatibility
+      cases passed. Scoped implementation, Ruff, Black and diff checks passed. Own lock revision 5 has
+      matching manifest/all 6 test hashes and genuine stashed baseline 46-failure/26-pass evidence.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --packet
+    status: passed
+    summary: 341 active manifests passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: All 313 declared commands passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - 59e129e377e035cdaae93ae9da5136bad29c3f3c
+    status: passed
+    summary: All 11 assessment-directed deep stages passed with required plan-lock and red-evidence checks.

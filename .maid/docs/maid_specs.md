@@ -365,6 +365,15 @@ lives in the optional quality extra; install `maid-runner[quality]`. Requesting
 artifact coverage without the extra fails closed with `E307` semantics naming
 the missing validator dependency.
 
+Known `typing.Protocol` and `typing_extensions.Protocol` signature-only members
+(docstring, `pass`, or ellipsis bodies) have no runtime body obligation. Coverage
+and knockout reuse the Python collector's exact class/member source proof,
+including Protocol property getters; names and ordinary property metadata do
+not establish an interface. Concrete Protocol defaults and adapters retain
+runtime obligations. Empty/attribute-only classes retain the existing policy.
+Knockout applicability and body replacement select the same source definition
+when a direct class or member name is redefined.
+
 For artifacts requiring runtime observations, coverage fails closed with an
 explicit error-severity `E307` when no
 instrumentable pytest command exists or a recognized Python test runner

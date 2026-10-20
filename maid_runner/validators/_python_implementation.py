@@ -25,6 +25,18 @@ def collect_implementation_artifacts(
     return collector.artifacts
 
 
+def _protocol_contract_positions(
+    tree: ast.AST,
+) -> dict[tuple[int, int], frozenset[tuple[int, int]]]:
+    """Expose producer proof without inferring interfaces from artifact metadata."""
+    collector = _ImplementationCollector()
+    collector.visit(tree)
+    return {
+        position: frozenset(members)
+        for position, members in collector._protocol_contract_positions.items()
+    }
+
+
 class _ImplementationCollector(ast.NodeVisitor):
     def __init__(self, file_path: str = "") -> None:
         self.artifacts: list[FoundArtifact] = []
@@ -37,7 +49,10 @@ class _ImplementationCollector(ast.NodeVisitor):
         self._protocol_base_names: set[str] = set()
         self._protocol_module_names: set[str] = set()
         self._protocol_bindings_tainted = False
-        self._current_protocol = False
+        self._current_protocol: tuple[int, int] | None = None
+        self._protocol_contract_positions: dict[
+            tuple[int, int], set[tuple[int, int]]
+        ] = {}
         self._control_flow_depth = 0
         self._is_init = Path(file_path).name == "__init__.py"
         self._module_path: Optional[str] = (
@@ -77,7 +92,9 @@ class _ImplementationCollector(ast.NodeVisitor):
         prev_class = self._current_class
         prev_protocol = self._current_protocol
         self._current_class = node.name
-        self._current_protocol = is_protocol
+        self._current_protocol = (node.lineno, node.col_offset) if is_protocol else None
+        if self._current_protocol is not None:
+            self._protocol_contract_positions[self._current_protocol] = set()
         for child in node.body:
             self.visit(child)
         self._current_class = prev_class
@@ -103,6 +120,9 @@ class _ImplementationCollector(ast.NodeVisitor):
             and _is_protocol_signature_body(node)
         ):
             stub = False
+            self._protocol_contract_positions[self._current_protocol].add(
+                (node.lineno, node.col_offset)
+            )
 
         if self._current_class is not None:
             if _has_property_decorator(node):

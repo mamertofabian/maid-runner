@@ -1,0 +1,718 @@
+{
+  "manifest_path": "manifests/fix-protocol-interface-runtime-applicability.manifest.yaml",
+  "manifest_hash": "sha256-contract:52496d1f3b5513a4f05056d4fa696a012135850b183701b8b054da8eb2454d4a",
+  "test_hashes": {
+    "tests/core/test_fix_protocol_interface_runtime_applicability.py": "sha256-pyast:v2:d137843ae0fdabd5a219cdcca15d4b07f31965eedf0376133fe08355e06a5c59",
+    "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c34dfe965fa753658878c05966d0283f4abc97820a972e531ddc6fe2e1cf66de",
+    "tests/core/test_knockout.py": "sha256-pyast:v2:6b2a754f65c5673e97ea8d54f83344add201114e7551dd99bb994bde4ac98fc1",
+    "tests/core/test_knockout_abstract_contracts.py": "sha256-pyast:v2:051ed8e61596eba1242323ab7a426402b4f0793d260b19cd7d65264278ca9be6",
+    "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py": "sha256-pyast:v2:0754d74ac8f4ebd3d6d59434b41ec38da712dc482da3283dbcc28d2c206a2cc0",
+    "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d"
+  },
+  "created_at": "2026-10-20T18:31:36.406009+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:93b3af7989ff6ade65dff759ed343bf37f25bf892100c8043fc97a84baf6df8a",
+      "prior_test_hashes": {
+        "tests/core/test_fix_protocol_interface_runtime_applicability.py": "sha256-pyast:v2:f4b2d84ffb006bb104bd510a6becbdf840ed2b7191245f8cca83cf8a75f892ba",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c34dfe965fa753658878c05966d0283f4abc97820a972e531ddc6fe2e1cf66de",
+        "tests/core/test_knockout.py": "sha256-pyast:v2:6b2a754f65c5673e97ea8d54f83344add201114e7551dd99bb994bde4ac98fc1",
+        "tests/core/test_knockout_abstract_contracts.py": "sha256-pyast:v2:051ed8e61596eba1242323ab7a426402b4f0793d260b19cd7d65264278ca9be6",
+        "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py": "sha256-pyast:v2:0754d74ac8f4ebd3d6d59434b41ec38da712dc482da3283dbcc28d2c206a2cc0",
+        "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d"
+      },
+      "revised_at": "2026-10-20T18:32:25.049077+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-protocol-interface-runtime-applicability.manifest.yaml -> manifests/fix-protocol-interface-runtime-applicability.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-protocol-interface-runtime-applicability.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-protocol-interface-runtime-applicability.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6e038e819860f02a4af1aee8119a69d5771e0e10679c6636f2bcc8e53feb2409",
+      "prior_test_hashes": {
+        "tests/core/test_fix_protocol_interface_runtime_applicability.py": "sha256-pyast:v2:f4b2d84ffb006bb104bd510a6becbdf840ed2b7191245f8cca83cf8a75f892ba",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c34dfe965fa753658878c05966d0283f4abc97820a972e531ddc6fe2e1cf66de",
+        "tests/core/test_knockout.py": "sha256-pyast:v2:6b2a754f65c5673e97ea8d54f83344add201114e7551dd99bb994bde4ac98fc1",
+        "tests/core/test_knockout_abstract_contracts.py": "sha256-pyast:v2:051ed8e61596eba1242323ab7a426402b4f0793d260b19cd7d65264278ca9be6",
+        "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py": "sha256-pyast:v2:0754d74ac8f4ebd3d6d59434b41ec38da712dc482da3283dbcc28d2c206a2cc0",
+        "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d"
+      },
+      "revised_at": "2026-10-20T18:37:04.373382+00:00",
+      "reason": "Cover stale removed-member proof and preserve direct knockout selection under nested name collisions",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_knockout_direct_method_is_not_displaced_by_nested_class_name",
+          "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_knockout_direct_method_is_not_displaced_by_nested_class_name:kind=test_function",
+          "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_knockout_direct_method_is_not_displaced_by_nested_class_name:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:183235a2e28df4d8a095221231c7b4a21169fbcad41b4e24ef9057415c8a6102",
+      "prior_test_hashes": {
+        "tests/core/test_fix_protocol_interface_runtime_applicability.py": "sha256-pyast:v2:23fccc28def33764c45b8289eb2d1d272209b658ab0fa1ecce5596ae18d355db",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c34dfe965fa753658878c05966d0283f4abc97820a972e531ddc6fe2e1cf66de",
+        "tests/core/test_knockout.py": "sha256-pyast:v2:6b2a754f65c5673e97ea8d54f83344add201114e7551dd99bb994bde4ac98fc1",
+        "tests/core/test_knockout_abstract_contracts.py": "sha256-pyast:v2:051ed8e61596eba1242323ab7a426402b4f0793d260b19cd7d65264278ca9be6",
+        "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py": "sha256-pyast:v2:0754d74ac8f4ebd3d6d59434b41ec38da712dc482da3283dbcc28d2c206a2cc0",
+        "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d"
+      },
+      "revised_at": "2026-10-20T18:41:01.542252+00:00",
+      "reason": "Scope replacement by direct class identity and cover actual runtime gates under nested class collisions",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_knockout_direct_method_is_not_displaced_by_nested_class_name:arg=nested_member:type=bool:default=None",
+          "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_knockout_direct_method_is_not_displaced_by_nested_class_name:arg=tmp_path:type=Path:default=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:52496d1f3b5513a4f05056d4fa696a012135850b183701b8b054da8eb2454d4a",
+      "prior_test_hashes": {
+        "tests/core/test_fix_protocol_interface_runtime_applicability.py": "sha256-pyast:v2:455c0eeca0d7a2070ad955e2635e4de3de6a0d454def2a5167aa4ee1c5d8778a",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c34dfe965fa753658878c05966d0283f4abc97820a972e531ddc6fe2e1cf66de",
+        "tests/core/test_knockout.py": "sha256-pyast:v2:6b2a754f65c5673e97ea8d54f83344add201114e7551dd99bb994bde4ac98fc1",
+        "tests/core/test_knockout_abstract_contracts.py": "sha256-pyast:v2:051ed8e61596eba1242323ab7a426402b4f0793d260b19cd7d65264278ca9be6",
+        "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py": "sha256-pyast:v2:0754d74ac8f4ebd3d6d59434b41ec38da712dc482da3283dbcc28d2c206a2cc0",
+        "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d"
+      },
+      "revised_at": "2026-10-20T18:42:32.516662+00:00",
+      "reason": "Include sibling nested same-name ownership context while retaining supported direct runtime target",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-20T18:43:26.946783+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_fix_protocol_interface_runtime_applicability.py -q",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/core/test_fix_protocol_interface_runtime_applicability.py::test_protocol_signatures_have_no_runtime_body_requirement[evidence-derived-from typing import Protocol-Protocol-...-False-False]\nFAILED tests/core/test_fix_protocol_interface_runtime_applicability.py::test_protocol_signatures_have_no_runtime_body_requirement[evidence-derived-from typing import Protocol-Protocol-\"Read contract.\"-False-False]\nFAILED tests/core/test_fix_protocol_interface_runtime_applicability.py::test_protocol_signatures_have_no_runtime_body_requirement[evidence-derived-from typing import Protocol as P-P-pass-False-False]\nFAILED tests/core/test_fix_protocol_interface_runtime_applicability.py::test_protocol_signatures_have_no_runtime_body_requirement[evidence-derived-import typing as t-t.Protocol-...-True-False]\nFAILED tests/core/test_fix_protocol_interface_runtime_applicability.py::test_protocol_signatures_have_no_runtime_body_requirement[evidence-derived-from typing_extensions import Protocol as P-P-...-False-False]\nFAILED tests/core/test_fix_protocol_interface_runtime_applicability.py::test_protocol_signatures_have_no_runtime_body_requirement[evidence-derived-import typing_extensions as t-t.Protocol-\"Read contract.\"-True-False]\nFAILED tests/core/test_fix_protocol_interface_runtime_applicability.py::test_protocol_signatures_have_no_runtime_body_requirement[evidence-derived-from typing import Protocol, TypeVar\\n_T = TypeVar('_T')-Protocol[_T]-...-False-False]\nFAILED tests/core/test_fix_protocol_interface_runtime_applicability.py::test_protocol_signatures_have_no_runtime_body_requirement[evidence-derived-from typing import Protocol-Protocol-...-False-True]\nFAILED tests/core/test_fix_protocol_interface_runtime_applicability.py::test_protocol_signatures_have_no_runtime_body_requirement[evidence-derived-from typing import Protocol\\nclass Reader:\\n    def read(self) -> str: ...-Protocol-...-False-False]\nFAILED tests/core/test_fix_protocol_interface_runtime_applicability.py::test_knockout_skips_protocol_signature_without_mutating_source\nFAILED tests/core/test_fix_protocol_interface_runtime_applicability.py::test_knockout_uses_effective_redefined_class_and_restores_source[True]\nFAILED tests/core/test_fix_protocol_interface_runtime_applicability.py::test_knockout_uses_effective_redefined_class_and_restores_source[False]\nFAILED tests/core/test_fix_protocol_interface_runtime_applicability.py::test_knockout_direct_method_is_not_displaced_by_nested_class_name[False]\nFAILED tests/core/test_fix_protocol_interface_runtime_applicability.py::test_knockout_direct_method_is_not_displaced_by_nested_class_name[True]\nFAILED tests/core/test_fix_protocol_interface_runtime_applicability.py::test_interface_only_unittest_needs_no_body_instrumentation[exact]\nFAILED tests/core/test_fix_protocol_interface_runtime_applicability.py::test_interface_only_unittest_needs_no_body_instrumentation[batch]\nFAILED tests/core/test_fix_protocol_interface_runtime_applicability.py::test_interface_only_unittest_needs_no_body_instrumentation[evidence-exact]\nFAILED tests/core/test_fix_protocol_interface_runtime_applicability.py::test_interface_only_unittest_needs_no_body_instrumentation[evidence-derived]\nFAILED tests/core/test_fix_protocol_interface_runtime_applicability.py::test_mixed_interface_and_adapter_preserve_real_runtime_observations\n46 failed, 26 passed in 39.72s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest tests/core/test_artifact_coverage.py tests/core/test_knockout.py tests/core/test_knockout_abstract_contracts.py tests/core/test_fix_unsupported_coverage_runner_diagnostics.py tests/docs/test_chain_merge_docs.py -q",
+        "exit_code": 0,
+        "output_tail": "........................................................................ [ 80%]\n..................                                                       [100%]\n90 passed in 13.87s",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-protocol-interface-runtime-applicability.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=evidence:type=RuntimeEvidenceBundle:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=evidence_mode:type=str:default=exact",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=fallback_executor:type=RuntimeCommandExecutor | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=fallback_jobs:type=int:default=1",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=isolated_runner:type=Callable[[Sequence[RuntimeCommandIdentity], Path, Mapping[RuntimeCommandIdentity, set[str]], ProjectSnapshotBackend, RuntimeCommandExecutor, int, int], ArtifactCoverageFallbackRun] | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=manifests:type=Sequence[Manifest]:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=max_processes:type=int:default=1",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=project_root:type=Path:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=snapshot_backend:type=ProjectSnapshotBackend | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:kind=function",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:returns=EvidenceArtifactCoverageResult",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage:arg=executor:type=Union[RuntimeCommandExecutor, None]:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage:arg=manifest:type=Manifest:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage:arg=project_root:type=Path:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage:kind=function",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage:returns=ArtifactCoverageReport",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=executor:type=RuntimeCommandExecutor | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=isolated_runner:type=Callable[[Sequence[RuntimeCommandIdentity], Path, Mapping[RuntimeCommandIdentity, set[str]], ProjectSnapshotBackend, RuntimeCommandExecutor, int, int], ArtifactCoverageFallbackRun] | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=jobs:type=int | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=manifests:type=Sequence[Manifest]:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=max_processes:type=int | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=project_root:type=Path:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=snapshot_backend:type=ProjectSnapshotBackend | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:kind=function",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:returns=dict[str, ArtifactCoverageReport]",
+      "maid_runner/core/knockout.py:function:build_knockout_mutation_specs",
+      "maid_runner/core/knockout.py:function:build_knockout_mutation_specs:arg=limit:type=int | None:default=None",
+      "maid_runner/core/knockout.py:function:build_knockout_mutation_specs:arg=manifests:type=Sequence[Manifest]:default=None",
+      "maid_runner/core/knockout.py:function:build_knockout_mutation_specs:arg=project_root:type=Path:default=None",
+      "maid_runner/core/knockout.py:function:build_knockout_mutation_specs:kind=function",
+      "maid_runner/core/knockout.py:function:build_knockout_mutation_specs:returns=tuple[KnockoutMutationSpec, ...]",
+      "maid_runner/core/knockout.py:function:rewrite_artifact_body",
+      "maid_runner/core/knockout.py:function:rewrite_artifact_body:arg=artifact_kind:type=str:default=None",
+      "maid_runner/core/knockout.py:function:rewrite_artifact_body:arg=artifact_name:type=str:default=None",
+      "maid_runner/core/knockout.py:function:rewrite_artifact_body:arg=parent_class:type=str | None:default=None",
+      "maid_runner/core/knockout.py:function:rewrite_artifact_body:arg=source:type=str:default=None",
+      "maid_runner/core/knockout.py:function:rewrite_artifact_body:kind=function",
+      "maid_runner/core/knockout.py:function:rewrite_artifact_body:returns=str",
+      "maid_runner/core/knockout.py:function:run_knockout",
+      "maid_runner/core/knockout.py:function:run_knockout:arg=allow_dirty:type=bool:default=False",
+      "maid_runner/core/knockout.py:function:run_knockout:arg=evidence:type=RuntimeEvidenceBundle | None:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout:arg=executor:type=KnockoutCommandExecutor | None:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout:arg=limit:type=int | None:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout:arg=manifest:type=Manifest:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout:arg=project_root:type=Path:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout:arg=snapshot_backend:type=ProjectSnapshotBackend | None:default=None",
+      "maid_runner/core/knockout.py:function:run_knockout:kind=function",
+      "maid_runner/core/knockout.py:function:run_knockout:returns=KnockoutReport",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_attribute_only_and_empty_classes_preserve_existing_runtime_policy",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_attribute_only_and_empty_classes_preserve_existing_runtime_policy:arg=source:type=str:default=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_attribute_only_and_empty_classes_preserve_existing_runtime_policy:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_attribute_only_and_empty_classes_preserve_existing_runtime_policy:kind=test_function",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_attribute_only_and_empty_classes_preserve_existing_runtime_policy:returns=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_concrete_protocol_defaults_still_require_execution",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_concrete_protocol_defaults_still_require_execution:arg=body:type=str:default=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_concrete_protocol_defaults_still_require_execution:arg=mode:type=str:default=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_concrete_protocol_defaults_still_require_execution:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_concrete_protocol_defaults_still_require_execution:kind=test_function",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_concrete_protocol_defaults_still_require_execution:returns=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_executed_concrete_default_remains_covered_and_knockout_eligible",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_executed_concrete_default_remains_covered_and_knockout_eligible:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_executed_concrete_default_remains_covered_and_knockout_eligible:kind=test_function",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_executed_concrete_default_remains_covered_and_knockout_eligible:returns=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_interface_only_unittest_needs_no_body_instrumentation",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_interface_only_unittest_needs_no_body_instrumentation:arg=mode:type=str:default=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_interface_only_unittest_needs_no_body_instrumentation:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_interface_only_unittest_needs_no_body_instrumentation:kind=test_function",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_interface_only_unittest_needs_no_body_instrumentation:returns=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_knockout_direct_method_is_not_displaced_by_nested_class_name",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_knockout_direct_method_is_not_displaced_by_nested_class_name:arg=nested_member:type=bool:default=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_knockout_direct_method_is_not_displaced_by_nested_class_name:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_knockout_direct_method_is_not_displaced_by_nested_class_name:kind=test_function",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_knockout_direct_method_is_not_displaced_by_nested_class_name:returns=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_knockout_skips_protocol_signature_without_mutating_source",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_knockout_skips_protocol_signature_without_mutating_source:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_knockout_skips_protocol_signature_without_mutating_source:kind=test_function",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_knockout_skips_protocol_signature_without_mutating_source:returns=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_knockout_uses_effective_redefined_class_and_restores_source",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_knockout_uses_effective_redefined_class_and_restores_source:arg=final_interface:type=bool:default=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_knockout_uses_effective_redefined_class_and_restores_source:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_knockout_uses_effective_redefined_class_and_restores_source:kind=test_function",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_knockout_uses_effective_redefined_class_and_restores_source:returns=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_mixed_interface_and_adapter_preserve_real_runtime_observations",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_mixed_interface_and_adapter_preserve_real_runtime_observations:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_mixed_interface_and_adapter_preserve_real_runtime_observations:kind=test_function",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_mixed_interface_and_adapter_preserve_real_runtime_observations:returns=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_ordinary_property_metadata_is_not_interface_proof",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_ordinary_property_metadata_is_not_interface_proof:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_ordinary_property_metadata_is_not_interface_proof:kind=test_function",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_ordinary_property_metadata_is_not_interface_proof:returns=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_protocol_signatures_have_no_runtime_body_requirement",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_protocol_signatures_have_no_runtime_body_requirement:arg=async_method:type=bool:default=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_protocol_signatures_have_no_runtime_body_requirement:arg=base:type=str:default=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_protocol_signatures_have_no_runtime_body_requirement:arg=body:type=str:default=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_protocol_signatures_have_no_runtime_body_requirement:arg=getter:type=bool:default=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_protocol_signatures_have_no_runtime_body_requirement:arg=imports:type=str:default=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_protocol_signatures_have_no_runtime_body_requirement:arg=mode:type=str:default=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_protocol_signatures_have_no_runtime_body_requirement:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_protocol_signatures_have_no_runtime_body_requirement:kind=test_function",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_protocol_signatures_have_no_runtime_body_requirement:returns=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_unknown_or_redefined_classes_do_not_inherit_interface_exemption",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_unknown_or_redefined_classes_do_not_inherit_interface_exemption:arg=source:type=str:default=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_unknown_or_redefined_classes_do_not_inherit_interface_exemption:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_unknown_or_redefined_classes_do_not_inherit_interface_exemption:kind=test_function",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py:test_unknown_or_redefined_classes_do_not_inherit_interface_exemption:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_fix_protocol_interface_runtime_applicability.py"
+      ],
+      "edit": [
+        "maid_runner/core/artifact_coverage.py",
+        "maid_runner/core/knockout.py"
+      ],
+      "read": [
+        "docs/draft-manifest-workflow.md",
+        "docs/unit-testing-rules.md"
+      ],
+      "scope": [
+        ".maid/docs/maid_specs.md",
+        "docs/maid_specs.md",
+        "docs/plans/bug-report-triage-2026-10-20.md",
+        "maid_runner/docs/maid_specs.md",
+        "maid_runner/validators/_python_implementation.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_fix_protocol_interface_runtime_applicability.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_protocol_signatures_have_no_runtime_body_requirement",
+              "description": "protocol signatures have no runtime body requirement",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "mode",
+                  "type": "str"
+                },
+                {
+                  "name": "imports",
+                  "type": "str"
+                },
+                {
+                  "name": "base",
+                  "type": "str"
+                },
+                {
+                  "name": "body",
+                  "type": "str"
+                },
+                {
+                  "name": "async_method",
+                  "type": "bool"
+                },
+                {
+                  "name": "getter",
+                  "type": "bool"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_concrete_protocol_defaults_still_require_execution",
+              "description": "concrete protocol defaults still require execution",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "mode",
+                  "type": "str"
+                },
+                {
+                  "name": "body",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unknown_or_redefined_classes_do_not_inherit_interface_exemption",
+              "description": "unknown or redefined classes do not inherit interface exemption",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "source",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_ordinary_property_metadata_is_not_interface_proof",
+              "description": "ordinary property metadata is not interface proof",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_attribute_only_and_empty_classes_preserve_existing_runtime_policy",
+              "description": "attribute only and empty classes preserve existing runtime policy",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "source",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_knockout_skips_protocol_signature_without_mutating_source",
+              "description": "knockout skips protocol signature without mutating source",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_executed_concrete_default_remains_covered_and_knockout_eligible",
+              "description": "executed concrete default remains covered and knockout eligible",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_knockout_uses_effective_redefined_class_and_restores_source",
+              "description": "knockout uses effective redefined class and restores source",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "final_interface",
+                  "type": "bool"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_interface_only_unittest_needs_no_body_instrumentation",
+              "description": "interface only unittest needs no body instrumentation",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "mode",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_mixed_interface_and_adapter_preserve_real_runtime_observations",
+              "description": "mixed interface and adapter preserve real runtime observations",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_knockout_direct_method_is_not_displaced_by_nested_class_name",
+              "description": "Real coverage and knockout preserve direct targets and source restoration under empty or populated nested same-name classes; public rewrite leaves nested code intact.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "nested_member",
+                  "type": "bool"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/artifact_coverage.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "run_artifact_coverage",
+              "description": "Existing public seam exercised by the planned regression scenarios; preserve its signature.",
+              "args": [
+                {
+                  "name": "manifest",
+                  "type": "Manifest"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "executor",
+                  "type": "Union[RuntimeCommandExecutor, None]",
+                  "default": "None"
+                }
+              ],
+              "returns": "ArtifactCoverageReport"
+            },
+            {
+              "kind": "function",
+              "name": "run_artifact_coverage_batch",
+              "description": "Existing shared-command batch. None jobs/max_processes resolve from artifact_coverage.fallback_jobs and test_execution.max_processes; jobs above one routes unique commands through the isolated runner with unioned targets and replays only escalated identities in place; jobs of one preserves the serial in-place loop byte-for-byte. Keyword-only additions keep every existing call site valid.",
+              "args": [
+                {
+                  "name": "manifests",
+                  "type": "Sequence[Manifest]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "executor",
+                  "type": "RuntimeCommandExecutor | None",
+                  "default": "None"
+                },
+                {
+                  "name": "jobs",
+                  "type": "int | None",
+                  "default": "None"
+                },
+                {
+                  "name": "max_processes",
+                  "type": "int | None",
+                  "default": "None"
+                },
+                {
+                  "name": "snapshot_backend",
+                  "type": "ProjectSnapshotBackend | None",
+                  "default": "None"
+                },
+                {
+                  "name": "isolated_runner",
+                  "type": "Callable[[Sequence[RuntimeCommandIdentity], Path, Mapping[RuntimeCommandIdentity, set[str]], ProjectSnapshotBackend, RuntimeCommandExecutor, int, int], ArtifactCoverageFallbackRun] | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "dict[str, ArtifactCoverageReport]"
+            },
+            {
+              "kind": "function",
+              "name": "evaluate_artifact_coverage_from_evidence",
+              "description": "Projects digest-approved fixture execution into derived per-manifest coverage while preserving fail-closed exclusion of unapproved lifecycles.",
+              "args": [
+                {
+                  "name": "manifests",
+                  "type": "Sequence[Manifest]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "evidence",
+                  "type": "RuntimeEvidenceBundle"
+                },
+                {
+                  "name": "fallback_executor",
+                  "type": "RuntimeCommandExecutor | None",
+                  "default": "None"
+                },
+                {
+                  "name": "fallback_jobs",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "max_processes",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "snapshot_backend",
+                  "type": "ProjectSnapshotBackend | None",
+                  "default": "None"
+                },
+                {
+                  "name": "isolated_runner",
+                  "type": "Callable[[Sequence[RuntimeCommandIdentity], Path, Mapping[RuntimeCommandIdentity, set[str]], ProjectSnapshotBackend, RuntimeCommandExecutor, int, int], ArtifactCoverageFallbackRun] | None",
+                  "default": "None"
+                },
+                {
+                  "name": "evidence_mode",
+                  "type": "str",
+                  "default": "exact"
+                }
+              ],
+              "returns": "EvidenceArtifactCoverageResult"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/core/knockout.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "rewrite_artifact_body",
+              "description": "Replace the named Python function or method body while preserving its decorators, signature, and newline convention.",
+              "args": [
+                {
+                  "name": "source",
+                  "type": "str"
+                },
+                {
+                  "name": "artifact_name",
+                  "type": "str"
+                },
+                {
+                  "name": "artifact_kind",
+                  "type": "str"
+                },
+                {
+                  "name": "parent_class",
+                  "type": "str | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "str"
+            },
+            {
+              "kind": "function",
+              "name": "run_knockout",
+              "description": "Preserves differential detection compatibility while each declaration executes in a fresh snapshot and allow_dirty becomes unnecessary.",
+              "args": [
+                {
+                  "name": "manifest",
+                  "type": "Manifest"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "limit",
+                  "type": "int | None",
+                  "default": "None"
+                },
+                {
+                  "name": "allow_dirty",
+                  "type": "bool",
+                  "default": "False"
+                },
+                {
+                  "name": "evidence",
+                  "type": "RuntimeEvidenceBundle | None",
+                  "default": "None"
+                },
+                {
+                  "name": "executor",
+                  "type": "KnockoutCommandExecutor | None",
+                  "default": "None"
+                },
+                {
+                  "name": "snapshot_backend",
+                  "type": "ProjectSnapshotBackend | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "KnockoutReport"
+            },
+            {
+              "kind": "function",
+              "name": "build_knockout_mutation_specs",
+              "args": [
+                {
+                  "name": "manifests",
+                  "type": "Sequence[Manifest]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "limit",
+                  "type": "int | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "tuple[KnockoutMutationSpec, ...]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "docs/unit-testing-rules.md",
+        "docs/draft-manifest-workflow.md"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/validators/_python_implementation.py",
+          "reason": "Expose private producer-proven Protocol class/member positions without changing public collector output."
+        },
+        {
+          "path": "docs/maid_specs.md",
+          "reason": "Document interface runtime applicability."
+        },
+        {
+          "path": "maid_runner/docs/maid_specs.md",
+          "reason": "Keep packaged spec mirror identical."
+        },
+        {
+          "path": ".maid/docs/maid_specs.md",
+          "reason": "Keep initialized spec mirror identical."
+        },
+        {
+          "path": "docs/plans/bug-report-triage-2026-10-20.md",
+          "reason": "Reconcile current queue location and completion."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_artifact_coverage.py",
+      "tests/core/test_fix_protocol_interface_runtime_applicability.py",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py",
+      "tests/core/test_knockout.py",
+      "tests/core/test_knockout_abstract_contracts.py",
+      "tests/docs/test_chain_merge_docs.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_fix_protocol_interface_runtime_applicability.py -q",
+      "uv run python -m pytest tests/core/test_artifact_coverage.py tests/core/test_knockout.py tests/core/test_knockout_abstract_contracts.py tests/core/test_fix_unsupported_coverage_runner_diagnostics.py tests/docs/test_chain_merge_docs.py -q",
+      "uv run maid validate manifests/fix-protocol-interface-runtime-applicability.manifest.yaml --mode schema --quiet"
+    ],
+    "acceptance_commands": []
+  }
+}
