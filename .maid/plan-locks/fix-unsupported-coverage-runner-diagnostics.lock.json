@@ -1,0 +1,522 @@
+{
+  "manifest_path": "manifests/fix-unsupported-coverage-runner-diagnostics.manifest.yaml",
+  "manifest_hash": "sha256-contract:54f776751534d9255de23ca0967cb2b090b17b9ec42e7bc3d9754898a04f592b",
+  "test_hashes": {
+    "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py": "sha256-pyast:v2:0754d74ac8f4ebd3d6d59434b41ec38da712dc482da3283dbcc28d2c206a2cc0",
+    "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c34dfe965fa753658878c05966d0283f4abc97820a972e531ddc6fe2e1cf66de",
+    "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:40d689b52b549e7b852da3dec2b2316bc87e7f4a38badb90ac173fb31ad68ccb",
+    "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+    "tests/core/test_approved_fixture_artifact_coverage.py": "sha256-pyast:v2:3b41f8482b27b8dd976f2d30cad4172611ab68a5290ce42a4eca58385919bc83"
+  },
+  "created_at": "2026-10-20T17:12:03.239271+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:e4b7c51ff54a8404cf6dbec2baafc1da44497483eaf5f1678fc8adc56963ba42",
+      "prior_test_hashes": {
+        "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py": "sha256-pyast:v2:8ae8caf34b5a7fd18dc8a12883ca039f283db131bea26df1541daa4b6e443505",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c34dfe965fa753658878c05966d0283f4abc97820a972e531ddc6fe2e1cf66de",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:40d689b52b549e7b852da3dec2b2316bc87e7f4a38badb90ac173fb31ad68ccb",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_approved_fixture_artifact_coverage.py": "sha256-pyast:v2:3b41f8482b27b8dd976f2d30cad4172611ab68a5290ce42a4eca58385919bc83"
+      },
+      "revised_at": "2026-10-20T17:12:20.401958+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-unsupported-coverage-runner-diagnostics.manifest.yaml -> manifests/fix-unsupported-coverage-runner-diagnostics.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:a0cdfa6a9ddf58fa211380428c840d546bfe0d7561d2c312c70a2f26fe36c5fb",
+      "prior_test_hashes": {
+        "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py": "sha256-pyast:v2:8ae8caf34b5a7fd18dc8a12883ca039f283db131bea26df1541daa4b6e443505",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c34dfe965fa753658878c05966d0283f4abc97820a972e531ddc6fe2e1cf66de",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:40d689b52b549e7b852da3dec2b2316bc87e7f4a38badb90ac173fb31ad68ccb",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_approved_fixture_artifact_coverage.py": "sha256-pyast:v2:3b41f8482b27b8dd976f2d30cad4172611ab68a5290ce42a4eca58385919bc83"
+      },
+      "revised_at": "2026-10-20T17:15:36.377836+00:00",
+      "reason": "Preserve existing abstract-only runtime applicability without a new analyzer",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_abstract_only_contracts_need_no_runtime_instrumentation",
+          "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_abstract_only_contracts_need_no_runtime_instrumentation:arg=mode:type=str:default=None",
+          "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_abstract_only_contracts_need_no_runtime_instrumentation:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_abstract_only_contracts_need_no_runtime_instrumentation:kind=test_function",
+          "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_abstract_only_contracts_need_no_runtime_instrumentation:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6267bb2c4c2c35ac856823b2561395714c427bfac13e158112584f62bd577cc6",
+      "prior_test_hashes": {
+        "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py": "sha256-pyast:v2:c61a5458dac5b61c27f861f575a5467fb5f515bf26c2fec7749bcbeca765f23e",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c34dfe965fa753658878c05966d0283f4abc97820a972e531ddc6fe2e1cf66de",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:40d689b52b549e7b852da3dec2b2316bc87e7f4a38badb90ac173fb31ad68ccb",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_approved_fixture_artifact_coverage.py": "sha256-pyast:v2:3b41f8482b27b8dd976f2d30cad4172611ab68a5290ce42a4eca58385919bc83"
+      },
+      "revised_at": "2026-10-20T17:24:13.409735+00:00",
+      "reason": "Declare required checked-in local documentation mirror; behavioral hashes and commands unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:.maid/docs/maid_specs.md"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:5cb17d9991c5d112dfc130c0c9de2902fe3745a60582d4d97a59bcbd63f3f1bc",
+      "prior_test_hashes": {
+        "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py": "sha256-pyast:v2:c61a5458dac5b61c27f861f575a5467fb5f515bf26c2fec7749bcbeca765f23e",
+        "tests/core/test_artifact_coverage.py": "sha256-pyast:v2:c34dfe965fa753658878c05966d0283f4abc97820a972e531ddc6fe2e1cf66de",
+        "tests/core/test_artifact_coverage_batch.py": "sha256-pyast:v2:40d689b52b549e7b852da3dec2b2316bc87e7f4a38badb90ac173fb31ad68ccb",
+        "tests/core/test_artifact_coverage_from_runtime_evidence.py": "sha256-pyast:v2:107df60bdb69dda190b507ff19ab33deea427c7bd328d477c622f224b337729b",
+        "tests/core/test_approved_fixture_artifact_coverage.py": "sha256-pyast:v2:3b41f8482b27b8dd976f2d30cad4172611ab68a5290ce42a4eca58385919bc83"
+      },
+      "revised_at": "2026-10-20T17:26:45.390124+00:00",
+      "reason": "Cover skipped py.test aliases using existing runner family semantics",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_mixed_test_runners_preserve_observations_without_claiming_complete_evidence:arg=runner:type=str:default=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-20T17:27:08.112866+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_fix_unsupported_coverage_runner_diagnostics.py -q",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/core/test_fix_unsupported_coverage_runner_diagnostics.py::test_mixed_test_runners_preserve_observations_without_claiming_complete_evidence[unittest-True-batch-isolated]\nFAILED tests/core/test_fix_unsupported_coverage_runner_diagnostics.py::test_mixed_test_runners_preserve_observations_without_claiming_complete_evidence[unittest-True-evidence-exact]\nFAILED tests/core/test_fix_unsupported_coverage_runner_diagnostics.py::test_mixed_test_runners_preserve_observations_without_claiming_complete_evidence[unittest-True-evidence-derived]\nFAILED tests/core/test_fix_unsupported_coverage_runner_diagnostics.py::test_mixed_test_runners_preserve_observations_without_claiming_complete_evidence[pytest-alias-False-exact]\nFAILED tests/core/test_fix_unsupported_coverage_runner_diagnostics.py::test_mixed_test_runners_preserve_observations_without_claiming_complete_evidence[pytest-alias-False-batch]\nFAILED tests/core/test_fix_unsupported_coverage_runner_diagnostics.py::test_mixed_test_runners_preserve_observations_without_claiming_complete_evidence[pytest-alias-False-batch-isolated]\nFAILED tests/core/test_fix_unsupported_coverage_runner_diagnostics.py::test_mixed_test_runners_preserve_observations_without_claiming_complete_evidence[pytest-alias-False-evidence-exact]\nFAILED tests/core/test_fix_unsupported_coverage_runner_diagnostics.py::test_mixed_test_runners_preserve_observations_without_claiming_complete_evidence[pytest-alias-False-evidence-derived]\nFAILED tests/core/test_fix_unsupported_coverage_runner_diagnostics.py::test_mixed_test_runners_preserve_observations_without_claiming_complete_evidence[pytest-alias-True-exact]\nFAILED tests/core/test_fix_unsupported_coverage_runner_diagnostics.py::test_mixed_test_runners_preserve_observations_without_claiming_complete_evidence[pytest-alias-True-batch]\nFAILED tests/core/test_fix_unsupported_coverage_runner_diagnostics.py::test_mixed_test_runners_preserve_observations_without_claiming_complete_evidence[pytest-alias-True-batch-isolated]\nFAILED tests/core/test_fix_unsupported_coverage_runner_diagnostics.py::test_mixed_test_runners_preserve_observations_without_claiming_complete_evidence[pytest-alias-True-evidence-exact]\nFAILED tests/core/test_fix_unsupported_coverage_runner_diagnostics.py::test_mixed_test_runners_preserve_observations_without_claiming_complete_evidence[pytest-alias-True-evidence-derived]\nFAILED tests/core/test_fix_unsupported_coverage_runner_diagnostics.py::test_instrumentation_unavailable_is_a_blocking_verify_stage\nFAILED tests/core/test_fix_unsupported_coverage_runner_diagnostics.py::test_missing_test_instrumentation_does_not_claim_nonexecution[exact]\nFAILED tests/core/test_fix_unsupported_coverage_runner_diagnostics.py::test_missing_test_instrumentation_does_not_claim_nonexecution[batch]\nFAILED tests/core/test_fix_unsupported_coverage_runner_diagnostics.py::test_missing_test_instrumentation_does_not_claim_nonexecution[batch-isolated]\nFAILED tests/core/test_fix_unsupported_coverage_runner_diagnostics.py::test_missing_test_instrumentation_does_not_claim_nonexecution[evidence-exact]\nFAILED tests/core/test_fix_unsupported_coverage_runner_diagnostics.py::test_missing_test_instrumentation_does_not_claim_nonexecution[evidence-derived]\n46 failed, 10 passed in 13.58s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest tests/core/test_artifact_coverage.py tests/core/test_artifact_coverage_batch.py tests/core/test_artifact_coverage_from_runtime_evidence.py tests/core/test_approved_fixture_artifact_coverage.py -q",
+        "exit_code": 0,
+        "output_tail": "........................................                                 [100%]\n40 passed in 8.69s",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=evidence:type=RuntimeEvidenceBundle:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=evidence_mode:type=str:default=exact",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=fallback_executor:type=RuntimeCommandExecutor | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=fallback_jobs:type=int:default=1",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=isolated_runner:type=Callable[[Sequence[RuntimeCommandIdentity], Path, Mapping[RuntimeCommandIdentity, set[str]], ProjectSnapshotBackend, RuntimeCommandExecutor, int, int], ArtifactCoverageFallbackRun] | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=manifests:type=Sequence[Manifest]:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=max_processes:type=int:default=1",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=project_root:type=Path:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:arg=snapshot_backend:type=ProjectSnapshotBackend | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:kind=function",
+      "maid_runner/core/artifact_coverage.py:function:evaluate_artifact_coverage_from_evidence:returns=EvidenceArtifactCoverageResult",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage:arg=executor:type=Union[RuntimeCommandExecutor, None]:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage:arg=manifest:type=Manifest:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage:arg=project_root:type=Path:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage:kind=function",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage:returns=ArtifactCoverageReport",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=executor:type=RuntimeCommandExecutor | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=isolated_runner:type=Callable[[Sequence[RuntimeCommandIdentity], Path, Mapping[RuntimeCommandIdentity, set[str]], ProjectSnapshotBackend, RuntimeCommandExecutor, int, int], ArtifactCoverageFallbackRun] | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=jobs:type=int | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=manifests:type=Sequence[Manifest]:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=max_processes:type=int | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=project_root:type=Path:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:arg=snapshot_backend:type=ProjectSnapshotBackend | None:default=None",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:kind=function",
+      "maid_runner/core/artifact_coverage.py:function:run_artifact_coverage_batch:returns=dict[str, ArtifactCoverageReport]",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_abstract_only_contracts_need_no_runtime_instrumentation",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_abstract_only_contracts_need_no_runtime_instrumentation:arg=mode:type=str:default=None",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_abstract_only_contracts_need_no_runtime_instrumentation:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_abstract_only_contracts_need_no_runtime_instrumentation:kind=test_function",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_abstract_only_contracts_need_no_runtime_instrumentation:returns=None",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_instrumentation_unavailable_is_a_blocking_verify_stage",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_instrumentation_unavailable_is_a_blocking_verify_stage:arg=capsys:type=CaptureFixture[str]:default=None",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_instrumentation_unavailable_is_a_blocking_verify_stage:arg=monkeypatch:type=MonkeyPatch:default=None",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_instrumentation_unavailable_is_a_blocking_verify_stage:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_instrumentation_unavailable_is_a_blocking_verify_stage:kind=test_function",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_instrumentation_unavailable_is_a_blocking_verify_stage:returns=None",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_isolated_runners_report_limit_without_host_execution",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_isolated_runners_report_limit_without_host_execution:arg=mode:type=str:default=None",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_isolated_runners_report_limit_without_host_execution:arg=runner:type=str:default=None",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_isolated_runners_report_limit_without_host_execution:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_isolated_runners_report_limit_without_host_execution:kind=test_function",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_isolated_runners_report_limit_without_host_execution:returns=None",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_missing_test_instrumentation_does_not_claim_nonexecution",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_missing_test_instrumentation_does_not_claim_nonexecution:arg=mode:type=str:default=None",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_missing_test_instrumentation_does_not_claim_nonexecution:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_missing_test_instrumentation_does_not_claim_nonexecution:kind=test_function",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_missing_test_instrumentation_does_not_claim_nonexecution:returns=None",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_mixed_test_runners_preserve_observations_without_claiming_complete_evidence",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_mixed_test_runners_preserve_observations_without_claiming_complete_evidence:arg=mode:type=str:default=None",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_mixed_test_runners_preserve_observations_without_claiming_complete_evidence:arg=observed_all:type=bool:default=None",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_mixed_test_runners_preserve_observations_without_claiming_complete_evidence:arg=runner:type=str:default=None",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_mixed_test_runners_preserve_observations_without_claiming_complete_evidence:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_mixed_test_runners_preserve_observations_without_claiming_complete_evidence:kind=test_function",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_mixed_test_runners_preserve_observations_without_claiming_complete_evidence:returns=None",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_real_unittest_execution_is_not_reported_as_nonexecution",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_real_unittest_execution_is_not_reported_as_nonexecution:arg=mode:type=str:default=None",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_real_unittest_execution_is_not_reported_as_nonexecution:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_real_unittest_execution_is_not_reported_as_nonexecution:kind=test_function",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_real_unittest_execution_is_not_reported_as_nonexecution:returns=None",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_unrelated_validation_does_not_make_supported_python_coverage_incomplete",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_unrelated_validation_does_not_make_supported_python_coverage_incomplete:arg=mode:type=str:default=None",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_unrelated_validation_does_not_make_supported_python_coverage_incomplete:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_unrelated_validation_does_not_make_supported_python_coverage_incomplete:kind=test_function",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py:test_unrelated_validation_does_not_make_supported_python_coverage_incomplete:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py"
+      ],
+      "edit": [
+        "maid_runner/core/artifact_coverage.py"
+      ],
+      "read": [
+        "docs/draft-manifest-workflow.md",
+        "docs/unit-testing-rules.md",
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/core/_runtime_command_executor.py",
+        "maid_runner/core/_test_runner_invocation.py",
+        "maid_runner/core/config.py",
+        "maid_runner/core/result.py",
+        "maid_runner/core/runtime_evidence.py"
+      ],
+      "scope": [
+        ".maid/docs/maid_specs.md",
+        "docs/maid_specs.md",
+        "docs/plans/bug-report-triage-2026-10-20.md",
+        "maid_runner/docs/maid_specs.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_real_unittest_execution_is_not_reported_as_nonexecution",
+              "description": "real unittest execution is not reported as nonexecution",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "mode",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_isolated_runners_report_limit_without_host_execution",
+              "description": "isolated runners report limit without host execution",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "runner",
+                  "type": "str"
+                },
+                {
+                  "name": "mode",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_mixed_test_runners_preserve_observations_without_claiming_complete_evidence",
+              "description": "mixed test runners preserve observations without claiming complete evidence",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "mode",
+                  "type": "str"
+                },
+                {
+                  "name": "observed_all",
+                  "type": "bool"
+                },
+                {
+                  "name": "runner",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unrelated_validation_does_not_make_supported_python_coverage_incomplete",
+              "description": "unrelated validation does not make supported python coverage incomplete",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "mode",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_instrumentation_unavailable_is_a_blocking_verify_stage",
+              "description": "instrumentation unavailable is a blocking verify stage",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "CaptureFixture[str]"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_missing_test_instrumentation_does_not_claim_nonexecution",
+              "description": "missing test instrumentation does not claim nonexecution",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "mode",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_abstract_only_contracts_need_no_runtime_instrumentation",
+              "description": "Preserve existing runtime-exempt abstract-only contract coverage.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "mode",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/artifact_coverage.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "run_artifact_coverage",
+              "description": "Existing public seam exercised by the planned regression scenarios; preserve its signature.",
+              "args": [
+                {
+                  "name": "manifest",
+                  "type": "Manifest"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "executor",
+                  "type": "Union[RuntimeCommandExecutor, None]",
+                  "default": "None"
+                }
+              ],
+              "returns": "ArtifactCoverageReport"
+            },
+            {
+              "kind": "function",
+              "name": "run_artifact_coverage_batch",
+              "description": "Existing shared-command batch. None jobs/max_processes resolve from artifact_coverage.fallback_jobs and test_execution.max_processes; jobs above one routes unique commands through the isolated runner with unioned targets and replays only escalated identities in place; jobs of one preserves the serial in-place loop byte-for-byte. Keyword-only additions keep every existing call site valid.",
+              "args": [
+                {
+                  "name": "manifests",
+                  "type": "Sequence[Manifest]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "executor",
+                  "type": "RuntimeCommandExecutor | None",
+                  "default": "None"
+                },
+                {
+                  "name": "jobs",
+                  "type": "int | None",
+                  "default": "None"
+                },
+                {
+                  "name": "max_processes",
+                  "type": "int | None",
+                  "default": "None"
+                },
+                {
+                  "name": "snapshot_backend",
+                  "type": "ProjectSnapshotBackend | None",
+                  "default": "None"
+                },
+                {
+                  "name": "isolated_runner",
+                  "type": "Callable[[Sequence[RuntimeCommandIdentity], Path, Mapping[RuntimeCommandIdentity, set[str]], ProjectSnapshotBackend, RuntimeCommandExecutor, int, int], ArtifactCoverageFallbackRun] | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "dict[str, ArtifactCoverageReport]"
+            },
+            {
+              "kind": "function",
+              "name": "evaluate_artifact_coverage_from_evidence",
+              "description": "Projects digest-approved fixture execution into derived per-manifest coverage while preserving fail-closed exclusion of unapproved lifecycles.",
+              "args": [
+                {
+                  "name": "manifests",
+                  "type": "Sequence[Manifest]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "evidence",
+                  "type": "RuntimeEvidenceBundle"
+                },
+                {
+                  "name": "fallback_executor",
+                  "type": "RuntimeCommandExecutor | None",
+                  "default": "None"
+                },
+                {
+                  "name": "fallback_jobs",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "max_processes",
+                  "type": "int",
+                  "default": "1"
+                },
+                {
+                  "name": "snapshot_backend",
+                  "type": "ProjectSnapshotBackend | None",
+                  "default": "None"
+                },
+                {
+                  "name": "isolated_runner",
+                  "type": "Callable[[Sequence[RuntimeCommandIdentity], Path, Mapping[RuntimeCommandIdentity, set[str]], ProjectSnapshotBackend, RuntimeCommandExecutor, int, int], ArtifactCoverageFallbackRun] | None",
+                  "default": "None"
+                },
+                {
+                  "name": "evidence_mode",
+                  "type": "str",
+                  "default": "exact"
+                }
+              ],
+              "returns": "EvidenceArtifactCoverageResult"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "docs/unit-testing-rules.md",
+        "docs/draft-manifest-workflow.md",
+        "maid_runner/core/_runtime_command_executor.py",
+        "maid_runner/core/_test_runner_invocation.py",
+        "maid_runner/core/runtime_evidence.py",
+        "maid_runner/core/config.py",
+        "maid_runner/core/result.py",
+        "maid_runner/cli/commands/verify.py"
+      ],
+      "scope": [
+        {
+          "path": "docs/maid_specs.md",
+          "reason": "Document unsupported instrumentation vs observed nonexecution and mixed-runner provenance."
+        },
+        {
+          "path": "maid_runner/docs/maid_specs.md",
+          "reason": "Keep packaged specification synchronized."
+        },
+        {
+          "path": "docs/plans/bug-report-triage-2026-10-20.md",
+          "reason": "Reconcile promoted contract and canonical report disposition."
+        },
+        {
+          "path": ".maid/docs/maid_specs.md",
+          "reason": "Synchronize the checked-in local specification mirror required by existing documentation gates."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_approved_fixture_artifact_coverage.py",
+      "tests/core/test_artifact_coverage.py",
+      "tests/core/test_artifact_coverage_batch.py",
+      "tests/core/test_artifact_coverage_from_runtime_evidence.py",
+      "tests/core/test_fix_unsupported_coverage_runner_diagnostics.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_fix_unsupported_coverage_runner_diagnostics.py -q",
+      "uv run python -m pytest tests/core/test_artifact_coverage.py tests/core/test_artifact_coverage_batch.py tests/core/test_artifact_coverage_from_runtime_evidence.py tests/core/test_approved_fixture_artifact_coverage.py -q"
+    ],
+    "acceptance_commands": []
+  }
+}

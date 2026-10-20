@@ -20,7 +20,7 @@ from maid_runner.core._knockout_snapshot import ProjectSnapshotBackend
 from maid_runner.core.config import load_config
 from maid_runner.core.diagnostic_policy import no_validator_severity
 from maid_runner.core.module_paths import file_to_module_path, resolve_reexport
-from maid_runner.core.result import ErrorCode, Location, ValidationError
+from maid_runner.core.result import ErrorCode, Location, Severity, ValidationError
 from maid_runner.core.types import ArtifactKind, ArtifactSpec, Manifest
 from maid_runner.core.runtime_evidence import (
     _runtime_evidence_is_current,
@@ -298,13 +298,13 @@ def run_artifact_coverage(
     if report_errors:
         execution_data = {}
 
-    findings, execution_errors = _evaluate_targets(
-        root, coverage_targets, execution_data
+    findings, execution_errors, incomplete = _evaluate_instrumented_targets(
+        manifest, root, coverage_targets, execution_data
     )
     return ArtifactCoverageReport(
         findings=tuple(findings),
         errors=tuple(command_errors + report_errors + execution_errors),
-        provenance="exact",
+        provenance="partial" if incomplete else "exact",
     )
 
 
@@ -445,15 +445,13 @@ def run_artifact_coverage_batch(
 
         if report_errors:
             execution_data = {}
-        findings, execution_errors = _evaluate_targets(
-            root,
-            targets,
-            execution_data,
+        findings, execution_errors, incomplete = _evaluate_instrumented_targets(
+            manifest, root, targets, execution_data
         )
         reports[manifest_path] = ArtifactCoverageReport(
             findings=tuple(findings),
             errors=tuple(command_errors + report_errors + execution_errors),
-            provenance="exact",
+            provenance="partial" if incomplete else "exact",
         )
 
     if summary is not None:
@@ -756,11 +754,13 @@ def evaluate_artifact_coverage_from_evidence(
 
         if report_errors:
             execution_data = {}
-        findings, execution_errors = _evaluate_targets(root, targets, execution_data)
+        findings, execution_errors, incomplete = _evaluate_instrumented_targets(
+            manifest, root, targets, execution_data
+        )
         reports[manifest.source_path] = ArtifactCoverageReport(
             findings=tuple(findings),
             errors=tuple(command_errors + report_errors + execution_errors),
-            provenance=evidence_mode,
+            provenance="partial" if incomplete else evidence_mode,
         )
 
     return EvidenceArtifactCoverageResult(
@@ -768,7 +768,11 @@ def evaluate_artifact_coverage_from_evidence(
         fallback_identities=tuple(fallback_identities),
         isolated_fallback_identities=isolated_identities,
         serial_fallback_identities=serial_identities,
-        complete=current and not fallback_identities,
+        complete=(
+            current
+            and not fallback_identities
+            and not any(report.provenance == "partial" for report in reports.values())
+        ),
         isolated_worker_errors=isolated_worker_errors,
         isolated_material_project_writes=isolated_material_project_writes,
     )
@@ -817,6 +821,78 @@ def _union_execution_data(
                 else existing.called_qualnames | execution.called_qualnames
             ),
         )
+
+
+def _evaluate_instrumented_targets(
+    manifest: Manifest,
+    root: Path,
+    targets: list[tuple[str, ArtifactSpec]],
+    execution_data: Mapping[str, RuntimeFileExecution],
+) -> tuple[list[ArtifactCoverageFinding], list[ValidationError], bool]:
+    findings, errors = _evaluate_targets(root, targets, execution_data)
+    # An empty result already exempts abstract/runtime-exempt contracts from
+    # runtime observation. Preserve that established applicability policy.
+    instrumentation_errors = (
+        _coverage_instrumentation_errors(manifest, root) if findings or errors else []
+    )
+    if instrumentation_errors:
+        # Preserve measured execution, but absence in a partial collection does
+        # not establish that an uninstrumented Python test never ran the body.
+        findings = [finding for finding in findings if finding.executed]
+        errors = [
+            error
+            for error in errors
+            if error.code != ErrorCode.ARTIFACT_NOT_EXECUTED_BY_TESTS
+        ]
+    return findings, errors + instrumentation_errors, bool(instrumentation_errors)
+
+
+def _coverage_instrumentation_errors(
+    manifest: Manifest, root: Path
+) -> list[ValidationError]:
+    from maid_runner.core._test_runner_invocation import (
+        _PYTEST_TEST_RUNNERS,
+        _test_runner_invocation,
+    )
+
+    wrappers = load_config(root).test_runner_wrappers
+    python_runners = _PYTEST_TEST_RUNNERS | {"unittest", "django"}
+    instrumentable = False
+    unsupported = []
+    for command in manifest.validate_commands:
+        if _pytest_args(command) is not None:
+            instrumentable = True
+            continue
+        invocation = _test_runner_invocation(list(command), wrappers)
+        if invocation is not None and invocation[0] in python_runners:
+            unsupported.append(command)
+    if instrumentable and not unsupported:
+        return []
+    messages = [
+        "Artifact coverage instrumentation unavailable for Python test command: "
+        + " ".join(command)
+        for command in unsupported
+    ]
+    if not messages:
+        messages.append(
+            "Artifact coverage instrumentation unavailable: no supported pytest "
+            "command in validate: "
+            + "; ".join(" ".join(command) for command in manifest.validate_commands)
+        )
+    return [
+        ValidationError(
+            code=ErrorCode.VALIDATOR_NOT_AVAILABLE,
+            severity=Severity.ERROR,
+            message=message,
+            location=Location(file=manifest.source_path),
+            suggestion=(
+                "Use a supported pytest instrumentation command in its intended "
+                "environment. Do not move isolated tests onto the host or treat "
+                "unknown execution as proof of nonexecution."
+            ),
+        )
+        for message in messages
+    ]
 
 
 def _coverage_unavailable_report() -> ArtifactCoverageReport:

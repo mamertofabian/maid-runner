@@ -365,6 +365,17 @@ lives in the optional quality extra; install `maid-runner[quality]`. Requesting
 artifact coverage without the extra fails closed with `E307` semantics naming
 the missing validator dependency.
 
+For artifacts requiring runtime observations, coverage fails closed with an
+explicit error-severity `E307` when no
+instrumentable pytest command exists or a recognized Python test runner
+(unittest, Django, or a registered wrapper) cannot be instrumented. This is
+unknown execution, not `E710` observed nonexecution. Mixed instrumentation
+preserves measured positive findings, omits unsupported negative claims, and
+reports `partial` provenance with incomplete runtime evidence. It never runs
+isolated Django/container wrappers on the host. Ruff, mypy, MAID validation and
+non-Python test runners do not make otherwise-complete pytest Python coverage
+incomplete. Fully instrumentable suites retain their normal `E710` checks.
+
 `maid verify --knockout` is an opt-in Python-only gate that rewrites one
 declared public function or method artifact at a time to
 `raise NotImplementedError("maid-knockout")`. Detection requires a differential

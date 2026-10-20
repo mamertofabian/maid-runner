@@ -1,0 +1,333 @@
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Report unsupported coverage instrumentation instead of asserting nonexecution
+type: fix
+created: '2026-10-20T17:12:20Z'
+description: 'When no instrumentable test command exists, report blocking instrumentation-unavailable
+  rather than observed nonexecution. Recognized Python behavioral runners (pytest/unittest/django,
+  including existing recognized wrappers) that cannot be instrumented must produce
+  explicit blocking E307 instrumentation-unavailable errors, not empty-data E710.
+  Classify commands using existing bounded runner semantics and registered wrappers;
+  non-test validation (Ruff/mypy/maid validate) and non-Python runners (Vitest/Deno/Cargo/Foundry)
+  remain ignored when instrumentable Python tests exist, because this gate covers
+  Python artifacts only. Preserve observed executed=True target findings from supported
+  pytest commands, omit unknown negative findings/E710 when unsupported runners could
+  execute them, and mark incomplete reports partial rather than exact or derived;
+  runtime-evidence result completeness must be false. Apply consistent behavior through
+  direct coverage, serial/isolated batch finalization, and exact/derived evidence
+  consumers. Do not run Django/container/wrapper commands on the host or add arbitrary
+  runner instrumentation. Preserve real observed nonexecution E710 for fully instrumentable
+  suites. Existing signatures and report shape remain unchanged; unavailable severity
+  is explicitly error and public verify must block despite advisory E307 warning policy.
+  Preserve existing abstract/default-hook/runtime-exempt applicability: when the existing
+  target evaluator requires no runtime observations, instrumentation is not needed.
+  Do not add a separate static applicability analyzer. Reuse the existing pytest runner
+  family including py.test aliases when classifying unsupported wrappers; do not duplicate
+  an incomplete alias list.'
+temptations:
+- risk: Convert missing instrumentation into proof that an artifact did not execute,
+    or hide the limitation behind advisory E307 severity.
+  instead: Emit explicit error-severity instrumentation-unavailable diagnostics, preserve
+    positive observations, omit unsupported negative claims and block public verification.
+- risk: Classify non-test validators or non-Python test runners as unavailable Python
+    instrumentation, or silently mark mixed Python behavioral instrumentation exact.
+  instead: Reuse existing recognized runner/wrapper semantics; keep non-test validation
+    compatible and explicitly mark incomplete recognized test-runner reports partial.
+- risk: Execute isolated Django/container/wrapper commands on the host to obtain coverage,
+    or add a custom command parser.
+  instead: Keep unsupported instrumentation explicit and reuse bounded existing classification
+    without running those commands.
+files:
+  create:
+  - path: tests/core/test_fix_unsupported_coverage_runner_diagnostics.py
+    artifacts:
+    - kind: test_function
+      name: test_real_unittest_execution_is_not_reported_as_nonexecution
+      args:
+      - name: tmp_path
+        type: Path
+      - name: mode
+        type: str
+      returns: None
+      description: real unittest execution is not reported as nonexecution
+    - kind: test_function
+      name: test_isolated_runners_report_limit_without_host_execution
+      args:
+      - name: tmp_path
+        type: Path
+      - name: runner
+        type: str
+      - name: mode
+        type: str
+      returns: None
+      description: isolated runners report limit without host execution
+    - kind: test_function
+      name: test_mixed_test_runners_preserve_observations_without_claiming_complete_evidence
+      args:
+      - name: tmp_path
+        type: Path
+      - name: mode
+        type: str
+      - name: observed_all
+        type: bool
+      - name: runner
+        type: str
+      returns: None
+      description: mixed test runners preserve observations without claiming complete
+        evidence
+    - kind: test_function
+      name: test_unrelated_validation_does_not_make_supported_python_coverage_incomplete
+      args:
+      - name: tmp_path
+        type: Path
+      - name: mode
+        type: str
+      returns: None
+      description: unrelated validation does not make supported python coverage incomplete
+    - kind: test_function
+      name: test_instrumentation_unavailable_is_a_blocking_verify_stage
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: MonkeyPatch
+      - name: capsys
+        type: CaptureFixture[str]
+      returns: None
+      description: instrumentation unavailable is a blocking verify stage
+    - kind: test_function
+      name: test_missing_test_instrumentation_does_not_claim_nonexecution
+      args:
+      - name: tmp_path
+        type: Path
+      - name: mode
+        type: str
+      returns: None
+      description: missing test instrumentation does not claim nonexecution
+    - kind: test_function
+      name: test_abstract_only_contracts_need_no_runtime_instrumentation
+      args:
+      - name: tmp_path
+        type: Path
+      - name: mode
+        type: str
+      returns: None
+      description: Preserve existing runtime-exempt abstract-only contract coverage.
+  read:
+  - docs/unit-testing-rules.md
+  - docs/draft-manifest-workflow.md
+  - maid_runner/core/_runtime_command_executor.py
+  - maid_runner/core/_test_runner_invocation.py
+  - maid_runner/core/runtime_evidence.py
+  - maid_runner/core/config.py
+  - maid_runner/core/result.py
+  - maid_runner/cli/commands/verify.py
+  edit:
+  - path: maid_runner/core/artifact_coverage.py
+    artifacts:
+    - kind: function
+      name: run_artifact_coverage
+      args:
+      - name: manifest
+        type: Manifest
+      - name: project_root
+        type: Path
+      - name: executor
+        type: Union[RuntimeCommandExecutor, None]
+        default: None
+      returns: ArtifactCoverageReport
+      description: Existing public seam exercised by the planned regression scenarios;
+        preserve its signature.
+    - kind: function
+      name: run_artifact_coverage_batch
+      args:
+      - name: manifests
+        type: Sequence[Manifest]
+      - name: project_root
+        type: Path
+      - name: executor
+        type: RuntimeCommandExecutor | None
+        default: None
+      - name: jobs
+        type: int | None
+        default: None
+      - name: max_processes
+        type: int | None
+        default: None
+      - name: snapshot_backend
+        type: ProjectSnapshotBackend | None
+        default: None
+      - name: isolated_runner
+        type: Callable[[Sequence[RuntimeCommandIdentity], Path, Mapping[RuntimeCommandIdentity,
+          set[str]], ProjectSnapshotBackend, RuntimeCommandExecutor, int, int], ArtifactCoverageFallbackRun]
+          | None
+        default: None
+      returns: dict[str, ArtifactCoverageReport]
+      description: Existing shared-command batch. None jobs/max_processes resolve
+        from artifact_coverage.fallback_jobs and test_execution.max_processes; jobs
+        above one routes unique commands through the isolated runner with unioned
+        targets and replays only escalated identities in place; jobs of one preserves
+        the serial in-place loop byte-for-byte. Keyword-only additions keep every
+        existing call site valid.
+    - kind: function
+      name: evaluate_artifact_coverage_from_evidence
+      args:
+      - name: manifests
+        type: Sequence[Manifest]
+      - name: project_root
+        type: Path
+      - name: evidence
+        type: RuntimeEvidenceBundle
+      - name: fallback_executor
+        type: RuntimeCommandExecutor | None
+        default: None
+      - name: fallback_jobs
+        type: int
+        default: '1'
+      - name: max_processes
+        type: int
+        default: '1'
+      - name: snapshot_backend
+        type: ProjectSnapshotBackend | None
+        default: None
+      - name: isolated_runner
+        type: Callable[[Sequence[RuntimeCommandIdentity], Path, Mapping[RuntimeCommandIdentity,
+          set[str]], ProjectSnapshotBackend, RuntimeCommandExecutor, int, int], ArtifactCoverageFallbackRun]
+          | None
+        default: None
+      - name: evidence_mode
+        type: str
+        default: exact
+      returns: EvidenceArtifactCoverageResult
+      description: Projects digest-approved fixture execution into derived per-manifest
+        coverage while preserving fail-closed exclusion of unapproved lifecycles.
+  scope:
+  - path: docs/maid_specs.md
+    reason: Document unsupported instrumentation vs observed nonexecution and mixed-runner
+      provenance.
+  - path: maid_runner/docs/maid_specs.md
+    reason: Keep packaged specification synchronized.
+  - path: docs/plans/bug-report-triage-2026-10-20.md
+    reason: Reconcile promoted contract and canonical report disposition.
+  - path: .maid/docs/maid_specs.md
+    reason: Synchronize the checked-in local specification mirror required by existing
+      documentation gates.
+validate:
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/core/test_fix_unsupported_coverage_runner_diagnostics.py
+  - -q
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/core/test_artifact_coverage.py
+  - tests/core/test_artifact_coverage_batch.py
+  - tests/core/test_artifact_coverage_from_runtime_evidence.py
+  - tests/core/test_approved_fixture_artifact_coverage.py
+  - -q
+outcome:
+  status: completed
+  completed_at: '2026-10-20T17:37:30.513189+00:00'
+  summary: Distinguish unknown Python test instrumentation from observed artifact
+    nonexecution. Direct, batch and runtime-evidence consumers retain positive observations,
+    omit unsupported negative claims, emit blocking E307 and mark incomplete evidence
+    partial. Preserve runtime exemptions, unrelated validation and isolated-test safety.
+  lessons:
+  - lesson_type: validation-trust
+    summary: Missing instrumentation is not proof of nonexecution. Reuse the existing
+      Python runner family (including py.test) and runtime applicability; preserve
+      positive observations, expose partial evidence and keep instrumentation errors
+      blocking despite advisory E307 warning policy.
+    tags:
+    - artifact-coverage
+    - runtime-evidence
+    - diagnostics
+    paths:
+    - maid_runner/core/artifact_coverage.py
+  - lesson_type: workflow
+    summary: Specification changes must synchronize canonical, packaged and checked-in
+      .maid/docs mirrors under declared scope.
+    tags:
+    - documentation
+    - distribution
+    paths:
+    - docs/maid_specs.md
+    - maid_runner/docs/maid_specs.md
+    - .maid/docs/maid_specs.md
+  review_notes:
+  - source: independent-read-only-implementation_review_coverage_v3
+    severity: ready
+    summary: Ready to merge; no blocking findings in the complete scoped delta, contract,
+      tests and lock.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/core/test_artifact_coverage.py
+    - tests/core/test_artifact_coverage_abstract_contracts.py
+    - tests/core/test_artifact_coverage_batch.py
+    - tests/core/test_artifact_coverage_failure_determinism.py
+    - tests/core/test_artifact_coverage_fallback_workers.py
+    - tests/core/test_artifact_coverage_from_runtime_evidence.py
+    - tests/core/test_artifact_coverage_lanes.py
+    - tests/core/test_artifact_coverage_multiprocessing_spawn.py
+    - tests/core/test_artifact_coverage_partial_escalation.py
+    - tests/core/test_artifact_coverage_reexports.py
+    - tests/core/test_artifact_coverage_resolver_permits.py
+    - tests/core/test_artifact_coverage_timeout_config.py
+    - tests/core/test_fix_unsupported_coverage_runner_diagnostics.py
+    - tests/core/test_approved_fixture_artifact_coverage.py
+    - tests/cli/test_artifact_coverage_cmd.py
+    - tests/cli/test_artifact_coverage_evidence_cache.py
+    - tests/docs/test_chain_merge_docs.py
+    - -q
+    status: passed
+    summary: 163 core, CLI/cache and documentation compatibility cases passed; scoped
+      implementation, Ruff, Black and diff checks passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: 339 active manifests passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: All 312 declared commands passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - 5625e49d4843667eb4ab2b6c961249f8a564bd4f
+    status: passed
+    summary: All 11 assessed deep stages passed; existing E307 warnings only. Lock
+      rev5 retains genuine 46-failure/50-pass baseline evidence for the revised contract.
