@@ -1,0 +1,212 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Give usable stash-revision recovery advice when tests require upgraded dependencies
+type: fix
+created: '2026-10-20T23:32:33Z'
+description: 'Improve only the dependency-target invalid-red refusal in cmd_plan_revise. Prior dependency
+  recovery is conditional on compatibility with behavioral tests. When upgraded dependencies are required
+  to collect tests, advise retaining that prerequisite environment, saving the current implementation
+  before restoring only task implementation source to its real pre-implementation baseline in a controlled
+  checkout, and using plain plan revise after genuine red; then restore the saved implementation and rerun
+  green. Legacy baseline remains a separate eligible tracked-baseline workflow, never a generic collection-error
+  bypass. Keep evidence classification, exit status, bounded command details, stash targeting/restoration,
+  source/lock integrity and lock-write ordering unchanged. No selective-stash flags, automatic package
+  installation, new evidence modes or relaxed gates. Real owned SDK version fixtures expose Client only
+  in v2: initial lock captures actual assertion red with SDKv2; stash restores dependency configv1 causing
+  actual pytest collection ImportError; failed revision must restore all original bytes/modes and leave
+  original lock unchanged. Public plain revise with exact HEAD source and SDKv2 then captures genuine
+  assertion red, restored implementation is green. Use -B in fixture commands to avoid same-second bytecode
+  artifacts without sleeps or fake runner results. Preserve existing public signature. Source and packaged
+  spec mirrors must replace unconditional advice consistently. Initial inventory recall had no related
+  records. Hardened recall matched 067-02 capture-red, 076-01 stash-backed revise, 076-03 lifecycle dirt
+  and related lock/diagnostic Outcomes. Apply exact stash identity, contract/source restoration and bounded
+  command-detail lessons. Parser-flag, lifecycle-policy and historical unrelated coverage/release-backlog
+  advice is irrelevant because this task adds no flags or stash/evidence policy.'
+temptations:
+- risk: Treat prior dependencies or legacy baseline as universal recovery, or imply that invalid collection
+    can serve as red evidence.
+  instead: State test compatibility and baseline eligibility explicitly, retain required dependency environment
+    and prove real source-baseline/plain-revise red followed by restored green.
+- risk: Add selective stashing, install dependencies automatically, or change classification/restoration
+    to make the diagnostic test pass.
+  instead: Change only operator guidance/specs; assert exit2 remains invalid, original lock/files/modes
+    restore exactly and stash is removed on refusal.
+files:
+  create:
+  - path: tests/cli/test_stash_dependency_prerequisite_recovery_guidance.py
+    artifacts:
+    - kind: test_function
+      name: test_upgraded_dependency_tests_get_source_baseline_recovery
+      args:
+      - name: tmp_path
+        type: Path
+      - name: capsys
+        type: pytest.CaptureFixture[str]
+      returns: None
+      description: upgraded dependency tests get source baseline recovery
+    - kind: test_function
+      name: test_dependency_failure_preserves_original_lock_and_restores_files
+      args:
+      - name: tmp_path
+        type: Path
+      - name: capsys
+        type: pytest.CaptureFixture[str]
+      returns: None
+      description: dependency failure preserves original lock and restores files
+    - kind: test_function
+      name: test_recovery_does_not_claim_legacy_baseline_always_applies
+      args:
+      - name: tmp_path
+        type: Path
+      - name: capsys
+        type: pytest.CaptureFixture[str]
+      returns: None
+      description: recovery does not claim legacy baseline always applies
+  read:
+  - docs/unit-testing-rules.md
+  - docs/draft-manifest-workflow.md
+  - manifests/fix-stash-revise-red-evidence-diagnostics.manifest.yaml
+  - tests/cli/test_plan_cmd_stash_implementation.py
+  - tests/cli/test_stash_revise_session_robustness.py
+  - tests/cli/test_plan_cmd_stash_import_obstruction.py
+  - tests/cli/test_stash_revise_files_read_targets.py
+  - tests/core/test_plan_lock_red_evidence.py
+  - tests/docs/test_chain_merge_docs.py
+  edit:
+  - path: maid_runner/cli/commands/plan.py
+    artifacts:
+    - kind: function
+      name: cmd_plan_revise
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Existing public seam exercised by the planned regression scenarios; preserve its signature.
+  scope:
+  - path: docs/maid_specs.md
+    reason: Replace unconditional dependency/legacy recovery advice while keeping spec mirrors synchronized.
+  - path: maid_runner/docs/maid_specs.md
+    reason: Replace unconditional dependency/legacy recovery advice while keeping spec mirrors synchronized.
+  - path: .maid/docs/maid_specs.md
+    reason: Replace unconditional dependency/legacy recovery advice while keeping spec mirrors synchronized.
+  - path: docs/plans/bug-report-triage-2026-10-20.md
+    reason: Reconcile source report and promoted contract after verified completion.
+validate:
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/cli/test_stash_dependency_prerequisite_recovery_guidance.py
+  - -q
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/cli/test_plan_cmd_stash_implementation.py
+  - tests/cli/test_stash_revise_session_robustness.py
+  - tests/cli/test_plan_cmd_stash_import_obstruction.py
+  - tests/cli/test_stash_revise_files_read_targets.py
+  - tests/core/test_plan_lock_red_evidence.py
+  - tests/docs/test_chain_merge_docs.py
+  - -q
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/fix-stash-dependency-prerequisite-recovery-guidance.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+outcome:
+  status: completed
+  completed_at: '2026-10-20T23:45:13.261910+00:00'
+  summary: Make dependency-target stash-revision recovery advice conditional and actionable. Prior dependency
+    state is an option only when compatible with the behavioral tests. If upgraded dependencies are required
+    for collection, retain that prerequisite environment, save current implementation first, restore only
+    actual baseline implementation source in a controlled checkout, capture genuine red with plain revise,
+    then restore saved implementation and validate green. Legacy baseline remains subject to eligible
+    tracked-baseline checks. Only operator text/specs changed; invalid collection remains blocked with
+    exact restoration and unchanged lock-write order, targets, flags and dependency installation behavior.
+  lessons:
+  - lesson_type: diagnostic-completeness
+    summary: A generic prior-dependency remedy is unusable when the tests require the upgraded API. Explain
+      the prerequisite-compatible recovery path and prove it through actual API absence/collection failure,
+      exact restoration, saved source baseline red and restored implementation green; do not convert collection
+      errors into red evidence.
+    tags:
+    - diagnostics
+    - dependency
+    - red-evidence
+    paths:
+    - maid_runner/cli/commands/plan.py
+    - tests/cli/test_stash_dependency_prerequisite_recovery_guidance.py
+  review_notes:
+  - source: independent-read-only-implementation_review_stash_prereq
+    severity: ready
+    summary: Ready to merge; no blockers or advisories. Independently reran 53 focused/adjacent cases
+      and confirmed scope, safe save/restore ordering, evidence classification and lock integrity.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/cli/test_stash_dependency_prerequisite_recovery_guidance.py
+    - -q
+    status: passed
+    summary: 3 dedicated plus 50 adjacent cases passed. Genuine baseline 2 guidance failures / 1 restoration
+      pass captured in revision 3 before production edits. Real SDK v2 prerequisites, invalid v1 collection,
+      unchanged files/modes/lock/stash, plain-revise genuine baseline red and saved implementation restored
+      green all executed. Behavioral/schema/scoped implementation, Ruff/Black/diff and seven pinned test
+      hashes passed.
+  - command:
+    - /tmp/maid-identity-python310/.venv/bin/python
+    - -m
+    - pytest
+    - tests/cli/test_stash_dependency_prerequisite_recovery_guidance.py
+    - -q
+    status: passed
+    summary: Actual Python 3.10 all 3 dedicated cases passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --packet
+    status: passed
+    summary: 352 active manifests passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: All 324 declared commands passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - f63af7e3833de00a102766742b09fb4517999b99
+    status: passed
+    summary: All 11 assessed deep stages passed with required plan-lock/red-evidence checks.

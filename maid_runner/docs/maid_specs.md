@@ -258,13 +258,19 @@ not infer whether undeclared coupling could influence validation.
 Untracked declared `files.create` paths are targeted and restored
 byte-identically. Intent-to-add paths fail with a `git reset -- <paths>`
 recovery command, while staged targets remain refused with an exact
-`git restore --staged <paths>` command. If a green capture targets
+`git restore --staged <paths>` command. If valid red cannot be captured while targeting
 `package.json`, `package-lock.json`, `bun.lock`, `yarn.lock`, `pnpm-lock.yaml`,
 `uv.lock`, `poetry.lock`, `Cargo.lock`, or `go.sum`, MAID reports the bounded
 dependency limitation: materialized state such as `node_modules`, `.venv`, or
-`vendor` is not stashed. Temporarily install the prior dependency state and use
-plain revise, or record a reasoned legacy baseline; MAID does not rebuild or
-stash dependency trees.
+`vendor` is not stashed. Restore prior dependency state only when compatible
+with the behavioral tests. When upgraded dependencies are required to collect
+tests, retain that prerequisite environment and save the current implementation
+before restoring anything. In a controlled checkout, restore only task
+implementation source to its real pre-implementation baseline and use plain
+`maid plan revise` after genuine red. Then restore the saved implementation and
+validate green. A legacy baseline is a separate workflow that must satisfy its
+eligible tracked-baseline checks, not a generic collection-error bypass. MAID
+does not rebuild or stash dependency trees.
 
 For metadata-only corrections after implementation has already made the
 behavioral tests pass, use `maid plan revise <manifest-path> --reason "<text>"

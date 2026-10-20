@@ -1250,11 +1250,20 @@ def _cmd_plan_revise_with_stashed_implementation(
                 if _includes_dependency_lockfile(dirty_target_paths):
                     print_error(
                         "--stash-implementation did not capture valid red evidence "
-                        "because materialized dependency state (node_modules, .venv, "
+                        "while dependency lockfiles were targeted. Materialized "
+                        "dependency state (node_modules, .venv, "
                         "or vendor) is not stashed with dependency lockfiles. "
-                        "Temporarily install the prior dependency state and use plain "
-                        "plan revise, or record a reasoned legacy baseline.\n"
-                        + details,
+                        "Restore the prior dependency state only when compatible "
+                        "with the behavioral tests. If upgraded dependencies are "
+                        "required to collect tests, retain that prerequisite "
+                        "environment. Save the current implementation before any "
+                        "restore. In a controlled checkout, restore only task "
+                        "implementation source to its real pre-implementation "
+                        "baseline and use plain plan revise after genuine red; "
+                        "then restore the saved implementation and validate green. "
+                        "A legacy baseline is a separate workflow for an eligible "
+                        "tracked baseline and must pass its eligibility checks; "
+                        "it is not a generic collection-error bypass.\n" + details,
                         json_mode=ctx.json_mode,
                     )
                 else:
