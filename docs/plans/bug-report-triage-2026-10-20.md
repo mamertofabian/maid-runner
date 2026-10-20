@@ -2,9 +2,9 @@
 
 Baseline: `3c601c8efb19df90f2724d38a11fce1eaa68d7e6` on `release/v2.next` (runner reports 2.28.0). All 39 top-level reports under `~/.maid/bug-report/` were read; existing dated archives were left unchanged.
 
-Disposition: 19 reports retained for 19 distinct planned fixes (one report can contain multiple issues); 2 retained for reproduction; 13 duplicate reports, 4 resolved reports and 1 supported-behavior/duplicate report moved to `~/.maid/bug-report/archive/2026-10-20/`. Original report content is preserved with an appended disposition.
+Disposition at initial triage: 19 reports retained for 19 distinct planned fixes (one report can contain multiple issues); 2 retained for reproduction; 13 duplicate reports, 4 resolved reports and 1 supported-behavior/duplicate report moved to `~/.maid/bug-report/archive/2026-10-20/`. Original report content is preserved with an appended disposition.
 
-These are **planning handoff drafts**, not approved implementation contracts. Behavioral test files are planned and absent; red evidence, behavioral validation, plan lock and promotion remain pending. No production fixes, commits or pushes were made. Harden one draft at a time with `maid-implement-draft`. Do not promote this entire queue as a batch.
+The remaining drafts are **planning handoff drafts**, not approved implementation contracts. Behavioral test files are planned and absent; red evidence, behavioral validation, plan lock and promotion remain pending. At initial triage, no production fixes, commits or pushes had been made. Harden one draft at a time with `maid-implement-draft`. Do not promote this entire queue as a batch.
 
 ## Priority and sequencing
 
@@ -22,13 +22,17 @@ The dependency-prerequisite report stays open for a narrow incorrect-recovery-gu
 - Promotion corruption did **not** reproduce in the attempted layout matrix. The original downstream draft and the final-test-stage failure diagnostics were unavailable. Both reports remain open without a speculative fix.
 - Relevant Outcome lessons affected the plans: dedicated test modules avoid shared-lock churn; imported identity needs negative cases; existing abstractmethod/default_hook workarounds do not resolve all Protocol collection; tuple-ellipsis compatibility must remain intact.
 
-Validation: current-tree `uv run maid validate --quiet` passed; targeted resolved-issue/red-evidence tests passed (163 tests), and auto-preserve/stash-import-obstruction tests passed (12 tests). All 19 draft schemas pass. Independent inventory review found one recovery-guidance classification gap; it was corrected. A fresh read-only review approved the resulting inventory with no blocking findings. Full `maid test` is not needed for unimplemented planning inventory.
+Validation at initial triage: current-tree `uv run maid validate --quiet` passed; targeted resolved-issue/red-evidence tests passed (163 tests), and auto-preserve/stash-import-obstruction tests passed (12 tests). All 19 draft schemas pass. Independent inventory review found one recovery-guidance classification gap; it was corrected. A fresh read-only review approved the resulting inventory with no blocking findings. Full `maid test` is not needed for unimplemented planning inventory.
 
-## Planned fixes
+## Implementation checkpoints
+
+- Completed `fix-unittest-class-plan-lock-discovery`: 176 focused regression cases, all 312 manifest commands, full validation, and all 11 assessed deep stages passed. Independent implementation review: Ready to merge. The canonical unittest report is archived as resolved; 18 original fix drafts remain.
+
+## Fix queue
 
 | Draft | Evidence / design |
 |---|---|
-| [fix-unittest-class-plan-lock-discovery](../../manifests/drafts/fix-unittest-class-plan-lock-discovery.manifest.yaml) | is_python_behavioral_test_file returned False for PolicyTests(unittest.TestCase) with test_x. Discovery iterates read/all_file_specs/command targets, omitting files.scope inventory. |
+| Completed — [fix-unittest-class-plan-lock-discovery](../../manifests/fix-unittest-class-plan-lock-discovery.manifest.yaml) | is_python_behavioral_test_file returned False for PolicyTests(unittest.TestCase) with test_x. Discovery iterates read/all_file_specs/command targets, omitting files.scope inventory. |
 | [fix-uv-options-artifact-coverage](../../manifests/drafts/fix-uv-options-artifact-coverage.manifest.yaml) | _pytest_args removes only uv/run and returns None when --no-sync remains; run_artifact_coverage skips the command and evaluates empty execution data. |
 | [fix-unsupported-coverage-runner-diagnostics](../../manifests/drafts/fix-unsupported-coverage-runner-diagnostics.manifest.yaml) | run_artifact_coverage silently continues for non-pytest commands, then emits E710 from empty execution data; applies to unittest, Django and isolated Docker wrappers. |
 | [fix-protocol-interface-stub-detection](../../manifests/drafts/fix-protocol-interface-stub-detection.manifest.yaml) | PythonValidator collects Reader.read in class Reader(Protocol) as is_stub=True. |
@@ -52,7 +56,7 @@ Validation: current-tree `uv run maid validate --quiet` passed; targeted resolve
 
 | Report | Disposition | Rationale / plan |
 |---|---|
-| [20261002-0525-articulearn-unittest-plan-lock.md](/home/atomrem/.maid/bug-report/20261002-0525-articulearn-unittest-plan-lock.md) | open | Confirmed by a current minimal probe. [fix-unittest-class-plan-lock-discovery](../../manifests/drafts/fix-unittest-class-plan-lock-discovery.manifest.yaml) |
+| [20261002-0525-articulearn-unittest-plan-lock.md](/home/atomrem/.maid/bug-report/archive/2026-10-20/20261002-0525-articulearn-unittest-plan-lock.md) | archived-resolved | Completed with 176 focused regression cases, 312 manifest commands, and all 11 deep stages passing. [fix-unittest-class-plan-lock-discovery](../../manifests/fix-unittest-class-plan-lock-discovery.manifest.yaml) |
 | [20261002-065803-artifact-coverage-uv-no-sync.md](/home/atomrem/.maid/bug-report/20261002-065803-artifact-coverage-uv-no-sync.md) | open | Source-confirmed mechanism/workflow gap; reproduce the full reported command during draft hardening. [fix-uv-options-artifact-coverage](../../manifests/drafts/fix-uv-options-artifact-coverage.manifest.yaml) |
 | [20261002-074949-readonly-sibling-stash-red.md](/home/atomrem/.maid/bug-report/20261002-074949-readonly-sibling-stash-red.md) | open | Source-confirmed mechanism/workflow gap; reproduce the full reported command during draft hardening. [fix-stash-readonly-sibling-dependencies](../../manifests/drafts/fix-stash-readonly-sibling-dependencies.manifest.yaml) |
 | [20261003-130306-articulearn-docker-artifact-coverage.md](/home/atomrem/.maid/bug-report/20261003-130306-articulearn-docker-artifact-coverage.md) | open | Source-confirmed mechanism/workflow gap; reproduce the full reported command during draft hardening. [fix-unsupported-coverage-runner-diagnostics](../../manifests/drafts/fix-unsupported-coverage-runner-diagnostics.manifest.yaml) |

@@ -2,10 +2,10 @@
   "manifest_path": "manifests/fix-plan-lock-semantic-test-file-classification.manifest.yaml",
   "manifest_hash": "sha256-contract:48018615a786158ba24bc92c862e8282c52acaeb8b477a462d55e83b0accd7c2",
   "test_hashes": {
-    "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256-pyast:8eee3af127234416cb94ae99e05a629587857d531a854dff9d659a7a9d80912a"
+    "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256-pyast:v2:0bfb681b8f9d3305ac8a55659d7b11fe4f9e19b34bf58cc0e0ef9a7ddd01846b"
   },
   "created_at": "2026-07-09T22:37:14.519757+00:00",
-  "revision": 23,
+  "revision": 24,
   "revisions": [
     {
       "prior_manifest_hash": "sha256:c6568d755952099237a3edc113c07478650d430a0d6ec80f6e7ef3fdf6b356e8",
@@ -395,6 +395,23 @@
         "validate_commands_added": [],
         "validate_commands_removed": []
       }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:48018615a786158ba24bc92c862e8282c52acaeb8b477a462d55e83b0accd7c2",
+      "prior_test_hashes": {
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256-pyast:8eee3af127234416cb94ae99e05a629587857d531a854dff9d659a7a9d80912a"
+      },
+      "revised_at": "2026-10-20T15:08:40.355346+00:00",
+      "reason": "Accept approved shared characterization fixture update: keep historical non-semantic scenario while unittest becomes recognized; unchanged E702 assertions and commands",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
     }
   ],
   "red_evidence": {
@@ -595,6 +612,7 @@
     ],
     "validate_commands": [
       "uv run python -m pytest -q tests/core/test_plan_lock_semantic_test_discovery.py"
-    ]
+    ],
+    "acceptance_commands": []
   }
 }

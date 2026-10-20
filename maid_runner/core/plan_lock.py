@@ -1243,7 +1243,9 @@ def _manifest_in_task_paths(
 
 def _behavioral_test_paths(manifest: Manifest, project_root: Path) -> list[str]:
     """Collect semantically classified behavioral test files."""
-    return find_command_integrity_test_files(manifest, Path(project_root))
+    return find_command_integrity_test_files(
+        manifest, Path(project_root), include_scope=True
+    )
 
 
 def _hash_test_files(project_root: Path, paths: list[str]) -> dict[str, str]:
