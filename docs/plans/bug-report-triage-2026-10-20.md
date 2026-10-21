@@ -4,22 +4,22 @@ Baseline: `3c601c8efb19df90f2724d38a11fce1eaa68d7e6` on `release/v2.next` (runne
 
 Disposition at initial triage: 19 reports retained for 19 distinct planned fixes (one report can contain multiple issues); 2 retained for reproduction; 13 duplicate reports, 4 resolved reports and 1 supported-behavior/duplicate report moved to `~/.maid/bug-report/archive/2026-10-20/`. Original report content is preserved with an appended disposition.
 
-The remaining drafts are **planning handoff drafts**, not approved implementation contracts. Behavioral test files are planned and absent; red evidence, behavioral validation, plan lock and promotion remain pending. At initial triage, no production fixes, commits or pushes had been made. Harden one draft at a time with `maid-implement-draft`. Do not promote this entire queue as a batch.
+At initial triage, the 19 child drafts were **planning handoff inventory**, with behavioral tests/red evidence/locks/promotion still pending. That original inventory is now implemented or retired with evidence-backed dispositions and checkpoint commits below. Two initially uncertain reports were subsequently reproduced: promotion YAML is resolved by [fix-manifest-promote-literal-indentation](../../manifests/fix-manifest-promote-literal-indentation.manifest.yaml); absent-xdist hooks await their scoped contract. Each fix follows its own test/red/lock/promotion/review/Outcome lifecycle. No pushes have been made.
 
-## Priority and sequencing
+## Initial priority and sequencing
 
 1. Protect trust boundaries first: unittest test hashes, behavioral-red attribution, and read-only sibling stashing.
 2. Repair false validation failures: Python annotations/aliases/variadics, TypeScript defaults, Protocol stubs and runtime applicability, coverage command handling. Protocol runtime applicability should follow collector semantics; unsupported coverage reporting must distinguish unsupported instrumentation from observed nonexecution.
 3. Repair workflow usability: selected-draft supersession, restatement evidence (design-first), Git-worktree isolation, nested Node environments, and launcher guidance.
 
-The dependency-prerequisite report stays open for a narrow incorrect-recovery-guidance fix. Automatic selective stashing is an enhancement; retain compatible prerequisite dependencies and restore implementation source to baseline for plain revision. The unsupported-default report has an existing explicit `default_hook: true` acknowledgment; its Protocol issue remains in the canonical Protocol report.
+The dependency-prerequisite diagnostic is now resolved, preserving fail-closed capture and exact saved-source recovery. Automatic selective stashing remains a separate enhancement. The supported `default_hook: true` acknowledgment and completed Protocol children are recorded in the dispositions below.
 
 ## Evidence and practical limits
 
-- Current minimal public-API probes reproduce E200 for annotation-only aliases and path-loaded hooks, missing PEP 695 aliases/variadic parameters, Protocol `is_stub=True`, nested union mismatch, lost Literal quotes, and the TypeScript argument renamed to its initializer. A public chained-validation probe reproduces E600 for a superseding draft test rename.
-- Source inspection confirms coverage command skipping, read-context stashing, root-only dependency retention and common Git metadata hashing. These paths need dedicated end-to-end red tests during hardening; they are not claimed to have been reproduced in the original downstream environments.
+- Initial minimal public-API probes reproduced E200 for annotation-only aliases and path-loaded hooks, missing PEP 695 aliases/variadic parameters, Protocol `is_stub=True`, nested union mismatch, lost Literal quotes, and the TypeScript argument renamed to its initializer. A public chained-validation probe reproduces E600 for a superseding draft test rename.
+- Initial source inspection identified coverage command skipping, read-context stashing, root-only dependency retention and common Git metadata hashing. Their dedicated regression/validation outcomes are recorded at the completed checkpoints below; reproductions do not imply original downstream project mutations.
 - Ordinary `capture_red_phase_evidence` rejects `[invalid, red]`; this does not settle the separate stash-restoration mode. The red-attribution plan explicitly covers that mode instead of undoing the existing restoration feature.
-- Subsequent reproduction confirmed both initially uncertain reports. A reduced valid multiline description causes promotion indentation guessing to emit invalid YAML. A disposable checkout of the real loan task reproduces final-test exit3 because injected pytest plugins register xdist hooks without optional-hook markers when xdist is absent. Both remain open for scoped fixes; original projects were not modified.
+- Subsequent reproduction confirmed both initially uncertain reports. A reduced valid multiline description causes promotion indentation guessing to emit invalid YAML. A disposable checkout of the real loan task reproduces final-test exit3 because injected pytest plugins register xdist hooks without optional-hook markers when xdist is absent. Promotion YAML is now resolved with its scoped renderer fix; absent-xdist hooks remain for their scoped fix. Original projects were not modified.
 - Relevant Outcome lessons affected the plans: dedicated test modules avoid shared-lock churn; imported identity needs negative cases; existing abstractmethod/default_hook workarounds do not resolve all Protocol collection; tuple-ellipsis compatibility must remain intact.
 
 Validation at initial triage: current-tree `uv run maid validate --quiet` passed; targeted resolved-issue/red-evidence tests passed (163 tests), and auto-preserve/stash-import-obstruction tests passed (12 tests). All 19 draft schemas pass. Independent inventory review found one recovery-guidance classification gap; it was corrected. A fresh read-only review approved the resulting inventory with no blocking findings. Full `maid test` is not needed for unimplemented planning inventory.
@@ -64,6 +64,8 @@ Validation at initial triage: current-tree `uv run maid validate --quiet` passed
 
 - Completed `fix-stash-dependency-prerequisite-recovery-guidance`: 3 dedicated / 50 adjacent cases, actual Python 3.10, 352 active manifests, all 324 commands and all 11 assessed deep stages passed. Independent review Ready; source report archived resolved. Original fix inventory is complete; 2 additional confirmed reports (promotion YAML and absent-xdist hooks) remain.
 
+- Completed `fix-manifest-promote-literal-indentation`: 4 dedicated / 93 adjacent cases, Python3.10, 353 active manifests, all 325 commands and all11 assessed deep stages passed. Independent review Ready; report archived resolved. One confirmed absent-xdist report remains.
+
 ## Fix queue
 
 | Draft | Evidence / design |
@@ -87,6 +89,13 @@ Validation at initial triage: current-tree `uv run maid validate --quiet` passed
 | Completed — [fix-init-guidance-project-launcher](../../manifests/fix-init-guidance-project-launcher.manifest.yaml) | _render_draft_outcome_guidance hardcodes uv run maid while hook generation already detects scripts/maid. |
 | Completed — [fix-python-path-loaded-hook-identity](../../manifests/fix-python-path-loaded-hook-identity.manifest.yaml) | Public behavioral validation still emits E200 for conf.post_worker_init loaded from gunicorn.conf.py via spec_from_file_location and module_from_spec. |
 | Completed — [fix-stash-dependency-prerequisite-recovery-guidance](../../manifests/fix-stash-dependency-prerequisite-recovery-guidance.manifest.yaml) | plan.py recovery unconditionally recommends installing prior dependency state when dependency lockfiles are targeted, although tests may require the upgraded dependency API to collect. |
+
+## Confirmed follow-up fixes
+
+| Contract | Status |
+|---|---|
+| [fix-manifest-promote-literal-indentation](../../manifests/fix-manifest-promote-literal-indentation.manifest.yaml) | Completed; 4 dedicated / 93 adjacent, Python3.10, 353 active, 325 commands and all11 deep stages passed; independent Ready. |
+| Absent-xdist injected plugin hooks | Confirmed; scoped contract follows promotion fix. |
 
 ## Every report
 
@@ -130,4 +139,4 @@ Validation at initial triage: current-tree `uv run maid validate --quiet` passed
 | [20261017-111126-e310-intentional-unsupported-default.md](/home/atomrem/.maid/bug-report/archive/2026-10-20/20261017-111126-e310-intentional-unsupported-default.md) | archived-supported-and-duplicate | Intentional base defaults already have the documented per-artifact default_hook: true acknowledgment (082-04; docs/troubleshooting.md). The Protocol half is a duplicate of 20261004-054542-si-trace-protocol-stubs-and-pep695.md and is resolved by the canonical Protocol signature fix. No blanket exemption based on a message or subclass override is needed. |
 | [20261018-215603-si-trace-type-alias-annotation.md](/home/atomrem/.maid/bug-report/archive/2026-10-20/20261018-215603-si-trace-type-alias-annotation.md) | archived-duplicate | Duplicate of 20261004-151739-si-trace-annotation-alias-e200.md. Its scenario is retained in the canonical fix plan; archiving does not classify the underlying defect as invalid. |
 | [20261019-223320-ts-param-identifier-default.md](/home/atomrem/.maid/bug-report/archive/2026-10-20/20261019-223320-ts-param-identifier-default.md) | archived-duplicate | Duplicate of 20261015-062625-hubb-ops-ts-default-identifier.md. Its scenario is retained in the canonical fix plan; archiving does not classify the underlying defect as invalid. |
-| [20261020-222455-si-trace-promote-indent.md](/home/atomrem/.maid/bug-report/20261020-222455-si-trace-promote-indent.md) | confirmed-awaiting-plan | Exact source reduction to three literal-description lines reproduces invalid promoted YAML after negative indentation guessing. Preserve rollback and add a public promotion regression in a scoped contract. |
+| [20261020-222455-si-trace-promote-indent.md](/home/atomrem/.maid/bug-report/archive/2026-10-21/20261020-222455-si-trace-promote-indent.md) | archived-resolved | Public locked/unlocked promotion preserves exact literal scalar and normal presentation; valid emitter bounds and safe output parse preserve draft/lock transaction safety. 4 dedicated / 93 adjacent, Python3.10, 353 active, 325 commands and all11 deep stages passed; independent Ready. [fix-manifest-promote-literal-indentation](../../manifests/fix-manifest-promote-literal-indentation.manifest.yaml) |

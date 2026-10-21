@@ -1,0 +1,200 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Keep promoted YAML valid when literal descriptions confuse indentation guessing
+type: fix
+created: '2026-10-20T23:57:11Z'
+description: 'Confirmed source report 20261020-222455-si-trace-promote-indent.md: valid literal description
+  lines containing a continuation colon and dash bullet produce negative ruamel indentation guesses. Public
+  promotion without a lock publishes invalid YAML; locked promotion rolls back during migration. Retain
+  source literal content and normal presentation while accepting only valid sequence indentation/offset
+  guesses; use supported renderer defaults for invalid guesses. Validate generated YAML through the existing
+  safe parser before publishing so rendering errors remain loud and cannot delete the valid draft or alter
+  an existing lock. Preserve schema/input errors, self-reference rewrites, migration/evidence/lifecycle
+  semantics and rollback. No description rewriting, bullet substitution, new parser, schema/flag changes
+  or lock-gate bypass. Four public API cases exercise exact reconstructed block scalar with locked and
+  unlocked promotion, genuine preexisting lock red/self-reference migration, ordinary nondefault valid
+  indentation, and malformed-input preservation. Unlocked style/input cases use the existing no-run promotion
+  API to isolate rendering; the locked case captures genuine red before promotion and recaptures it after
+  self-referencing command migration. These fixture operations do not claim implementation completion.
+  Production changes remain bounded renderer safety wiring behind unchanged cmd_manifest. Recall matched
+  promotion-red preservation, 073-01 lock migration, multiline-style and output-routing Outcomes. Apply
+  literal-content/style preservation, fail-closed transaction order and exact command-bound evidence;
+  recapture self-referencing command changes rather than normalizing red. Output-routing/from-diff flags
+  and historical unrelated backlog are outside this renderer fix.'
+temptations:
+- risk: Fix the input by deleting literal lines, replacing dash bullets, flattening description or disabling
+    lock migration.
+  instead: Keep parsed description/files/test commands intact through public locked/unlocked promotion
+    and preserve genuine migrated red evidence.
+- risk: Ignore all indentation guesses or silently accept malformed YAML to avoid this one failure.
+  instead: Keep valid nondefault sequence presentation, bound only invalid guessed parameters and safe-parse
+    rendered output before writes; malformed input must leave draft/lock untouched.
+files:
+  edit:
+  - path: maid_runner/cli/commands/manifest.py
+    artifacts:
+    - kind: function
+      name: cmd_manifest
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Preserve existing public command dispatch/signature while rendering valid promotion
+        output and preserving lock/input safety.
+  create:
+  - path: tests/cli/test_fix_manifest_promote_literal_indentation.py
+    artifacts:
+    - kind: test_function
+      name: test_public_promote_preserves_literal_colons_bullets_and_continuation
+      args:
+      - name: tmp_path
+        type: Path
+      - name: locked
+        type: bool
+      returns: None
+      description: public promote preserves literal colons bullets and continuation
+    - kind: test_function
+      name: test_public_promote_preserves_normal_literal_content
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: public promote preserves normal literal content
+    - kind: test_function
+      name: test_invalid_yaml_promotion_preserves_draft_and_existing_lock
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: invalid yaml promotion preserves draft and existing lock
+  scope:
+  - path: docs/plans/bug-report-triage-2026-10-20.md
+    reason: Reconcile current/historical inventory and confirmed report plan/resolution links.
+  read:
+  - docs/unit-testing-rules.md
+  - docs/draft-manifest-workflow.md
+  - maid_runner/core/plan_lock.py
+  - tests/cli/test_manifest_promote_yaml_style_cmd.py
+  - tests/cli/test_manifest_promote_lock_cmd.py
+  - tests/cli/test_manifest_promote_red_evidence_preservation.py
+  - tests/cli/test_manifest_promote_argv_self_reference.py
+  - tests/cli/test_manifest_promote_git_rename_cmd.py
+  - tests/cli/test_promote_legacy_baseline_preservation.py
+  - tests/cli/test_manifest_promote_output_routing.py
+validate:
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/cli/test_fix_manifest_promote_literal_indentation.py
+  - -q
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/cli/test_manifest_promote_yaml_style_cmd.py
+  - tests/cli/test_manifest_promote_lock_cmd.py
+  - tests/cli/test_manifest_promote_red_evidence_preservation.py
+  - tests/cli/test_manifest_promote_argv_self_reference.py
+  - tests/cli/test_manifest_promote_git_rename_cmd.py
+  - tests/cli/test_promote_legacy_baseline_preservation.py
+  - tests/cli/test_manifest_promote_output_routing.py
+  - -q
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/fix-manifest-promote-literal-indentation.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+outcome:
+  status: completed
+  completed_at: '2026-10-21T00:16:53.279419+00:00'
+  summary: Keep public manifest promotion valid for literal descriptions whose colon/continuation/bullet
+    lines confuse ruamel indentation guessing. Accept supported sequence indentation/offset bounds, retain
+    normal valid presentation and literal content, and safe-parse rendered mappings before publication.
+    Existing schema/input checks, lock migration, exact self-reference red recapture and rollback remain
+    unchanged.
+  lessons:
+  - lesson_type: compatibility
+    summary: Indentation heuristics can mistake block-scalar content for sequence structure and return
+      negative values. Bound renderer options and validate output before publishing, with public locked/unlocked
+      literal reproduction plus normal presentation and existing-lock preservation controls.
+    tags:
+    - yaml
+    - promotion
+    - transaction
+    paths:
+    - maid_runner/cli/commands/manifest.py
+    - tests/cli/test_fix_manifest_promote_literal_indentation.py
+  review_notes:
+  - source: independent-read-only-implementation_review_promote_indent
+    severity: ready
+    summary: Ready to merge; no blocking or advisory findings. Reviewed complete delta, transaction safety,
+      scope, locked genuine-red migration and presentation/input controls.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/cli/test_fix_manifest_promote_literal_indentation.py
+    - -q
+    status: passed
+    summary: 4 dedicated and 93 adjacent cases passed; revision2 retains genuine two-failure baseline
+      and two passing controls. Behavioral/scoped implementation, Ruff/Black/diff and all eight pinned
+      test hashes passed.
+  - command:
+    - /tmp/maid-identity-python310/.venv/bin/python
+    - -m
+    - pytest
+    - tests/cli/test_fix_manifest_promote_literal_indentation.py
+    - -q
+    status: passed
+    summary: Actual Python3.10 all4 dedicated cases passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --packet
+    status: passed
+    summary: 353 active manifests passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: All 325 declared commands passed on unchanged rerun. Initial grouped suite had one unrelated
+      20ms concurrency-overlap timing assertion failure (6148 passing tests); exact isolated rerun passed
+      in1.68s before full rerun.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - 54a7c806b2da52adca9e8863d85d64755ae6a77f
+    status: passed
+    summary: All11 assessed deep stages passed with required plan-lock/red-evidence gates.
