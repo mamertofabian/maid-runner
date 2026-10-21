@@ -49,6 +49,7 @@ class PytestTimingPlugin:
             return
         self.selected_nodeids = collected_set
 
+    @pytest.hookimpl(optionalhook=True)
     def pytest_xdist_node_collection_finished(
         self,
         node: object,
@@ -95,6 +96,7 @@ class PytestTimingPlugin:
             return
         self.completed_nodeids.add(nodeid)
 
+    @pytest.hookimpl(optionalhook=True)
     def pytest_testnodedown(self, node: object, error: object | None) -> None:
         """Mark only abnormal worker shutdown as incomplete evidence."""
         if error is not None:

@@ -1,0 +1,259 @@
+{
+  "manifest_path": "manifests/fix-pytest-optional-xdist-hooks.manifest.yaml",
+  "manifest_hash": "sha256-contract:1063af7939d8f493620441833775fd29d4125bc8db91dfdc05374edb2d367dc0",
+  "test_hashes": {
+    "tests/core/test_fix_pytest_optional_xdist_hooks.py": "sha256-pyast:v2:8726314389b16462c86cab7d91504d9d19e87a6e70f6213ebe868a10f0cc252d"
+  },
+  "created_at": "2026-10-21T00:24:00.468170+00:00",
+  "revision": 3,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:ecd2de37e49d9b2f2d535f59a54a02ba8b449a466a20075292d75bed41535b05",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:356622fef7d9d1375a02c221061a95e4b302dd10ca585a83fab278a486d3c635",
+        "tests/core/test_pytest_worker_execution.py": "sha256-pyast:v2:474e8328afd490c2216932e704fb284bbd1f8c4991c93f687b7c0bd0e8a8d18f",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:58209da5bac256e1da44871ab1a283a0fea3560f2403a95a490481e8eb89b6b8",
+        "tests/core/test_runtime_evidence_preparation_environment.py": "sha256-pyast:v2:93575ea47f733dce473e5e6a0c27c82d4a831d465ce5980d056772d73388d3a8",
+        "tests/core/test_fix_pytest_optional_xdist_hooks.py": "sha256-pyast:v2:8726314389b16462c86cab7d91504d9d19e87a6e70f6213ebe868a10f0cc252d"
+      },
+      "revised_at": "2026-10-21T00:24:37.528838+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-pytest-optional-xdist-hooks.manifest.yaml -> manifests/fix-pytest-optional-xdist-hooks.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-pytest-optional-xdist-hooks.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-pytest-optional-xdist-hooks.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:7bdc8b435a1dc7a962b56a68b089f666e6afe90771e9cd36694db80e5b675df3",
+      "prior_test_hashes": {
+        "tests/core/test_runtime_evidence.py": "sha256-pyast:v2:356622fef7d9d1375a02c221061a95e4b302dd10ca585a83fab278a486d3c635",
+        "tests/core/test_pytest_worker_execution.py": "sha256-pyast:v2:474e8328afd490c2216932e704fb284bbd1f8c4991c93f687b7c0bd0e8a8d18f",
+        "tests/core/test_artifact_coverage_fallback_workers.py": "sha256-pyast:v2:58209da5bac256e1da44871ab1a283a0fea3560f2403a95a490481e8eb89b6b8",
+        "tests/core/test_runtime_evidence_preparation_environment.py": "sha256-pyast:v2:93575ea47f733dce473e5e6a0c27c82d4a831d465ce5980d056772d73388d3a8",
+        "tests/core/test_fix_pytest_optional_xdist_hooks.py": "sha256-pyast:v2:8726314389b16462c86cab7d91504d9d19e87a6e70f6213ebe868a10f0cc252d"
+      },
+      "revised_at": "2026-10-21T00:37:11.667432+00:00",
+      "reason": "Keep the five public optional-hook regressions as the behavioral contract; run79 existing monitoring-internal compatibility cases separately because real coverage instrumentation reproduces FakeMonitoring missing LINE/tool1 and collector-stack collisions. Preserve all production scope, test bytes and coverage/knockout gates.",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [
+          "read:tests/core/test_artifact_coverage_fallback_workers.py",
+          "read:tests/core/test_pytest_worker_execution.py",
+          "read:tests/core/test_runtime_evidence.py",
+          "read:tests/core/test_runtime_evidence_preparation_environment.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": [
+          "uv run python -m pytest tests/core/test_runtime_evidence.py tests/core/test_pytest_worker_execution.py tests/core/test_artifact_coverage_fallback_workers.py tests/core/test_runtime_evidence_preparation_environment.py -q"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-21T00:37:16.635541+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_fix_pytest_optional_xdist_hooks.py -q",
+        "exit_code": 1,
+        "output_tail": "E         INTERNALERROR>   INTERNALERROR>   File \"/home/atomrem/projects/codefrost-dev/maid-runner/.venv/lib/python3.12/site-packages/pluggy/_manager.py\", line 387, in check_pending\nE         INTERNALERROR>   INTERNALERROR>     raise PluginValidationError(\nE         INTERNALERROR>   INTERNALERROR> pluggy._manager.PluginValidationError: unknown hook 'pytest_configure_node' in plugin <module '_maid_artifact_coverage_worker' from '/tmp/maid-artifact-coverage-command-hdn0zgid/worker-plugin/_maid_artifact_coverage_worker.py'>\nE         INTERNALERROR>   \nE         INTERNALERROR>   no tests ran in 0.00s\nE         INTERNALERROR>   \nE         INTERNALERROR> assert 3 == 0\nE         INTERNALERROR>  +  where 3 = CompletedProcess(args=['/home/atomrem/projects/codefrost-dev/maid-runner/.venv/bin/python3', '-m', 'pytest', 'inner/te...ct-coverage-command-hdn0zgid/worker-plugin/_maid_artifact_coverage_worker.py\\'>\\n\\nno tests ran in 0.00s\\n', stderr='').returncode\nE         /home/atomrem/projects/codefrost-dev/maid-runner/.venv/lib/python3.12/site-packages/coverage/control.py:958: CoverageWarning: No data was collected. (no-data-collected); see https://coverage.readthedocs.io/en/7.13.1/messages.html#warning-no-data-collected\nE           self._warn(\"No data was collected.\", slug=\"no-data-collected\")\nE         \nE       assert 3 == 0\nE        +  where 3 = RuntimeCommandRecord(command=('tests/test_calc.py', '-q', '-p', 'xdist.plugin', '-n', '2'), returncode=3, stdout='INTE...erage_al0/calc.py': RuntimeFileExecution(executed_lines=frozenset(), called_qualnames=frozenset())}), report_errors=()).returncode\n\ntests/core/test_fix_pytest_optional_xdist_hooks.py:188: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_fix_pytest_optional_xdist_hooks.py::test_public_runtime_evidence_preserves_serial_and_worker_execution[1]\nFAILED tests/core/test_fix_pytest_optional_xdist_hooks.py::test_public_timing_instrumentation_preserves_exact_serial_and_worker_nodes[1]\nFAILED tests/core/test_fix_pytest_optional_xdist_hooks.py::test_public_worker_coverage_allows_controller_serial_pytest_child\n3 failed, 2 passed in 4.35s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-pytest-optional-xdist-hooks.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_runtime_command_executor.py:class:SubprocessRuntimeCommandExecutor",
+      "maid_runner/core/_runtime_command_executor.py:class:SubprocessRuntimeCommandExecutor:kind=class",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute:arg=command:type=tuple[str, ...]:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute:arg=environment_overrides:type=Mapping[str, str] | None:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute:arg=environment_removals:type=Sequence[str]:default=()",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute:arg=target_files:type=set[str]:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute:arg=timeout_seconds:type=float:default=None",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute:kind=method",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute:of=SubprocessRuntimeCommandExecutor",
+      "maid_runner/core/_runtime_command_executor.py:method:SubprocessRuntimeCommandExecutor.execute:returns=RuntimeCommandRecord",
+      "tests/core/test_fix_pytest_optional_xdist_hooks.py:test_public_runtime_evidence_preserves_serial_and_worker_execution",
+      "tests/core/test_fix_pytest_optional_xdist_hooks.py:test_public_runtime_evidence_preserves_serial_and_worker_execution:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_pytest_optional_xdist_hooks.py:test_public_runtime_evidence_preserves_serial_and_worker_execution:arg=workers:type=int:default=None",
+      "tests/core/test_fix_pytest_optional_xdist_hooks.py:test_public_runtime_evidence_preserves_serial_and_worker_execution:kind=test_function",
+      "tests/core/test_fix_pytest_optional_xdist_hooks.py:test_public_runtime_evidence_preserves_serial_and_worker_execution:returns=None",
+      "tests/core/test_fix_pytest_optional_xdist_hooks.py:test_public_timing_instrumentation_preserves_exact_serial_and_worker_nodes",
+      "tests/core/test_fix_pytest_optional_xdist_hooks.py:test_public_timing_instrumentation_preserves_exact_serial_and_worker_nodes:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_pytest_optional_xdist_hooks.py:test_public_timing_instrumentation_preserves_exact_serial_and_worker_nodes:arg=workers:type=int:default=None",
+      "tests/core/test_fix_pytest_optional_xdist_hooks.py:test_public_timing_instrumentation_preserves_exact_serial_and_worker_nodes:kind=test_function",
+      "tests/core/test_fix_pytest_optional_xdist_hooks.py:test_public_timing_instrumentation_preserves_exact_serial_and_worker_nodes:returns=None",
+      "tests/core/test_fix_pytest_optional_xdist_hooks.py:test_public_worker_coverage_allows_controller_serial_pytest_child",
+      "tests/core/test_fix_pytest_optional_xdist_hooks.py:test_public_worker_coverage_allows_controller_serial_pytest_child:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_pytest_optional_xdist_hooks.py:test_public_worker_coverage_allows_controller_serial_pytest_child:kind=test_function",
+      "tests/core/test_fix_pytest_optional_xdist_hooks.py:test_public_worker_coverage_allows_controller_serial_pytest_child:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_fix_pytest_optional_xdist_hooks.py"
+      ],
+      "edit": [
+        "maid_runner/core/_runtime_command_executor.py"
+      ],
+      "read": [
+        "docs/unit-testing-rules.md",
+        "maid_runner/core/runtime_evidence.py"
+      ],
+      "scope": [
+        "docs/plans/bug-report-triage-2026-10-20.md",
+        "maid_runner/core/_pytest_timing_plugin.py",
+        "maid_runner/core/_runtime_evidence_pytest_plugin.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_fix_pytest_optional_xdist_hooks.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_public_runtime_evidence_preserves_serial_and_worker_execution",
+              "description": "public runtime evidence preserves serial and worker execution",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "workers",
+                  "type": "int"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_public_timing_instrumentation_preserves_exact_serial_and_worker_nodes",
+              "description": "public timing instrumentation preserves exact serial and worker nodes",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "workers",
+                  "type": "int"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_public_worker_coverage_allows_controller_serial_pytest_child",
+              "description": "public worker coverage allows controller serial pytest child",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/_runtime_command_executor.py",
+          "artifacts": [
+            {
+              "kind": "class",
+              "name": "SubprocessRuntimeCommandExecutor",
+              "description": "Keep real instrumented execution and optional xdist worker lifecycle compatible with ordinary serial pytest."
+            },
+            {
+              "kind": "method",
+              "name": "execute",
+              "description": "Run actual normalized pytest arguments with unchanged environment controls and real coverage/call observations.",
+              "of": "SubprocessRuntimeCommandExecutor",
+              "args": [
+                {
+                  "name": "command",
+                  "type": "tuple[str, ...]"
+                },
+                {
+                  "name": "target_files",
+                  "type": "set[str]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "timeout_seconds",
+                  "type": "float"
+                },
+                {
+                  "name": "environment_overrides",
+                  "type": "Mapping[str, str] | None",
+                  "default": "None"
+                },
+                {
+                  "name": "environment_removals",
+                  "type": "Sequence[str]",
+                  "default": "()"
+                }
+              ],
+              "returns": "RuntimeCommandRecord"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "docs/unit-testing-rules.md",
+        "maid_runner/core/runtime_evidence.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_runtime_evidence_pytest_plugin.py",
+          "reason": "Standard optional-hook metadata on existing xdist callbacks; no public API/body changes."
+        },
+        {
+          "path": "maid_runner/core/_pytest_timing_plugin.py",
+          "reason": "Standard optional-hook metadata on existing xdist callbacks; no public API/body changes."
+        },
+        {
+          "path": "docs/plans/bug-report-triage-2026-10-20.md",
+          "reason": "Record confirmed final contract, report resolution and current inventory including resolved duplicate."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_fix_pytest_optional_xdist_hooks.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_fix_pytest_optional_xdist_hooks.py -q",
+      "uv run maid validate manifests/fix-pytest-optional-xdist-hooks.manifest.yaml --mode schema --quiet"
+    ],
+    "acceptance_commands": []
+  }
+}
