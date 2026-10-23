@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.28.1] - 2026-10-23
+
+### Fixed
+- **Deno dependency-flag test discovery** — Keep explicit native test files in behavioral discovery, plan-lock test hashes, and command integrity when `deno test` uses `--no-lock`, `--cached-only`, `--no-remote`, `--no-npm`, `--node-modules-dir` (bare or with `=auto`, `=manual`, `=none`, `=true`, or `=false`), or `--frozen` (bare or with `=true` or `=false`). Repeated flags, empty or unknown values, and attached values on flag-only forms still claim no test execution, matching native Deno rejection.
+- **Deno.test declarations** — Treat module-level `Deno.test`, `Deno.test.only`, and `Deno.test.ignore` calls with literal labels as TypeScript test declarations and collect their callback bodies, so declared Deno test labels no longer report E600. The object form `Deno.test({ name, fn })` remains unrecognized.
+- **Optional xdist hooks** — Mark xdist-only hooks in injected runtime-evidence, timing, and coverage pytest plugins as optional, so serial pytest runs without pytest-xdist installed instead of failing with unknown-hook errors.
+- **Literal descriptions in promotion** — Keep promoted manifests valid YAML when literal descriptions contain colon or bullet text, and leave the draft and lock unchanged when rendering fails.
+- **Dependency-prerequisite revision guidance** — Explain how to recapture genuine red evidence when behavioral tests need an upgraded dependency API that the baseline source cannot load.
+- **Path-loaded Python hook identity** — Resolve bounded spec-loader helpers to the exact dotted-file module identity instead of reporting false E200 findings.
+- **Project launcher in agent guidance** — Use the project's `scripts/maid` wrapper in generated CLAUDE.md and AGENTS.md command examples when the wrapper exists.
+- **Subproject Node environments in snapshots** — Retain bounded subproject `node_modules` lookup in knockout snapshots while rejecting dependency-root aliases and symlink escapes.
+- **Snapshot Git identity** — Scope snapshot Git identity checks to the tested worktree, so unrelated sibling refs and worktree bookkeeping no longer fail isolated knockout runs.
+- **Selected superseding drafts** — Validate an explicitly selected superseding draft against an isolated chain view, so its replacement test contracts can pass before promotion.
+- **TypeScript identifier defaults** — Keep the declared parameter name when a TypeScript parameter defaults to an identifier, instead of recording the initializer as the name.
+- **Python variadic parameters** — Collect `*args` and `**kwargs` as distinct starred parameters in Python signatures and snapshots.
+- **Nested union and Literal signatures** — Normalize nested pipe and unqualified Optional/Union annotations and preserve Literal values and quotes when comparing Python signatures.
+- **Imported annotation types** — Count imported type artifacts used in bounded annotation positions as behavioral references.
+- **PEP 695 type aliases** — Collect module-level `type` statements as type artifacts with their generic parameters.
+- **Protocol interface signatures** — Treat signature-only members of known `typing.Protocol` classes as interface contracts in stub detection, artifact coverage, and knockout eligibility.
+- **Unavailable coverage instrumentation** — Report blocking E307 when recognized tests cannot be instrumented instead of a false E710 nonexecution finding.
+- **Read-only sibling dependencies during stash revision** — Keep dirty read-only dependencies visible during `--stash-implementation` only when a verified current sibling contract owns them.
+- **Stash-restoration red attribution** — Reject lint-only failures paired with invalid behavioral collection as red evidence, attributing red to behavioral execution.
+- **Unittest and scoped plan-lock inputs** — Recognize stdlib and Django `TestCase` behavioral tests and hash scope-listed behavioral tests in plan locks.
+- **Scope-check outside the project root** — Allow `maid hook scope-check` edits to paths outside the project root while a task is active, without loosening in-repository scope checks.
+
 ## [2.28.0] - 2026-10-02
 
 ### Added
@@ -1370,7 +1395,8 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
-[Unreleased]: https://github.com/mamertofabian/maid-runner/compare/v2.28.0...HEAD
+[Unreleased]: https://github.com/mamertofabian/maid-runner/compare/v2.28.1...HEAD
+[2.28.1]: https://github.com/mamertofabian/maid-runner/compare/v2.28.0...v2.28.1
 [2.28.0]: https://github.com/mamertofabian/maid-runner/compare/v2.27.6...v2.28.0
 [2.27.5]: https://github.com/mamertofabian/maid-runner/compare/v2.27.4...v2.27.5
 [2.27.4]: https://github.com/mamertofabian/maid-runner/compare/v2.27.3...v2.27.4
