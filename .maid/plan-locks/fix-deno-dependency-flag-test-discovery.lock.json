@@ -1,0 +1,89 @@
+{
+  "manifest_path": "manifests/fix-deno-dependency-flag-test-discovery.manifest.yaml",
+  "manifest_hash": "sha256-contract:a74fbd7fd0ef04bfdb1878ceae2e179654791fa4487075da7e938d85f9fe2098",
+  "test_hashes": {
+    "tests/core/validation/test_deno_dependency_flag_discovery.py": "sha256-pyast:v2:33262bd99ffbb48a2463ca9a715ab91d20480e8e53a64e2a07267163c90f7a65"
+  },
+  "created_at": "2026-10-23T06:35:26.132175+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:c81e601cfd95f28429c0acca4a4d8456824bd190fa02210d9d153f3b651173e1",
+      "prior_test_hashes": {
+        "tests/core/validation/test_deno_dependency_flag_discovery.py": "sha256-pyast:v2:33262bd99ffbb48a2463ca9a715ab91d20480e8e53a64e2a07267163c90f7a65"
+      },
+      "revised_at": "2026-10-23T06:35:29.355285+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-deno-dependency-flag-test-discovery.manifest.yaml -> manifests/fix-deno-dependency-flag-test-discovery.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-23T06:35:29.055280+00:00",
+    "commands": [
+      {
+        "command": "uv run pytest tests/core/validation/test_deno_dependency_flag_discovery.py -q",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/core/validation/test_deno_dependency_flag_discovery.py::test_dependency_flags_keep_native_test_in_plan_lock_hashes[flags9]\nFAILED tests/core/validation/test_deno_dependency_flag_discovery.py::test_dependency_flags_keep_native_test_in_plan_lock_hashes[flags10]\nFAILED tests/core/validation/test_deno_dependency_flag_discovery.py::test_dependency_flags_keep_native_test_in_plan_lock_hashes[flags11]\nFAILED tests/core/validation/test_deno_dependency_flag_discovery.py::test_dependency_flags_keep_native_test_in_plan_lock_hashes[flags12]\nFAILED tests/core/validation/test_deno_dependency_flag_discovery.py::test_dependency_flags_keep_native_test_in_plan_lock_hashes[flags13]\nFAILED tests/core/validation/test_deno_dependency_flag_discovery.py::test_dependency_flags_satisfy_command_integrity_for_declared_test[flags0]\nFAILED tests/core/validation/test_deno_dependency_flag_discovery.py::test_dependency_flags_satisfy_command_integrity_for_declared_test[flags1]\nFAILED tests/core/validation/test_deno_dependency_flag_discovery.py::test_dependency_flags_satisfy_command_integrity_for_declared_test[flags2]\nFAILED tests/core/validation/test_deno_dependency_flag_discovery.py::test_dependency_flags_satisfy_command_integrity_for_declared_test[flags3]\nFAILED tests/core/validation/test_deno_dependency_flag_discovery.py::test_dependency_flags_satisfy_command_integrity_for_declared_test[flags4]\nFAILED tests/core/validation/test_deno_dependency_flag_discovery.py::test_dependency_flags_satisfy_command_integrity_for_declared_test[flags5]\nFAILED tests/core/validation/test_deno_dependency_flag_discovery.py::test_dependency_flags_satisfy_command_integrity_for_declared_test[flags6]\nFAILED tests/core/validation/test_deno_dependency_flag_discovery.py::test_dependency_flags_satisfy_command_integrity_for_declared_test[flags7]\nFAILED tests/core/validation/test_deno_dependency_flag_discovery.py::test_dependency_flags_satisfy_command_integrity_for_declared_test[flags8]\nFAILED tests/core/validation/test_deno_dependency_flag_discovery.py::test_dependency_flags_satisfy_command_integrity_for_declared_test[flags9]\nFAILED tests/core/validation/test_deno_dependency_flag_discovery.py::test_dependency_flags_satisfy_command_integrity_for_declared_test[flags10]\nFAILED tests/core/validation/test_deno_dependency_flag_discovery.py::test_dependency_flags_satisfy_command_integrity_for_declared_test[flags11]\nFAILED tests/core/validation/test_deno_dependency_flag_discovery.py::test_dependency_flags_satisfy_command_integrity_for_declared_test[flags12]\nFAILED tests/core/validation/test_deno_dependency_flag_discovery.py::test_dependency_flags_satisfy_command_integrity_for_declared_test[flags13]\n56 failed, 38 passed in 2.51s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [],
+    "files": {
+      "create": [],
+      "edit": [],
+      "read": [
+        "maid_runner/core/_validation_test_artifacts.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/plan_lock.py",
+        "maid_runner/core/result.py",
+        "maid_runner/core/test_runner.py",
+        "maid_runner/core/types.py",
+        "maid_runner/core/validate.py",
+        "tests/core/validation/test_deno_dependency_flag_discovery.py"
+      ],
+      "scope": [
+        "maid_runner/core/_test_runner_invocation.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "read": [
+        "tests/core/validation/test_deno_dependency_flag_discovery.py",
+        "maid_runner/core/_validation_test_artifacts.py",
+        "maid_runner/core/plan_lock.py",
+        "maid_runner/core/test_runner.py",
+        "maid_runner/core/validate.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/result.py",
+        "maid_runner/core/types.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_test_runner_invocation.py",
+          "reason": "Recognize the exact Deno dependency-resolution flags in the private bounded target scanner."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/validation/test_deno_dependency_flag_discovery.py"
+    ],
+    "validate_commands": [
+      "uv run pytest tests/core/validation/test_deno_dependency_flag_discovery.py -q"
+    ],
+    "acceptance_commands": []
+  }
+}

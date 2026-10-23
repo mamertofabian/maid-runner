@@ -172,6 +172,15 @@ _NON_EXECUTING_TEST_RUNNER_FLAGS_BY_RUNNER = {
 }
 _DENO_TEST_TARGET_STANDALONE_FLAGS = frozenset({"--allow-env", "--no-check"})
 _DENO_TEST_TARGET_VALUE_FLAGS = frozenset({"--junit-path"})
+# Dependency-resolution flags verified against native Deno 2.3.6: none selects
+# tests or consumes the next token, and Deno rejects repeats before running.
+_DENO_TEST_TARGET_FLAG_ONLY_DEPENDENCY_FLAGS = frozenset(
+    {"--cached-only", "--no-lock", "--no-npm", "--no-remote"}
+)
+_DENO_TEST_TARGET_OPTIONAL_VALUE_DEPENDENCY_FLAGS = {
+    "--frozen": frozenset({"true", "false"}),
+    "--node-modules-dir": frozenset({"auto", "manual", "none", "true", "false"}),
+}
 _BUN_TEST_SELECTOR_FLAGS = frozenset(
     {"--changed", "--only", "--shard", "--test-name-pattern"}
 )
@@ -776,11 +785,19 @@ def _deno_test_target_scan_args(args: list[str]) -> list[str]:
     targets: list[str] = []
     all_permissions = False
     env_permissions = False
+    dependency_flags: set[str] = set()
     index = 0
     while index < len(args):
         part = args[index]
         if part == "--":
             break
+        dependency_flag = _deno_dependency_flag(part)
+        if dependency_flag is not None:
+            if not dependency_flag or dependency_flag in dependency_flags:
+                return []
+            dependency_flags.add(dependency_flag)
+            index += 1
+            continue
         if part in {"--allow-all", "-A"}:
             if all_permissions or env_permissions:
                 return []
@@ -808,6 +825,19 @@ def _deno_test_target_scan_args(args: list[str]) -> list[str]:
         targets.append(part)
         index += 1
     return targets
+
+
+def _deno_dependency_flag(part: str) -> str | None:
+    """Return the dependency flag name, "" for an invalid form, or None."""
+    flag, has_value, value = part.partition("=")
+    if flag in _DENO_TEST_TARGET_FLAG_ONLY_DEPENDENCY_FLAGS:
+        return "" if has_value else flag
+    allowed_values = _DENO_TEST_TARGET_OPTIONAL_VALUE_DEPENDENCY_FLAGS.get(flag)
+    if allowed_values is None:
+        return None
+    if has_value and value not in allowed_values:
+        return ""
+    return flag
 
 
 def _bun_test_target_scan_args(args: list[str]) -> list[str]:
