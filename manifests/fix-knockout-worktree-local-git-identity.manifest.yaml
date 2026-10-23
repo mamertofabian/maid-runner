@@ -1,0 +1,207 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Avoid attributing unrelated sibling-worktree Git writes to snapshot test commands
+type: fix
+created: '2026-10-20T21:13:21Z'
+description: 'Bind both full snapshot lifecycle and fast command-group Git identity to this worktree:
+  current resolved HEAD object, raw own HEAD/index/config.worktree and shared config, plus existing task
+  input/dependency guards. Exclude unrelated sibling refs, worktree bookkeeping and common immutable object
+  additions. Use the existing sanitized Git service to resolve current HEAD semantically (including loose/packed
+  refs), not a new Git ref parser. A current branch advance must fail even when HEAD text stays unchanged;
+  packing refs without semantic changes must pass. Preserve source-write detection and independent snapshot
+  Git metadata. Tests use disposable real repositories, ordinary/linked worktrees, controlled Event barriers
+  and real snapshot/pytest knockout execution. No source or snapshot mutation guards may be deleted wholesale.
+  Hardened recall matched 121-27 shared coverage dependency environments: preserve source/Git metadata
+  isolation without copying dependency trees per lane. Dependency retention behavior is unchanged and
+  outside this identity fix; use dedicated public regression tests and bounded Git calls.'
+temptations:
+- risk: Remove Git identity enforcement to allow sibling commits.
+  instead: Retain current branch HEAD, index, shared/worktree config and actual source input guards with
+    public negative controls; exclude only unrelated shared identities.
+- risk: Fix the reported fast helper but leave lifecycle shared-object/ref fingerprints, or resolve refs
+    by storage layout.
+  instead: Cover both public snapshot lifecycles and real grouped knockout batches with sibling commit/object/ref/worktree
+    operations and pack-refs equivalence, reusing Git HEAD resolution.
+files:
+  edit:
+  - path: maid_runner/core/_knockout_snapshot.py
+    artifacts:
+    - kind: method
+      name: create
+      of: SharedEnvironmentProjectSnapshotBackend
+      args:
+      - name: project_root
+        type: Path
+      - name: required_paths
+        type: Sequence[str]
+      - name: worker_id
+        type: str
+      returns: AbstractContextManager[KnockoutProjectSnapshot]
+      description: Retain isolated snapshot creation and scoped repository integrity checks.
+  create:
+  - path: tests/core/test_fix_knockout_worktree_local_git_identity.py
+    artifacts:
+    - kind: test_function
+      name: test_sibling_git_changes_do_not_invalidate_public_snapshot
+      args:
+      - name: tmp_path
+        type: Path
+      - name: linked
+        type: bool
+      - name: operation
+        type: str
+      returns: None
+      description: sibling git changes do not invalidate public snapshot
+    - kind: test_function
+      name: test_own_worktree_changes_remain_blocking
+      args:
+      - name: tmp_path
+        type: Path
+      - name: change
+        type: str
+      returns: None
+      description: own worktree changes remain blocking
+    - kind: test_function
+      name: test_snapshot_command_writing_source_is_still_detected
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: snapshot command writing source is still detected
+    - kind: test_function
+      name: test_real_knockout_batch_accepts_sibling_changes_during_command_group
+      args:
+      - name: tmp_path
+        type: Path
+      - name: operation
+        type: str
+      returns: None
+      description: real knockout batch accepts sibling changes during command group
+  scope:
+  - path: docs/plans/bug-report-triage-2026-10-20.md
+    reason: Reconcile promoted contract and resolved report.
+  read:
+  - docs/unit-testing-rules.md
+  - docs/draft-manifest-workflow.md
+  - maid_runner/core/knockout.py
+  - maid_runner/core/manifest.py
+  - maid_runner/core/types.py
+validate:
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/core/test_fix_knockout_worktree_local_git_identity.py
+  - -q
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/core/test_knockout_snapshot.py
+  - tests/core/test_knockout_snapshot_template.py
+  - -q
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/fix-knockout-worktree-local-git-identity.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+outcome:
+  status: completed
+  completed_at: '2026-10-20T21:28:30.812625+00:00'
+  summary: Scope full snapshot and command-group Git identity to the tested worktree. Preserve resolved
+    current HEAD and own raw HEAD/index/config plus existing source/dependency guards; exclude unrelated
+    shared refs, object additions and worktree bookkeeping. Git resolves loose/packed current refs consistently
+    without a custom ref parser.
+  lessons:
+  - lesson_type: artifact-identity
+    summary: A linked worktree shares object/ref storage with independent work. Use semantic current-HEAD
+      identity and own worktree controls rather than fingerprinting all shared storage. Keep own current-branch
+      advancement, index/config/input and real snapshot-to-source write negatives.
+    tags:
+    - git
+    - worktree
+    - snapshot
+    paths:
+    - maid_runner/core/_knockout_snapshot.py
+  - lesson_type: validation-trust
+    summary: A real command-group regression needs at least two mutation targets sharing a command; a
+      single target exercises the separate lifecycle path. Cover both paths and pack-refs equivalence
+      with real executor results and controlled disposable Git fixtures.
+    tags:
+    - knockout
+    - command-group
+    - regression
+    paths:
+    - tests/core/test_fix_knockout_worktree_local_git_identity.py
+  review_notes:
+  - source: independent-read-only-implementation_review_worktree_identity
+    severity: ready
+    summary: Ready to merge; no blocking findings.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/core/test_fix_knockout_worktree_local_git_identity.py
+    - -q
+    status: passed
+    summary: '21 dedicated plus 30 adjacent snapshot/template cases passed, including existing Git-call
+      budget. Real grouped knockout tests detect both mutants. Scoped implementation/Ruff/Black/diff and
+      lock hashes passed. Original baseline: 13 failed / 8 passed.'
+  - command:
+    - /tmp/maid-identity-python310/.venv/bin/python
+    - -m
+    - pytest
+    - tests/core/test_fix_knockout_worktree_local_git_identity.py
+    - -q
+    status: passed
+    summary: 'Actual Python 3.10 conventional temporary .venv with PATH/VIRTUAL_ENV pointing to it: all
+      21 passed. Initial uv cache-hash environment hit existing interpreter-symlink guard before 5 grouped
+      cases; conventional layout passed without changing guards.'
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --packet
+    status: passed
+    summary: 348 active manifests passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: All 320 declared commands passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - 57496d8bd681d2e37a4fc07f4239b8cfd21e5c01
+    status: passed
+    summary: All 11 assessed deep stages passed with required plan-lock/red-evidence checks.

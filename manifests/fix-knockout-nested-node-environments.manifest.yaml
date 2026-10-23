@@ -1,0 +1,281 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Retain declared subproject Node dependency environments in knockout snapshots
+type: fix
+created: '2026-10-20T21:42:26Z'
+description: 'Retain root Node environments and subproject node_modules only for package.json roots already
+  present in bounded snapshot inputs. Preserve relative directory layout and nearest-package identity,
+  including distinct root/UI versions, hoisted imports, Node ESM and actual pnpm --dir ui exec. Shared
+  snapshots borrow validated managed Node environment paths with existing dependency mutation checks;
+  materialized snapshots use isolated copies and retained workers copy once then link private environments
+  across fresh roots. Do not flatten dependencies into NODE_PATH or recursively discover package roots
+  inside node_modules. Preserve root dependency behavior, source/Git/input guards, safe cleanup and no
+  installs in snapshots. Reject escaping dependency-root and internal symlinks, while accepting contained
+  pnpm store and bin links. No source-module import through an environment escape. Containment allows
+  relative pnpm links among the selected managed Node environments (including a root store shared by subprojects),
+  while rejecting project-source or external escapes. Reuse normal Node resolution rather than implementing
+  a package resolver. Hardened recall matched 121-27 dependency sharing and the preceding worktree identity
+  fix: preserve shared borrowing/once-per-worker copies and all tested-worktree controls without copying
+  dependency trees per coverage lane. Managed dependency roots must be real directories, never symlink
+  aliases into project source or external state. Materialize subproject paths without adding them to global
+  NODE_PATH/PATH; keep root-only compatibility and let native Node/pnpm package context select subproject
+  modules and tools. Root-only imports/executables must not gain access to subproject-only dependencies.
+  Evolve the historical shared-environment absence assertion to managed-path/source identity: Node paths
+  are present as borrowed aliases without cloning the environment. Preserve its test name and source before/after
+  invariants; refresh shared-dependent locks with unchanged validate commands through sanctioned preservation.'
+temptations:
+- risk: Make the command pass through host/global tooling or a flattened dependency search path with the
+    wrong package version.
+  instead: Run real pnpm and Node ESM fixtures with different root/UI versions and a hoisted dependency;
+    retain bounded managed relative paths in all snapshot modes.
+- risk: Follow arbitrary nested directories or expose writable source paths without existing integrity
+    checks.
+  instead: Select only package roots present in snapshot inputs, validate managed environment symlink
+    containment, retain source/dependency mutation checks and verify teardown/source preservation.
+- risk: Copy dependency trees for every retained-worker declaration or install missing packages during
+    validation.
+  instead: Reuse existing retained private environments by relative key; preserve shared borrowing and
+    test repeated fresh roots with unchanged original dependencies.
+files:
+  edit:
+  - path: maid_runner/core/_knockout_snapshot.py
+    artifacts:
+    - kind: method
+      name: create
+      of: SharedEnvironmentProjectSnapshotBackend
+      args:
+      - name: project_root
+        type: Path
+      - name: required_paths
+        type: Sequence[str]
+      - name: worker_id
+        type: str
+      returns: AbstractContextManager[KnockoutProjectSnapshot]
+      description: Retain validated subproject Node dependency environments with existing public snapshot
+        API.
+  create:
+  - path: tests/core/test_fix_knockout_nested_node_environments.py
+    artifacts:
+    - kind: test_function
+      name: test_nested_node_resolution_and_local_executable_survive_snapshot
+      args:
+      - name: tmp_path
+        type: Path
+      - name: kind
+        type: str
+      - name: command_kind
+        type: str
+      - name: cross_store
+        type: bool
+      returns: None
+      description: nested node resolution and local executable survive snapshot
+    - kind: test_function
+      name: test_nested_dependency_symlink_escape_is_rejected
+      args:
+      - name: tmp_path
+        type: Path
+      - name: kind
+        type: str
+      - name: escape_style
+        type: str
+      returns: None
+      description: nested dependency symlink escape is rejected
+    - kind: test_function
+      name: test_shared_nested_dependency_changes_are_detected
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: shared nested dependency changes are detected
+    - kind: test_function
+      name: test_nested_node_directory_without_package_input_stays_excluded
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: nested node directory without package input stays excluded
+    - kind: test_function
+      name: test_retained_workers_keep_nested_dependency_paths_across_fresh_roots
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: retained workers keep nested dependency paths across fresh roots
+    - kind: test_function
+      name: test_real_python_knockout_runs_after_nested_node_baseline
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: real python knockout runs after nested node baseline
+    - kind: test_function
+      name: test_root_cannot_resolve_subproject_only_module
+      args:
+      - name: tmp_path
+        type: Path
+      - name: kind
+        type: str
+      returns: None
+      description: root cannot resolve subproject only module
+    - kind: test_function
+      name: test_root_cannot_execute_subproject_only_tool
+      args:
+      - name: tmp_path
+        type: Path
+      - name: kind
+        type: str
+      returns: None
+      description: root cannot execute subproject only tool
+    - kind: test_function
+      name: test_dependency_root_alias_cannot_reclassify_project_source
+      args:
+      - name: tmp_path
+        type: Path
+      - name: kind
+        type: str
+      - name: slot
+        type: str
+      returns: None
+      description: dependency root alias cannot reclassify project source
+  scope:
+  - path: docs/maid_specs.md
+    reason: Document bounded Node package-root retention and managed dependency safety; synchronize mirrors.
+  - path: maid_runner/docs/maid_specs.md
+    reason: Document bounded Node package-root retention and managed dependency safety; synchronize mirrors.
+  - path: .maid/docs/maid_specs.md
+    reason: Document bounded Node package-root retention and managed dependency safety; synchronize mirrors.
+  - path: docs/plans/bug-report-triage-2026-10-20.md
+    reason: Reconcile promoted contract and resolved report.
+  - path: tests/core/test_shared_environment_snapshots.py
+    reason: Evolve old no-path assertion to borrowed managed-path identity while preserving no-copy/source
+      integrity contract.
+  read:
+  - docs/unit-testing-rules.md
+  - docs/draft-manifest-workflow.md
+  - maid_runner/core/knockout.py
+  - maid_runner/core/manifest.py
+  - maid_runner/core/types.py
+validate:
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/core/test_fix_knockout_nested_node_environments.py
+  - -q
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/core/test_knockout_snapshot.py
+  - tests/core/test_knockout_snapshot_template.py
+  - tests/docs/test_chain_merge_docs.py
+  - tests/core/test_shared_environment_snapshots.py
+  - -q
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/fix-knockout-nested-node-environments.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+outcome:
+  status: completed
+  completed_at: '2026-10-20T22:24:10.440228+00:00'
+  summary: Retain Node environments at root and bounded package.json input roots with native relative
+    package resolution. Shared snapshots borrow validated managed paths; materialized/retained workers
+    use private copies with retained reuse. Preserve exact root/UI versions, hoisted and contained cross-root
+    pnpm store links without global nested namespace exposure. Reject dependency-root aliases and source/external
+    link escapes; retain source/dependency/Git guards and cleanup without installs.
+  lessons:
+  - lesson_type: artifact-identity
+    summary: Visible relative Node paths preserve nearest-package identity, while adding every subproject
+      to NODE_PATH/PATH can make root imports/tools falsely succeed. Pair ESM/pnpm and distinct-version
+      positives with root module/executable exclusion negatives.
+    tags:
+    - node
+    - resolution
+    - namespace
+    paths:
+    - maid_runner/core/_knockout_snapshot.py
+    - tests/core/test_fix_knockout_nested_node_environments.py
+  - lesson_type: validation-trust
+    summary: A node_modules slot symlinked into project source is not proof of an installed dependency
+      environment. Require real managed roots, preserve contained relative links among selected environments,
+      and keep source/dependency mutation checks and private-copy inode isolation.
+    tags:
+    - snapshot
+    - ownership
+    - symlink
+    paths:
+    - maid_runner/core/_knockout_snapshot.py
+  review_notes:
+  - source: independent-read-only-implementation_review_nested_node_v3
+    severity: ready
+    summary: Ready to merge; no blocking findings. Full-diff review includes scoped no-copy fixture evolution
+      and four sanctioned shared-dependent lock updates with unchanged commands.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/core/test_fix_knockout_nested_node_environments.py
+    - -q
+    status: passed
+    summary: '37 dedicated plus 37 adjacent cases passed, all Node/pnpm integrations executed on this
+      host. Scoped implementation/Ruff/Black/diff and lock revision4 test hashes passed. Fresh stashed
+      baseline: 28 failed / 9 passed; adjacent baseline 1 failed / 36 passed; revised adjacent 37 passed.'
+  - command:
+    - /tmp/maid-identity-python310/.venv/bin/python
+    - -m
+    - pytest
+    - tests/core/test_fix_knockout_nested_node_environments.py
+    - tests/core/test_shared_environment_snapshots.py
+    - -q
+    status: passed
+    summary: 'Actual Python 3.10 conventional temporary .venv with PATH/VIRTUAL_ENV configured: all 41
+      dedicated/shared cases passed, zero skips.'
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --packet
+    status: passed
+    summary: 349 active manifests passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: All 321 declared commands passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - d7a2e889dde9bfe8e84b02fcdee64c24c2cf01aa
+    status: passed
+    summary: All 11 assessed deep stages passed with required plan-lock/red-evidence checks.

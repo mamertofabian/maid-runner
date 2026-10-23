@@ -12,6 +12,7 @@ import subprocess
 import sys
 import uuid
 from collections import Counter
+from collections.abc import Collection
 from dataclasses import replace
 from pathlib import Path
 
@@ -297,6 +298,8 @@ def cmd_plan_revise(args: argparse.Namespace) -> int:
         existing.red_evidence,
         existing.legacy_baseline,
         ctx.lock_path,
+        project_root=ctx.project_root,
+        behavioral_test_files=existing.test_hashes,
     )
     if preserve_red_evidence and preserved_evidence_class is None:
         print_error(
@@ -539,18 +542,31 @@ def _manifest_status_errors() -> tuple[type[Exception], ...]:
     return (YAMLError, OSError, ValueError)
 
 
-def _red_evidence_payload_is_valid(evidence: dict | None) -> bool:
+def _red_evidence_payload_is_valid(
+    evidence: dict | None,
+    project_root: Path | None = None,
+    behavioral_test_files: Collection[str] = (),
+) -> bool:
     """Return whether an existing lock payload is valid red evidence."""
     from maid_runner.core.plan_lock import _red_evidence_is_valid
 
-    return isinstance(evidence, dict) and _red_evidence_is_valid(evidence)
+    return isinstance(evidence, dict) and _red_evidence_is_valid(
+        evidence, project_root, behavioral_test_files
+    )
 
 
 def _stash_restoration_evidence_payload(
-    stashed_evidence: dict, restored_evidence: dict
+    stashed_evidence: dict,
+    restored_evidence: dict,
+    *,
+    project_root: Path,
+    behavioral_test_files: Collection[str],
 ) -> dict | None:
     """Build auditable recovery evidence when restoration resolves invalid runs."""
-    from maid_runner.core.plan_lock import _red_evidence_is_valid
+    from maid_runner.core.plan_lock import (
+        _red_evidence_is_valid,
+        _stash_restoration_behavioral_red_commands,
+    )
 
     payload = {
         **stashed_evidence,
@@ -559,7 +575,14 @@ def _stash_restoration_evidence_payload(
         "restored_captured_at": restored_evidence.get("captured_at"),
         "restored_commands": restored_evidence.get("commands"),
     }
-    return payload if _red_evidence_is_valid(payload) else None
+    payload["behavioral_red_commands"] = _stash_restoration_behavioral_red_commands(
+        payload, project_root, behavioral_test_files
+    )
+    return (
+        payload
+        if _red_evidence_is_valid(payload, project_root, behavioral_test_files)
+        else None
+    )
 
 
 def _has_mixed_red_and_invalid_commands(evidence: dict) -> bool:
@@ -680,10 +703,17 @@ def _preservable_evidence_class(
     evidence: object,
     legacy_baseline: object = None,
     lock_path: Path | None = None,
+    *,
+    project_root: Path | None = None,
+    behavioral_test_files: Collection[str] = (),
 ) -> str | None:
     if evidence is not None and legacy_baseline is not None:
         return None
-    if _red_evidence_payload_is_valid(evidence if isinstance(evidence, dict) else None):
+    if _red_evidence_payload_is_valid(
+        evidence if isinstance(evidence, dict) else None,
+        project_root,
+        behavioral_test_files,
+    ):
         return "red"
     if _test_only_green_payload_is_valid(evidence):
         return "test-only-green"
@@ -941,6 +971,29 @@ def _cmd_plan_revise_with_stashed_implementation(
             )
         read_stash_paths.discard(manifest_rel)
         read_stash_paths.discard(lock_rel)
+        if not any(
+            path.replace("\\", "/") not in behavioral_test_paths
+            for path in manifest.all_writable_paths | read_stash_paths
+        ):
+            print_error(
+                "--stash-implementation requires at least one declared non-test "
+                "implementation file. For test-only contracts, use --test-only-green.",
+                json_mode=ctx.json_mode,
+            )
+            return 2
+        dirty_entries = _git_dirty_entries(ctx.project_root)
+        sibling_read_context = (
+            _current_sibling_read_context(
+                ctx.project_root,
+                ctx.manifest_path,
+                manifest,
+                dirty_entries,
+                read_stash_paths,
+            )
+            if contracted_writable_paths
+            else {}
+        )
+        read_stash_paths.difference_update(sibling_read_context)
         target_paths = tuple(
             sorted(
                 normalized_path
@@ -957,8 +1010,8 @@ def _cmd_plan_revise_with_stashed_implementation(
             )
             return 2
 
-        dirty_entries = _git_dirty_entries(ctx.project_root)
         allowed_dirty_paths = set(target_paths)
+        allowed_dirty_paths.update(sibling_read_context)
         allowed_dirty_paths.add(manifest_rel)
         allowed_dirty_paths.add(lock_rel)
         allowed_dirty_paths.update(behavioral_test_paths)
@@ -981,10 +1034,15 @@ def _cmd_plan_revise_with_stashed_implementation(
             and entry.path in declared_surface_paths
         )
         sibling_dirty_paths = sorted(
-            entry.path
-            for entry in dirty_entries
-            if entry.path not in allowed_dirty_paths
-            and entry.path not in declared_surface_paths
+            {
+                entry.path
+                for entry in dirty_entries
+                if (
+                    entry.path not in allowed_dirty_paths
+                    and entry.path not in declared_surface_paths
+                )
+                or entry.path in sibling_read_context
+            }
         )
         refused_dirty_paths = own_surface_conflicts + (
             sibling_dirty_paths if not allow_sibling_dirty else []
@@ -1109,6 +1167,9 @@ def _cmd_plan_revise_with_stashed_implementation(
             evidence = capture_red_phase_evidence(
                 ctx.manifest_path, ctx.project_root
             ).to_payload()
+            _ensure_sibling_read_context_unchanged(
+                ctx.project_root, sibling_read_context
+            )
             if (
                 _contract_hashes_for_stash_revise(
                     ctx.project_root, ctx.manifest_path, manifest
@@ -1139,6 +1200,9 @@ def _cmd_plan_revise_with_stashed_implementation(
                 restored_evidence = capture_red_phase_evidence(
                     ctx.manifest_path, ctx.project_root
                 ).to_payload()
+                _ensure_sibling_read_context_unchanged(
+                    ctx.project_root, sibling_read_context
+                )
                 if (
                     _contract_hashes_for_stash_revise(
                         ctx.project_root, ctx.manifest_path, manifest
@@ -1162,14 +1226,19 @@ def _cmd_plan_revise_with_stashed_implementation(
                     )
                     return 2
                 recovery_evidence = _stash_restoration_evidence_payload(
-                    evidence, restored_evidence
+                    evidence,
+                    restored_evidence,
+                    project_root=ctx.project_root,
+                    behavioral_test_files=revised.test_hashes,
                 )
                 _drop_stash_entry(ctx.project_root, stash_hash)
                 restored = True
                 implementation_applied = False
                 if recovery_evidence is not None:
                     evidence = recovery_evidence
-            if not _red_evidence_payload_is_valid(evidence):
+            if not _red_evidence_payload_is_valid(
+                evidence, ctx.project_root, revised.test_hashes
+            ):
                 details = _format_red_evidence_capture_details(evidence)
                 if restored_evidence is not None:
                     details += (
@@ -1181,11 +1250,20 @@ def _cmd_plan_revise_with_stashed_implementation(
                 if _includes_dependency_lockfile(dirty_target_paths):
                     print_error(
                         "--stash-implementation did not capture valid red evidence "
-                        "because materialized dependency state (node_modules, .venv, "
+                        "while dependency lockfiles were targeted. Materialized "
+                        "dependency state (node_modules, .venv, "
                         "or vendor) is not stashed with dependency lockfiles. "
-                        "Temporarily install the prior dependency state and use plain "
-                        "plan revise, or record a reasoned legacy baseline.\n"
-                        + details,
+                        "Restore the prior dependency state only when compatible "
+                        "with the behavioral tests. If upgraded dependencies are "
+                        "required to collect tests, retain that prerequisite "
+                        "environment. Save the current implementation before any "
+                        "restore. In a controlled checkout, restore only task "
+                        "implementation source to its real pre-implementation "
+                        "baseline and use plain plan revise after genuine red; "
+                        "then restore the saved implementation and validate green. "
+                        "A legacy baseline is a separate workflow for an eligible "
+                        "tracked baseline and must pass its eligibility checks; "
+                        "it is not a generic collection-error bypass.\n" + details,
                         json_mode=ctx.json_mode,
                     )
                 else:
@@ -1205,6 +1283,9 @@ def _cmd_plan_revise_with_stashed_implementation(
                     original_target_modes,
                 )
                 restored = True
+            _ensure_sibling_read_context_unchanged(
+                ctx.project_root, sibling_read_context
+            )
             revised = replace(revised, red_evidence=evidence)
             revised.save(ctx.lock_path)
             print(
@@ -1503,6 +1584,194 @@ def _behavioral_test_paths_for_revise(manifest) -> set[str]:
         if any(artifact.kind == ArtifactKind.TEST_FUNCTION for artifact in fs.artifacts)
     )
     return paths
+
+
+def _current_sibling_read_context(
+    project_root: Path,
+    manifest_path: Path,
+    manifest,
+    dirty_entries: tuple[_DirtyEntry, ...],
+    read_stash_paths: set[str],
+) -> dict[str, tuple[object, ...]]:
+    """Retain only explicitly pending, verified sibling implementation inputs."""
+    from maid_runner.core.chain import ManifestChain, _discover_manifest_files
+    from maid_runner.core.plan_lock import (
+        PlanLock,
+        _PlanLockLoadError,
+        _behavioral_test_paths,
+        _load_locked_contract,
+        default_plan_lock_path,
+        manifest_hash_matches,
+        test_hash_matches,
+    )
+
+    dirty_paths = {entry.path for entry in dirty_entries}
+    writable_paths = {path.replace("\\", "/") for path in manifest.all_writable_paths}
+    dirty_read_paths = read_stash_paths & dirty_paths
+    dirty_read_paths.update(
+        path
+        for path in read_stash_paths
+        if (project_root / path).is_dir()
+        and any(dirty.startswith(path.rstrip("/") + "/") for dirty in dirty_paths)
+    )
+    candidates = dirty_read_paths - writable_paths
+    if not candidates:
+        return {}
+    from maid_runner.core.config import load_config
+
+    configured_dir = Path(load_config(project_root).manifest_dir)
+    manifest_dir = (
+        configured_dir
+        if configured_dir.is_absolute()
+        else project_root / configured_dir
+    )
+    if not manifest_path.resolve().is_relative_to(manifest_dir.resolve()):
+        manifest_dir = manifest_path.parent
+    chain = ManifestChain(manifest_dir, project_root)
+    manifest_entries = _discover_manifest_files(manifest_dir)
+    current_manifest = _project_relative(manifest_path, project_root)
+    claims = {path: [] for path in candidates}
+    for owner in chain.active_manifests():
+        owner_manifest = _project_relative(Path(owner.source_path), project_root)
+        if owner_manifest == current_manifest:
+            continue
+        # Snapshot inventory and read context are not current task ownership.
+        owned_paths = {
+            spec.path.replace("\\", "/")
+            for spec in (
+                *owner.files_create,
+                *owner.files_edit,
+                *owner.files_scope,
+                *owner.files_delete,
+            )
+        }
+        owned_candidates = candidates & owned_paths
+        if not owned_candidates:
+            continue
+        owner_lock = default_plan_lock_path(project_root, owner.slug)
+        lock_relative = _project_relative(owner_lock, project_root)
+        lexical_entries = [
+            entry
+            for entry in manifest_entries
+            if entry.resolve() == Path(owner.source_path)
+        ]
+        lexical_dirty = any(
+            entry.absolute().relative_to(project_root.absolute()).as_posix()
+            in dirty_paths
+            for entry in lexical_entries
+            if entry.absolute().is_relative_to(project_root.absolute())
+        )
+        if (
+            owner_manifest not in dirty_paths
+            and lock_relative not in dirty_paths
+            and not lexical_dirty
+        ):
+            continue
+        for entry in lexical_entries:
+            _require_regular_sibling_context(entry, project_root)
+        for path in owned_candidates:
+            claims[path].append((owner, owner_manifest, owner_lock, lock_relative))
+
+    context: dict[str, tuple[object, ...]] = {}
+    for path, owners in sorted(claims.items()):
+        if not owners:
+            continue  # Preserve historical and unowned legacy wiring behavior.
+        guidance = (
+            f"--stash-implementation cannot establish current sibling ownership "
+            f"for {path}. Reconcile or re-lock the sibling contract, or declare "
+            "active implementation wiring under files.scope."
+        )
+        if len(owners) != 1:
+            raise ValueError(guidance + " Competing current ownership claims.")
+        owner, owner_manifest, owner_lock, lock_relative = owners[0]
+        try:
+            _require_regular_sibling_context(Path(owner.source_path), project_root)
+            for input_path in (path, owner_manifest, lock_relative):
+                _require_regular_sibling_context(
+                    project_root / input_path, project_root
+                )
+                context.setdefault(
+                    input_path, _stash_target_fingerprint(project_root / input_path)
+                )
+            lock = PlanLock.load(owner_lock)
+            test_paths = set(_behavioral_test_paths(owner, project_root))
+            for test_path in sorted(test_paths):
+                _require_regular_sibling_context(project_root / test_path, project_root)
+                context.setdefault(
+                    test_path, _stash_target_fingerprint(project_root / test_path)
+                )
+            evidence_class = _preservable_evidence_class(
+                lock.red_evidence,
+                lock.legacy_baseline,
+                owner_lock,
+                project_root=project_root,
+                behavioral_test_files=lock.test_hashes,
+            )
+            evidence = (
+                lock.legacy_baseline
+                if evidence_class == "legacy-baseline"
+                else lock.red_evidence
+            )
+            valid = (
+                lock.manifest_path == owner_manifest
+                and manifest_hash_matches(lock.manifest_hash, Path(owner.source_path))
+                and bool(test_paths)
+                and set(lock.test_hashes) == test_paths
+                and all(
+                    test_hash_matches(lock.test_hashes[test], project_root / test)
+                    for test in test_paths
+                )
+                and evidence_class in {"red", "legacy-baseline"}
+                and _preserved_evidence_commands_match_manifest(
+                    evidence, Path(owner.source_path), _load_locked_contract(owner_lock)
+                )
+            )
+        except (OSError, ValueError, _PlanLockLoadError) as exc:
+            raise ValueError(guidance + f" {exc}") from exc
+        if not valid:
+            raise ValueError(guidance)
+    _ensure_sibling_read_context_unchanged(project_root, context)
+    return context
+
+
+def _require_regular_sibling_context(path: Path, project_root: Path) -> None:
+    # Retained inputs are consumed by commands outside our stash. Reject links
+    # rather than claiming that fingerprinting their link text pins backing data.
+    current = path.absolute()
+    root = project_root.absolute()
+    while current != root and current != current.parent:
+        if current.is_symlink():
+            raise ValueError(
+                "--stash-implementation cannot retain symlink-backed sibling "
+                f"context: {path}. Use regular files and re-lock the sibling contract."
+            )
+        current = current.parent
+    if not path.is_file():
+        raise ValueError(
+            "--stash-implementation requires an existing regular file for "
+            f"retained sibling context: {path}. Reconcile the sibling contract."
+        )
+
+
+def _ensure_sibling_read_context_unchanged(
+    project_root: Path, context: dict[str, tuple[object, ...]]
+) -> None:
+    changed = []
+    for path, fingerprint in context.items():
+        try:
+            _require_regular_sibling_context(project_root / path, project_root)
+            unchanged = _stash_target_fingerprint(project_root / path) == fingerprint
+        except ValueError:
+            unchanged = False
+        if not unchanged:
+            changed.append(path)
+    if changed:
+        raise _GitCommandError(
+            "--stash-implementation refuses to save because retained read-only "
+            "sibling context changed: "
+            + ", ".join(sorted(changed))
+            + ". Concurrent context changes were not overwritten."
+        )
 
 
 def _same_task_lifecycle_dirty_paths(

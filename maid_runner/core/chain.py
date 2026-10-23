@@ -67,6 +67,7 @@ class ManifestChain:
         self._active_cache: list[Manifest] | None = None
         self._load_errors: list[ValidationError] | None = None
         self._writable_path_index: dict[str, list[Manifest]] | None = None
+        self._proposed_draft_source: str | None = None
 
     def _load(self) -> None:
         paths = _discover_manifest_files(self._manifest_dir)
@@ -120,6 +121,29 @@ class ManifestChain:
 
         self._superseded_set = superseded
         self._superseded_by_map = superseded_by
+
+    def _with_selected_draft(self, manifest: Manifest) -> ManifestChain:
+        """Return an isolated proposed view for one selected superseding draft."""
+        if not manifest.supersedes or not manifest.source_path:
+            return self
+        source_path = Path(manifest.source_path)
+        if not source_path.is_absolute():
+            source_path = self._project_root / source_path
+        try:
+            inactive_dir = _inactive_dir_name_for(
+                source_path.resolve(), self._manifest_dir.resolve()
+            )
+        except ValueError:
+            return self
+        if inactive_dir != "drafts":
+            return self
+
+        view = ManifestChain(self._manifest_dir, self._project_root)
+        view._proposed_draft_source = manifest.source_path
+        view._manifests = self.all_manifests + [manifest]
+        view._load_errors = self.load_errors
+        view._resolve_supersession()
+        return view
 
     def _ensure_loaded(self) -> None:
         if self._manifests is None:
@@ -599,6 +623,9 @@ class ManifestChain:
 
         errors: list[ValidationError] = []
         for manifest in self.all_manifests:
+            # The selected draft is proposed context, not persisted active inventory.
+            if manifest.source_path == self._proposed_draft_source:
+                continue
             metadata = manifest.metadata
             if not isinstance(metadata, dict):
                 continue
@@ -658,6 +685,7 @@ class ManifestChain:
         return self._manifest_dir.name in _INACTIVE_MANIFEST_DIR_NAMES
 
     def reload(self) -> None:
+        self._proposed_draft_source = None
         self._manifests = None
         self._superseded_set = None
         self._superseded_by_map = None

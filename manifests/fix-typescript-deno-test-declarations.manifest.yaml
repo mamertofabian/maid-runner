@@ -1,0 +1,89 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Recognize official Deno.test registrations as TypeScript behavioral test declarations
+type: fix
+created: '2026-10-23T06:35:30Z'
+description: |
+  Bug report 20261023-031613-deno-test-discovery-flags.md: the TypeScript
+  behavioral collector only treats it/test/fit/xit callees as label-bearing test
+  declarations. Official `Deno.test("label", fn)` registrations are therefore
+  missing from collected test_function artifacts (false E600 for declared labels)
+  and from per-test body collection, while the `const { test } = Deno` binding
+  already works.
+
+  Treat the member chain Deno.test, plus the documented Deno.test.only and
+  Deno.test.ignore modifiers, as executable test targets in the private
+  collector. Reuse the existing module/suite-scope rule, literal-label rule
+  (interpolated template labels stay unrecognized) and callback-body extraction,
+  which already skips an options object before the callback. Rationale: this is
+  the narrowest syntactic rule matching Deno's documented registration API; it
+  does not model aliasing or runtime binding (AGENTS.md validator hardening
+  constraint). Not in scope: the object form `Deno.test({ name, fn })`, `t.step`
+  sub-steps, Jest/Vitest modifiers on Deno.test such as `.skip`, `.todo` or
+  `.each`, computed access such as `Deno["test"]`, chained
+  modifiers like `.only.ignore`, other Deno namespace calls such as Deno.bench,
+  and shadowed local `Deno` bindings.
+temptations:
+- risk: Add "Deno" to the bare test callee names so any Deno.* call counts as a test.
+  instead: Match only the exact Deno.test member chain with the documented only/ignore modifiers and keep Deno.bench and unknown modifiers rejected by tests.
+- risk: Relax the module-scope or literal-label rules to make more Deno tests visible.
+  instead: Reuse the existing scope and label helpers unchanged so nested registrations and interpolated labels stay unrecognized.
+files:
+  scope:
+  - path: maid_runner/validators/_typescript_behavioral.py
+    reason: Recognize the exact Deno.test registration chain in the private test-target classifier.
+  read:
+  - tests/validators/test_typescript_deno_test_declarations.py
+  - maid_runner/validators/typescript.py
+  - maid_runner/core/validate.py
+  - maid_runner/core/result.py
+  - maid_runner/core/types.py
+validate:
+- [uv, run, pytest, tests/validators/test_typescript_deno_test_declarations.py, -q]
+
+outcome:
+  status: completed
+  completed_at: '2026-10-23T06:46:26Z'
+  summary: The TypeScript behavioral collector treats Deno.test, Deno.test.only and Deno.test.ignore as
+    label-bearing test declarations, removing false E600 for declared Deno.test labels and collecting their
+    callback bodies.
+  rationale: One exact syntactic rule on the resolved member chain reuses the existing scope, literal-label
+    and callback-body helpers. Deno.bench, unknown or Jest-style modifiers, computed access and nested registrations
+    stay unrecognized. Known remaining gap - the object form Deno.test({ name, fn }) is still invisible and
+    emits no unsupported-form diagnostic; t.step sub-steps are also not modeled.
+  lessons:
+  - lesson_type: test-design
+    summary: Negative cases for modifiers accepted by the generic test callee path (.skip, .todo, .each) are
+      needed to stop an implementation from aliasing Deno.test to test.
+    tags:
+    - deno
+    - typescript
+    - test-declarations
+    - maid-runner-feedback
+    paths:
+    - maid_runner/validators/_typescript_behavioral.py
+    - tests/validators/test_typescript_deno_test_declarations.py
+  review_notes:
+  - source: independent-read-only-plan-review
+    severity: info
+    summary: Approvable; optional hardening (Deno.test.todo, Deno.test.each, Deno["bench"] negatives) was applied.
+  - source: independent-read-only-implementation-review
+    severity: ready
+    summary: Ready to merge; no blocking findings. The new branch only matches exact Deno registration chains
+      after the suite-helper guard, so other callees are unaffected.
+  validation:
+  - command: [uv, run, pytest, tests/validators/test_typescript_deno_test_declarations.py, -q]
+    status: passed
+    summary: All declaration, negative, body and behavioral validation cases pass.
+  - command: [uv, run, maid, test]
+    status: passed
+    summary: All declared manifest commands pass, 0 failed. Full pytest 6290 passed, 20 skipped.
+  - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --file-tracking-scope, task,
+      --plan-lock-scope, task, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, 849c7a64,
+      --summary]
+    status: passed
+    summary: All 11 stages passed; existing non-blocking E307 for ts_compiler_resolver.cjs only.

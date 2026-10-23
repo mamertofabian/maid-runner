@@ -1,0 +1,404 @@
+{
+  "manifest_path": "manifests/fix-behavioral-red-command-attribution.manifest.yaml",
+  "manifest_hash": "sha256-contract:9f796aa1b3823937330a2595fbbb7e5707140acb844a16cbba06b273fb0b2508",
+  "test_hashes": {
+    "tests/core/test_fix_behavioral_red_command_attribution.py": "sha256-pyast:v2:5e628297eb16d4dcacceff7c89be63daa9bf0e6857c1e22431293b2a02cc30d7",
+    "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:5b2ce9458cfaec7a9eb2eabebb103be617604185ba7fbe7bca4d88a869289820",
+    "tests/core/test_plan_lock_red_evidence.py": "sha256-pyast:v2:474ceed3005a7923f0eebf12ed685760a257bead2ebf606b00b08d162881ee57",
+    "tests/cli/test_plan_revise_auto_preserve.py": "sha256-pyast:v2:45894dba876eefb71610329bbbd70d07130b7a2c8abba8aa1b50b94d4a49f04a",
+    "tests/core/test_acceptance_red_evidence.py": "sha256-pyast:v2:ee1f2aa19b460554f061ab25088388bed9bf4438fa59f8fc1c655ac2a8ccbfe3",
+    "tests/core/test_run_evaluation.py": "sha256-pyast:v2:60050a3d0608d81058227924fbfa995ba56e2ac82562728869c891d718e14b40"
+  },
+  "created_at": "2026-10-20T15:27:23.101385+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:3e956ea24a046643c47c239862f3dbb389d54cd554407f63bed719022c05af0e",
+      "prior_test_hashes": {
+        "tests/core/test_fix_behavioral_red_command_attribution.py": "sha256-pyast:v2:11bf872abfc324e88bcf751c9385009459c2ed6e14d549926e70004c37f0f675",
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:5b2ce9458cfaec7a9eb2eabebb103be617604185ba7fbe7bca4d88a869289820",
+        "tests/core/test_plan_lock_red_evidence.py": "sha256-pyast:v2:474ceed3005a7923f0eebf12ed685760a257bead2ebf606b00b08d162881ee57",
+        "tests/cli/test_plan_revise_auto_preserve.py": "sha256-pyast:v2:45894dba876eefb71610329bbbd70d07130b7a2c8abba8aa1b50b94d4a49f04a",
+        "tests/core/test_acceptance_red_evidence.py": "sha256-pyast:v2:ee1f2aa19b460554f061ab25088388bed9bf4438fa59f8fc1c655ac2a8ccbfe3"
+      },
+      "revised_at": "2026-10-20T15:27:37.134627+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-behavioral-red-command-attribution.manifest.yaml -> manifests/fix-behavioral-red-command-attribution.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8e2df5a277510cc080ff1effb08d85bd6af1e34cf97a416fe4c3798439a54f16",
+      "prior_test_hashes": {
+        "tests/core/test_fix_behavioral_red_command_attribution.py": "sha256-pyast:v2:11bf872abfc324e88bcf751c9385009459c2ed6e14d549926e70004c37f0f675",
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:5b2ce9458cfaec7a9eb2eabebb103be617604185ba7fbe7bca4d88a869289820",
+        "tests/core/test_plan_lock_red_evidence.py": "sha256-pyast:v2:474ceed3005a7923f0eebf12ed685760a257bead2ebf606b00b08d162881ee57",
+        "tests/cli/test_plan_revise_auto_preserve.py": "sha256-pyast:v2:45894dba876eefb71610329bbbd70d07130b7a2c8abba8aa1b50b94d4a49f04a",
+        "tests/core/test_acceptance_red_evidence.py": "sha256-pyast:v2:ee1f2aa19b460554f061ab25088388bed9bf4438fa59f8fc1c655ac2a8ccbfe3"
+      },
+      "revised_at": "2026-10-20T15:29:35.933240+00:00",
+      "reason": "Make restored-green fixture deterministic across Python timestamp bytecode caches without sleeps",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:8e2df5a277510cc080ff1effb08d85bd6af1e34cf97a416fe4c3798439a54f16",
+      "prior_test_hashes": {
+        "tests/core/test_fix_behavioral_red_command_attribution.py": "sha256-pyast:v2:37eeafd5d64d13462a1c753694947879dce8c9d735ba92118de4919cd88d95bd",
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:5b2ce9458cfaec7a9eb2eabebb103be617604185ba7fbe7bca4d88a869289820",
+        "tests/core/test_plan_lock_red_evidence.py": "sha256-pyast:v2:474ceed3005a7923f0eebf12ed685760a257bead2ebf606b00b08d162881ee57",
+        "tests/cli/test_plan_revise_auto_preserve.py": "sha256-pyast:v2:45894dba876eefb71610329bbbd70d07130b7a2c8abba8aa1b50b94d4a49f04a",
+        "tests/core/test_acceptance_red_evidence.py": "sha256-pyast:v2:ee1f2aa19b460554f061ab25088388bed9bf4438fa59f8fc1c655ac2a8ccbfe3"
+      },
+      "revised_at": "2026-10-20T15:34:23.972652+00:00",
+      "reason": "Thread attribution context through public run evaluation and cover honest evidence status without API changes",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:maid_runner/core/run_evaluation.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest tests/cli/test_plan_cmd_stash_import_obstruction.py tests/core/test_plan_lock_red_evidence.py tests/cli/test_plan_revise_auto_preserve.py tests/core/test_acceptance_red_evidence.py tests/core/test_run_evaluation.py -q"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest tests/cli/test_plan_cmd_stash_import_obstruction.py tests/core/test_plan_lock_red_evidence.py tests/cli/test_plan_revise_auto_preserve.py tests/core/test_acceptance_red_evidence.py -q"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-20T15:34:37.423009+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_fix_behavioral_red_command_attribution.py -q",
+        "exit_code": 1,
+        "output_tail": "        )\n    \n>       assert ErrorCode.RED_PHASE_EVIDENCE_INVALID in {error.code for error in errors}\nE       AssertionError: assert <ErrorCode.RED_PHASE_EVIDENCE_INVALID: 'E705'> in set()\nE        +  where <ErrorCode.RED_PHASE_EVIDENCE_INVALID: 'E705'> = ErrorCode.RED_PHASE_EVIDENCE_INVALID\n\ntests/core/test_fix_behavioral_red_command_attribution.py:363: AssertionError\n----------------------------- Captured stdout call -----------------------------\nLocked plan 'policy' at revision 1 (2 behavioral test file(s), /tmp/pytest-of-atomrem/pytest-874/test_nonexecuting_runner_canno2/.maid/plan-locks/policy.lock.json)\n=========================== short test summary info ============================\nFAILED tests/core/test_fix_behavioral_red_command_attribution.py::test_lint_red_cannot_replace_invalid_behavioral_test\nFAILED tests/core/test_fix_behavioral_red_command_attribution.py::test_restored_green_does_not_turn_collection_error_into_behavioral_red\nFAILED tests/core/test_fix_behavioral_red_command_attribution.py::test_genuine_behavioral_red_remains_accepted[stashed]\nFAILED tests/core/test_fix_behavioral_red_command_attribution.py::test_genuine_behavioral_red_remains_accepted[restored]\nFAILED tests/core/test_fix_behavioral_red_command_attribution.py::test_changed_behavioral_contract_cannot_preserve_stale_red\nFAILED tests/core/test_fix_behavioral_red_command_attribution.py::test_registered_wrapper_red_is_attributed\nFAILED tests/core/test_fix_behavioral_red_command_attribution.py::test_nonexecuting_runner_cannot_supply_behavioral_red[--collect-only]\nFAILED tests/core/test_fix_behavioral_red_command_attribution.py::test_nonexecuting_runner_cannot_supply_behavioral_red[--help]\nFAILED tests/core/test_fix_behavioral_red_command_attribution.py::test_nonexecuting_runner_cannot_supply_behavioral_red[--version]\n9 failed, 1 passed in 7.61s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest tests/cli/test_plan_cmd_stash_import_obstruction.py tests/core/test_plan_lock_red_evidence.py tests/cli/test_plan_revise_auto_preserve.py tests/core/test_acceptance_red_evidence.py tests/core/test_run_evaluation.py -q",
+        "exit_code": 0,
+        "output_tail": "...............................................                          [100%]\n47 passed in 5.41s",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/plan_lock.py:function:capture_red_phase_evidence",
+      "maid_runner/core/plan_lock.py:function:capture_red_phase_evidence:arg=command_timeout_seconds:type=int:default=300",
+      "maid_runner/core/plan_lock.py:function:capture_red_phase_evidence:arg=manifest_path:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:capture_red_phase_evidence:arg=project_root:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:capture_red_phase_evidence:kind=function",
+      "maid_runner/core/plan_lock.py:function:capture_red_phase_evidence:returns=RedPhaseEvidence",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=chain:type=ManifestChain:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=changed_paths:type=Collection[str] | None:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=plan_lock_scope:type=str:default=repository",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=project_root:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=require_plan_lock:type=bool:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:arg=require_red_evidence:type=bool:default=None",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:kind=function",
+      "maid_runner/core/plan_lock.py:function:enforce_plan_locks:returns=tuple[ValidationError, ...]",
+      "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence",
+      "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence:arg=existing:type=PlanLock:default=None",
+      "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence:arg=manifest_path:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence:arg=prior_contract:type=Union[dict, None]:default=None",
+      "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence:arg=project_root:type=Path:default=None",
+      "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence:kind=function",
+      "maid_runner/core/plan_lock.py:function:revision_preserves_red_evidence:returns=bool",
+      "tests/core/test_fix_behavioral_red_command_attribution.py:test_acceptance_behavioral_red_remains_accepted",
+      "tests/core/test_fix_behavioral_red_command_attribution.py:test_acceptance_behavioral_red_remains_accepted:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_behavioral_red_command_attribution.py:test_acceptance_behavioral_red_remains_accepted:kind=test_function",
+      "tests/core/test_fix_behavioral_red_command_attribution.py:test_acceptance_behavioral_red_remains_accepted:returns=None",
+      "tests/core/test_fix_behavioral_red_command_attribution.py:test_changed_behavioral_contract_cannot_preserve_stale_red",
+      "tests/core/test_fix_behavioral_red_command_attribution.py:test_changed_behavioral_contract_cannot_preserve_stale_red:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_behavioral_red_command_attribution.py:test_changed_behavioral_contract_cannot_preserve_stale_red:kind=test_function",
+      "tests/core/test_fix_behavioral_red_command_attribution.py:test_changed_behavioral_contract_cannot_preserve_stale_red:returns=None",
+      "tests/core/test_fix_behavioral_red_command_attribution.py:test_genuine_behavioral_red_remains_accepted",
+      "tests/core/test_fix_behavioral_red_command_attribution.py:test_genuine_behavioral_red_remains_accepted:arg=red_phase:type=str:default=None",
+      "tests/core/test_fix_behavioral_red_command_attribution.py:test_genuine_behavioral_red_remains_accepted:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_behavioral_red_command_attribution.py:test_genuine_behavioral_red_remains_accepted:kind=test_function",
+      "tests/core/test_fix_behavioral_red_command_attribution.py:test_genuine_behavioral_red_remains_accepted:returns=None",
+      "tests/core/test_fix_behavioral_red_command_attribution.py:test_lint_red_cannot_replace_invalid_behavioral_test",
+      "tests/core/test_fix_behavioral_red_command_attribution.py:test_lint_red_cannot_replace_invalid_behavioral_test:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_behavioral_red_command_attribution.py:test_lint_red_cannot_replace_invalid_behavioral_test:kind=test_function",
+      "tests/core/test_fix_behavioral_red_command_attribution.py:test_lint_red_cannot_replace_invalid_behavioral_test:returns=None",
+      "tests/core/test_fix_behavioral_red_command_attribution.py:test_nonexecuting_runner_cannot_supply_behavioral_red",
+      "tests/core/test_fix_behavioral_red_command_attribution.py:test_nonexecuting_runner_cannot_supply_behavioral_red:arg=mode:type=str:default=None",
+      "tests/core/test_fix_behavioral_red_command_attribution.py:test_nonexecuting_runner_cannot_supply_behavioral_red:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_behavioral_red_command_attribution.py:test_nonexecuting_runner_cannot_supply_behavioral_red:kind=test_function",
+      "tests/core/test_fix_behavioral_red_command_attribution.py:test_nonexecuting_runner_cannot_supply_behavioral_red:returns=None",
+      "tests/core/test_fix_behavioral_red_command_attribution.py:test_registered_wrapper_red_is_attributed",
+      "tests/core/test_fix_behavioral_red_command_attribution.py:test_registered_wrapper_red_is_attributed:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_behavioral_red_command_attribution.py:test_registered_wrapper_red_is_attributed:kind=test_function",
+      "tests/core/test_fix_behavioral_red_command_attribution.py:test_registered_wrapper_red_is_attributed:returns=None",
+      "tests/core/test_fix_behavioral_red_command_attribution.py:test_restored_green_does_not_turn_collection_error_into_behavioral_red",
+      "tests/core/test_fix_behavioral_red_command_attribution.py:test_restored_green_does_not_turn_collection_error_into_behavioral_red:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_behavioral_red_command_attribution.py:test_restored_green_does_not_turn_collection_error_into_behavioral_red:kind=test_function",
+      "tests/core/test_fix_behavioral_red_command_attribution.py:test_restored_green_does_not_turn_collection_error_into_behavioral_red:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_fix_behavioral_red_command_attribution.py"
+      ],
+      "edit": [
+        "maid_runner/core/plan_lock.py"
+      ],
+      "read": [
+        "docs/draft-manifest-workflow.md",
+        "docs/unit-testing-rules.md",
+        "maid_runner/core/_django_test_targets.py",
+        "maid_runner/core/_test_command_targets.py",
+        "maid_runner/core/config.py"
+      ],
+      "scope": [
+        "docs/plans/bug-report-triage-2026-10-20.md",
+        "maid_runner/cli/commands/plan.py",
+        "maid_runner/core/run_evaluation.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_fix_behavioral_red_command_attribution.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_lint_red_cannot_replace_invalid_behavioral_test",
+              "description": "lint red cannot replace invalid behavioral test",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_restored_green_does_not_turn_collection_error_into_behavioral_red",
+              "description": "restored green does not turn collection error into behavioral red",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_genuine_behavioral_red_remains_accepted",
+              "description": "genuine behavioral red remains accepted",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "red_phase",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_changed_behavioral_contract_cannot_preserve_stale_red",
+              "description": "changed behavioral contract cannot preserve stale red",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_acceptance_behavioral_red_remains_accepted",
+              "description": "Ordinary acceptance runner red remains valid.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_registered_wrapper_red_is_attributed",
+              "description": "Registered repository wrapper failures retain exact behavioral command attribution.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_nonexecuting_runner_cannot_supply_behavioral_red",
+              "description": "Collection/help/version invocations cannot provide behavioral red attribution.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "mode",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/plan_lock.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "capture_red_phase_evidence",
+              "description": "Existing public seam exercised by the planned regression scenarios; preserve its signature.",
+              "args": [
+                {
+                  "name": "manifest_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "command_timeout_seconds",
+                  "type": "int",
+                  "default": "300"
+                }
+              ],
+              "returns": "RedPhaseEvidence"
+            },
+            {
+              "kind": "function",
+              "name": "revision_preserves_red_evidence",
+              "description": "Existing public seam exercised by the planned regression scenarios; preserve its signature.",
+              "args": [
+                {
+                  "name": "existing",
+                  "type": "PlanLock"
+                },
+                {
+                  "name": "manifest_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "prior_contract",
+                  "type": "Union[dict, None]"
+                }
+              ],
+              "returns": "bool"
+            },
+            {
+              "kind": "function",
+              "name": "enforce_plan_locks",
+              "description": "Reject stash-restoration evidence without actual behavioral red, recomputing exact attribution in the owning project context.",
+              "args": [
+                {
+                  "name": "chain",
+                  "type": "ManifestChain"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "require_plan_lock",
+                  "type": "bool"
+                },
+                {
+                  "name": "require_red_evidence",
+                  "type": "bool"
+                },
+                {
+                  "name": "changed_paths",
+                  "type": "Collection[str] | None",
+                  "default": "None"
+                },
+                {
+                  "name": "plan_lock_scope",
+                  "type": "str",
+                  "default": "repository"
+                }
+              ],
+              "returns": "tuple[ValidationError, ...]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "docs/unit-testing-rules.md",
+        "docs/draft-manifest-workflow.md",
+        "maid_runner/core/_test_command_targets.py",
+        "maid_runner/core/_django_test_targets.py",
+        "maid_runner/core/config.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/cli/commands/plan.py",
+          "reason": "Require behavioral test failure evidence instead of lint-only red in stash restoration; preserve public API unless refined in this same draft."
+        },
+        {
+          "path": "docs/plans/bug-report-triage-2026-10-20.md",
+          "reason": "Synchronize promoted fix link and canonical resolved report disposition."
+        },
+        {
+          "path": "maid_runner/core/run_evaluation.py",
+          "reason": "Thread owning root and locked test inventory into private evidence-status classification so evaluate agrees with enforcement; preserve public evaluation API."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_plan_cmd_stash_import_obstruction.py",
+      "tests/cli/test_plan_revise_auto_preserve.py",
+      "tests/core/test_acceptance_red_evidence.py",
+      "tests/core/test_fix_behavioral_red_command_attribution.py",
+      "tests/core/test_plan_lock_red_evidence.py",
+      "tests/core/test_run_evaluation.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_fix_behavioral_red_command_attribution.py -q",
+      "uv run python -m pytest tests/cli/test_plan_cmd_stash_import_obstruction.py tests/core/test_plan_lock_red_evidence.py tests/cli/test_plan_revise_auto_preserve.py tests/core/test_acceptance_red_evidence.py tests/core/test_run_evaluation.py -q"
+    ],
+    "acceptance_commands": []
+  }
+}

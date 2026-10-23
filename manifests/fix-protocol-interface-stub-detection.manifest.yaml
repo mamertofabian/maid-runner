@@ -1,0 +1,268 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Recognize typing Protocol interface declarations without suppressing concrete
+  stubs
+type: fix
+created: '2026-10-20T17:52:19Z'
+description: Recognize signature-only members of known module-level typing.Protocol
+  and typing_extensions.Protocol declarations as interface contracts, not E310 stubs.
+  Support direct/module imports, aliases, known typing star imports, generic bases,
+  async methods and docstring-only/pass/ellipsis bodies while preserving exact signatures.
+  Reuse existing straight-line module binding/unbinding events; shadowed, relative,
+  conditional/unknown imports and uncertain nested/local class origins remain fail-closed.
+  Observed Protocol module-member rebinding/deletion invalidates eligibility. No arbitrary
+  runtime-value, inheritance or control-flow interpreter. Concrete subclasses without
+  explicit canonical Protocol bases and concrete Protocol default bodies retain ordinary
+  stub checks; abstractmethod and exact default_hook behavior remain unchanged. Edit
+  only the existing implementation collector, preserve public collection signatures
+  and verify both public collection APIs plus E310 implementation validation. Runtime
+  coverage applicability is a separate queued contract. Update the existing parser-boundary
+  Protocol characterization to this declared interface contract, preserving its method/base/type
+  assertions; refresh approved shared-test dependent locks only through sanctioned
+  preservation with unchanged commands. Route actual Assign/valued AnnAssign/AugAssign/Delete
+  binding changes consistently through existing target invalidation; annotation-only
+  attribute declarations do not mutate their runtime binding.
+temptations:
+- risk: Exempt a class or method merely because its base name ends in Protocol, or
+    leak interface context into concrete/nested/free-function bodies.
+  instead: Require known unshadowed module-level typing bindings and direct Protocol
+    bases; reset class context and keep unknown/local origins under ordinary checks.
+- risk: Suppress all placeholders in a Protocol class, including concrete unsupported
+    defaults or literal-return bodies.
+  instead: Exempt only signature-only docstring/pass/ellipsis declarations; retain
+    concrete stub warnings and existing abstractmethod/default_hook handling.
+- risk: Grow a custom Python control-flow/type-resolution interpreter to infer every
+    possible base.
+  instead: Reuse existing bounded import/unbinding events, fail closed on uncertain
+    bindings and document the narrow rule.
+files:
+  edit:
+  - path: maid_runner/validators/_python_implementation.py
+    artifacts:
+    - kind: function
+      name: collect_implementation_artifacts
+      args:
+      - name: tree
+        type: ast.AST
+      - name: file_path
+        type: str
+      returns: list[FoundArtifact]
+      description: Preserve the public collection seam while correcting known Protocol
+        signature stub metadata.
+  create:
+  - path: tests/core/test_fix_protocol_interface_stub_detection.py
+    artifacts:
+    - kind: test_function
+      name: test_protocol_signature_is_not_e310
+      args:
+      - name: tmp_path
+        type: Path
+      - name: imports
+        type: str
+      - name: base
+        type: str
+      - name: body
+        type: str
+      - name: async_method
+        type: bool
+      returns: None
+      description: protocol signature is not e310
+    - kind: test_function
+      name: test_concrete_signature_placeholders_remain_e310
+      args:
+      - name: tmp_path
+        type: Path
+      - name: body
+        type: str
+      returns: None
+      description: concrete signature placeholders remain e310
+    - kind: test_function
+      name: test_unknown_or_shadowed_protocol_base_is_not_exempt
+      args:
+      - name: source
+        type: str
+      returns: None
+      description: unknown or shadowed protocol base is not exempt
+    - kind: test_function
+      name: test_protocol_default_bodies_keep_concrete_stub_policy
+      args:
+      - name: tmp_path
+        type: Path
+      - name: body
+        type: str
+      - name: stub
+        type: bool
+      returns: None
+      description: protocol default bodies keep concrete stub policy
+    - kind: test_function
+      name: test_protocol_context_does_not_leak_to_free_functions
+      args: []
+      returns: None
+      description: protocol context does not leak to free functions
+    - kind: test_function
+      name: test_existing_abstract_method_exemption_is_preserved
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: existing abstract method exemption is preserved
+    - kind: test_function
+      name: test_async_protocol_parameters_are_preserved
+      args: []
+      returns: None
+      description: async protocol parameters are preserved
+    - kind: test_function
+      name: test_protocol_member_assignment_forms_are_not_exempt
+      args:
+      - name: statement
+        type: str
+      returns: None
+      description: Preserve direct Protocol member binding semantics across existing
+        assignment syntax.
+    - kind: test_function
+      name: test_protocol_member_annotation_without_assignment_keeps_binding
+      args: []
+      returns: None
+      description: Preserve direct Protocol member binding semantics across existing
+        assignment syntax.
+  read:
+  - docs/unit-testing-rules.md
+  - docs/draft-manifest-workflow.md
+  - maid_runner/validators/python.py
+  - maid_runner/validators/base.py
+  - maid_runner/core/types.py
+  - maid_runner/core/result.py
+  - maid_runner/core/validate.py
+  - maid_runner/core/module_paths.py
+  scope:
+  - path: docs/troubleshooting.md
+    reason: Document bounded Protocol signature exemption and retained concrete default
+      checks.
+  - path: docs/plans/bug-report-triage-2026-10-20.md
+    reason: Reconcile promoted fix and partial canonical report resolution; PEP695
+      child remains open.
+  - path: tests/validators/test_python_parser_replacement_boundaries.py
+    reason: Evolve pinned old Protocol is_stub characterization under this declared
+      semantic change; preserve and strengthen method identity/signature assertions.
+validate:
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/core/test_fix_protocol_interface_stub_detection.py
+  - -q
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/validators/test_python.py
+  - tests/validators/test_python_enum_artifacts.py
+  - tests/validators/test_python_type_alias.py
+  - tests/validators/test_python_parser_replacement_boundaries.py
+  - tests/core/test_default_hook_stub_exemption.py
+  - -q
+outcome:
+  status: completed
+  completed_at: '2026-10-20T18:09:05.028473+00:00'
+  summary: Recognize known module-level typing/typing_extensions Protocol signature-only
+    members as interface contracts without E310. Preserve exact method signatures,
+    concrete/default stub checks and abstract/default_hook policy; fail closed for
+    shadowed or uncertain origins using existing binding events.
+  lessons:
+  - lesson_type: validation-trust
+    summary: Separate signature-only interface declarations from concrete defaults.
+      Reuse bounded known import/binding events and keep unresolved local/dynamic
+      origins under ordinary checks instead of building a control-flow interpreter.
+    tags:
+    - python
+    - protocol
+    - stub-detection
+    paths:
+    - maid_runner/validators/_python_implementation.py
+  - lesson_type: workflow
+    summary: Intentional semantics can obsolete a pinned characterization. Evolve
+      its assertions under the declared new contract while strengthening artifact
+      identity, then refresh shared-test dependent locks through sanctioned preservation
+      with unchanged commands.
+    tags:
+    - plan-lock
+    - shared-tests
+    - characterization
+    paths:
+    - tests/validators/test_python_parser_replacement_boundaries.py
+  review_notes:
+  - source: independent-read-only-implementation_review_protocol_stubs
+    severity: ready
+    summary: Ready to merge; no blocking or advisory findings. Independently passed
+      121 dedicated/parser cases and scoped implementation; inspected complete scope,
+      binding policy and concrete-stub preservation.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/validators/test_python.py
+    - tests/validators/test_python_behavioral_expression_scope.py
+    - tests/validators/test_python_behavioral_function_scope.py
+    - tests/validators/test_python_behavioral_lazy_module_alias_scope.py
+    - tests/validators/test_python_behavioral_module_alias_events.py
+    - tests/validators/test_python_behavioral_references.py
+    - tests/validators/test_python_behavioral_scope.py
+    - tests/validators/test_python_enum_artifacts.py
+    - tests/validators/test_python_identity.py
+    - tests/validators/test_python_parser_replacement_boundaries.py
+    - tests/validators/test_python_type_alias.py
+    - tests/validators/test_python_variadic_tuple_annotations.py
+    - tests/core/test_fix_protocol_interface_stub_detection.py
+    - tests/core/test_default_hook_stub_exemption.py
+    - tests/core/validation/test_implementation_basics.py
+    - -q
+    status: passed
+    summary: 392 Python validator/implementation compatibility cases passed; 206 declared
+      cases, scoped implementation, Ruff/Black/diff checks passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    status: passed
+    summary: 340 active manifests passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: All 312 declared commands passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - c9751e1427b5f3c64776b2d932ca1b8c8f2048a1
+    status: passed
+    summary: All 11 assessed deep stages passed; existing E307 warnings only. Own
+      lock rev4 retains genuine 91-failure/115-pass baseline evidence; sole shared
+      dependent snapshot lock rev68 preserves legacy evidence through public revision
+      and both dependent hashes match.

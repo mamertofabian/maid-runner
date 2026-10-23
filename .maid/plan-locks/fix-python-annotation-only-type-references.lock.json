@@ -1,0 +1,395 @@
+{
+  "manifest_path": "manifests/fix-python-annotation-only-type-references.manifest.yaml",
+  "manifest_hash": "sha256-contract:b96033ae9abec601ce392c6367a949de3ffb5b5e0558db4553bffde4f9dd0952",
+  "test_hashes": {
+    "tests/validators/test_fix_python_annotation_only_type_references.py": "sha256-pyast:v2:5ea29ef7951ed7b78071d8c5e69c6153a71e55940bb83275c2ed9f8b519dbf13",
+    "tests/validators/test_python_behavioral_references.py": "sha256-pyast:v2:07f2953330b7b94e41dcc73b0b3cef207484a6c46987cfa7254a664ccc7adcbe",
+    "tests/validators/test_python_identity.py": "sha256-pyast:v2:68fcec9e6eaf6bc36dfd49ac66b54a4f732c68e71a0622e2a28c3b5199b8624f",
+    "tests/validators/test_python_behavioral_scope.py": "sha256-pyast:v2:0faf2969168765e4a6ce006b0efdcb55f7bc14921e088252a29372e188ca35eb",
+    "tests/validators/test_python_behavioral_function_scope.py": "sha256-pyast:v2:b8f13e077277a435f15046f82f26df81cf2abf5e89c31895f0bd3109cb763e0c",
+    "tests/validators/test_python_behavioral_expression_scope.py": "sha256-pyast:v2:2453f715f32612ee01186438c57a7df019923eb10ee4086861d17ba5c9b08054",
+    "tests/validators/test_python_behavioral_lazy_module_alias_scope.py": "sha256-pyast:v2:2365f0c76b77fabf5db5619948c57778d82b056c3fd1ce9bfe66ed17e60a8f6d",
+    "tests/validators/test_python_behavioral_module_alias_events.py": "sha256-pyast:v2:8bd4879acaf4c520e5ad85da902f18dbb61bc4e12379a16a76ed17861d869058",
+    "tests/core/test_identity_matching.py": "sha256-pyast:v2:0f7d57bb346f2f76b4b4478bdd7183860eb4536e9d666e1038675a846292611f",
+    "tests/core/validation/test_behavioral_coverage.py": "sha256-pyast:v2:947ef5a68bc824910f74a46bfbbcb8b4dc20b548ac880ca34c95529aa9719683",
+    "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d",
+    "tests/validators/test_fix_python_pep695_type_alias_artifacts.py": "sha256-pyast:v2:c970dfcebbf89d1979ad7aba6557b61df30b00c1b96afe8c97f9fad377c296e0"
+  },
+  "created_at": "2026-10-20T19:32:16.245492+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:8f97a71fef45cb6044b5a1cc8b8824e0b2169daa1a536baba0ceb2ac60769cae",
+      "prior_test_hashes": {
+        "tests/validators/test_fix_python_annotation_only_type_references.py": "sha256-pyast:v2:7b28e84df90882ab40aabc58145e6699e72bb0265b18be48efe1ac5a1632f474",
+        "tests/validators/test_python_behavioral_references.py": "sha256-pyast:v2:07f2953330b7b94e41dcc73b0b3cef207484a6c46987cfa7254a664ccc7adcbe",
+        "tests/validators/test_python_identity.py": "sha256-pyast:v2:68fcec9e6eaf6bc36dfd49ac66b54a4f732c68e71a0622e2a28c3b5199b8624f",
+        "tests/validators/test_python_behavioral_scope.py": "sha256-pyast:v2:0faf2969168765e4a6ce006b0efdcb55f7bc14921e088252a29372e188ca35eb",
+        "tests/validators/test_python_behavioral_function_scope.py": "sha256-pyast:v2:b8f13e077277a435f15046f82f26df81cf2abf5e89c31895f0bd3109cb763e0c",
+        "tests/validators/test_python_behavioral_expression_scope.py": "sha256-pyast:v2:2453f715f32612ee01186438c57a7df019923eb10ee4086861d17ba5c9b08054",
+        "tests/validators/test_python_behavioral_lazy_module_alias_scope.py": "sha256-pyast:v2:2365f0c76b77fabf5db5619948c57778d82b056c3fd1ce9bfe66ed17e60a8f6d",
+        "tests/validators/test_python_behavioral_module_alias_events.py": "sha256-pyast:v2:8bd4879acaf4c520e5ad85da902f18dbb61bc4e12379a16a76ed17861d869058",
+        "tests/core/test_identity_matching.py": "sha256-pyast:v2:0f7d57bb346f2f76b4b4478bdd7183860eb4536e9d666e1038675a846292611f",
+        "tests/core/validation/test_behavioral_coverage.py": "sha256-pyast:v2:947ef5a68bc824910f74a46bfbbcb8b4dc20b548ac880ca34c95529aa9719683",
+        "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d",
+        "tests/validators/test_fix_python_pep695_type_alias_artifacts.py": "sha256-pyast:v2:c970dfcebbf89d1979ad7aba6557b61df30b00c1b96afe8c97f9fad377c296e0"
+      },
+      "revised_at": "2026-10-20T19:32:23.162381+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-python-annotation-only-type-references.manifest.yaml -> manifests/fix-python-annotation-only-type-references.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-python-annotation-only-type-references.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-python-annotation-only-type-references.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b96033ae9abec601ce392c6367a949de3ffb5b5e0558db4553bffde4f9dd0952",
+      "prior_test_hashes": {
+        "tests/validators/test_fix_python_annotation_only_type_references.py": "sha256-pyast:v2:7b28e84df90882ab40aabc58145e6699e72bb0265b18be48efe1ac5a1632f474",
+        "tests/validators/test_python_behavioral_references.py": "sha256-pyast:v2:07f2953330b7b94e41dcc73b0b3cef207484a6c46987cfa7254a664ccc7adcbe",
+        "tests/validators/test_python_identity.py": "sha256-pyast:v2:68fcec9e6eaf6bc36dfd49ac66b54a4f732c68e71a0622e2a28c3b5199b8624f",
+        "tests/validators/test_python_behavioral_scope.py": "sha256-pyast:v2:0faf2969168765e4a6ce006b0efdcb55f7bc14921e088252a29372e188ca35eb",
+        "tests/validators/test_python_behavioral_function_scope.py": "sha256-pyast:v2:b8f13e077277a435f15046f82f26df81cf2abf5e89c31895f0bd3109cb763e0c",
+        "tests/validators/test_python_behavioral_expression_scope.py": "sha256-pyast:v2:2453f715f32612ee01186438c57a7df019923eb10ee4086861d17ba5c9b08054",
+        "tests/validators/test_python_behavioral_lazy_module_alias_scope.py": "sha256-pyast:v2:2365f0c76b77fabf5db5619948c57778d82b056c3fd1ce9bfe66ed17e60a8f6d",
+        "tests/validators/test_python_behavioral_module_alias_events.py": "sha256-pyast:v2:8bd4879acaf4c520e5ad85da902f18dbb61bc4e12379a16a76ed17861d869058",
+        "tests/core/test_identity_matching.py": "sha256-pyast:v2:0f7d57bb346f2f76b4b4478bdd7183860eb4536e9d666e1038675a846292611f",
+        "tests/core/validation/test_behavioral_coverage.py": "sha256-pyast:v2:947ef5a68bc824910f74a46bfbbcb8b4dc20b548ac880ca34c95529aa9719683",
+        "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d",
+        "tests/validators/test_fix_python_pep695_type_alias_artifacts.py": "sha256-pyast:v2:c970dfcebbf89d1979ad7aba6557b61df30b00c1b96afe8c97f9fad377c296e0"
+      },
+      "revised_at": "2026-10-20T19:39:46.838198+00:00",
+      "reason": "Guard class-local annotation shadowing and reject executable subscript roots while preserving annotation-only class declarations",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b96033ae9abec601ce392c6367a949de3ffb5b5e0558db4553bffde4f9dd0952",
+      "prior_test_hashes": {
+        "tests/validators/test_fix_python_annotation_only_type_references.py": "sha256-pyast:v2:e1bbbfe54289386e6c0f8db30e4f0eb57c59476d70944e9dd0c11ba164d30eff",
+        "tests/validators/test_python_behavioral_references.py": "sha256-pyast:v2:07f2953330b7b94e41dcc73b0b3cef207484a6c46987cfa7254a664ccc7adcbe",
+        "tests/validators/test_python_identity.py": "sha256-pyast:v2:68fcec9e6eaf6bc36dfd49ac66b54a4f732c68e71a0622e2a28c3b5199b8624f",
+        "tests/validators/test_python_behavioral_scope.py": "sha256-pyast:v2:0faf2969168765e4a6ce006b0efdcb55f7bc14921e088252a29372e188ca35eb",
+        "tests/validators/test_python_behavioral_function_scope.py": "sha256-pyast:v2:b8f13e077277a435f15046f82f26df81cf2abf5e89c31895f0bd3109cb763e0c",
+        "tests/validators/test_python_behavioral_expression_scope.py": "sha256-pyast:v2:2453f715f32612ee01186438c57a7df019923eb10ee4086861d17ba5c9b08054",
+        "tests/validators/test_python_behavioral_lazy_module_alias_scope.py": "sha256-pyast:v2:2365f0c76b77fabf5db5619948c57778d82b056c3fd1ce9bfe66ed17e60a8f6d",
+        "tests/validators/test_python_behavioral_module_alias_events.py": "sha256-pyast:v2:8bd4879acaf4c520e5ad85da902f18dbb61bc4e12379a16a76ed17861d869058",
+        "tests/core/test_identity_matching.py": "sha256-pyast:v2:0f7d57bb346f2f76b4b4478bdd7183860eb4536e9d666e1038675a846292611f",
+        "tests/core/validation/test_behavioral_coverage.py": "sha256-pyast:v2:947ef5a68bc824910f74a46bfbbcb8b4dc20b548ac880ca34c95529aa9719683",
+        "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d",
+        "tests/validators/test_fix_python_pep695_type_alias_artifacts.py": "sha256-pyast:v2:c970dfcebbf89d1979ad7aba6557b61df30b00c1b96afe8c97f9fad377c296e0"
+      },
+      "revised_at": "2026-10-20T19:45:00.901434+00:00",
+      "reason": "Cover direct and quoted executable attribute roots, named expressions and nested generic forms without runtime resolver expansion",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-20T19:45:07.898718+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/validators/test_fix_python_annotation_only_type_references.py -q",
+        "exit_code": 1,
+        "output_tail": "=========================== short test summary info ============================\nFAILED tests/validators/test_fix_python_annotation_only_type_references.py::test_imported_annotation_types_satisfy_public_behavioral_validation[from models import Balance\\ndef helper(value: Balance) -> Balance:\\n    return value\\ndef test_value():\\n    assert helper(2) == 2\\n]\nFAILED tests/validators/test_fix_python_annotation_only_type_references.py::test_imported_annotation_types_satisfy_public_behavioral_validation[from models import Balance as B\\ndef helper(value: B) -> B:\\n    return value\\ndef test_value():\\n    assert helper(2) == 2\\n]\nFAILED tests/validators/test_fix_python_annotation_only_type_references.py::test_imported_annotation_types_satisfy_public_behavioral_validation[import models as m\\ndef helper(value: m.Balance) -> m.Balance:\\n    return value\\ndef test_value():\\n    assert helper(2) == 2\\n]\nFAILED tests/validators/test_fix_python_annotation_only_type_references.py::test_imported_annotation_types_satisfy_public_behavioral_validation[from models import Balance\\ndef helper(value: 'Balance') -> 'Balance':\\n    return value\\ndef test_value():\\n    assert helper(2) == 2\\n]\nFAILED tests/validators/test_fix_python_annotation_only_type_references.py::test_imported_annotation_types_satisfy_public_behavioral_validation[from models import Balance as B\\ndef helper(value: list[B | None]) -> list[B | None]:\\n    return value\\ndef test_value():\\n    assert helper([2]) == [2]\\n]\nFAILED tests/validators/test_fix_python_annotation_only_type_references.py::test_imported_annotation_types_satisfy_public_behavioral_validation[import models as m\\ndef helper(value: 'dict[str, list[m.Balance | None]]'):\\n    return value\\ndef test_value():\\n    assert helper({'x': [2]}) == {'x': [2]}\\n]\nFAILED tests/validators/test_fix_python_annotation_only_type_references.py::test_imported_annotation_types_satisfy_public_behavioral_validation[from models import Balance\\nvalue: Balance = 2\\ndef test_value():\\n    assert value == 2\\n]\nFAILED tests/validators/test_fix_python_annotation_only_type_references.py::test_imported_annotation_types_satisfy_public_behavioral_validation[from models import Balance\\ndef test_value():\\n    value: Balance = 2\\n    assert value == 2\\n]\nFAILED tests/validators/test_fix_python_annotation_only_type_references.py::test_imported_annotation_types_satisfy_public_behavioral_validation[from models import Balance\\ndef helper(Balance: Balance) -> Balance:\\n    return Balance\\ndef test_value():\\n    assert helper(2) == 2\\n]\nFAILED tests/validators/test_fix_python_annotation_only_type_references.py::test_imported_annotation_types_satisfy_public_behavioral_validation[from models import Balance\\ndef helper(*values: Balance, **named: Balance) -> int:\\n    return sum(values) + sum(named.values())\\ndef test_value():\\n    assert helper(2, x=3) == 5\\n]\nFAILED tests/validators/test_fix_python_annotation_only_type_references.py::test_imported_annotation_types_satisfy_public_behavioral_validation[from models import Balance\\nfrom typing import Annotated as A\\ndef helper(value: A['Balance', 'note']):\\n    return value\\ndef test_value():\\n    assert helper(2) == 2\\n]\nFAILED tests/validators/test_fix_python_annotation_only_type_references.py::test_imported_annotation_types_satisfy_public_behavioral_validation[from models import Balance\\ndef helper(value: tuple['Balance', ...]):\\n    return value\\ndef test_value():\\n    assert helper((2,)) == (2,)\\n]\nFAILED tests/validators/test_fix_python_annotation_only_type_references.py::test_imported_annotation_types_satisfy_public_behavioral_validation[from models import Balance\\nclass C:\\n    Balance: object\\n    value: Balance = 2\\n    def method(self, value: Balance) -> Balance:\\n        return value\\ndef test_value():\\n    assert C.value == 2\\n    assert C().method(2) == 2\\n]\nFAILED tests/validators/test_fix_python_annotation_only_type_references.py::test_type_alias_binding_and_local_type_parameters_cannot_cover_imported_type[type Helper[Balance] = list[Balance]]\nFAILED tests/validators/test_fix_python_annotation_only_type_references.py::test_type_alias_value_preserves_type_reference_context\nFAILED tests/validators/test_fix_python_annotation_only_type_references.py::test_type_alias_value_cannot_cover_runtime_artifact_kinds[function]\nFAILED tests/validators/test_fix_python_annotation_only_type_references.py::test_type_alias_value_cannot_cover_runtime_artifact_kinds[class]\nFAILED tests/validators/test_fix_python_annotation_only_type_references.py::test_type_alias_value_cannot_cover_runtime_artifact_kinds[attribute]\n18 failed, 26 passed in 5.49s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest tests/validators/test_python_behavioral_references.py tests/validators/test_python_identity.py tests/validators/test_python_behavioral_scope.py tests/validators/test_python_behavioral_function_scope.py tests/validators/test_python_behavioral_expression_scope.py tests/validators/test_python_behavioral_lazy_module_alias_scope.py tests/validators/test_python_behavioral_module_alias_events.py tests/core/test_identity_matching.py tests/core/validation/test_behavioral_coverage.py tests/docs/test_chain_merge_docs.py tests/validators/test_fix_python_pep695_type_alias_artifacts.py -q",
+        "exit_code": 0,
+        "output_tail": "........................................................................ [ 28%]\n........................................................................ [ 56%]\n........................................................................ [ 85%]\n.....................................                                    [100%]\n253 passed in 0.85s",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-python-annotation-only-type-references.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/validators/python.py:method:PythonValidator.collect_behavioral_artifacts",
+      "maid_runner/validators/python.py:method:PythonValidator.collect_behavioral_artifacts:arg=file_path:type=Union[str, Path]:default=None",
+      "maid_runner/validators/python.py:method:PythonValidator.collect_behavioral_artifacts:arg=source:type=str:default=None",
+      "maid_runner/validators/python.py:method:PythonValidator.collect_behavioral_artifacts:kind=method",
+      "maid_runner/validators/python.py:method:PythonValidator.collect_behavioral_artifacts:of=PythonValidator",
+      "maid_runner/validators/python.py:method:PythonValidator.collect_behavioral_artifacts:returns=CollectionResult",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_generic_type_parameters_shadow_imports_in_annotation_scope",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_generic_type_parameters_shadow_imports_in_annotation_scope:arg=test:type=str:default=None",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_generic_type_parameters_shadow_imports_in_annotation_scope:arg=tmp_path:type=Path:default=None",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_generic_type_parameters_shadow_imports_in_annotation_scope:kind=test_function",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_generic_type_parameters_shadow_imports_in_annotation_scope:returns=None",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_import_shadowing_wrong_modules_and_metadata_do_not_cover_types",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_import_shadowing_wrong_modules_and_metadata_do_not_cover_types:arg=test:type=str:default=None",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_import_shadowing_wrong_modules_and_metadata_do_not_cover_types:arg=tmp_path:type=Path:default=None",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_import_shadowing_wrong_modules_and_metadata_do_not_cover_types:kind=test_function",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_import_shadowing_wrong_modules_and_metadata_do_not_cover_types:returns=None",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_imported_annotation_types_satisfy_public_behavioral_validation",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_imported_annotation_types_satisfy_public_behavioral_validation:arg=test:type=str:default=None",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_imported_annotation_types_satisfy_public_behavioral_validation:arg=tmp_path:type=Path:default=None",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_imported_annotation_types_satisfy_public_behavioral_validation:kind=test_function",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_imported_annotation_types_satisfy_public_behavioral_validation:returns=None",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_type_alias_binding_and_local_type_parameters_cannot_cover_imported_type",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_type_alias_binding_and_local_type_parameters_cannot_cover_imported_type:arg=binding:type=str:default=None",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_type_alias_binding_and_local_type_parameters_cannot_cover_imported_type:arg=tmp_path:type=Path:default=None",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_type_alias_binding_and_local_type_parameters_cannot_cover_imported_type:kind=test_function",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_type_alias_binding_and_local_type_parameters_cannot_cover_imported_type:returns=None",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_type_alias_value_cannot_cover_runtime_artifact_kinds",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_type_alias_value_cannot_cover_runtime_artifact_kinds:arg=kind:type=str:default=None",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_type_alias_value_cannot_cover_runtime_artifact_kinds:arg=tmp_path:type=Path:default=None",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_type_alias_value_cannot_cover_runtime_artifact_kinds:kind=test_function",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_type_alias_value_cannot_cover_runtime_artifact_kinds:returns=None",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_type_alias_value_preserves_type_reference_context",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_type_alias_value_preserves_type_reference_context:arg=tmp_path:type=Path:default=None",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_type_alias_value_preserves_type_reference_context:kind=test_function",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_type_alias_value_preserves_type_reference_context:returns=None",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_type_position_cannot_cover_runtime_artifact_kinds",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_type_position_cannot_cover_runtime_artifact_kinds:arg=kind:type=str:default=None",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_type_position_cannot_cover_runtime_artifact_kinds:arg=tmp_path:type=Path:default=None",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_type_position_cannot_cover_runtime_artifact_kinds:kind=test_function",
+      "tests/validators/test_fix_python_annotation_only_type_references.py:test_type_position_cannot_cover_runtime_artifact_kinds:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/validators/test_fix_python_annotation_only_type_references.py"
+      ],
+      "edit": [
+        "maid_runner/validators/python.py"
+      ],
+      "read": [
+        "docs/draft-manifest-workflow.md",
+        "docs/unit-testing-rules.md",
+        "maid_runner/core/_behavioral_validation.py",
+        "maid_runner/core/identity.py",
+        "maid_runner/core/types.py",
+        "maid_runner/validators/_python_behavioral_function_scope.py",
+        "maid_runner/validators/_python_behavioral_references.py",
+        "maid_runner/validators/_python_behavioral_scope.py"
+      ],
+      "scope": [
+        ".maid/docs/maid_specs.md",
+        "docs/maid_specs.md",
+        "docs/plans/bug-report-triage-2026-10-20.md",
+        "maid_runner/docs/maid_specs.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/validators/test_fix_python_annotation_only_type_references.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_imported_annotation_types_satisfy_public_behavioral_validation",
+              "description": "imported annotation types satisfy public behavioral validation",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "test",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_import_shadowing_wrong_modules_and_metadata_do_not_cover_types",
+              "description": "import shadowing wrong modules and metadata do not cover types",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "test",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_type_position_cannot_cover_runtime_artifact_kinds",
+              "description": "type position cannot cover runtime artifact kinds",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "kind",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_type_alias_binding_and_local_type_parameters_cannot_cover_imported_type",
+              "description": "type alias binding and local type parameters cannot cover imported type",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "binding",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_type_alias_value_preserves_type_reference_context",
+              "description": "type alias value preserves type reference context",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_type_alias_value_cannot_cover_runtime_artifact_kinds",
+              "description": "type alias value cannot cover runtime artifact kinds",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "kind",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_generic_type_parameters_shadow_imports_in_annotation_scope",
+              "description": "generic type parameters shadow imports in annotation scope",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "test",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/validators/python.py",
+          "artifacts": [
+            {
+              "kind": "method",
+              "name": "collect_behavioral_artifacts",
+              "description": "Preserve the public behavioral collection seam while adding imported type-position references with existing identity policy.",
+              "of": "PythonValidator",
+              "args": [
+                {
+                  "name": "source",
+                  "type": "str"
+                },
+                {
+                  "name": "file_path",
+                  "type": "Union[str, Path]"
+                }
+              ],
+              "returns": "CollectionResult"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "docs/unit-testing-rules.md",
+        "docs/draft-manifest-workflow.md",
+        "maid_runner/validators/_python_behavioral_references.py",
+        "maid_runner/validators/_python_behavioral_scope.py",
+        "maid_runner/validators/_python_behavioral_function_scope.py",
+        "maid_runner/core/identity.py",
+        "maid_runner/core/_behavioral_validation.py",
+        "maid_runner/core/types.py"
+      ],
+      "scope": [
+        {
+          "path": "docs/maid_specs.md",
+          "reason": "Document bounded annotation type references and non-runtime proof."
+        },
+        {
+          "path": "maid_runner/docs/maid_specs.md",
+          "reason": "Keep packaged spec mirror identical."
+        },
+        {
+          "path": ".maid/docs/maid_specs.md",
+          "reason": "Keep initialized spec mirror identical."
+        },
+        {
+          "path": "docs/plans/bug-report-triage-2026-10-20.md",
+          "reason": "Reconcile promoted queue and completed report location."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_identity_matching.py",
+      "tests/core/validation/test_behavioral_coverage.py",
+      "tests/docs/test_chain_merge_docs.py",
+      "tests/validators/test_fix_python_annotation_only_type_references.py",
+      "tests/validators/test_fix_python_pep695_type_alias_artifacts.py",
+      "tests/validators/test_python_behavioral_expression_scope.py",
+      "tests/validators/test_python_behavioral_function_scope.py",
+      "tests/validators/test_python_behavioral_lazy_module_alias_scope.py",
+      "tests/validators/test_python_behavioral_module_alias_events.py",
+      "tests/validators/test_python_behavioral_references.py",
+      "tests/validators/test_python_behavioral_scope.py",
+      "tests/validators/test_python_identity.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/validators/test_fix_python_annotation_only_type_references.py -q",
+      "uv run python -m pytest tests/validators/test_python_behavioral_references.py tests/validators/test_python_identity.py tests/validators/test_python_behavioral_scope.py tests/validators/test_python_behavioral_function_scope.py tests/validators/test_python_behavioral_expression_scope.py tests/validators/test_python_behavioral_lazy_module_alias_scope.py tests/validators/test_python_behavioral_module_alias_events.py tests/core/test_identity_matching.py tests/core/validation/test_behavioral_coverage.py tests/docs/test_chain_merge_docs.py tests/validators/test_fix_python_pep695_type_alias_artifacts.py -q",
+      "uv run maid validate manifests/fix-python-annotation-only-type-references.manifest.yaml --mode schema --quiet"
+    ],
+    "acceptance_commands": []
+  }
+}

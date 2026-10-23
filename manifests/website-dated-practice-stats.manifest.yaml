@@ -1,0 +1,258 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Date the website's MAID in practice stats and refresh them from real command runs"
+type: feature
+created: "2026-10-08T13:14:13Z"
+metadata:
+  planning_state: completed
+  tags:
+    - website
+    - evidence
+    - stale-data
+    - scripts
+  priority: high
+description: |
+  The 2026-10-08 Impeccable re-critique rated stale proof its top P1: the
+  MAID in practice section shows 484 validated manifests, 3698 passing tests,
+  and 218 MAID validation command groups from website/data/practice-stats.json
+  (updatedAt 2026-08-04), while the same commands now report 704 manifests,
+  5572 tests, and 308 commands, and the page never shows a date. On a page that
+  sells verification, undated stale evidence is the failure it warns about.
+
+  Add scripts/update_practice_stats.py, which refreshes the MAID Runner numbers
+  from the commands named in the JSON's semantics block and rewrites both the
+  JSON and the HTML mirror:
+  - Pure parsers read `Validation Results: N manifests` plus `Failed: 0`
+    (maid validate), the pytest summary `N passed` with no failed or error
+    count, and the top `Test Results: N commands` block of maid test with
+    `Passed: N` and `Failed: 0` (later acceptance or implementation section
+    blocks are ignored). Each raises ValueError when the run reports any
+    failure or error or the summary is missing, so a failing run can never
+    publish "passing" numbers.
+  - collect_maid_runner_counts(run) calls an injected runner once for each of
+    exactly these commands: `uv run maid validate`,
+    `uv run python -m pytest tests/ -q -n auto`, and `uv run maid test`. The
+    JSON semantics block is updated to name the same commands.
+    run_command executes a real command and raises RuntimeError on a nonzero
+    exit. update_practice_stats(website_dir, run, today) composes them with an
+    injected date and writes nothing unless every command parses, so a failing
+    run leaves practice-stats.json and index.html byte-identical. The tests
+    use fakes and never shell out.
+  - refresh_practice_stats is pure: it returns a new dict with the MAID Runner
+    counts and its own updatedAt, leaving the C# validator section and the
+    semantics untouched.
+  - render_practice_stats_html replaces only elements carrying
+    data-stat="<project>.<key>" and <time data-stat-date="<project>">, and
+    raises KeyError for a data-stat key missing from the JSON.
+
+  Markup shape: each value is
+  `<span class="practice-stat-value" data-stat="<project>.<key>">N</span>`, and
+  each project card shows `as of <time data-stat-date="<project>"
+  datetime="YYYY-MM-DD">Month D, YYYY</time>`, using explicit English month
+  names (no zero padding, no locale-dependent formatting). A headless browser
+  test checks both dates render visibly at 390 and 1440px.
+
+  practice-stats.json moves to a per-project updatedAt and drops the old
+  top-level updatedAt. The C# validator lives
+  in a separate repository and is not refreshed here, so its card keeps its
+  2026-08-04 date instead of borrowing MAID Runner's. The page shows a visible
+  "as of" <time> on each project card. This change refreshes the numbers once
+  from the real commands; rerun `uv run python scripts/update_practice_stats.py`
+  to refresh them later. The "Strict verification" tile is unchanged. The
+  existing substring parity assertion in test_website_static_contract.py stays
+  as is; exact parity is enforced by the new published-page test.
+
+  Additive chain-merge onto the active website contract
+  (website-distill-why-section, website-install-trust,
+  website-polish-practice-mobile); it supersedes nothing.
+temptations:
+  - risk: "Do not hand-edit the numbers in the JSON or HTML instead of running the refresh."
+    instead: "Run uv run python scripts/update_practice_stats.py on the final tree and commit the JSON and HTML it writes; the published-page test checks they agree."
+  - risk: "Do not let the script publish numbers from a failing or unparseable run, or fall back to the previous numbers."
+    instead: "Raise ValueError or RuntimeError and leave the files unchanged; stale numbers stay visibly dated rather than silently reused."
+  - risk: "Do not stamp today's date on the C# validator numbers or invent a refresh for a repository this script cannot run."
+    instead: "Keep csharpValidator.updatedAt at 2026-08-04 and show that date on its card."
+  - risk: "Do not test the refresh by running the real suite from inside pytest."
+    instead: "Drive collect_maid_runner_counts and update_practice_stats with a fake runner and a fixed date; only run_command touches a subprocess, using a trivial Python command."
+files:
+  scope:
+    - path: website/index.html
+      reason: "Stat values gain data-stat attributes, and each project card gains a visible \"as of\" <time data-stat-date>; numbers are refreshed by the script."
+    - path: website/styles.css
+      reason: "Style for the as-of line inside the practice cards."
+    - path: website/data/practice-stats.json
+      reason: "Per-project updatedAt; MAID Runner numbers refreshed by the script."
+  create:
+    - path: scripts/update_practice_stats.py
+      artifacts:
+        - kind: function
+          name: parse_validated_manifest_count
+          args:
+            - name: output
+              type: str
+          returns: int
+        - kind: function
+          name: parse_pytest_passed_count
+          args:
+            - name: output
+              type: str
+          returns: int
+        - kind: function
+          name: parse_maid_test_command_count
+          args:
+            - name: output
+              type: str
+          returns: int
+        - kind: function
+          name: collect_maid_runner_counts
+          args:
+            - name: run
+              type: Callable[[list[str]], str]
+          returns: dict[str, int]
+        - kind: function
+          name: refresh_practice_stats
+          args:
+            - name: stats
+              type: dict
+            - name: counts
+              type: dict[str, int]
+            - name: today
+              type: date
+          returns: dict
+        - kind: function
+          name: render_practice_stats_html
+          args:
+            - name: html
+              type: str
+            - name: stats
+              type: dict
+          returns: str
+        - kind: function
+          name: run_command
+          args:
+            - name: command
+              type: list[str]
+          returns: str
+        - kind: function
+          name: update_practice_stats
+          args:
+            - name: website_dir
+              type: Path
+            - name: run
+              type: Callable[[list[str]], str]
+            - name: today
+              type: date
+          returns: dict
+    - path: tests/test_practice_stats_update.py
+      artifacts:
+        - kind: test_function
+          name: test_parsers_read_counts_from_command_output
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_parsers_refuse_failing_or_unrecognized_runs
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_collect_maid_runner_counts_uses_each_command_output
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_refresh_practice_stats_updates_only_maid_runner_and_its_date
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_render_practice_stats_html_mirrors_values_and_dates
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_render_practice_stats_html_rejects_unknown_stat_keys
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_run_command_returns_output_and_raises_on_failure
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_update_practice_stats_rewrites_json_and_page_together
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_update_practice_stats_leaves_files_untouched_when_a_run_fails
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+        - kind: test_function
+          name: test_published_page_matches_practice_stats_json_with_visible_dates
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_practice_dates_render_visibly_on_desktop_and_phone
+          args: []
+          returns: None
+  read:
+    - manifests/website-distill-why-section.manifest.yaml
+    - tests/test_website_static_contract.py
+validate:
+  - uv run python -m pytest -q tests/test_practice_stats_update.py tests/test_website_static_contract.py tests/test_website_rendered_typography.py tests/test_website_practice_mobile.py
+  - uv run maid validate manifests/website-dated-practice-stats.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/website-dated-practice-stats.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-10-08T15:30:00Z"
+  summary: "The MAID in practice stats are dated and refreshed from real command runs. scripts/update_practice_stats.py runs uv run maid validate, uv run python -m pytest tests/ -q -n auto, and uv run maid test; parses each with a parser that refuses any failing or unrecognized run; and rewrites practice-stats.json and the data-stat mirror in index.html only when every run passes. The page now shows 705 manifests, 5583 passing tests, and 310 maid test commands as of October 8, 2026 (was 484 / 3698 / 218, undated). The C# validator card keeps its own August 4, 2026 date."
+  rationale: "The re-critique's top P1 was stale, undated proof on a page that sells verification. Numbers now come from a script that cannot publish a failing run, and every card shows when its numbers were measured."
+  lessons:
+    - lesson_type: validation
+      summary: "The refresh script's fail-loud design caught two real defects before publishing: the new as-of <p> broke the 15px body-copy browser floor, and the new script was not black-formatted (maid test failed). Each time it exited nonzero and left both files untouched. Run the full gates before running a publish script, not after."
+      tags:
+        - fail-loud
+        - website
+        - evidence
+      paths:
+        - scripts/update_practice_stats.py
+    - lesson_type: validation
+      summary: "Parse command summaries by their shape, not by a keyword. Taking the first, then the last, line containing 'N passed' was beaten by failure messages and stderr lines that mention 'N passed'. The robust rule is the last line made only of 'N outcome' counts ending 'in N.Ns', with any failed or error count refused."
+      tags:
+        - parsing
+        - pytest
+      paths:
+        - scripts/update_practice_stats.py
+        - tests/test_practice_stats_update.py
+    - lesson_type: workflow
+      summary: "maid plan revise --stash-implementation refuses unrelated untracked dirty paths such as Impeccable's .impeccable/ critique archive. Move the scratch directory aside for the revision, then restore it; don't declare it in the manifest."
+      tags:
+        - plan-lock
+        - stash
+      paths:
+        - .maid/plan-locks/website-dated-practice-stats.lock.json
+  review_notes:
+    - source: plan-review-subagent
+      severity: ready
+      summary: "Plan review found a position-based renderer hollow pass, unpinned commands, an untested files-untouched-on-failure promise, a maid test fixture not matching the real formatter, and a partially enforced visible date. All were fixed before lock (shuffled render input, exact commands, a byte-identical failure test, the real Test Results format with a two-section case, and per-card as-of text plus a headless visibility test)."
+    - source: implementation-review-subagents
+      severity: ready
+      summary: "Three implementation reviews. 1 and 2 found the pytest parser could return a count from a failing run through failure-message lines, then through summaries without 'passed'. Fixed by summary-shape parsing, single-block maid validate parsing, a strict renderer, staged writes with temp cleanup, and running commands from the repo root; the lock was re-measured red via --stash-implementation each time. Review 3: Ready to merge. It re-ran all three commands (705 / 5583 / 310) and confirmed a replay is byte-identical to the published files. Optional, not applied: cross-check maid validate Passed plus Skipped against the total, and refuse 'Chain issues' lines at parser level (both already covered by the nonzero exit check)."
+    - source: deferred-follow-ups
+      severity: ready
+      summary: "The 'validated manifests' label counts passed (334) plus superseded (371) manifests, per the existing semantics and a locked test string. Relabel or publish the passed count in a future contract. The C# validator numbers can only be refreshed from their own repository."
+  validation:
+    - command: [uv, run, python, scripts/update_practice_stats.py]
+      status: passed
+      summary: "Real refresh on the final tree wrote maidRunner {2026-10-08, 705, 5583, 310}. Two earlier attempts correctly refused to write (exit 1, files unchanged)."
+    - command: [uv, run, python, -m, pytest, tests/, -q, -n, "8"]
+      status: passed
+      summary: "Full suite: 5583 passed, 20 skipped, matching the published count; maid test 310 passed, 0 failed."
+    - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --file-tracking-scope, task, --plan-lock-scope, task, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, HEAD, --summary]
+      status: passed
+      summary: "Command printed by maid assess (deep tier): PASS, 0 blocking, 11 stages including knockout; only pre-existing E307 warnings. maid validate implementation PASS; ruff and black clean."
+    - command: [headless-chromium-render-inspection]
+      status: passed
+      summary: "At 1440 and 390 the 'Numbers as of October 8, 2026, from maid validate, the test suite, and maid test.' line sits under the MAID Runner stats, and the C# card shows 'Numbers as of August 4, 2026.' No overflow."

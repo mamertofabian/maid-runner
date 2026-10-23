@@ -1,0 +1,576 @@
+{
+  "manifest_path": "manifests/fix-unittest-class-plan-lock-discovery.manifest.yaml",
+  "manifest_hash": "sha256-contract:2d70e0eb78fafbdfef1b231059b25d27d5c52c8e3f61716480db6ef34d3b420d",
+  "test_hashes": {
+    "tests/core/test_fix_unittest_class_plan_lock_discovery.py": "sha256-pyast:v2:1e8a9093feaae4156d382c3fd9ce31381c0acfe388fa82a3bc4312888b0051e1",
+    "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256-pyast:v2:0bfb681b8f9d3305ac8a55659d7b11fe4f9e19b34bf58cc0e0ef9a7ddd01846b"
+  },
+  "created_at": "2026-10-20T14:46:01.382865+00:00",
+  "revision": 18,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:6b1b0f1a80f5f9eddfc7403d1683806cb0b85234bd0f3d3d24c0ce2e79e743a1",
+      "prior_test_hashes": {
+        "tests/core/test_fix_unittest_class_plan_lock_discovery.py": "sha256-pyast:v2:d146ea2934a0ae4de2f6668db9b548176e244849782dcb1c4e09f2282569560d"
+      },
+      "revised_at": "2026-10-20T14:46:02.133222+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-unittest-class-plan-lock-discovery.manifest.yaml -> manifests/fix-unittest-class-plan-lock-discovery.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ffbb1f1d63f7d64114a1d4b596fd9c1acf667d380bf7be6ff834341915ea7bfd",
+      "prior_test_hashes": {
+        "tests/core/test_fix_unittest_class_plan_lock_discovery.py": "sha256-pyast:v2:d146ea2934a0ae4de2f6668db9b548176e244849782dcb1c4e09f2282569560d"
+      },
+      "revised_at": "2026-10-20T14:46:52.073939+00:00",
+      "reason": "Adapt legacy historical-test fixture to remain non-semantic after unittest discovery support; retain E702 checks",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:tests/core/test_plan_lock_semantic_test_discovery.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest tests/core/test_plan_lock_semantic_test_discovery.py -q"
+        ],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:68495e3a98135f651a4fd35063ef280fd5fb57f288f1531f06b67e520edc2e37",
+      "prior_test_hashes": {
+        "tests/core/test_fix_unittest_class_plan_lock_discovery.py": "sha256-pyast:v2:d146ea2934a0ae4de2f6668db9b548176e244849782dcb1c4e09f2282569560d",
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256-pyast:v2:2f5614376551aaea274e8430544ce4c6b9888070b54ca3c006015ea2d6ffae31"
+      },
+      "revised_at": "2026-10-20T14:47:16.179450+00:00",
+      "reason": "Retain non-semantic historical fixture with custom-runner class",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:68495e3a98135f651a4fd35063ef280fd5fb57f288f1531f06b67e520edc2e37",
+      "prior_test_hashes": {
+        "tests/core/test_fix_unittest_class_plan_lock_discovery.py": "sha256-pyast:v2:d146ea2934a0ae4de2f6668db9b548176e244849782dcb1c4e09f2282569560d",
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256-pyast:v2:4afd656090d2fd34c1459bb95db480213aff49ccc084b99b5b397cc01d8c41de"
+      },
+      "revised_at": "2026-10-20T14:49:55.457066+00:00",
+      "reason": "Include standard async/defining-module bases and isolate scope-only test discovery to plan-lock hashing",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/core/_command_integrity_test_discovery.py:function:find_command_integrity_test_files:arg=include_scope:type=bool:default=False"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:maid_runner/core/plan_lock.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:0813a354680e1131b304ee098724a88e22be080313dccffd33dd7fa4d6042959",
+      "prior_test_hashes": {
+        "tests/core/test_fix_unittest_class_plan_lock_discovery.py": "sha256-pyast:v2:aaca99854b5d9e096aa76f43f66153d0e908882f8a6b5bebd7cb9e1fc39357e8",
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256-pyast:v2:4afd656090d2fd34c1459bb95db480213aff49ccc084b99b5b397cc01d8c41de"
+      },
+      "revised_at": "2026-10-20T14:50:25.109047+00:00",
+      "reason": "Exercise scope-only lock enforcement after edit, behavioral removal and deletion",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:0813a354680e1131b304ee098724a88e22be080313dccffd33dd7fa4d6042959",
+      "prior_test_hashes": {
+        "tests/core/test_fix_unittest_class_plan_lock_discovery.py": "sha256-pyast:v2:34fca2d27d91822621616d5a98703da0c099922a9f149293fbead8669847f9c0",
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256-pyast:v2:4afd656090d2fd34c1459bb95db480213aff49ccc084b99b5b397cc01d8c41de"
+      },
+      "revised_at": "2026-10-20T14:50:39.217854+00:00",
+      "reason": "Declare triage documentation synchronization for promoted fix",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:docs/plans/bug-report-triage-2026-10-20.md"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2f4e9a2c017f03a0da05fcd4b7544135549e3e6a19ac595855d0a77c8669ac71",
+      "prior_test_hashes": {
+        "tests/core/test_fix_unittest_class_plan_lock_discovery.py": "sha256-pyast:v2:34fca2d27d91822621616d5a98703da0c099922a9f149293fbead8669847f9c0",
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256-pyast:v2:4afd656090d2fd34c1459bb95db480213aff49ccc084b99b5b397cc01d8c41de"
+      },
+      "revised_at": "2026-10-20T14:55:01.104598+00:00",
+      "reason": "Preserve pinned regression bytes and prevent semantic unittest hashing from hiding narrowed command execution",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_narrowed_command_cannot_drop_execution_of_hashed_unittest",
+          "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_narrowed_command_cannot_drop_execution_of_hashed_unittest:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_narrowed_command_cannot_drop_execution_of_hashed_unittest:kind=test_function",
+          "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_narrowed_command_cannot_drop_execution_of_hashed_unittest:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [
+          "scope:tests/core/test_plan_lock_semantic_test_discovery.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:e6c9829d7602b18775b6f3de420e72e9751c54f5854fad3d3a133ea276b6112b",
+      "prior_test_hashes": {
+        "tests/core/test_fix_unittest_class_plan_lock_discovery.py": "sha256-pyast:v2:b6f4ddda3401ec7c91ea3b52bef28f4333d91a0601d1ca7ad5eb77d9f91da9cc",
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256-pyast:v2:2f5614376551aaea274e8430544ce4c6b9888070b54ca3c006015ea2d6ffae31"
+      },
+      "revised_at": "2026-10-20T14:55:51.515887+00:00",
+      "reason": "Exercise real executable directory runner coverage; preserve unproven historical commands fail-closed",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:e6c9829d7602b18775b6f3de420e72e9751c54f5854fad3d3a133ea276b6112b",
+      "prior_test_hashes": {
+        "tests/core/test_fix_unittest_class_plan_lock_discovery.py": "sha256-pyast:v2:e567437e2a0d1d199dacef2b6f852993d2b5ec412c818644e51cbf410b84fcc5",
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256-pyast:v2:2f5614376551aaea274e8430544ce4c6b9888070b54ca3c006015ea2d6ffae31"
+      },
+      "revised_at": "2026-10-20T14:56:22.909470+00:00",
+      "reason": "Prove equivalent command replacement remains legal while dropped unittest execution is rejected",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_narrowed_command_cannot_drop_execution_of_hashed_unittest:arg=narrowing:type=bool:default=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ea305747db0c5009650f4be07bfd5778be500e9e084df5e68f6a6606a21d0eee",
+      "prior_test_hashes": {
+        "tests/core/test_fix_unittest_class_plan_lock_discovery.py": "sha256-pyast:v2:deab23a0aff6eda604f91caf8d68decddba85ac916a5054d86f06ee59be942fa",
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256-pyast:v2:2f5614376551aaea274e8430544ce4c6b9888070b54ca3c006015ea2d6ffae31"
+      },
+      "revised_at": "2026-10-20T14:58:48.600717+00:00",
+      "reason": "Cover mixed Django and pytest execution accounting with exact existing Django module resolution",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_mixed_django_command_cannot_lose_hashed_test_execution",
+          "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_mixed_django_command_cannot_lose_hashed_test_execution:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_mixed_django_command_cannot_lose_hashed_test_execution:kind=test_function",
+          "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_mixed_django_command_cannot_lose_hashed_test_execution:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9321c2c7fc12e4ac0f9cfd86dc663f34f8092c13c2bda7860ecf840ce995c1cd",
+      "prior_test_hashes": {
+        "tests/core/test_fix_unittest_class_plan_lock_discovery.py": "sha256-pyast:v2:1820a7fc31dd0426b3f5ed5bd06c55aedcb5e3585da8496ed283f959e5b511f8",
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256-pyast:v2:2f5614376551aaea274e8430544ce4c6b9888070b54ca3c006015ea2d6ffae31"
+      },
+      "revised_at": "2026-10-20T15:00:42.798920+00:00",
+      "reason": "Recognize unittest default test prefix within standard TestCase classes",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9321c2c7fc12e4ac0f9cfd86dc663f34f8092c13c2bda7860ecf840ce995c1cd",
+      "prior_test_hashes": {
+        "tests/core/test_fix_unittest_class_plan_lock_discovery.py": "sha256-pyast:v2:2388f22885b80b9bcb8f69ec96b207336cf7d26b8a97050cf9e751b50f6d35b7",
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256-pyast:v2:2f5614376551aaea274e8430544ce4c6b9888070b54ca3c006015ea2d6ffae31"
+      },
+      "revised_at": "2026-10-20T15:01:32.776441+00:00",
+      "reason": "Protect canonical runTest-only unittest and Django TestCase execution",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9321c2c7fc12e4ac0f9cfd86dc663f34f8092c13c2bda7860ecf840ce995c1cd",
+      "prior_test_hashes": {
+        "tests/core/test_fix_unittest_class_plan_lock_discovery.py": "sha256-pyast:v2:deb9738f7271b1e0246f2f3c6481a58625dbb59ece16e10347b3f392e46d0b26",
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256-pyast:v2:2f5614376551aaea274e8430544ce4c6b9888070b54ca3c006015ea2d6ffae31"
+      },
+      "revised_at": "2026-10-20T15:02:06.034677+00:00",
+      "reason": "Include documented Django static-files live-server TestCase base in bounded inventory",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9321c2c7fc12e4ac0f9cfd86dc663f34f8092c13c2bda7860ecf840ce995c1cd",
+      "prior_test_hashes": {
+        "tests/core/test_fix_unittest_class_plan_lock_discovery.py": "sha256-pyast:v2:4705d3e96906f14f3c6424077ac40992c94167d752340d86afdcc9e35cca841d",
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256-pyast:v2:2f5614376551aaea274e8430544ce4c6b9888070b54ca3c006015ea2d6ffae31"
+      },
+      "revised_at": "2026-10-20T15:04:22.087275+00:00",
+      "reason": "Preserve mixed unproven historical runner identity and registered Django wrapper context",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_mixed_django_command_cannot_lose_hashed_test_execution:arg=runner:type=str:default=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:bb6f2209aa4129c035fb27bacdb7ef9b112f6e37f7e8f3347447e4fb95bd404a",
+      "prior_test_hashes": {
+        "tests/core/test_fix_unittest_class_plan_lock_discovery.py": "sha256-pyast:v2:e45cfbd64b934f00755c68f5b594d1563f4df897dcf295901e2f07aeb1fb9aa2",
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256-pyast:v2:2f5614376551aaea274e8430544ce4c6b9888070b54ca3c006015ea2d6ffae31"
+      },
+      "revised_at": "2026-10-20T15:04:44.375133+00:00",
+      "reason": "Test retained runner identity and equivalent registered-wrapper-to-Django coverage",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_mixed_django_command_cannot_lose_hashed_test_execution:arg=retained:type=bool:default=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6508e1ae98c866ebbb8f11b9fc0dab110648daf6df47960e59f04af1e47f74c3",
+      "prior_test_hashes": {
+        "tests/core/test_fix_unittest_class_plan_lock_discovery.py": "sha256-pyast:v2:dc31f03f5784a1f6dc0d3303b1f87e2c6bc3994ddf7da1661b88b4fdc007876c",
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256-pyast:v2:2f5614376551aaea274e8430544ce4c6b9888070b54ca3c006015ea2d6ffae31"
+      },
+      "revised_at": "2026-10-20T15:05:23.732727+00:00",
+      "reason": "Correct mixed-runner parametrization and capture intended execution assertions",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6508e1ae98c866ebbb8f11b9fc0dab110648daf6df47960e59f04af1e47f74c3",
+      "prior_test_hashes": {
+        "tests/core/test_fix_unittest_class_plan_lock_discovery.py": "sha256-pyast:v2:a7e2cbe885850bf34665a0742ac3b9983d6d6cc5ac4fbb413596712cf3ac343b",
+        "tests/core/test_plan_lock_semantic_test_discovery.py": "sha256-pyast:v2:2f5614376551aaea274e8430544ce4c6b9888070b54ca3c006015ea2d6ffae31"
+      },
+      "revised_at": "2026-10-20T15:07:44.395437+00:00",
+      "reason": "Keep discovery fix narrow: preserve historical fixture intent with sanctioned dependent-lock refresh instead of new command policy",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [
+          "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_mixed_django_command_cannot_lose_hashed_test_execution",
+          "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_mixed_django_command_cannot_lose_hashed_test_execution:arg=retained:type=bool:default=None",
+          "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_mixed_django_command_cannot_lose_hashed_test_execution:arg=runner:type=str:default=None",
+          "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_mixed_django_command_cannot_lose_hashed_test_execution:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_mixed_django_command_cannot_lose_hashed_test_execution:kind=test_function",
+          "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_mixed_django_command_cannot_lose_hashed_test_execution:returns=None",
+          "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_narrowed_command_cannot_drop_execution_of_hashed_unittest",
+          "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_narrowed_command_cannot_drop_execution_of_hashed_unittest:arg=narrowing:type=bool:default=None",
+          "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_narrowed_command_cannot_drop_execution_of_hashed_unittest:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_narrowed_command_cannot_drop_execution_of_hashed_unittest:kind=test_function",
+          "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_narrowed_command_cannot_drop_execution_of_hashed_unittest:returns=None"
+        ],
+        "files_added": [
+          "scope:tests/core/test_plan_lock_semantic_test_discovery.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-20T15:07:45.384973+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_fix_unittest_class_plan_lock_discovery.py -q",
+        "exit_code": 1,
+        "output_tail": "=========================== short test summary info ============================\nFAILED tests/core/test_fix_unittest_class_plan_lock_discovery.py::test_unittest_suffix_class_is_hashed[import unittest\\nclass PolicyTests(unittest.TestCase):\\n    def test_policy(self): assert False\\n]\nFAILED tests/core/test_fix_unittest_class_plan_lock_discovery.py::test_unittest_suffix_class_is_hashed[import unittest as ut\\nclass PolicyTests(ut.TestCase):\\n    def test_policy(self): assert False\\n]\nFAILED tests/core/test_fix_unittest_class_plan_lock_discovery.py::test_unittest_suffix_class_is_hashed[from unittest import TestCase as Case\\nclass PolicyTests(Case):\\n    def test_policy(self): assert False\\n]\nFAILED tests/core/test_fix_unittest_class_plan_lock_discovery.py::test_unittest_suffix_class_is_hashed[from django.test import TestCase\\nclass PolicyTests(TestCase):\\n    def test_policy(self): assert False\\n]\nFAILED tests/core/test_fix_unittest_class_plan_lock_discovery.py::test_unittest_suffix_class_is_hashed[from django import test as dt\\nclass PolicyTests(dt.TransactionTestCase):\\n    def test_policy(self): assert False\\n]\nFAILED tests/core/test_fix_unittest_class_plan_lock_discovery.py::test_unittest_suffix_class_is_hashed[from django.test import SimpleTestCase\\nclass PolicyTests(SimpleTestCase):\\n    def test_policy(self): assert False\\n]\nFAILED tests/core/test_fix_unittest_class_plan_lock_discovery.py::test_unittest_suffix_class_is_hashed[from unittest import TestCase\\nclass Base(TestCase): pass\\nclass PolicyTests(Base):\\n    def test_policy(self): assert False\\n]\nFAILED tests/core/test_fix_unittest_class_plan_lock_discovery.py::test_unittest_suffix_class_is_hashed[from django.test.testcases import TestCase as Case\\nclass PolicyTests(Case):\\n    def test_policy(self): assert False\\n]\nFAILED tests/core/test_fix_unittest_class_plan_lock_discovery.py::test_unittest_suffix_class_is_hashed[from unittest import IsolatedAsyncioTestCase as Case\\nclass PolicyTests(Case):\\n    async def test_policy(self): assert False\\n]\nFAILED tests/core/test_fix_unittest_class_plan_lock_discovery.py::test_unittest_suffix_class_is_hashed[from unittest.async_case import IsolatedAsyncioTestCase\\nclass PolicyTests(IsolatedAsyncioTestCase):\\n    async def test_policy(self): assert False\\n]\nFAILED tests/core/test_fix_unittest_class_plan_lock_discovery.py::test_unittest_suffix_class_is_hashed[import unittest\\nclass PolicyTests(unittest.TestCase):\\n    def testPolicy(self): assert False\\n]\nFAILED tests/core/test_fix_unittest_class_plan_lock_discovery.py::test_unittest_suffix_class_is_hashed[from django.test import TestCase\\nclass PolicyTests(TestCase):\\n    def testPolicy(self): assert False\\n]\nFAILED tests/core/test_fix_unittest_class_plan_lock_discovery.py::test_unittest_suffix_class_is_hashed[import unittest\\nclass PolicyTests(unittest.TestCase):\\n    def runTest(self): assert False\\n]\nFAILED tests/core/test_fix_unittest_class_plan_lock_discovery.py::test_unittest_suffix_class_is_hashed[from django.test import TestCase\\nclass PolicyTests(TestCase):\\n    def runTest(self): assert False\\n]\nFAILED tests/core/test_fix_unittest_class_plan_lock_discovery.py::test_unittest_suffix_class_is_hashed[from django.contrib.staticfiles.testing import StaticLiveServerTestCase as Case\\nclass PolicyTests(Case):\\n    def test_policy(self): assert False\\n]\nFAILED tests/core/test_fix_unittest_class_plan_lock_discovery.py::test_scope_only_test_file_is_hashed\nFAILED tests/core/test_fix_unittest_class_plan_lock_discovery.py::test_changed_unittest_test_fails_lock[command0]\nFAILED tests/core/test_fix_unittest_class_plan_lock_discovery.py::test_changed_unittest_test_fails_lock[command1]\n18 failed, 5 passed in 0.26s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest tests/core/test_plan_lock_semantic_test_discovery.py -q",
+        "exit_code": 0,
+        "output_tail": ".....                                                                    [100%]\n5 passed in 0.20s",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_command_integrity_test_discovery.py:function:find_command_integrity_test_files",
+      "maid_runner/core/_command_integrity_test_discovery.py:function:find_command_integrity_test_files:arg=include_scope:type=bool:default=False",
+      "maid_runner/core/_command_integrity_test_discovery.py:function:find_command_integrity_test_files:arg=manifest:type=Manifest:default=None",
+      "maid_runner/core/_command_integrity_test_discovery.py:function:find_command_integrity_test_files:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_command_integrity_test_discovery.py:function:find_command_integrity_test_files:arg=test_paths_from_validate_command_fn:type=None:default=test_paths_from_validate_command",
+      "maid_runner/core/_command_integrity_test_discovery.py:function:find_command_integrity_test_files:kind=function",
+      "maid_runner/core/_command_integrity_test_discovery.py:function:find_command_integrity_test_files:returns=list[str]",
+      "maid_runner/core/_command_integrity_test_discovery.py:function:is_python_behavioral_test_file",
+      "maid_runner/core/_command_integrity_test_discovery.py:function:is_python_behavioral_test_file:arg=path:type=str:default=None",
+      "maid_runner/core/_command_integrity_test_discovery.py:function:is_python_behavioral_test_file:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_command_integrity_test_discovery.py:function:is_python_behavioral_test_file:kind=function",
+      "maid_runner/core/_command_integrity_test_discovery.py:function:is_python_behavioral_test_file:returns=bool",
+      "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_changed_unittest_test_fails_lock",
+      "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_changed_unittest_test_fails_lock:arg=command:type=list[str]:default=None",
+      "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_changed_unittest_test_fails_lock:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_changed_unittest_test_fails_lock:kind=test_function",
+      "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_changed_unittest_test_fails_lock:returns=None",
+      "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_scope_only_test_file_is_hashed",
+      "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_scope_only_test_file_is_hashed:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_scope_only_test_file_is_hashed:kind=test_function",
+      "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_scope_only_test_file_is_hashed:returns=None",
+      "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_unittest_suffix_class_is_hashed",
+      "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_unittest_suffix_class_is_hashed:arg=source:type=str:default=None",
+      "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_unittest_suffix_class_is_hashed:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_unittest_suffix_class_is_hashed:kind=test_function",
+      "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_unittest_suffix_class_is_hashed:returns=None",
+      "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_unrelated_class_does_not_become_test",
+      "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_unrelated_class_does_not_become_test:arg=source:type=str:default=None",
+      "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_unrelated_class_does_not_become_test:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_unrelated_class_does_not_become_test:kind=test_function",
+      "tests/core/test_fix_unittest_class_plan_lock_discovery.py:test_unrelated_class_does_not_become_test:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_fix_unittest_class_plan_lock_discovery.py"
+      ],
+      "edit": [
+        "maid_runner/core/_command_integrity_test_discovery.py"
+      ],
+      "read": [
+        "docs/draft-manifest-workflow.md",
+        "docs/unit-testing-rules.md"
+      ],
+      "scope": [
+        "docs/plans/bug-report-triage-2026-10-20.md",
+        "maid_runner/core/plan_lock.py",
+        "tests/core/test_plan_lock_semantic_test_discovery.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_fix_unittest_class_plan_lock_discovery.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_unittest_suffix_class_is_hashed",
+              "description": "unittest suffix class is hashed",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "source",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_scope_only_test_file_is_hashed",
+              "description": "scope only test file is hashed",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unrelated_class_does_not_become_test",
+              "description": "unrelated class does not become test",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "source",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_changed_unittest_test_fails_lock",
+              "description": "changed unittest test fails lock",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "command",
+                  "type": "list[str]"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/_command_integrity_test_discovery.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "find_command_integrity_test_files",
+              "description": "Existing public seam exercised by the planned regression scenarios; preserve its signature.",
+              "args": [
+                {
+                  "name": "manifest",
+                  "type": "Manifest"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "test_paths_from_validate_command_fn",
+                  "default": "test_paths_from_validate_command"
+                },
+                {
+                  "name": "include_scope",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "list[str]"
+            },
+            {
+              "kind": "function",
+              "name": "is_python_behavioral_test_file",
+              "description": "Existing public seam exercised by the planned regression scenarios; preserve its signature.",
+              "args": [
+                {
+                  "name": "path",
+                  "type": "str"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                }
+              ],
+              "returns": "bool"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "docs/unit-testing-rules.md",
+        "docs/draft-manifest-workflow.md"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/plan_lock.py",
+          "reason": "Opt into scope-only behavioral discovery in private plan-lock path collection; preserve all existing enforcement policies."
+        },
+        {
+          "path": "tests/core/test_plan_lock_semantic_test_discovery.py",
+          "reason": "Keep historical non-semantic-test fixture outside newly supported unittest conventions; retain all E702 assertions."
+        },
+        {
+          "path": "docs/plans/bug-report-triage-2026-10-20.md",
+          "reason": "Keep promoted fix links and resolved report disposition accurate."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_fix_unittest_class_plan_lock_discovery.py",
+      "tests/core/test_plan_lock_semantic_test_discovery.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_fix_unittest_class_plan_lock_discovery.py -q",
+      "uv run python -m pytest tests/core/test_plan_lock_semantic_test_discovery.py -q"
+    ],
+    "acceptance_commands": []
+  }
+}

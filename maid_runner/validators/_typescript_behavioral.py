@@ -30,6 +30,8 @@ _TEST_CALLEE_NAMES = frozenset({"it", "test", "fit", "xit"})
 _DIRECT_TEST_MODIFIERS = frozenset(
     {"only", "skip", "todo", "concurrent", "fails", "fixme"}
 )
+# Deno's documented registration API: Deno.test and its only/ignore modifiers.
+_DENO_TEST_REGISTRATIONS = frozenset({("test",), ("test", "only"), ("test", "ignore")})
 _SUITE_HELPERS = frozenset({"describe", "fdescribe", "xdescribe"})
 _SUITE_MODIFIERS = frozenset({"each", "only", "skip"})
 _FUNCTION_SCOPE_NODES = frozenset(
@@ -115,6 +117,8 @@ def _is_executable_test_target(base: str, properties: tuple[str, ...]) -> bool:
     """Return True only for label-bearing test declarations, not suite helpers."""
     if base in _SUITE_HELPERS or any(prop in _SUITE_HELPERS for prop in properties):
         return False
+    if base == "Deno":
+        return properties in _DENO_TEST_REGISTRATIONS
     if base not in _TEST_CALLEE_NAMES:
         return False
     if base in {"fit", "xit"}:

@@ -489,6 +489,7 @@ class RuntimeEvidencePlugin:
             report.outcome
         )
 
+    @pytest.hookimpl(optionalhook=True)
     def pytest_testnodedown(self, node: object, error: object | None) -> None:
         """Record abnormal xdist worker loss."""
         if error is None:
@@ -503,6 +504,7 @@ class RuntimeEvidencePlugin:
             }
         )
 
+    @pytest.hookimpl(optionalhook=True)
     def pytest_configure_node(self, node: object) -> None:
         """Clear controller instrumentation after all workers inherited it."""
         self._configured_workers += 1

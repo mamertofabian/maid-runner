@@ -33,6 +33,10 @@ uv sync
 # Install development dependencies
 uv sync --group dev
 
+# Install the headless Chromium used by the website browser tests
+# (on a fresh Linux machine, add --with-deps for its system libraries)
+uv run playwright install chromium
+
 # Run tests
 uv run python -m pytest tests/ -v
 ```

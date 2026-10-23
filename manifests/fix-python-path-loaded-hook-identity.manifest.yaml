@@ -1,0 +1,280 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Bind dynamically path-loaded Python hook functions to their declared file identity
+type: fix
+created: '2026-10-20T22:50:06Z'
+description: 'Recognize the reported standard path-loader wrapper as a deliberately narrow syntax pattern,
+  preserving exact file identity through existing module-alias recording. Supported helper: unique module-level
+  undecorated zero-argument function with exactly spec = trusted importlib.util.spec_from_file_location(literal
+  runtime label, bounded path), module = trusted module_from_spec(spec), spec.loader.exec_module(module),
+  return module. Do not infer arbitrary helper behavior/control flow, execute loader code in the validator,
+  or use the runtime label as file identity. Bounded paths are literal Python file paths and pathlib.Path(__file__)
+  with argument-free resolve, parent/constant parents indexing, literal / joins, optionally a unique unchanged
+  module-level root constant. Reuse existing imported-name identity/shadowing and alias events; reject
+  unsupported expressions, helper/root rebinding, local helper shadowing, decorated/extra-statement helpers
+  and shadowed loader/Path imports. An unrelated same-named hook loaded from another file must retain
+  E200. Cover direct public collector identity and public behavioral validation after real fixture pytest
+  execution, including unittest methods and bound hook access. Existing public signatures, normal import_module/literal
+  custom loader behavior, scope/reference behavior and name-fallback policy remain unchanged. Resolve
+  helper loader/Path/root names in its module-global binding context, never borrow caller-local imports
+  or reject valid helper globals because of caller-local shadows. No general reachability or static evaluator.
+  Initial inventory recall had no related records; hardened-scope recall returned fix-python-annotation-only-type-references
+  and 086-01-fix-path-backed-e200-identities. Apply their restrict-syntax-before-identity and downstream-positive/wrong-module-shadow-negative
+  lessons. Annotation-only type evidence and other language identity compatibility are irrelevant to this
+  runtime loader pattern and do not expand scope. Source and packaged specs stay synchronized. Review
+  hardening: anchor __file__ ancestry to the absolute source path and require target containment in the
+  project; reject module-rebound or globally writable __file__, and conservatively reject globally writable
+  loader/Path imports. FoundArtifact has no independent source-path field. Preserve exact Python file-path
+  identity for dotted filename/directory components through the existing PythonValidator.module_path hook
+  and the loader reference producer; normal package paths retain their existing module identities. This
+  distinguishes gunicorn.conf.py from gunicorn/conf.py in both directions without new core fields, schema
+  changes, resolver fallback or changes to ordinary imports. Include ordinary-package compatibility, misleading
+  package import and outside-ancestry controls. Public validation fixtures execute real pytest; separate
+  public collector-only negatives cover paths escaping to filesystem root without creating external files.
+  Reject multiply-bound loader/Path import dependencies even when a final import restores them, because
+  root constants may have captured earlier values; do not reconstruct binding-time execution. Route the
+  existing literal load_module path-backed seam through the same exact file identity so supported hyphenated
+  files under dotted directories retain compatibility, without adding new loader syntax or weakening its
+  existing checks. Exact file identity applies to interior dots within Python filesystem components, not
+  a leading hidden-directory dot alone. Preserve the durable sys.path import compatibility for hidden
+  .codex/.claude and hyphenated skill directories; these do not collide with ordinary package separators.
+  Keep existing behavioral coverage fixtures unchanged and add public hidden-skill import/producer compatibility
+  controls.'
+temptations:
+- risk: Treat the runtime module label or same hook name as exact loaded-file identity.
+  instead: Derive identity only from the bounded standard loader path; unrelated same-name file and misleading
+    runtime label controls must retain E200.
+- risk: Grow general helper/control-flow evaluation or trust shadowed imports to make the report pass.
+  instead: Use only the documented four-statement standard wrapper and bounded Path forms, existing binding/alias
+    machinery, and explicit unknown/shadow/rebind/decorator negatives. Execute fixture tests genuinely,
+    but never execute source in validation.
+files:
+  scope:
+  - path: docs/maid_specs.md
+    reason: Document bounded standard loader helper/path identity support consistently.
+  - path: maid_runner/docs/maid_specs.md
+    reason: Document bounded standard loader helper/path identity support consistently.
+  - path: .maid/docs/maid_specs.md
+    reason: Document bounded standard loader helper/path identity support consistently.
+  - path: docs/plans/bug-report-triage-2026-10-20.md
+    reason: Reconcile source report and promoted contract after verified completion.
+  create:
+  - path: tests/core/test_python_path_loaded_hook_identity.py
+    artifacts:
+    - kind: test_function
+      name: test_standard_loader_helper_records_exact_file_identity
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: scenario
+        type: str
+      returns: None
+      description: standard loader helper records exact file identity
+    - kind: test_function
+      name: test_executed_path_loaded_hook_satisfies_public_behavioral_validation
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: scenario
+        type: str
+      returns: None
+      description: executed path loaded hook satisfies public behavioral validation
+    - kind: test_function
+      name: test_unproven_or_different_loader_identity_does_not_cover_declared_hook
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: scenario
+        type: str
+      returns: None
+      description: unproven or different loader identity does not cover declared hook
+    - kind: test_function
+      name: test_outside_ancestry_remains_unproven
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: expression
+        type: str
+      returns: None
+      description: outside ancestry remains unproven
+    - kind: test_function
+      name: test_dotted_file_identity_is_distinct_from_normal_package_identity
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: dotted file identity is distinct from normal package identity
+  read:
+  - docs/unit-testing-rules.md
+  - docs/draft-manifest-workflow.md
+  - tests/validators/test_python_identity.py
+  - tests/validators/test_python_behavioral_module_alias_events.py
+  - tests/validators/test_python_behavioral_references.py
+  - tests/core/validation/test_path_backed_e200_identities.py
+  - tests/docs/test_chain_merge_docs.py
+  - maid_runner/core/module_paths.py
+  - maid_runner/validators/_python_behavioral_scope.py
+  - maid_runner/validators/_python_behavioral_references.py
+  - maid_runner/core/identity.py
+  - tests/core/validation/test_behavioral_coverage.py
+  edit:
+  - path: maid_runner/validators/python.py
+    artifacts:
+    - kind: method
+      name: collect_behavioral_artifacts
+      of: PythonValidator
+      args:
+      - name: source
+        type: str
+      - name: file_path
+        type: Union[str, Path]
+      returns: CollectionResult
+      description: Existing public seam exercised by the planned regression scenarios; preserve its signature.
+    - kind: method
+      name: module_path
+      of: PythonValidator
+      args:
+      - name: file_path
+        type: Union[str, Path]
+      - name: project_root
+        type: Path
+      returns: Optional[str]
+      description: Retain existing public signature and normal module identities; dotted Python path components
+        use exact file identity to avoid package-path collision.
+validate:
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/core/test_python_path_loaded_hook_identity.py
+  - -q
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/validators/test_python_identity.py
+  - tests/validators/test_python_behavioral_module_alias_events.py
+  - tests/validators/test_python_behavioral_references.py
+  - tests/core/validation/test_path_backed_e200_identities.py
+  - tests/docs/test_chain_merge_docs.py
+  - tests/core/validation/test_behavioral_coverage.py
+  - -q
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/fix-python-path-loaded-hook-identity.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+outcome:
+  status: completed
+  completed_at: '2026-10-20T23:24:36.761683+00:00'
+  summary: Bind the reported standard four-statement, zero-argument importlib loader helper to its exact
+    source file through existing module aliases. Restrict paths and unchanged roots, anchor ancestry absolutely
+    with project containment, and reject rebound/globally writable __file__ and loader/Path imports including
+    restored multiply-bound dependencies. Interior-dotted filename/directory components retain exact source
+    identity independently of ordinary package namespaces; normal imports, hidden/hyphenated skill sys.path
+    compatibility and existing literal path-loader behavior remain compatible; leading hidden-directory
+    dots alone keep prior identities. No general helper/control-flow evaluator, source execution, new
+    core fields or schema changes.
+  lessons:
+  - lesson_type: artifact-identity
+    summary: 'A runtime module label and a dotted module namespace do not identify a dotted filesystem
+      path: gunicorn.conf.py differs from gunicorn/conf.py, and a.b/conf.py differs from a/b/conf.py.
+      Keep producer and every existing path-backed reference seam consistent, paired with normal-import
+      and literal-loader compatibility controls.'
+    tags:
+    - python
+    - source-path
+    - identity
+    paths:
+    - maid_runner/validators/python.py
+    - tests/core/test_python_path_loaded_hook_identity.py
+  - lesson_type: validation-trust
+    summary: Interpret a bounded loader helper in its module-global context, not caller locals. Conservatively
+      reject writable or multiply-bound import dependencies instead of reconstructing initializer execution;
+      absolute ancestry and containment prevent relative parent saturation from proving an outside file.
+    tags:
+    - python
+    - binding
+    - containment
+    paths:
+    - maid_runner/validators/python.py
+  review_notes:
+  - source: independent-read-only-implementation_review_path_hook_v4
+    severity: ready
+    summary: Ready to merge; no blocking findings or current-scope advisories. Independently reran 45
+      dedicated and 202 adjacent cases plus scoped implementation validation.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/core/test_python_path_loaded_hook_identity.py
+    - -q
+    status: passed
+    summary: 45 dedicated plus 202 adjacent cases passed. Public validation fixtures execute real pytest;
+      collector-only negatives avoid external-root writes. Sanctioned revision 8 captured genuine baseline
+      18 failures / 27 passes with declared implementation hidden; adjacent 202 passed. Behavioral/schema/scoped
+      implementation, Ruff/Black/diff and all seven locked test hashes passed.
+  - command:
+    - /tmp/maid-identity-python310/.venv/bin/python
+    - -m
+    - pytest
+    - tests/core/test_python_path_loaded_hook_identity.py
+    - -q
+    status: passed
+    summary: Actual Python 3.10 all 45 dedicated cases passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --packet
+    status: passed
+    summary: 351 active manifests passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: All 323 declared commands passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - db9508c9107167bbc8c046d14148a9ea1df2add9
+    status: passed
+    summary: All 11 assessed deep stages passed with required plan-lock/red-evidence checks.

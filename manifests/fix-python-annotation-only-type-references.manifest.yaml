@@ -1,0 +1,271 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Count imported type artifacts used in annotations as behavioral references
+type: fix
+created: '2026-10-20T19:32:23Z'
+description: 'Record imported type references in parameter/return (including variadic), variable, nested
+  generic/union and quoted-forward annotation positions using the existing Python scope/import resolver
+  and reference_context=type. The existing identity consumer restricts type context to TYPE/INTERFACE;
+  do not change it or allow annotation-only proof for runtime function/class/attribute/method artifacts.
+  Preserve exact source module/alias identity and fail closed for unknown/local/shadowed origins, metadata
+  values and malformed forward expressions. Use CPython expression parsing for forward annotations and
+  narrow type-position traversal, not evaluation or a new execution/control-flow analyzer. Known typing/typing_extensions
+  Literal arguments and Annotated metadata are values, not type references; only Annotated''s first argument
+  is a type. Preserve parameter annotation outer scope while generic type-parameter names shadow imported
+  types in their own annotation scope. PEP695 type-alias values retain legitimate type use but cannot
+  claim runtime artifact execution; actual alias rebinding and alias-local type parameters must not leave
+  stale imported identity. Reuse existing binding/scope events rather than adding a parallel import analyzer.
+  Public collection signature and core matching policy remain unchanged. After hardening, recall matched
+  086-01-fix-path-backed-e200-identities: retain positive downstream reproductions and negative identity
+  guards. Apply that bounded-identity lesson and exclude unrelated performance/enrichment work.'
+temptations:
+- risk: Fix E200 by treating annotation names as runtime access or allowing name-only fallback across
+    local/wrong-module identities.
+  instead: Emit only proven imported type-context identities through existing resolution, preserving the
+    existing TYPE/INTERFACE-only consumer and runtime-kind negatives.
+- risk: Count Literal/Annotated metadata strings or arbitrary executable annotation expressions as type
+    proof.
+  instead: Parse forward expressions without evaluation and traverse bounded type positions; preserve
+    metadata exclusions and explicit unknown/malformed noncoverage.
+- risk: Credit imported aliases after TypeAlias or generic parameters shadow them, or build a new scope/control-flow
+    interpreter.
+  instead: Reuse existing lexical scope/binding mechanics for annotation positions and demonstrated alias
+    shadow controls, preserving unrelated collector behavior.
+files:
+  edit:
+  - path: maid_runner/validators/python.py
+    artifacts:
+    - kind: method
+      name: collect_behavioral_artifacts
+      of: PythonValidator
+      args:
+      - name: source
+        type: str
+      - name: file_path
+        type: Union[str, Path]
+      returns: CollectionResult
+      description: Preserve the public behavioral collection seam while adding imported type-position
+        references with existing identity policy.
+  create:
+  - path: tests/validators/test_fix_python_annotation_only_type_references.py
+    artifacts:
+    - kind: test_function
+      name: test_imported_annotation_types_satisfy_public_behavioral_validation
+      args:
+      - name: tmp_path
+        type: Path
+      - name: test
+        type: str
+      returns: None
+      description: imported annotation types satisfy public behavioral validation
+    - kind: test_function
+      name: test_import_shadowing_wrong_modules_and_metadata_do_not_cover_types
+      args:
+      - name: tmp_path
+        type: Path
+      - name: test
+        type: str
+      returns: None
+      description: import shadowing wrong modules and metadata do not cover types
+    - kind: test_function
+      name: test_type_position_cannot_cover_runtime_artifact_kinds
+      args:
+      - name: tmp_path
+        type: Path
+      - name: kind
+        type: str
+      returns: None
+      description: type position cannot cover runtime artifact kinds
+    - kind: test_function
+      name: test_type_alias_binding_and_local_type_parameters_cannot_cover_imported_type
+      args:
+      - name: tmp_path
+        type: Path
+      - name: binding
+        type: str
+      returns: None
+      description: type alias binding and local type parameters cannot cover imported type
+    - kind: test_function
+      name: test_type_alias_value_preserves_type_reference_context
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: type alias value preserves type reference context
+    - kind: test_function
+      name: test_type_alias_value_cannot_cover_runtime_artifact_kinds
+      args:
+      - name: tmp_path
+        type: Path
+      - name: kind
+        type: str
+      returns: None
+      description: type alias value cannot cover runtime artifact kinds
+    - kind: test_function
+      name: test_generic_type_parameters_shadow_imports_in_annotation_scope
+      args:
+      - name: tmp_path
+        type: Path
+      - name: test
+        type: str
+      returns: None
+      description: generic type parameters shadow imports in annotation scope
+  read:
+  - docs/unit-testing-rules.md
+  - docs/draft-manifest-workflow.md
+  - maid_runner/validators/_python_behavioral_references.py
+  - maid_runner/validators/_python_behavioral_scope.py
+  - maid_runner/validators/_python_behavioral_function_scope.py
+  - maid_runner/core/identity.py
+  - maid_runner/core/_behavioral_validation.py
+  - maid_runner/core/types.py
+  scope:
+  - path: docs/maid_specs.md
+    reason: Document bounded annotation type references and non-runtime proof.
+  - path: maid_runner/docs/maid_specs.md
+    reason: Keep packaged spec mirror identical.
+  - path: .maid/docs/maid_specs.md
+    reason: Keep initialized spec mirror identical.
+  - path: docs/plans/bug-report-triage-2026-10-20.md
+    reason: Reconcile promoted queue and completed report location.
+validate:
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/validators/test_fix_python_annotation_only_type_references.py
+  - -q
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/validators/test_python_behavioral_references.py
+  - tests/validators/test_python_identity.py
+  - tests/validators/test_python_behavioral_scope.py
+  - tests/validators/test_python_behavioral_function_scope.py
+  - tests/validators/test_python_behavioral_expression_scope.py
+  - tests/validators/test_python_behavioral_lazy_module_alias_scope.py
+  - tests/validators/test_python_behavioral_module_alias_events.py
+  - tests/core/test_identity_matching.py
+  - tests/core/validation/test_behavioral_coverage.py
+  - tests/docs/test_chain_merge_docs.py
+  - tests/validators/test_fix_python_pep695_type_alias_artifacts.py
+  - -q
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/fix-python-annotation-only-type-references.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+outcome:
+  status: completed
+  completed_at: '2026-10-20T19:54:34.831424+00:00'
+  summary: Recognize imported aliases in bounded annotation positions with exact module/alias identity
+    and the existing TYPE/INTERFACE-only consumer. Preserve metadata exclusions, lexical/generic shadowing,
+    annotation-only class declarations and runtime artifact gates; keep runtime-capable expression resolution
+    outside type annotation roots.
+  lessons:
+  - lesson_type: validation-trust
+    summary: 'Type-position proof needs its own context: imported names, nested generics/unions and parsed
+      forward expressions can cover type contracts without claiming runtime function/class/attribute execution.
+      Pair positive downstream gates with wrong-module, shadow and metadata negatives.'
+    tags:
+    - python
+    - annotation
+    - identity
+    paths:
+    - maid_runner/validators/python.py
+    - tests/validators/test_fix_python_annotation_only_type_references.py
+  - lesson_type: artifact-identity
+    summary: A runtime resolver can recognize calls and named expressions that are unsuitable annotation
+      roots. Restrict type traversal to supported name-root syntax before reusing identity resolution,
+      and consult existing class binding-shadow state instead of inferring new scope rules.
+    tags:
+    - type-context
+    - scope
+    - bounded-traversal
+    paths:
+    - maid_runner/validators/python.py
+  review_notes:
+  - source: independent-read-only-implementation_review_annotation_v3
+    severity: ready
+    summary: Ready to merge; no blocking or advisory findings. Independently passed 44 regressions and
+      scoped implementation. Class-local binding and executable-root findings were addressed through sanctioned
+      revision and public negative/compatibility controls.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/validators/test_fix_python_annotation_only_type_references.py
+    - -q
+    status: passed
+    summary: 44 dedicated and 253 adjacent identity/scope/behavioral-gate/PEP695/docs cases passed; all
+      fixtures execute real pytest successfully. Scoped implementation, Ruff/Black/diff and lock revision4
+      manifest/all 12 test hashes passed. Fresh stashed baseline evidence 18 failed / 26 passed.
+  - command:
+    - uv
+    - run
+    - --no-project
+    - --isolated
+    - --python
+    - '3.10'
+    - --with-editable
+    - .
+    - --with
+    - pytest
+    - --with
+    - pytest-xdist
+    - python
+    - -m
+    - pytest
+    - tests/validators/test_fix_python_annotation_only_type_references.py
+    - -q
+    status: passed
+    summary: 'Actual Python 3.10: 36 passed, 8 syntax-dependent cases skipped.'
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --packet
+    status: passed
+    summary: 343 active manifests passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: All 315 declared commands passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - fd9764900fab8cdd3007862f96acc0a66bff11bc
+    status: passed
+    summary: All 11 assessment-directed deep stages passed with required plan-lock/red-evidence checks.

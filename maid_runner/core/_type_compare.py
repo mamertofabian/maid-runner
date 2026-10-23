@@ -26,6 +26,7 @@ def normalize_type(type_str: Optional[str]) -> Optional[str]:
     """Normalize a type string for consistent comparison.
 
     Pipeline:
+    0. Canonicalize supported nested type syntax while preserving value positions
     1. Strip whitespace
     2. Remove internal spaces
     3. Convert pipe unions (X | Y) -> Union[X, Y]
@@ -40,6 +41,7 @@ def normalize_type(type_str: Optional[str]) -> Optional[str]:
     if not s:
         return s
 
+    s = _normalize_annotation_positions(s)
     s = _normalize_quoted_values(s)
     s = s.replace(" ", "")
     s = _convert_pipe_union(s)
@@ -48,6 +50,89 @@ def normalize_type(type_str: Optional[str]) -> Optional[str]:
     s = _normalize_comma_spacing(s)
 
     return s
+
+
+def _normalize_annotation_positions(type_str: str) -> str:
+    """Canonicalize supported type syntax; retain legacy parsing for other languages."""
+    try:
+        tree = ast.parse(type_str, mode="eval")
+        return _render_annotation_type(tree.body)
+    except (SyntaxError, ValueError, RecursionError):
+        return type_str
+
+
+def _annotation_name(node: ast.AST) -> str:
+    if isinstance(node, ast.Name):
+        return node.id
+    if isinstance(node, ast.Attribute):
+        return f"{_annotation_name(node.value)}.{node.attr}"
+    raise ValueError("Unsupported annotation name")
+
+
+def _annotation_arguments(node: ast.Subscript) -> list[ast.AST]:
+    return list(node.slice.elts) if isinstance(node.slice, ast.Tuple) else [node.slice]
+
+
+def _union_annotation_members(node: ast.AST) -> list[str]:
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.BitOr):
+        return _union_annotation_members(node.left) + _union_annotation_members(
+            node.right
+        )
+    if isinstance(node, ast.Subscript):
+        name = _annotation_name(node.value)
+        arguments = _annotation_arguments(node)
+        if name == "Union":
+            return [
+                member
+                for argument in arguments
+                for member in _union_annotation_members(argument)
+            ]
+        if name == "Optional" and len(arguments) == 1:
+            return _union_annotation_members(arguments[0]) + ["None"]
+    return [_render_annotation_type(node)]
+
+
+def _render_union_annotation(nodes: list[ast.AST]) -> str:
+    members = [member for node in nodes for member in _union_annotation_members(node)]
+    return f"Union[{', '.join(sorted(members))}]"
+
+
+def _render_annotation_type(node: ast.AST) -> str:
+    if isinstance(node, (ast.Name, ast.Attribute)):
+        return _annotation_name(node)
+    if isinstance(node, ast.Constant):
+        # Strings remain values: the shared matcher also serves literal types
+        # in other languages. Do not unwrap them as Python forward references.
+        return ast.unparse(node)
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.BitOr):
+        return _render_union_annotation([node.left, node.right])
+    if isinstance(node, ast.Subscript):
+        base = _annotation_name(node.value)
+        arguments = _annotation_arguments(node)
+        if base == "Union":
+            return _render_union_annotation(arguments)
+        if base == "Optional" and len(arguments) == 1:
+            return _render_union_annotation([arguments[0], ast.Constant(None)])
+        leaf = base.rsplit(".", 1)[-1]
+        if leaf == "Literal":
+            rendered = [ast.unparse(argument) for argument in arguments]
+        elif leaf == "Annotated":
+            if not arguments:
+                raise ValueError("Annotated requires a type argument")
+            rendered = [_render_annotation_type(arguments[0])]
+            rendered.extend(ast.unparse(argument) for argument in arguments[1:])
+        else:
+            rendered = [_render_annotation_type(argument) for argument in arguments]
+        return f"{base}[{', '.join(rendered)}]"
+    if isinstance(node, (ast.List, ast.Tuple)):
+        rendered = ", ".join(_render_annotation_type(element) for element in node.elts)
+        if isinstance(node, ast.List):
+            return f"[{rendered}]"
+        suffix = "," if len(node.elts) == 1 else ""
+        return f"({rendered}{suffix})"
+    if isinstance(node, ast.Starred):
+        return f"*{_render_annotation_type(node.value)}"
+    raise ValueError("Unsupported annotation expression")
 
 
 def _normalize_quoted_values(type_str: str) -> str:

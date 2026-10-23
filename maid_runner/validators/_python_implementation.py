@@ -13,6 +13,7 @@ from maid_runner.validators.base import FoundArtifact
 
 
 _STDLIB_ENUM_BASES = frozenset({"Enum", "IntEnum", "StrEnum", "Flag", "IntFlag"})
+_PROTOCOL_MODULES = frozenset({"typing", "typing_extensions"})
 
 
 def collect_implementation_artifacts(
@@ -24,6 +25,18 @@ def collect_implementation_artifacts(
     return collector.artifacts
 
 
+def _protocol_contract_positions(
+    tree: ast.AST,
+) -> dict[tuple[int, int], frozenset[tuple[int, int]]]:
+    """Expose producer proof without inferring interfaces from artifact metadata."""
+    collector = _ImplementationCollector()
+    collector.visit(tree)
+    return {
+        position: frozenset(members)
+        for position, members in collector._protocol_contract_positions.items()
+    }
+
+
 class _ImplementationCollector(ast.NodeVisitor):
     def __init__(self, file_path: str = "") -> None:
         self.artifacts: list[FoundArtifact] = []
@@ -33,6 +46,13 @@ class _ImplementationCollector(ast.NodeVisitor):
         self._enum_module_names: set[str] = set()
         self._type_alias_names: set[str] = set()
         self._typing_module_names: set[str] = set()
+        self._protocol_base_names: set[str] = set()
+        self._protocol_module_names: set[str] = set()
+        self._protocol_bindings_tainted = False
+        self._current_protocol: tuple[int, int] | None = None
+        self._protocol_contract_positions: dict[
+            tuple[int, int], set[tuple[int, int]]
+        ] = {}
         self._control_flow_depth = 0
         self._is_init = Path(file_path).name == "__init__.py"
         self._module_path: Optional[str] = (
@@ -50,6 +70,13 @@ class _ImplementationCollector(ast.NodeVisitor):
         base_names = [_extract_base_name(b) for b in node.bases]
         bases = tuple(name for name in base_names if name is not None)
         is_enum = any(self._is_stdlib_enum_base(name) for name in bases)
+        # Local class namespaces and arbitrary base values are not resolved by
+        # this bounded module-import rule.
+        is_protocol = (
+            self._current_class is None
+            and not self._in_function
+            and any(self._is_protocol_base(name) for name in bases)
+        )
 
         self._add(
             FoundArtifact(
@@ -63,10 +90,15 @@ class _ImplementationCollector(ast.NodeVisitor):
         )
 
         prev_class = self._current_class
+        prev_protocol = self._current_protocol
         self._current_class = node.name
+        self._current_protocol = (node.lineno, node.col_offset) if is_protocol else None
+        if self._current_protocol is not None:
+            self._protocol_contract_positions[self._current_protocol] = set()
         for child in node.body:
             self.visit(child)
         self._current_class = prev_class
+        self._current_protocol = prev_protocol
         if prev_class is None:
             self._unbind_tracked_import_names({node.name})
 
@@ -82,6 +114,15 @@ class _ImplementationCollector(ast.NodeVisitor):
         if self._current_class is None and not self._in_function:
             self._visit_function_definition_header(node)
         stub = _is_stub_body(node)
+        if (
+            self._current_protocol
+            and not self._in_function
+            and _is_protocol_signature_body(node)
+        ):
+            stub = False
+            self._protocol_contract_positions[self._current_protocol].add(
+                (node.lineno, node.col_offset)
+            )
 
         if self._current_class is not None:
             if _has_property_decorator(node):
@@ -162,7 +203,8 @@ class _ImplementationCollector(ast.NodeVisitor):
                             )
                         )
         elif self._current_class is None and not self._in_function:
-            self._unbind_tracked_import_names(_assignment_target_names(node.targets))
+            for target in node.targets:
+                self._unbind_module_target(target)
             for target in node.targets:
                 if isinstance(target, ast.Name):
                     self._add(
@@ -182,6 +224,29 @@ class _ImplementationCollector(ast.NodeVisitor):
                                     line=node.lineno,
                                 )
                             )
+
+    def visit_TypeAlias(self, node: ast.AST) -> None:
+        # Dispatch by node name keeps this module importable before Python 3.12.
+        # PEP695 alias values/type parameters have their own lazy scope, so
+        # their names must not be walked as module binding events.
+        if self._current_class is not None or self._in_function:
+            return
+        name = getattr(node, "name")
+        value = getattr(node, "value")
+        self._add(
+            FoundArtifact(
+                kind=ArtifactKind.TYPE,
+                name=name.id,
+                type_annotation=_ast_to_alias_type_string(value),
+                type_parameters=tuple(
+                    ast.unparse(parameter)
+                    for parameter in getattr(node, "type_params", ())
+                ),
+                line=getattr(node, "lineno"),
+                column=getattr(node, "col_offset"),
+            )
+        )
+        self._unbind_module_target(name)
 
     def visit_AnnAssign(self, node: ast.AnnAssign) -> None:
         if not node.target:
@@ -240,6 +305,8 @@ class _ImplementationCollector(ast.NodeVisitor):
                         line=node.lineno,
                     )
                 )
+        if isinstance(node.target, ast.Attribute) and node.value is not None:
+            self._unbind_module_target(node.target)
 
     def visit_Import(self, node: ast.Import) -> None:
         if self._current_class is not None or self._in_function:
@@ -251,9 +318,16 @@ class _ImplementationCollector(ast.NodeVisitor):
                 self._enum_module_names.add(bound)
             if self._control_flow_depth == 0 and alias.name == "typing":
                 self._typing_module_names.add(bound)
+            if (
+                self._control_flow_depth == 0
+                and alias.name in _PROTOCOL_MODULES
+                and not self._protocol_bindings_tainted
+            ):
+                self._protocol_module_names.add(bound)
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
         if self._current_class is None and not self._in_function:
+            self._track_protocol_import(node)
             self._track_type_alias_import(node)
             if any(alias.name == "*" for alias in node.names) and (
                 node.module != "enum" or node.level or self._control_flow_depth
@@ -357,8 +431,8 @@ class _ImplementationCollector(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_Delete(self, node: ast.Delete) -> None:
-        if self._current_class is None and not self._in_function:
-            self._unbind_tracked_import_names(_assignment_target_names(node.targets))
+        for target in node.targets:
+            self._unbind_module_target(target)
         self.generic_visit(node)
 
     def _visit_control_flow(self, node: ast.AST) -> None:
@@ -370,6 +444,18 @@ class _ImplementationCollector(ast.NodeVisitor):
 
     def _unbind_module_target(self, target: ast.expr) -> None:
         if self._current_class is None and not self._in_function:
+            if any(
+                isinstance(part, ast.Attribute)
+                and part.attr == "Protocol"
+                and isinstance(part.value, ast.Name)
+                and part.value.id in self._protocol_module_names
+                for part in ast.walk(target)
+            ):
+                # An observed mutation invalidates assumptions about later
+                # imports as well as current aliases of the typing modules.
+                self._protocol_bindings_tainted = True
+                self._protocol_base_names.clear()
+                self._protocol_module_names.clear()
             self._unbind_tracked_import_names(_assignment_target_names([target]))
 
     def _visit_class_definition_header(self, node: ast.ClassDef) -> None:
@@ -430,6 +516,39 @@ class _ImplementationCollector(ast.NodeVisitor):
             and annotation.value.id in self._typing_module_names
         )
 
+    def _is_protocol_base(self, name: str) -> bool:
+        if name in self._protocol_base_names:
+            return True
+        namespace, separator, member = name.rpartition(".")
+        return bool(
+            separator
+            and namespace in self._protocol_module_names
+            and member == "Protocol"
+        )
+
+    def _track_protocol_import(self, node: ast.ImportFrom) -> None:
+        known_import = (
+            node.module in _PROTOCOL_MODULES
+            and not node.level
+            and not self._control_flow_depth
+            and not self._protocol_bindings_tainted
+        )
+        if any(alias.name == "*" for alias in node.names):
+            self._protocol_base_names.clear()
+            self._protocol_module_names.clear()
+            if known_import:
+                self._protocol_base_names.add("Protocol")
+            return
+        self._unbind_protocol_import_names(
+            {alias.asname or alias.name for alias in node.names}
+        )
+        if known_import:
+            self._protocol_base_names.update(
+                alias.asname or alias.name
+                for alias in node.names
+                if alias.name == "Protocol"
+            )
+
     def _track_type_alias_import(self, node: ast.ImportFrom) -> None:
         bound_names = {
             alias.asname or alias.name for alias in node.names if alias.name != "*"
@@ -457,9 +576,14 @@ class _ImplementationCollector(ast.NodeVisitor):
         self._type_alias_names.difference_update(names)
         self._typing_module_names.difference_update(names)
 
+    def _unbind_protocol_import_names(self, names: set[str]) -> None:
+        self._protocol_base_names.difference_update(names)
+        self._protocol_module_names.difference_update(names)
+
     def _unbind_tracked_import_names(self, names: set[str]) -> None:
         self._unbind_enum_import_names(names)
         self._unbind_type_alias_import_names(names)
+        self._unbind_protocol_import_names(names)
 
     def _has_artifact(self, name: str, of: Optional[str]) -> bool:
         return any(a.name == name and a.of == of for a in self.artifacts)
@@ -506,6 +630,28 @@ def _match_pattern_names(pattern: ast.pattern) -> set[str]:
         for child in pattern.patterns:
             names.update(_match_pattern_names(child))
     return names
+
+
+def _is_protocol_signature_body(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
+    body = node.body
+    if (
+        body
+        and isinstance(body[0], ast.Expr)
+        and isinstance(body[0].value, ast.Constant)
+        and isinstance(body[0].value.value, str)
+    ):
+        body = body[1:]
+    return not body or (
+        len(body) == 1
+        and (
+            isinstance(body[0], ast.Pass)
+            or (
+                isinstance(body[0], ast.Expr)
+                and isinstance(body[0].value, ast.Constant)
+                and body[0].value.value is ...
+            )
+        )
+    )
 
 
 def _is_stub_body(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
@@ -604,6 +750,11 @@ def _extract_args(
             default_val = _ast_to_default_string(padded_defaults[i])
         result.append(ArgSpec(name=arg.arg, type=type_ann, default=default_val))
 
+    if args.vararg is not None:
+        arg = args.vararg
+        type_ann = _ast_to_type_string(arg.annotation) if arg.annotation else None
+        result.append(ArgSpec(name="*" + arg.arg, type=type_ann))
+
     for i, arg in enumerate(args.kwonlyargs):
         type_ann = _ast_to_type_string(arg.annotation) if arg.annotation else None
         default_val = None
@@ -611,6 +762,11 @@ def _extract_args(
         if kw_default is not None:
             default_val = _ast_to_default_string(kw_default)
         result.append(ArgSpec(name=arg.arg, type=type_ann, default=default_val))
+
+    if args.kwarg is not None:
+        arg = args.kwarg
+        type_ann = _ast_to_type_string(arg.annotation) if arg.annotation else None
+        result.append(ArgSpec(name="**" + arg.arg, type=type_ann))
 
     return tuple(result)
 
@@ -652,6 +808,8 @@ def _ast_to_type_string(node: Optional[ast.AST]) -> Optional[str]:
             return str(node.value)
         if isinstance(node, ast.Subscript):
             base = _ast_to_type_string(node.value)
+            if str(base).rsplit(".", 1)[-1] in {"Literal", "Annotated"}:
+                return _ast_to_alias_member_string(node)
             if isinstance(node.slice, ast.Tuple):
                 args = [_ast_to_type_string(elt) for elt in node.slice.elts]
                 return f"{base}[{', '.join(str(a) for a in args)}]"

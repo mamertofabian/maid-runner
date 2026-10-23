@@ -1,0 +1,766 @@
+{
+  "manifest_path": "manifests/fix-scope-check-outside-project-root.manifest.yaml",
+  "manifest_hash": "sha256-contract:520020f771093c4e31c88811ede1a036b39eea2db3de12277ee977ef59ad48f0",
+  "test_hashes": {
+    "tests/cli/test_hook_cmd.py": "sha256-pyast:v2:c484f5375975de7596a7f37f29fc21a70515623e414d01c5094e9902aa8bc641",
+    "tests/cli/test_hook_claude_stdin_envelope.py": "sha256-pyast:v2:7936c4221a97ac52546b95165b94f82474e6d1438fa027382e51b69c0a851b02",
+    "tests/core/test_scope_check_outside_project_root.py": "sha256-pyast:v2:b1e9592ad9e780a89cea7a54784b47424eebce4d80af75cac30ac9e2195a0d5e"
+  },
+  "created_at": "2026-10-08T05:18:40.745576+00:00",
+  "revision": 12,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:5ef651081269ac8a1452eabbee9d4fc0c873e07fe3dbd661ccc13bc47a885ebb",
+      "prior_test_hashes": {
+        "tests/cli/test_hook_cmd.py": "sha256-pyast:v2:c484f5375975de7596a7f37f29fc21a70515623e414d01c5094e9902aa8bc641",
+        "tests/cli/test_hook_claude_stdin_envelope.py": "sha256-pyast:v2:7936c4221a97ac52546b95165b94f82474e6d1438fa027382e51b69c0a851b02",
+        "tests/core/test_scope_check_outside_project_root.py": "sha256-pyast:v2:689dec0c0c6cf157a436a85835b3f93897176181eb9d7fc220f6e662063f8789"
+      },
+      "revised_at": "2026-10-08T05:18:41.723537+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-scope-check-outside-project-root.manifest.yaml -> manifests/fix-scope-check-outside-project-root.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:266473ada97a4b2f48229be5ecbc188c9a817dbf3b9ab1d444bc52a0882ae86a",
+      "prior_test_hashes": {
+        "tests/cli/test_hook_cmd.py": "sha256-pyast:v2:c484f5375975de7596a7f37f29fc21a70515623e414d01c5094e9902aa8bc641",
+        "tests/cli/test_hook_claude_stdin_envelope.py": "sha256-pyast:v2:7936c4221a97ac52546b95165b94f82474e6d1438fa027382e51b69c0a851b02",
+        "tests/core/test_scope_check_outside_project_root.py": "sha256-pyast:v2:689dec0c0c6cf157a436a85835b3f93897176181eb9d7fc220f6e662063f8789"
+      },
+      "revised_at": "2026-10-08T06:01:15.173932+00:00",
+      "reason": "Implementation review: discover project root in cmd_hook so subdirectory runs cannot misclassify in-repo files as outside-project-root; add hook.py to scope and two subdirectory tests",
+      "agent": {
+        "model": "claude-opus-5-5",
+        "client": "claude-code",
+        "source": "flags"
+      },
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/cli/commands/hook.py:function:cmd_hook",
+          "maid_runner/cli/commands/hook.py:function:cmd_hook:arg=args:type=argparse.Namespace:default=None",
+          "maid_runner/cli/commands/hook.py:function:cmd_hook:kind=function",
+          "maid_runner/cli/commands/hook.py:function:cmd_hook:returns=int",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_allows_declared_repo_file_by_relative_path",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_allows_declared_repo_file_by_relative_path:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_allows_declared_repo_file_by_relative_path:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_allows_declared_repo_file_by_relative_path:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_allows_declared_repo_file_by_relative_path:kind=test_function",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_allows_declared_repo_file_by_relative_path:returns=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_denies_undeclared_repo_file_under_strict",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_denies_undeclared_repo_file_under_strict:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_denies_undeclared_repo_file_under_strict:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_denies_undeclared_repo_file_under_strict:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_denies_undeclared_repo_file_under_strict:kind=test_function",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_denies_undeclared_repo_file_under_strict:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:maid_runner/cli/commands/hook.py",
+          "read:maid_runner/core/active_task.py"
+        ],
+        "files_removed": [
+          "read:maid_runner/cli/commands/hook.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:3c9c407cff11e564007e95458e4cf372df7b55826f1a51addd5a4af42532e60e",
+      "prior_test_hashes": {
+        "tests/cli/test_hook_cmd.py": "sha256-pyast:v2:c484f5375975de7596a7f37f29fc21a70515623e414d01c5094e9902aa8bc641",
+        "tests/cli/test_hook_claude_stdin_envelope.py": "sha256-pyast:v2:7936c4221a97ac52546b95165b94f82474e6d1438fa027382e51b69c0a851b02",
+        "tests/core/test_scope_check_outside_project_root.py": "sha256-pyast:v2:d6297497389a4fbe45273d16ec2aa29569a7feaabd0117fa6d52d3caa5e517d5"
+      },
+      "revised_at": "2026-10-08T06:02:12.387206+00:00",
+      "reason": "Root discovery must prefer .maid/ then .git over a nested manifests/ data folder (found running from maid_runner/core); add regression test",
+      "agent": {
+        "model": "claude-opus-5-5",
+        "client": "claude-code",
+        "source": "flags"
+      },
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_prefers_repo_maid_root_over_nested_manifests_directory",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_prefers_repo_maid_root_over_nested_manifests_directory:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_prefers_repo_maid_root_over_nested_manifests_directory:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_prefers_repo_maid_root_over_nested_manifests_directory:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_prefers_repo_maid_root_over_nested_manifests_directory:kind=test_function",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_prefers_repo_maid_root_over_nested_manifests_directory:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6118b60766a6922461595dc4821d089a8f7d192bc978e283ab82493db76595d2",
+      "prior_test_hashes": {
+        "tests/cli/test_hook_cmd.py": "sha256-pyast:v2:c484f5375975de7596a7f37f29fc21a70515623e414d01c5094e9902aa8bc641",
+        "tests/cli/test_hook_claude_stdin_envelope.py": "sha256-pyast:v2:7936c4221a97ac52546b95165b94f82474e6d1438fa027382e51b69c0a851b02",
+        "tests/core/test_scope_check_outside_project_root.py": "sha256-pyast:v2:913432792cb15c09ca8f071a25eb69ceb50c4a52c2c96886f053008742245722"
+      },
+      "revised_at": "2026-10-08T06:16:02.658937+00:00",
+      "reason": "Re-review: ancestor .maid/ (e.g. ~/.maid) above a git repo hijacked root discovery and failed open; bound discovery by nearest .git, add ancestor-.maid and nested-repo tests",
+      "agent": {
+        "model": "claude-opus-5-5",
+        "client": "claude-code",
+        "source": "flags"
+      },
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_ignores_maid_directory_above_git_repository",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_ignores_maid_directory_above_git_repository:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_ignores_maid_directory_above_git_repository:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_ignores_maid_directory_above_git_repository:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_ignores_maid_directory_above_git_repository:kind=test_function",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_ignores_maid_directory_above_git_repository:returns=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_in_nested_git_repository_uses_nested_repository_root",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_in_nested_git_repository_uses_nested_repository_root:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_in_nested_git_repository_uses_nested_repository_root:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_in_nested_git_repository_uses_nested_repository_root:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_in_nested_git_repository_uses_nested_repository_root:kind=test_function",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_in_nested_git_repository_uses_nested_repository_root:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:bb0a2cef0a84738da70ac26d38c123fcf51cbae57f41094436053ea74f49a71c",
+      "prior_test_hashes": {
+        "tests/cli/test_hook_cmd.py": "sha256-pyast:v2:c484f5375975de7596a7f37f29fc21a70515623e414d01c5094e9902aa8bc641",
+        "tests/cli/test_hook_claude_stdin_envelope.py": "sha256-pyast:v2:7936c4221a97ac52546b95165b94f82474e6d1438fa027382e51b69c0a851b02",
+        "tests/core/test_scope_check_outside_project_root.py": "sha256-pyast:v2:aba9b14652aa9cf32ce1eeaf50ae29d7e4aa63f36c4a8207ad8ebec7c9066099"
+      },
+      "revised_at": "2026-10-08T06:24:46.889191+00:00",
+      "reason": "Third review: stray nested .maid/ inside a repo shrank the root and allowed repo files as outside-project-root under --strict; prefer git root when it holds .maid/ or manifests/; fixture repos get .git; document outside-project-root in README and docs/agent-skills.md",
+      "agent": {
+        "model": "claude-opus-5-5",
+        "client": "claude-code",
+        "source": "flags"
+      },
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_ignores_stray_maid_directory_inside_repo_subdirectory",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_ignores_stray_maid_directory_inside_repo_subdirectory:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_ignores_stray_maid_directory_inside_repo_subdirectory:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_ignores_stray_maid_directory_inside_repo_subdirectory:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_ignores_stray_maid_directory_inside_repo_subdirectory:kind=test_function",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_ignores_stray_maid_directory_inside_repo_subdirectory:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:README.md",
+          "scope:docs/agent-skills.md"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:853a3b3b023f365ed3962522c33d5f6e5950c47121fc9c29678fe727a36e0816",
+      "prior_test_hashes": {
+        "tests/cli/test_hook_cmd.py": "sha256-pyast:v2:c484f5375975de7596a7f37f29fc21a70515623e414d01c5094e9902aa8bc641",
+        "tests/cli/test_hook_claude_stdin_envelope.py": "sha256-pyast:v2:7936c4221a97ac52546b95165b94f82474e6d1438fa027382e51b69c0a851b02",
+        "tests/core/test_scope_check_outside_project_root.py": "sha256-pyast:v2:eb817c5d830f40484594709ef427f4c0195bbfbcf65f9b13c0e5a1330cf02a05"
+      },
+      "revised_at": "2026-10-08T06:34:10.289629+00:00",
+      "reason": "Fourth review: make a wrong root fail closed - anchor root on an absolute active manifest, require an active task for outside-project-root (restores 069-02 strict no-active-task deny), add bare-git-root boundary test",
+      "agent": {
+        "model": "claude-opus-5-5",
+        "client": "claude-code",
+        "source": "flags"
+      },
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_foreign_directory_uses_absolute_active_manifest_root",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_foreign_directory_uses_absolute_active_manifest_root:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_foreign_directory_uses_absolute_active_manifest_root:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_foreign_directory_uses_absolute_active_manifest_root:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_foreign_directory_uses_absolute_active_manifest_root:kind=test_function",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_foreign_directory_uses_absolute_active_manifest_root:returns=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_uses_bare_git_root_when_ancestor_has_maid_directory",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_uses_bare_git_root_when_ancestor_has_maid_directory:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_uses_bare_git_root_when_ancestor_has_maid_directory:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_uses_bare_git_root_when_ancestor_has_maid_directory:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_uses_bare_git_root_when_ancestor_has_maid_directory:kind=test_function",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_uses_bare_git_root_when_ancestor_has_maid_directory:returns=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_scope_check_strict_without_active_task_denies_outside_path",
+          "tests/core/test_scope_check_outside_project_root.py:test_scope_check_strict_without_active_task_denies_outside_path:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_scope_check_strict_without_active_task_denies_outside_path:kind=test_function",
+          "tests/core/test_scope_check_outside_project_root.py:test_scope_check_strict_without_active_task_denies_outside_path:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:72c195ddd5dfd59d2aae80c1103be821ee72b794899d98e36bf1c7782cd48333",
+      "prior_test_hashes": {
+        "tests/cli/test_hook_cmd.py": "sha256-pyast:v2:c484f5375975de7596a7f37f29fc21a70515623e414d01c5094e9902aa8bc641",
+        "tests/cli/test_hook_claude_stdin_envelope.py": "sha256-pyast:v2:7936c4221a97ac52546b95165b94f82474e6d1438fa027382e51b69c0a851b02",
+        "tests/core/test_scope_check_outside_project_root.py": "sha256-pyast:v2:4dcf0f2fe000078fe4272cb3d551a9e20131b9fada767b7b561f5b4589be79af"
+      },
+      "revised_at": "2026-10-08T06:42:01.542229+00:00",
+      "reason": "Fifth review: apply outside-project-root only after the active manifest loads so a wrong root fails closed; re-anchor on absolute manifests only when a project marker is found",
+      "agent": {
+        "model": "claude-opus-5-5",
+        "client": "claude-code",
+        "source": "flags"
+      },
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_absolute_active_manifest_outside_any_project_keeps_working_root",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_absolute_active_manifest_outside_any_project_keeps_working_root:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_absolute_active_manifest_outside_any_project_keeps_working_root:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_absolute_active_manifest_outside_any_project_keeps_working_root:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_absolute_active_manifest_outside_any_project_keeps_working_root:kind=test_function",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_absolute_active_manifest_outside_any_project_keeps_working_root:returns=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_relative_active_manifest_from_foreign_directory_fails_closed_under_strict",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_relative_active_manifest_from_foreign_directory_fails_closed_under_strict:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_relative_active_manifest_from_foreign_directory_fails_closed_under_strict:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_relative_active_manifest_from_foreign_directory_fails_closed_under_strict:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_relative_active_manifest_from_foreign_directory_fails_closed_under_strict:kind=test_function",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_relative_active_manifest_from_foreign_directory_fails_closed_under_strict:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:e1866719602a4b68ac96afa8cdf60bc5852a5979233ed7f2fb4585de522ee855",
+      "prior_test_hashes": {
+        "tests/cli/test_hook_cmd.py": "sha256-pyast:v2:c484f5375975de7596a7f37f29fc21a70515623e414d01c5094e9902aa8bc641",
+        "tests/cli/test_hook_claude_stdin_envelope.py": "sha256-pyast:v2:7936c4221a97ac52546b95165b94f82474e6d1438fa027382e51b69c0a851b02",
+        "tests/core/test_scope_check_outside_project_root.py": "sha256-pyast:v2:b5d43a5883e0a959037c491cc8d08ada132368da49809f5345af7af29ed42a1f"
+      },
+      "revised_at": "2026-10-08T07:19:38.435795+00:00",
+      "reason": "Sixth review: drop heuristic root discovery (hook.py back to baseline); outside-project-root allow now requires the loaded active manifest to lie inside the project root so any root mismatch falls back to baseline",
+      "agent": {
+        "model": "claude-opus-5-5",
+        "client": "claude-code",
+        "source": "flags"
+      },
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_does_not_allow_repo_files_as_outside_under_strict",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_does_not_allow_repo_files_as_outside_under_strict:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_does_not_allow_repo_files_as_outside_under_strict:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_does_not_allow_repo_files_as_outside_under_strict:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_does_not_allow_repo_files_as_outside_under_strict:kind=test_function",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_does_not_allow_repo_files_as_outside_under_strict:returns=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_scope_check_skips_outside_allow_when_root_does_not_own_active_manifest",
+          "tests/core/test_scope_check_outside_project_root.py:test_scope_check_skips_outside_allow_when_root_does_not_own_active_manifest:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_scope_check_skips_outside_allow_when_root_does_not_own_active_manifest:kind=test_function",
+          "tests/core/test_scope_check_outside_project_root.py:test_scope_check_skips_outside_allow_when_root_does_not_own_active_manifest:returns=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_scope_check_unloadable_active_manifest_fails_closed_under_strict",
+          "tests/core/test_scope_check_outside_project_root.py:test_scope_check_unloadable_active_manifest_fails_closed_under_strict:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_scope_check_unloadable_active_manifest_fails_closed_under_strict:kind=test_function",
+          "tests/core/test_scope_check_outside_project_root.py:test_scope_check_unloadable_active_manifest_fails_closed_under_strict:returns=None"
+        ],
+        "artifacts_removed": [
+          "maid_runner/cli/commands/hook.py:function:cmd_hook",
+          "maid_runner/cli/commands/hook.py:function:cmd_hook:arg=args:type=argparse.Namespace:default=None",
+          "maid_runner/cli/commands/hook.py:function:cmd_hook:kind=function",
+          "maid_runner/cli/commands/hook.py:function:cmd_hook:returns=int",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_absolute_active_manifest_outside_any_project_keeps_working_root",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_absolute_active_manifest_outside_any_project_keeps_working_root:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_absolute_active_manifest_outside_any_project_keeps_working_root:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_absolute_active_manifest_outside_any_project_keeps_working_root:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_absolute_active_manifest_outside_any_project_keeps_working_root:kind=test_function",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_absolute_active_manifest_outside_any_project_keeps_working_root:returns=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_foreign_directory_uses_absolute_active_manifest_root",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_foreign_directory_uses_absolute_active_manifest_root:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_foreign_directory_uses_absolute_active_manifest_root:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_foreign_directory_uses_absolute_active_manifest_root:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_foreign_directory_uses_absolute_active_manifest_root:kind=test_function",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_foreign_directory_uses_absolute_active_manifest_root:returns=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_allows_declared_repo_file_by_relative_path",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_allows_declared_repo_file_by_relative_path:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_allows_declared_repo_file_by_relative_path:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_allows_declared_repo_file_by_relative_path:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_allows_declared_repo_file_by_relative_path:kind=test_function",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_allows_declared_repo_file_by_relative_path:returns=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_denies_undeclared_repo_file_under_strict",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_denies_undeclared_repo_file_under_strict:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_denies_undeclared_repo_file_under_strict:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_denies_undeclared_repo_file_under_strict:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_denies_undeclared_repo_file_under_strict:kind=test_function",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_denies_undeclared_repo_file_under_strict:returns=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_ignores_maid_directory_above_git_repository",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_ignores_maid_directory_above_git_repository:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_ignores_maid_directory_above_git_repository:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_ignores_maid_directory_above_git_repository:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_ignores_maid_directory_above_git_repository:kind=test_function",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_ignores_maid_directory_above_git_repository:returns=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_ignores_stray_maid_directory_inside_repo_subdirectory",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_ignores_stray_maid_directory_inside_repo_subdirectory:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_ignores_stray_maid_directory_inside_repo_subdirectory:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_ignores_stray_maid_directory_inside_repo_subdirectory:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_ignores_stray_maid_directory_inside_repo_subdirectory:kind=test_function",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_ignores_stray_maid_directory_inside_repo_subdirectory:returns=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_in_nested_git_repository_uses_nested_repository_root",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_in_nested_git_repository_uses_nested_repository_root:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_in_nested_git_repository_uses_nested_repository_root:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_in_nested_git_repository_uses_nested_repository_root:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_in_nested_git_repository_uses_nested_repository_root:kind=test_function",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_in_nested_git_repository_uses_nested_repository_root:returns=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_prefers_repo_maid_root_over_nested_manifests_directory",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_prefers_repo_maid_root_over_nested_manifests_directory:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_prefers_repo_maid_root_over_nested_manifests_directory:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_prefers_repo_maid_root_over_nested_manifests_directory:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_prefers_repo_maid_root_over_nested_manifests_directory:kind=test_function",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_prefers_repo_maid_root_over_nested_manifests_directory:returns=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_relative_active_manifest_from_foreign_directory_fails_closed_under_strict",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_relative_active_manifest_from_foreign_directory_fails_closed_under_strict:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_relative_active_manifest_from_foreign_directory_fails_closed_under_strict:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_relative_active_manifest_from_foreign_directory_fails_closed_under_strict:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_relative_active_manifest_from_foreign_directory_fails_closed_under_strict:kind=test_function",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_relative_active_manifest_from_foreign_directory_fails_closed_under_strict:returns=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_uses_bare_git_root_when_ancestor_has_maid_directory",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_uses_bare_git_root_when_ancestor_has_maid_directory:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_uses_bare_git_root_when_ancestor_has_maid_directory:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_uses_bare_git_root_when_ancestor_has_maid_directory:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_uses_bare_git_root_when_ancestor_has_maid_directory:kind=test_function",
+          "tests/core/test_scope_check_outside_project_root.py:test_hook_uses_bare_git_root_when_ancestor_has_maid_directory:returns=None"
+        ],
+        "files_added": [
+          "read:maid_runner/cli/commands/hook.py"
+        ],
+        "files_removed": [
+          "edit:maid_runner/cli/commands/hook.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:5af3cb755e0dc988f3f1944039940edc2851c7a210cc7cb015c3a09a36520e23",
+      "prior_test_hashes": {
+        "tests/cli/test_hook_cmd.py": "sha256-pyast:v2:c484f5375975de7596a7f37f29fc21a70515623e414d01c5094e9902aa8bc641",
+        "tests/cli/test_hook_claude_stdin_envelope.py": "sha256-pyast:v2:7936c4221a97ac52546b95165b94f82474e6d1438fa027382e51b69c0a851b02",
+        "tests/core/test_scope_check_outside_project_root.py": "sha256-pyast:v2:3a950d3df37271135fd4fc6acfb1f9d5de811b203b15c90d2fb0d5fc4fb38ab8"
+      },
+      "revised_at": "2026-10-08T07:28:49.743884+00:00",
+      "reason": "Seventh review: resolve() ValueError (embedded NUL) was classified as outside; treat any resolution error as unknown so it falls through to the normal decision; docs wording matches README",
+      "agent": {
+        "model": "claude-opus-5-5",
+        "client": "claude-code",
+        "source": "flags"
+      },
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_scope_check_outside_project_root.py:test_scope_check_unresolvable_path_is_not_allowed_as_outside_under_strict",
+          "tests/core/test_scope_check_outside_project_root.py:test_scope_check_unresolvable_path_is_not_allowed_as_outside_under_strict:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_scope_check_unresolvable_path_is_not_allowed_as_outside_under_strict:kind=test_function",
+          "tests/core/test_scope_check_outside_project_root.py:test_scope_check_unresolvable_path_is_not_allowed_as_outside_under_strict:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:6861277195206ff7b04e5ec69671549762aaa6998f21e761abf006b746cd8362",
+      "prior_test_hashes": {
+        "tests/cli/test_hook_cmd.py": "sha256-pyast:v2:c484f5375975de7596a7f37f29fc21a70515623e414d01c5094e9902aa8bc641",
+        "tests/cli/test_hook_claude_stdin_envelope.py": "sha256-pyast:v2:7936c4221a97ac52546b95165b94f82474e6d1438fa027382e51b69c0a851b02",
+        "tests/core/test_scope_check_outside_project_root.py": "sha256-pyast:v2:83bcca13d5eaa9d0f5d4b70026d466d556e5b9f823dfdc6de5f4b53942ccaad6"
+      },
+      "revised_at": "2026-10-08T07:36:58.631820+00:00",
+      "reason": "Eighth review: containing the manifest is not ownership (root at repo/manifests allowed repo files); require the manifest under the root's manifests/ directory",
+      "agent": {
+        "model": "claude-opus-5-5",
+        "client": "claude-code",
+        "source": "flags"
+      },
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_scope_check_outside_project_root.py:test_scope_check_skips_outside_allow_when_root_is_the_manifests_directory",
+          "tests/core/test_scope_check_outside_project_root.py:test_scope_check_skips_outside_allow_when_root_is_the_manifests_directory:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_scope_check_outside_project_root.py:test_scope_check_skips_outside_allow_when_root_is_the_manifests_directory:kind=test_function",
+          "tests/core/test_scope_check_outside_project_root.py:test_scope_check_skips_outside_allow_when_root_is_the_manifests_directory:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:f329edd24a6ab7ed9d727c7c3178fb371e06b30955d3752a85dfba615765aa45",
+      "prior_test_hashes": {
+        "tests/cli/test_hook_cmd.py": "sha256-pyast:v2:c484f5375975de7596a7f37f29fc21a70515623e414d01c5094e9902aa8bc641",
+        "tests/cli/test_hook_claude_stdin_envelope.py": "sha256-pyast:v2:7936c4221a97ac52546b95165b94f82474e6d1438fa027382e51b69c0a851b02",
+        "tests/core/test_scope_check_outside_project_root.py": "sha256-pyast:v2:b1e9592ad9e780a89cea7a54784b47424eebce4d80af75cac30ac9e2195a0d5e"
+      },
+      "revised_at": "2026-10-08T07:45:07.920306+00:00",
+      "reason": "Ninth review (ready): document cross-checkout/nested-project behavior as a known limitation; description-only change",
+      "agent": {
+        "model": "claude-opus-5-5",
+        "client": "claude-code",
+        "source": "flags"
+      },
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-08T07:36:59.433426+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/test_scope_check_outside_project_root.py tests/cli/test_hook_cmd.py tests/cli/test_hook_claude_stdin_envelope.py",
+        "exit_code": 1,
+        "output_tail": "            ),\n        )\n        args = SimpleNamespace(\n            hook_command=\"scope-check\", stdin=True, path=None, strict=False\n        )\n    \n        exit_code = cmd_hook(args)\n        payload = json.loads(capsys.readouterr().out)\n    \n>       assert exit_code == 0\nE       assert 2 == 0\n\n/home/atomrem/projects/codefrost-dev/maid-runner/tests/core/test_scope_check_outside_project_root.py:231: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_scope_check_outside_project_root.py::test_scope_check_allows_absolute_path_outside_project_root\nFAILED tests/core/test_scope_check_outside_project_root.py::test_scope_check_allows_relative_escape_outside_project_root\nFAILED tests/core/test_scope_check_outside_project_root.py::test_scope_check_allows_outside_project_root_under_strict\nFAILED tests/core/test_scope_check_outside_project_root.py::test_scope_check_treats_symlink_escape_as_outside_project_root\nFAILED tests/core/test_scope_check_outside_project_root.py::test_hook_allows_claude_edit_envelope_for_file_outside_project_root\n5 failed, 14 passed in 0.49s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/scope_check.py:function:scope_check_path",
+      "maid_runner/core/scope_check.py:function:scope_check_path:arg=active_manifest:type=str | None:default=None",
+      "maid_runner/core/scope_check.py:function:scope_check_path:arg=candidate_path:type=str:default=None",
+      "maid_runner/core/scope_check.py:function:scope_check_path:arg=project_root:type=Union[str, Path]:default='.'",
+      "maid_runner/core/scope_check.py:function:scope_check_path:arg=strict:type=bool:default=False",
+      "maid_runner/core/scope_check.py:function:scope_check_path:kind=function",
+      "maid_runner/core/scope_check.py:function:scope_check_path:returns=ScopeCheckDecision",
+      "tests/core/test_scope_check_outside_project_root.py:test_hook_allows_claude_edit_envelope_for_file_outside_project_root",
+      "tests/core/test_scope_check_outside_project_root.py:test_hook_allows_claude_edit_envelope_for_file_outside_project_root:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/core/test_scope_check_outside_project_root.py:test_hook_allows_claude_edit_envelope_for_file_outside_project_root:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/core/test_scope_check_outside_project_root.py:test_hook_allows_claude_edit_envelope_for_file_outside_project_root:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_scope_check_outside_project_root.py:test_hook_allows_claude_edit_envelope_for_file_outside_project_root:kind=test_function",
+      "tests/core/test_scope_check_outside_project_root.py:test_hook_allows_claude_edit_envelope_for_file_outside_project_root:returns=None",
+      "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_does_not_allow_repo_files_as_outside_under_strict",
+      "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_does_not_allow_repo_files_as_outside_under_strict:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_does_not_allow_repo_files_as_outside_under_strict:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_does_not_allow_repo_files_as_outside_under_strict:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_does_not_allow_repo_files_as_outside_under_strict:kind=test_function",
+      "tests/core/test_scope_check_outside_project_root.py:test_hook_from_subdirectory_does_not_allow_repo_files_as_outside_under_strict:returns=None",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_allows_absolute_path_outside_project_root",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_allows_absolute_path_outside_project_root:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_allows_absolute_path_outside_project_root:kind=test_function",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_allows_absolute_path_outside_project_root:returns=None",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_allows_outside_project_root_under_strict",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_allows_outside_project_root_under_strict:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_allows_outside_project_root_under_strict:kind=test_function",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_allows_outside_project_root_under_strict:returns=None",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_allows_relative_escape_outside_project_root",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_allows_relative_escape_outside_project_root:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_allows_relative_escape_outside_project_root:kind=test_function",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_allows_relative_escape_outside_project_root:returns=None",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_skips_outside_allow_when_root_does_not_own_active_manifest",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_skips_outside_allow_when_root_does_not_own_active_manifest:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_skips_outside_allow_when_root_does_not_own_active_manifest:kind=test_function",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_skips_outside_allow_when_root_does_not_own_active_manifest:returns=None",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_skips_outside_allow_when_root_is_the_manifests_directory",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_skips_outside_allow_when_root_is_the_manifests_directory:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_skips_outside_allow_when_root_is_the_manifests_directory:kind=test_function",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_skips_outside_allow_when_root_is_the_manifests_directory:returns=None",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_still_denies_undeclared_absolute_path_inside_project_root",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_still_denies_undeclared_absolute_path_inside_project_root:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_still_denies_undeclared_absolute_path_inside_project_root:kind=test_function",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_still_denies_undeclared_absolute_path_inside_project_root:returns=None",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_strict_without_active_task_denies_outside_path",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_strict_without_active_task_denies_outside_path:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_strict_without_active_task_denies_outside_path:kind=test_function",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_strict_without_active_task_denies_outside_path:returns=None",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_treats_symlink_escape_as_outside_project_root",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_treats_symlink_escape_as_outside_project_root:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_treats_symlink_escape_as_outside_project_root:kind=test_function",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_treats_symlink_escape_as_outside_project_root:returns=None",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_unloadable_active_manifest_fails_closed_under_strict",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_unloadable_active_manifest_fails_closed_under_strict:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_unloadable_active_manifest_fails_closed_under_strict:kind=test_function",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_unloadable_active_manifest_fails_closed_under_strict:returns=None",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_unresolvable_path_is_not_allowed_as_outside_under_strict",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_unresolvable_path_is_not_allowed_as_outside_under_strict:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_unresolvable_path_is_not_allowed_as_outside_under_strict:kind=test_function",
+      "tests/core/test_scope_check_outside_project_root.py:test_scope_check_unresolvable_path_is_not_allowed_as_outside_under_strict:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_scope_check_outside_project_root.py"
+      ],
+      "edit": [
+        "maid_runner/core/scope_check.py"
+      ],
+      "read": [
+        "maid_runner/cli/commands/hook.py",
+        "maid_runner/core/active_task.py",
+        "manifests/069-02-add-hook-scope-check-command.manifest.yaml",
+        "manifests/fix-claude-scope-check-stdin-envelope.manifest.yaml",
+        "tests/cli/test_hook_claude_stdin_envelope.py",
+        "tests/cli/test_hook_cmd.py"
+      ],
+      "scope": [
+        "README.md",
+        "docs/agent-skills.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_scope_check_outside_project_root.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_scope_check_allows_absolute_path_outside_project_root",
+              "description": "An absolute path outside the project root is allowed with reason outside-project-root while a task is active.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_scope_check_allows_relative_escape_outside_project_root",
+              "description": "A relative ../ path escaping the project root is allowed with reason outside-project-root.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_scope_check_allows_outside_project_root_under_strict",
+              "description": "With an active task, strict mode does not deny out-of-root paths.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_scope_check_strict_without_active_task_denies_outside_path",
+              "description": "Under strict mode with no active task, an out-of-root path is still denied with reason no-active-task (069-02 rule 5 unchanged).",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_scope_check_still_denies_undeclared_absolute_path_inside_project_root",
+              "description": "An undeclared absolute path inside the project root remains denied as out-of-scope, and a declared absolute path is allowed as in-scope.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_scope_check_treats_symlink_escape_as_outside_project_root",
+              "description": "A repo-internal symlink whose target lives outside the project root is allowed as outside-project-root.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_scope_check_skips_outside_allow_when_root_does_not_own_active_manifest",
+              "description": "When the project root is a repo subdirectory that does not contain the absolute active manifest, a repo file outside that subdirectory is denied under strict mode instead of allowed as outside-project-root.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_scope_check_unloadable_active_manifest_fails_closed_under_strict",
+              "description": "When the active manifest cannot be loaded under the project root, an out-of-root path is denied as internal-error under strict mode instead of allowed as outside-project-root.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_hook_allows_claude_edit_envelope_for_file_outside_project_root",
+              "description": "The installed Claude PreToolUse Edit envelope targeting an out-of-repo plan file exits 0 with an allow outside-project-root JSON decision when the hook runs from the project root.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_hook_from_subdirectory_does_not_allow_repo_files_as_outside_under_strict",
+              "description": "Run from a repo subdirectory with an absolute MAID_ACTIVE_MANIFEST, an undeclared repo file outside that subdirectory is denied under --strict with exit 2.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_scope_check_unresolvable_path_is_not_allowed_as_outside_under_strict",
+              "description": "A candidate path that cannot be resolved (embedded NUL byte) is never allowed as outside-project-root; under strict mode it gets the normal deny decision.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_scope_check_skips_outside_allow_when_root_is_the_manifests_directory",
+              "description": "When the project root is the repo's manifests/ directory, which contains the absolute active manifest but is not the project root, a repo source file is denied under strict mode instead of allowed as outside-project-root.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/scope_check.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "scope_check_path",
+              "description": "Decide allow/deny for a candidate path; when a task is active, its manifest loads, and the manifest lies under the project root's manifests/ directory, paths that resolve outside the project root (absolute, relative escapes, or symlink escapes) are allowed with reason outside-project-root in default and strict mode; otherwise the 069-02 rules apply unchanged.",
+              "args": [
+                {
+                  "name": "candidate_path",
+                  "type": "str"
+                },
+                {
+                  "name": "active_manifest",
+                  "type": "str | None"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Union[str, Path]",
+                  "default": "'.'"
+                },
+                {
+                  "name": "strict",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "ScopeCheckDecision"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/069-02-add-hook-scope-check-command.manifest.yaml",
+        "manifests/fix-claude-scope-check-stdin-envelope.manifest.yaml",
+        "maid_runner/cli/commands/hook.py",
+        "maid_runner/core/active_task.py",
+        "tests/cli/test_hook_cmd.py",
+        "tests/cli/test_hook_claude_stdin_envelope.py"
+      ],
+      "scope": [
+        {
+          "path": "README.md",
+          "reason": "Document that scope-check allows outside-project-root paths while an owned task is active."
+        },
+        {
+          "path": "docs/agent-skills.md",
+          "reason": "Keep the --strict policy description accurate now that outside-project-root paths are allowed while a task is active."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_hook_claude_stdin_envelope.py",
+      "tests/cli/test_hook_cmd.py",
+      "tests/core/test_scope_check_outside_project_root.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/test_scope_check_outside_project_root.py tests/cli/test_hook_cmd.py tests/cli/test_hook_claude_stdin_envelope.py"
+    ],
+    "acceptance_commands": []
+  }
+}

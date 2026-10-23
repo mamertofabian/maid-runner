@@ -1,0 +1,220 @@
+{
+  "manifest_path": "manifests/fix-manifest-promote-literal-indentation.manifest.yaml",
+  "manifest_hash": "sha256-contract:6bf38069c73cf854d30b177b97fbd0b6afd6a3826ca5d6580932beb9d08a5ab4",
+  "test_hashes": {
+    "tests/cli/test_manifest_promote_yaml_style_cmd.py": "sha256-pyast:v2:d8d87b2d0a6aeba02df34b1f8652e09cd3c4092d3d83ddd2157e52193e62ab61",
+    "tests/cli/test_manifest_promote_lock_cmd.py": "sha256-pyast:v2:2073353fde071bef56876aa98519d2b40ae366ee2a99c808b22928da6d6a17e2",
+    "tests/cli/test_manifest_promote_red_evidence_preservation.py": "sha256-pyast:v2:f3a174e1bd378926b8a826a4661bc73b8cf55ead65dd992c9b6f988d68bf35b3",
+    "tests/cli/test_manifest_promote_argv_self_reference.py": "sha256-pyast:v2:41256e9beb7e638b42d27311644bef698558b76f37704cdbef2d2875b2e8cc69",
+    "tests/cli/test_manifest_promote_git_rename_cmd.py": "sha256-pyast:v2:b45a5df8a5e9cd70910ac001748538ebdcd18ab1f528bfc233f8fb0ed2ab3040",
+    "tests/cli/test_promote_legacy_baseline_preservation.py": "sha256-pyast:v2:18d6ab5be45e91bfa9b7a083e99c1fe8befa1611263c4febb17ee99941e78614",
+    "tests/cli/test_manifest_promote_output_routing.py": "sha256-pyast:v2:cc76086403437c1f63a0524c98f8808f41c47d9db81422cc003637389883f4a9",
+    "tests/cli/test_fix_manifest_promote_literal_indentation.py": "sha256-pyast:v2:b43bcb21824b05a1d4fa4c5f66163bcd3d35a2ce4be936e59f57413d244a019c"
+  },
+  "created_at": "2026-10-20T23:56:56.698001+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:e5d00c056953e629a0e964f856222af4723999553417a04ffce2da30d2ea3495",
+      "prior_test_hashes": {
+        "tests/cli/test_manifest_promote_yaml_style_cmd.py": "sha256-pyast:v2:d8d87b2d0a6aeba02df34b1f8652e09cd3c4092d3d83ddd2157e52193e62ab61",
+        "tests/cli/test_manifest_promote_lock_cmd.py": "sha256-pyast:v2:2073353fde071bef56876aa98519d2b40ae366ee2a99c808b22928da6d6a17e2",
+        "tests/cli/test_manifest_promote_red_evidence_preservation.py": "sha256-pyast:v2:f3a174e1bd378926b8a826a4661bc73b8cf55ead65dd992c9b6f988d68bf35b3",
+        "tests/cli/test_manifest_promote_argv_self_reference.py": "sha256-pyast:v2:41256e9beb7e638b42d27311644bef698558b76f37704cdbef2d2875b2e8cc69",
+        "tests/cli/test_manifest_promote_git_rename_cmd.py": "sha256-pyast:v2:b45a5df8a5e9cd70910ac001748538ebdcd18ab1f528bfc233f8fb0ed2ab3040",
+        "tests/cli/test_promote_legacy_baseline_preservation.py": "sha256-pyast:v2:18d6ab5be45e91bfa9b7a083e99c1fe8befa1611263c4febb17ee99941e78614",
+        "tests/cli/test_manifest_promote_output_routing.py": "sha256-pyast:v2:cc76086403437c1f63a0524c98f8808f41c47d9db81422cc003637389883f4a9",
+        "tests/cli/test_fix_manifest_promote_literal_indentation.py": "sha256-pyast:v2:b43bcb21824b05a1d4fa4c5f66163bcd3d35a2ce4be936e59f57413d244a019c"
+      },
+      "revised_at": "2026-10-20T23:57:11.305350+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-manifest-promote-literal-indentation.manifest.yaml -> manifests/fix-manifest-promote-literal-indentation.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-manifest-promote-literal-indentation.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-manifest-promote-literal-indentation.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-20T23:57:25.843768+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/cli/test_fix_manifest_promote_literal_indentation.py -q",
+        "exit_code": 1,
+        "output_tail": "    ) -> None:\n        draft = _draft(tmp_path)\n        before = yaml.safe_load(draft.read_text())\n        lock_path = _lock(tmp_path, draft) if locked else None\n>       assert _promote(tmp_path, draft, no_run=not locked) == 0\nE       AssertionError: assert 2 == 0\nE        +  where 2 = _promote(PosixPath('/tmp/pytest-of-atomrem/pytest-2419/test_public_promote_preserves_1'), PosixPath('/tmp/pytest-of-atomrem/pytest-2419/test_public_promote_preserves_1/manifests/drafts/literal-promotion.manifest.yaml'), no_run=not True)\n\ntests/cli/test_fix_manifest_promote_literal_indentation.py:109: AssertionError\n----------------------------- Captured stdout call -----------------------------\nLocked plan 'literal-promotion' at revision 1 (1 behavioral test file(s), /tmp/pytest-of-atomrem/pytest-2419/test_public_promote_preserves_1/.maid/plan-locks/literal-promotion.lock.json)\n----------------------------- Captured stderr call -----------------------------\nError: Plan lock migration failed; promotion rolled back: Failed to load manifest /tmp/pytest-of-atomrem/pytest-2419/test_public_promote_preserves_1/manifests/literal-promotion.manifest.yaml: while parsing a block mapping\n  in \"<unicode string>\", line 6, column 1\ndid not find expected key\n  in \"<unicode string>\", line 16, column 2\n=========================== short test summary info ============================\nFAILED tests/cli/test_fix_manifest_promote_literal_indentation.py::test_public_promote_preserves_literal_colons_bullets_and_continuation[False]\nFAILED tests/cli/test_fix_manifest_promote_literal_indentation.py::test_public_promote_preserves_literal_colons_bullets_and_continuation[True]\n2 failed, 2 passed in 1.00s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest tests/cli/test_manifest_promote_yaml_style_cmd.py tests/cli/test_manifest_promote_lock_cmd.py tests/cli/test_manifest_promote_red_evidence_preservation.py tests/cli/test_manifest_promote_argv_self_reference.py tests/cli/test_manifest_promote_git_rename_cmd.py tests/cli/test_promote_legacy_baseline_preservation.py tests/cli/test_manifest_promote_output_routing.py -q",
+        "exit_code": 0,
+        "output_tail": "........................................................................ [ 77%]\n.....................                                                    [100%]\n93 passed in 12.72s",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-manifest-promote-literal-indentation.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/manifest.py:function:cmd_manifest",
+      "maid_runner/cli/commands/manifest.py:function:cmd_manifest:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/manifest.py:function:cmd_manifest:kind=function",
+      "maid_runner/cli/commands/manifest.py:function:cmd_manifest:returns=int",
+      "tests/cli/test_fix_manifest_promote_literal_indentation.py:test_invalid_yaml_promotion_preserves_draft_and_existing_lock",
+      "tests/cli/test_fix_manifest_promote_literal_indentation.py:test_invalid_yaml_promotion_preserves_draft_and_existing_lock:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_fix_manifest_promote_literal_indentation.py:test_invalid_yaml_promotion_preserves_draft_and_existing_lock:kind=test_function",
+      "tests/cli/test_fix_manifest_promote_literal_indentation.py:test_invalid_yaml_promotion_preserves_draft_and_existing_lock:returns=None",
+      "tests/cli/test_fix_manifest_promote_literal_indentation.py:test_public_promote_preserves_literal_colons_bullets_and_continuation",
+      "tests/cli/test_fix_manifest_promote_literal_indentation.py:test_public_promote_preserves_literal_colons_bullets_and_continuation:arg=locked:type=bool:default=None",
+      "tests/cli/test_fix_manifest_promote_literal_indentation.py:test_public_promote_preserves_literal_colons_bullets_and_continuation:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_fix_manifest_promote_literal_indentation.py:test_public_promote_preserves_literal_colons_bullets_and_continuation:kind=test_function",
+      "tests/cli/test_fix_manifest_promote_literal_indentation.py:test_public_promote_preserves_literal_colons_bullets_and_continuation:returns=None",
+      "tests/cli/test_fix_manifest_promote_literal_indentation.py:test_public_promote_preserves_normal_literal_content",
+      "tests/cli/test_fix_manifest_promote_literal_indentation.py:test_public_promote_preserves_normal_literal_content:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_fix_manifest_promote_literal_indentation.py:test_public_promote_preserves_normal_literal_content:kind=test_function",
+      "tests/cli/test_fix_manifest_promote_literal_indentation.py:test_public_promote_preserves_normal_literal_content:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_fix_manifest_promote_literal_indentation.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/manifest.py"
+      ],
+      "read": [
+        "docs/draft-manifest-workflow.md",
+        "docs/unit-testing-rules.md",
+        "maid_runner/core/plan_lock.py",
+        "tests/cli/test_manifest_promote_argv_self_reference.py",
+        "tests/cli/test_manifest_promote_git_rename_cmd.py",
+        "tests/cli/test_manifest_promote_lock_cmd.py",
+        "tests/cli/test_manifest_promote_output_routing.py",
+        "tests/cli/test_manifest_promote_red_evidence_preservation.py",
+        "tests/cli/test_manifest_promote_yaml_style_cmd.py",
+        "tests/cli/test_promote_legacy_baseline_preservation.py"
+      ],
+      "scope": [
+        "docs/plans/bug-report-triage-2026-10-20.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_fix_manifest_promote_literal_indentation.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_public_promote_preserves_literal_colons_bullets_and_continuation",
+              "description": "public promote preserves literal colons bullets and continuation",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "locked",
+                  "type": "bool"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_public_promote_preserves_normal_literal_content",
+              "description": "public promote preserves normal literal content",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_invalid_yaml_promotion_preserves_draft_and_existing_lock",
+              "description": "invalid yaml promotion preserves draft and existing lock",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/manifest.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_manifest",
+              "description": "Preserve existing public command dispatch/signature while rendering valid promotion output and preserving lock/input safety.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "docs/unit-testing-rules.md",
+        "docs/draft-manifest-workflow.md",
+        "maid_runner/core/plan_lock.py",
+        "tests/cli/test_manifest_promote_yaml_style_cmd.py",
+        "tests/cli/test_manifest_promote_lock_cmd.py",
+        "tests/cli/test_manifest_promote_red_evidence_preservation.py",
+        "tests/cli/test_manifest_promote_argv_self_reference.py",
+        "tests/cli/test_manifest_promote_git_rename_cmd.py",
+        "tests/cli/test_promote_legacy_baseline_preservation.py",
+        "tests/cli/test_manifest_promote_output_routing.py"
+      ],
+      "scope": [
+        {
+          "path": "docs/plans/bug-report-triage-2026-10-20.md",
+          "reason": "Reconcile current/historical inventory and confirmed report plan/resolution links."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_fix_manifest_promote_literal_indentation.py",
+      "tests/cli/test_manifest_promote_argv_self_reference.py",
+      "tests/cli/test_manifest_promote_git_rename_cmd.py",
+      "tests/cli/test_manifest_promote_lock_cmd.py",
+      "tests/cli/test_manifest_promote_output_routing.py",
+      "tests/cli/test_manifest_promote_red_evidence_preservation.py",
+      "tests/cli/test_manifest_promote_yaml_style_cmd.py",
+      "tests/cli/test_promote_legacy_baseline_preservation.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/cli/test_fix_manifest_promote_literal_indentation.py -q",
+      "uv run python -m pytest tests/cli/test_manifest_promote_yaml_style_cmd.py tests/cli/test_manifest_promote_lock_cmd.py tests/cli/test_manifest_promote_red_evidence_preservation.py tests/cli/test_manifest_promote_argv_self_reference.py tests/cli/test_manifest_promote_git_rename_cmd.py tests/cli/test_promote_legacy_baseline_preservation.py tests/cli/test_manifest_promote_output_routing.py -q",
+      "uv run maid validate manifests/fix-manifest-promote-literal-indentation.manifest.yaml --mode schema --quiet"
+    ],
+    "acceptance_commands": []
+  }
+}

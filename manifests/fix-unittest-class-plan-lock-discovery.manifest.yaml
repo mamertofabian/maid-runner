@@ -1,0 +1,199 @@
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Protect unittest and Django test classes regardless of their class-name prefix
+type: fix
+created: '2026-10-20T14:46:02Z'
+description: Recognize explicit unittest and Django TestCase imports, aliases and
+  local subclasses, including standard async, defining-module, staticfiles live-server
+  and canonical test-prefix/runTest conventions. Preserve existing pytest classification.
+  Include files.scope semantic tests in plan-lock hashing via an explicit discovery
+  opt-in, preserving shared runner-command completeness semantics. Adapt the historical
+  non-semantic fixture to a custom-runner class and refresh its shared dependent locks
+  through sanctioned explicit preservation with unchanged commands. No new dotted-unittest
+  support or command-policy changes.
+temptations:
+- risk: Treat the reported protect unittest and django test classes regardless of
+    their class-name prefix scenario as a reason to bypass existing validation.
+  instead: Recognize actual unittest/Django TestCase conventions with bounded base/import
+    handling; retain pytest class semantics. Include scope-listed behavioral files
+    without treating every scope file as a test. Exercise real lock creation and E701
+    enforcement, direct and dotted Django targets. Do not add arbitrary dotted unittest
+    selector support in this fix.
+- risk: Use private-helper assertions that pass while the downstream failure remains.
+  instead: Exercise find_command_integrity_test_files, is_python_behavioral_test_file
+    through the named regression scenarios, including the negative cases, before locking
+    this draft.
+files:
+  create:
+  - path: tests/core/test_fix_unittest_class_plan_lock_discovery.py
+    artifacts:
+    - kind: test_function
+      name: test_unittest_suffix_class_is_hashed
+      args:
+      - name: tmp_path
+        type: Path
+      - name: source
+        type: str
+      returns: None
+      description: unittest suffix class is hashed
+    - kind: test_function
+      name: test_scope_only_test_file_is_hashed
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: scope only test file is hashed
+    - kind: test_function
+      name: test_unrelated_class_does_not_become_test
+      args:
+      - name: tmp_path
+        type: Path
+      - name: source
+        type: str
+      returns: None
+      description: unrelated class does not become test
+    - kind: test_function
+      name: test_changed_unittest_test_fails_lock
+      args:
+      - name: tmp_path
+        type: Path
+      - name: command
+        type: list[str]
+      returns: None
+      description: changed unittest test fails lock
+  read:
+  - docs/unit-testing-rules.md
+  - docs/draft-manifest-workflow.md
+  edit:
+  - path: maid_runner/core/_command_integrity_test_discovery.py
+    artifacts:
+    - kind: function
+      name: find_command_integrity_test_files
+      args:
+      - name: manifest
+        type: Manifest
+      - name: project_root
+        type: Path
+      - name: test_paths_from_validate_command_fn
+        default: test_paths_from_validate_command
+      - name: include_scope
+        type: bool
+        default: 'False'
+      returns: list[str]
+      description: Existing public seam exercised by the planned regression scenarios;
+        preserve its signature.
+    - kind: function
+      name: is_python_behavioral_test_file
+      args:
+      - name: path
+        type: str
+      - name: project_root
+        type: Path
+      returns: bool
+      description: Existing public seam exercised by the planned regression scenarios;
+        preserve its signature.
+  scope:
+  - path: maid_runner/core/plan_lock.py
+    reason: Opt into scope-only behavioral discovery in private plan-lock path collection;
+      preserve all existing enforcement policies.
+  - path: tests/core/test_plan_lock_semantic_test_discovery.py
+    reason: Keep historical non-semantic-test fixture outside newly supported unittest
+      conventions; retain all E702 assertions.
+  - path: docs/plans/bug-report-triage-2026-10-20.md
+    reason: Keep promoted fix links and resolved report disposition accurate.
+validate:
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/core/test_fix_unittest_class_plan_lock_discovery.py
+  - -q
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/core/test_plan_lock_semantic_test_discovery.py
+  - -q
+outcome:
+  status: completed
+  completed_at: '2026-10-20T15:16:20.450826+00:00'
+  summary: Protected standard unittest and Django TestCase classes and scope-only
+    behavioral inputs in plan-lock hashes and E701 enforcement, preserving existing
+    pytest and runner-command semantics.
+  lessons:
+  - lesson_type: test-design
+    summary: When expanded semantic discovery changes a historical non-semantic fixture,
+      preserve its purpose with a custom-runner class and unchanged assertions, then
+      use the documented shared-dependent preservation workflow with unchanged commands.
+    tags:
+    - plan-lock
+    - test-design
+    - maid-runner-feedback
+    paths:
+    - tests/core/test_plan_lock_semantic_test_discovery.py
+    - maid_runner/core/_command_integrity_test_discovery.py
+  review_notes:
+  - source: independent-read-only-implementation_review_first_v7
+    severity: ready
+    summary: No blocking findings or actionable advisories. Reviewer independently
+      passed 28 behavioral cases and scoped implementation validation and inspected
+      approved shared-dependent revisions.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/core/test_plan_lock*.py
+    - tests/core/test_fix_unittest_class_plan_lock_discovery.py
+    - tests/core/test_contract_scoped_manifest_hash.py
+    - tests/cli/test_plan_cmd*.py
+    - tests/cli/test_verify_plan_lock*.py
+    - -q
+    status: passed
+    summary: 176 focused plan-lock and CLI regression cases passed; both declared
+      behavioral suites pass 28 cases.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --quiet
+    status: passed
+    summary: Full active-manifest validation passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: All 312 declared commands passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - ab988d1e
+    status: passed
+    summary: All 11 stages passed, zero blockers; existing E307 warnings only. Independent
+      plan review approved revision18 with 18 genuine intended red failures and 5
+      passes.

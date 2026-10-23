@@ -1,0 +1,280 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Compare nested Python unions and Literal string annotations symmetrically
+type: fix
+created: '2026-10-20T20:08:30Z'
+description: 'Normalize supported nested standard annotation type positions symmetrically using CPython
+  AST/parser services without evaluating types. Pipe unions, Optional and nested Union member ordering
+  must compare consistently inside generic/Callable positions. Keep value positions distinct: preserve
+  Literal string quoting/numeric-vs-string and value differences, and Annotated metadata including whitespace,
+  ordering and non-type expressions. Correct Python signature rendering through the existing value-aware
+  alias renderer where appropriate so parameters and returns validate against source spellings and survive
+  snapshot roundtrips. Preserve existing wildcard behavior, legacy tuple-ellipsis implementation compatibility
+  and plugin/non-Python spelling semantics; unsupported syntax retains the existing comparison path. No
+  schema, parser replacement, language evaluator or import/type resolution analyzer. Public signatures
+  unchanged. Hardened recall matched PEP695/Protocol/enum producer Outcomes: reuse existing value-aware
+  alias rendering. Their import/binding redesign lessons are outside this task; preserve exact-value and
+  compatibility boundaries without new resolution analysis. Intentionally evolve the prior alias-only
+  Literal characterization to quoted signature success plus explicit unquoted mismatch under this contract;
+  retain its test signature and refresh approved shared-test dependent hashes with unchanged commands
+  through public revision.'
+temptations:
+- risk: Make Literal signatures pass by stripping quotes or coercing string/numeric values, or normalize
+    Annotated metadata as types.
+  instead: Preserve value positions and test distinct strings/numbers/metadata through public comparison
+    and validation; reuse existing value-aware rendering.
+- risk: Normalize unions only at the outermost position or only one side of the comparison.
+  instead: Normalize supported nested type positions symmetrically with canonical public results and parameter/return/snapshot
+    regressions.
+- risk: Turn the shared matcher into a Python-only evaluator or alter established plugin and tuple-ellipsis
+    behavior.
+  instead: Use bounded parser-backed syntax normalization with legacy fallback and explicit cross-language/ellipsis
+    compatibility controls; preserve public API signatures.
+files:
+  edit:
+  - path: maid_runner/core/_type_compare.py
+    artifacts:
+    - kind: function
+      name: normalize_type
+      args:
+      - name: type_str
+        type: Optional[str]
+      returns: Optional[str]
+      description: Canonicalize supported nested type positions while retaining value metadata and fallback
+        behavior.
+    - kind: function
+      name: types_match
+      args:
+      - name: manifest_type
+        type: Optional[str]
+      - name: impl_type
+        type: Optional[str]
+      returns: bool
+      description: Preserve symmetric public comparison and wildcard semantics.
+  - path: maid_runner/validators/_python_implementation.py
+    artifacts:
+    - kind: function
+      name: collect_implementation_artifacts
+      args:
+      - name: tree
+        type: ast.AST
+      - name: file_path
+        type: str
+      returns: list[FoundArtifact]
+      description: Preserve public collection while retaining Literal/Annotated value quoting in signature
+        types.
+  create:
+  - path: tests/validators/test_fix_python_signature_type_normalization.py
+    artifacts:
+    - kind: test_function
+      name: test_nested_type_equivalence_is_symmetric_and_canonical
+      args:
+      - name: left
+        type: str
+      - name: right
+        type: str
+      returns: None
+      description: nested type equivalence is symmetric and canonical
+    - kind: test_function
+      name: test_type_values_metadata_and_plugin_types_remain_distinct
+      args:
+      - name: left
+        type: str
+      - name: right
+        type: str
+      returns: None
+      description: type values metadata and plugin types remain distinct
+    - kind: test_function
+      name: test_python_source_signature_validates_and_snapshot_roundtrips
+      args:
+      - name: tmp_path
+        type: Path
+      - name: annotation
+        type: str
+      returns: None
+      description: python source signature validates and snapshot roundtrips
+    - kind: test_function
+      name: test_public_signature_validation_rejects_semantic_differences
+      args:
+      - name: tmp_path
+        type: Path
+      - name: source
+        type: str
+      - name: expected
+        type: str
+      returns: None
+      description: public signature validation rejects semantic differences
+    - kind: test_function
+      name: test_python_legacy_tuple_ellipsis_validation_is_preserved
+      args:
+      - name: tmp_path
+        type: Path
+      - name: annotation
+        type: str
+      returns: None
+      description: python legacy tuple ellipsis validation is preserved
+    - kind: test_function
+      name: test_existing_nonpython_type_spelling_compatibility_is_preserved
+      args:
+      - name: left
+        type: str
+      - name: right
+        type: str
+      returns: None
+      description: existing nonpython type spelling compatibility is preserved
+  read:
+  - docs/unit-testing-rules.md
+  - docs/draft-manifest-workflow.md
+  - maid_runner/validators/python.py
+  - maid_runner/validators/base.py
+  - maid_runner/core/_implementation_validation.py
+  - maid_runner/core/snapshot.py
+  - maid_runner/core/types.py
+  scope:
+  - path: docs/maid_specs.md
+    reason: Document nested type comparison and value preservation.
+  - path: maid_runner/docs/maid_specs.md
+    reason: Keep packaged spec mirror identical.
+  - path: .maid/docs/maid_specs.md
+    reason: Keep initialized spec mirror identical.
+  - path: docs/plans/bug-report-triage-2026-10-20.md
+    reason: Reconcile promoted contract and resolved canonical reports.
+  - path: tests/validators/test_python_type_alias.py
+    reason: Evolve historical alias-only Literal signature fixture under this value-preserving contract;
+      preserve test identity and strengthen the unquoted-negative guard.
+validate:
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/validators/test_fix_python_signature_type_normalization.py
+  - -q
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/core/test_type_compare.py
+  - tests/validators/test_python_type_alias.py
+  - tests/validators/test_python_variadic_tuple_annotations.py
+  - tests/validators/test_python.py
+  - tests/validators/test_python_parser_replacement_boundaries.py
+  - tests/core/test_ts_return_contracts.py
+  - tests/core/test_typescript_return_validation.py
+  - tests/docs/test_chain_merge_docs.py
+  - -q
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/fix-python-signature-type-normalization.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+outcome:
+  status: completed
+  completed_at: '2026-10-20T20:27:21.598233+00:00'
+  summary: Normalize supported nested pipe unions and unqualified Optional/Union forms in type positions
+    while retaining Literal string values and Annotated metadata. Python signature collection preserves
+    value quotes. Preserve existing non-Python spelling and tuple-ellipsis compatibility.
+  lessons:
+  - lesson_type: artifact-identity
+    summary: 'Type normalization must distinguish type positions from value positions: quote removal can
+      make Literal string values falsely match numbers or identifiers. Reuse CPython parsing without evaluating
+      annotations and keep unsupported syntax on the existing compatibility path.'
+    tags:
+    - python
+    - signature
+    - literal
+    paths:
+    - maid_runner/core/_type_compare.py
+    - maid_runner/validators/_python_implementation.py
+  - lesson_type: contract-evolution
+    summary: An old fixture intentionally required signature quote loss. Evolve that fixture to the intended
+      value-preserving behavior with an explicit unquoted-negative control; sanctioned shared-dependent
+      revisions preserve genuine prior evidence and unchanged commands.
+    tags:
+    - plan-lock
+    - shared-tests
+    paths:
+    - tests/validators/test_python_type_alias.py
+  review_notes:
+  - source: independent-read-only-implementation_review_signature_normalization
+    severity: ready
+    summary: Ready to merge; no blocking findings. Independently passed 65 focused cases and scoped implementation
+      validation. Qualified typing.Union/typing.Optional normalization remains an existing advisory limitation
+      outside the reported unqualified forms.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/validators/test_fix_python_signature_type_normalization.py
+    - -q
+    status: passed
+    summary: '41 dedicated plus 238 adjacent cases passed (279 combined). Scoped implementation, Ruff/Black/diff
+      and all five affected plan locks passed; all four shared-dependent validate commands remain unchanged.
+      Fresh stashed baseline: dedicated 16 failed/25 passed; adjacent fixture 1 failed/237 passed.'
+  - command:
+    - uv
+    - run
+    - --no-project
+    - --isolated
+    - --python
+    - '3.10'
+    - --with-editable
+    - .
+    - --with
+    - pytest
+    - --with
+    - pytest-xdist
+    - python
+    - -m
+    - pytest
+    - tests/validators/test_fix_python_signature_type_normalization.py
+    - -q
+    status: passed
+    summary: 'Actual Python 3.10: all 41 cases passed.'
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --packet
+    status: passed
+    summary: 344 active manifests passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: All 316 declared commands passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - 4cb6dfd5975f7fa6933929d0d89023bb295bac22
+    status: passed
+    summary: All 11 assessment-directed deep stages passed with required plan-lock/red-evidence checks.

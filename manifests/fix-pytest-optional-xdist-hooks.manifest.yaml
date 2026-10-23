@@ -1,0 +1,254 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Allow injected pytest evidence plugins to run when optional xdist is absent
+type: fix
+created: '2026-10-21T00:24:37Z'
+description: 'Confirmed report 20261007-063548-manatal-loan-deep-tests.md: ordinary pytest without xdist
+  exits3 when MAID runtime instrumentation registers unknown pytest_configure_node/testnodedown hooks.
+  The timing plugin also registers xdist-only collection/worker hooks; generated coverage plugin registers
+  configure_node. Mark only these existing xdist-specific hooks optional through standard pytest.hookimpl(optionalhook=True),
+  importing pytest inside the generated plugin source as needed. No xdist installation/dependency, fallback
+  fabricated evidence, swallowed plugin errors, hook removal or changes to worker lifecycle/aggregation.
+  Exercise public collect_runtime_evidence serial and explicit xdist, public subprocess executor with
+  timing plugin serial/explicit xdist and generated coverage plugin controller launching a serial pytest
+  child. Autoload is disabled for actual no-xdist serial regressions and explicit timing/coverage worker
+  controls; runtime-evidence worker control uses its existing normal-autoload capability probe. No capability-probe
+  behavior change is in scope. Baseline has three intended unknown-hook failures and two enabled-worker
+  controls passing. Assert real tests, nodeids/timing/completeness and target call coverage; retain existing
+  worker-loss/incomplete fail-closed controls. Private hook wiring uses existing fully covered production
+  files; executor API/signatures unchanged. Reconcile the final report inventory and later resolved duplicate
+  within existing triage documentation; no new evidence ledger. Recall from 121-04 and 121-15 calls for
+  retained real subprocess adapter coverage and direct call/line records, applied here alongside exact
+  selected node and timing evidence. Their historical broad inventory/Protocol class limitations and performance
+  equivalence budgets do not expand this optional-hook metadata fix. Contract revision after confirmed
+  self-instrumentation collision: the broad compatibility runtime suite replaces sys.monitoring with FakeMonitoring
+  then constructs coverage collectors, causing missing LINE/tool1-occupied errors and coverage collector-stack
+  teardown assertions under external artifact instrumentation. All79 adjacent cases remain separately
+  run compatibility checks and part of full repository command validation; they are not behavioral contract
+  inputs for this narrow metadata fix. Dedicated5 public regressions alone must prove both declared executor
+  artifacts through the unchanged artifact-coverage and knockout gates. No production instrumentation
+  redesign or coverage opt-out; preserve test bytes and recapture genuine baseline red through sanctioned
+  stash-backed revision.'
+temptations:
+- risk: Install xdist or ignore unknown hook errors to force serial pytest through.
+  instead: Use standard optional-hook declarations only for actual xdist hooks, prove genuine serial no-xdist
+    execution, and preserve explicit xdist worker evidence.
+- risk: Remove worker lifecycle hooks, manufacture complete evidence or test private generated source
+    text rather than execution.
+  instead: Keep hook bodies/lifecycle and aggregation unchanged; run public instrumentation with actual
+    subprocesses and assert observed calls, selected nodes and evidence files. Existing incomplete-worker
+    controls remain.
+files:
+  edit:
+  - path: maid_runner/core/_runtime_command_executor.py
+    artifacts:
+    - kind: class
+      name: SubprocessRuntimeCommandExecutor
+      description: Keep real instrumented execution and optional xdist worker lifecycle compatible with
+        ordinary serial pytest.
+    - kind: method
+      name: execute
+      of: SubprocessRuntimeCommandExecutor
+      args:
+      - name: command
+        type: tuple[str, ...]
+      - name: target_files
+        type: set[str]
+      - name: project_root
+        type: Path
+      - name: timeout_seconds
+        type: float
+      - name: environment_overrides
+        type: Mapping[str, str] | None
+        default: None
+      - name: environment_removals
+        type: Sequence[str]
+        default: ()
+      returns: RuntimeCommandRecord
+      description: Run actual normalized pytest arguments with unchanged environment controls and real
+        coverage/call observations.
+  create:
+  - path: tests/core/test_fix_pytest_optional_xdist_hooks.py
+    artifacts:
+    - kind: test_function
+      name: test_public_runtime_evidence_preserves_serial_and_worker_execution
+      args:
+      - name: tmp_path
+        type: Path
+      - name: workers
+        type: int
+      returns: None
+      description: public runtime evidence preserves serial and worker execution
+    - kind: test_function
+      name: test_public_timing_instrumentation_preserves_exact_serial_and_worker_nodes
+      args:
+      - name: tmp_path
+        type: Path
+      - name: workers
+        type: int
+      returns: None
+      description: public timing instrumentation preserves exact serial and worker nodes
+    - kind: test_function
+      name: test_public_worker_coverage_allows_controller_serial_pytest_child
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: public worker coverage allows controller serial pytest child
+  scope:
+  - path: maid_runner/core/_runtime_evidence_pytest_plugin.py
+    reason: Standard optional-hook metadata on existing xdist callbacks; no public API/body changes.
+  - path: maid_runner/core/_pytest_timing_plugin.py
+    reason: Standard optional-hook metadata on existing xdist callbacks; no public API/body changes.
+  - path: docs/plans/bug-report-triage-2026-10-20.md
+    reason: Record confirmed final contract, report resolution and current inventory including resolved
+      duplicate.
+  read:
+  - docs/unit-testing-rules.md
+  - maid_runner/core/runtime_evidence.py
+validate:
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/core/test_fix_pytest_optional_xdist_hooks.py
+  - -q
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/fix-pytest-optional-xdist-hooks.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+outcome:
+  status: completed
+  completed_at: '2026-10-21T00:46:30.465805+00:00'
+  summary: Allow injected runtime, timing and generated coverage pytest plugins to operate without optional
+    xdist. Five existing xdist-only hooks use standard optionalhook metadata; generated source imports
+    pytest. Preserve hook bodies, worker lifecycle/aggregation, real evidence and executor signatures.
+    Serial plugin-autoload-disabled tests now execute normally; explicit/normal xdist controls retain
+    observed node/timing/call evidence. Original disposable app task 81adb0b final tests no longer exit
+    3. Exact original deep remains blocked at implementation by existing plain args/kwargs declarations
+    incompatible with starred identities; diagnostic --keep-going passes all other 10 stages including
+    final tests, artifact coverage and knockout in 54.266s. No downstream edits; fake fixture config/SQLite
+    only, original .env never read. Private inherited-environment state.json removed and absence checked.
+    Do not interpret diagnostic continuation as a complete downstream deep pass.
+  lessons:
+  - lesson_type: compatibility
+    summary: A plugin registering optional-integration hook names must mark them optional for base pytest.
+      Real serial processes with autoload disabled expose missing hook specifications; retain enabled-worker
+      controls and inspect exact node, timing and line/call records rather than merely accepting successful
+      process exit.
+    tags:
+    - pytest
+    - xdist
+    - runtime-evidence
+    paths:
+    - maid_runner/core/_runtime_evidence_pytest_plugin.py
+    - maid_runner/core/_pytest_timing_plugin.py
+    - maid_runner/core/_runtime_command_executor.py
+    - tests/core/test_fix_pytest_optional_xdist_hooks.py
+  review_notes:
+  - source: independent-read-only-implementation_review_optional_xdist_bounded
+    severity: ready
+    summary: Ready to merge; no blockers/advisories. Reviewed complete delta and exact scope, independently
+      reran 5 dedicated cases, confirmed optional metadata and preserved worker behavior/evidence.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/core/test_fix_pytest_optional_xdist_hooks.py
+    - -q
+    status: passed
+    summary: All 5 dedicated plus 79 separately run adjacent compatibility cases pass. Genuine baseline
+      3 unknown-hook failures / 2 worker controls pass pinned in sanctioned stash-backed revision 3; behavioral/scoped
+      implementation, Ruff/Black/diff and the dedicated locked test hash pass.
+  - command:
+    - /tmp/maid-identity-python310/.venv/bin/python
+    - -m
+    - pytest
+    - tests/core/test_fix_pytest_optional_xdist_hooks.py
+    - -q
+    status: passed
+    summary: Actual Python3.10 all 5 pass after installing the missing coverage prerequisite with uv in
+      the disposable environment.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --packet
+    status: passed
+    summary: 354 active manifests passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: All 326 declared commands passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - bc6dc227e56a6da698f8de112d6a8bfe4042d23f
+    status: passed
+    summary: All 11 assessed deep stages passed with required plan-lock/red-evidence checks. Initial broad
+      adjacent self-instrumentation failed because existing tests replace sys.monitoring internals and
+      construct coverage collectors; the approved same-contract revision keeps unchanged 5 public regressions
+      as the behavioral contract and 79 compatibility cases separately verified. Both declared executor
+      artifacts remain subject to full coverage/knockout gates.
+  - command:
+    - uvx
+    - --refresh-package
+    - maid-runner
+    - --python
+    - '3.12'
+    - --from
+    - /home/atomrem/projects/codefrost-dev/maid-runner[all]
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --advisory
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - 03352ec
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --summary
+    status: failed-unrelated
+    summary: Original disposable app task 81adb0b final tests no longer exit 3. Exact original deep remains
+      blocked at implementation by existing plain args/kwargs declarations incompatible with starred identities;
+      diagnostic --keep-going passes all other 10 stages including final tests, artifact coverage and
+      knockout in 54.266s. No downstream edits; fake fixture config/SQLite only, original .env never read.
+      Private inherited-environment state.json removed and absence checked. Do not interpret diagnostic
+      continuation as a complete downstream deep pass.

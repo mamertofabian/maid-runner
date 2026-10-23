@@ -258,13 +258,19 @@ not infer whether undeclared coupling could influence validation.
 Untracked declared `files.create` paths are targeted and restored
 byte-identically. Intent-to-add paths fail with a `git reset -- <paths>`
 recovery command, while staged targets remain refused with an exact
-`git restore --staged <paths>` command. If a green capture targets
+`git restore --staged <paths>` command. If valid red cannot be captured while targeting
 `package.json`, `package-lock.json`, `bun.lock`, `yarn.lock`, `pnpm-lock.yaml`,
 `uv.lock`, `poetry.lock`, `Cargo.lock`, or `go.sum`, MAID reports the bounded
 dependency limitation: materialized state such as `node_modules`, `.venv`, or
-`vendor` is not stashed. Temporarily install the prior dependency state and use
-plain revise, or record a reasoned legacy baseline; MAID does not rebuild or
-stash dependency trees.
+`vendor` is not stashed. Restore prior dependency state only when compatible
+with the behavioral tests. When upgraded dependencies are required to collect
+tests, retain that prerequisite environment and save the current implementation
+before restoring anything. In a controlled checkout, restore only task
+implementation source to its real pre-implementation baseline and use plain
+`maid plan revise` after genuine red. Then restore the saved implementation and
+validate green. A legacy baseline is a separate workflow that must satisfy its
+eligible tracked-baseline checks, not a generic collection-error bypass. MAID
+does not rebuild or stash dependency trees.
 
 For metadata-only corrections after implementation has already made the
 behavioral tests pass, use `maid plan revise <manifest-path> --reason "<text>"
@@ -365,6 +371,26 @@ lives in the optional quality extra; install `maid-runner[quality]`. Requesting
 artifact coverage without the extra fails closed with `E307` semantics naming
 the missing validator dependency.
 
+Known `typing.Protocol` and `typing_extensions.Protocol` signature-only members
+(docstring, `pass`, or ellipsis bodies) have no runtime body obligation. Coverage
+and knockout reuse the Python collector's exact class/member source proof,
+including Protocol property getters; names and ordinary property metadata do
+not establish an interface. Concrete Protocol defaults and adapters retain
+runtime obligations. Empty/attribute-only classes retain the existing policy.
+Knockout applicability and body replacement select the same source definition
+when a direct class or member name is redefined.
+
+For artifacts requiring runtime observations, coverage fails closed with an
+explicit error-severity `E307` when no
+instrumentable pytest command exists or a recognized Python test runner
+(unittest, Django, or a registered wrapper) cannot be instrumented. This is
+unknown execution, not `E710` observed nonexecution. Mixed instrumentation
+preserves measured positive findings, omits unsupported negative claims, and
+reports `partial` provenance with incomplete runtime evidence. It never runs
+isolated Django/container wrappers on the host. Ruff, mypy, MAID validation and
+non-Python test runners do not make otherwise-complete pytest Python coverage
+incomplete. Fully instrumentable suites retain their normal `E710` checks.
+
 `maid verify --knockout` is an opt-in Python-only gate that rewrites one
 declared public function or method artifact at a time to
 `raise NotImplementedError("maid-knockout")`. Detection requires a differential
@@ -389,6 +415,15 @@ empty success. The checkout is not rewritten, so `--knockout-allow-dirty` is a
 deprecated compatibility no-op. Knockouts remain sequential in manifest
 declaration order, `--knockout-limit` bounds the artifact count, and knockout is
 not full mutation testing.
+
+Snapshots retain root Node dependencies and `node_modules` at subproject roots
+whose `package.json` is among the snapshot inputs. Relative paths preserve
+nearest-package versions, hoisted imports and contained pnpm store/bin links.
+Shared environments retain dependency mutation checks; retained workers reuse
+private copies. Dependency roots must be real directories, and dependency
+symlinks must stay within the selected managed Node environments. Subproject
+roots are not added to global module or executable search paths. Other nested dependency directories are not discovered, and
+snapshot creation never installs packages.
 
 The changed-scope baseline that defines the task window resolves from
 `--since <commit>`, `--base-ref <ref>` (merge-base with HEAD), or
@@ -530,8 +565,62 @@ still apply.
     The validator automatically detects the language based on file extension and routes to the appropriate parser. All validation features (behavioral tests, implementation validation, snapshot generation, test stub generation) work seamlessly across languages.
 
     **Supported Artifact Types:**
-    - **Common (Python & TypeScript):** `class`, `function`, `attribute`, `enum`
-    - **TypeScript-Specific:** `interface`, `type`, `namespace`
+    - **Common (Python & TypeScript):** `class`, `function`, `attribute`, `enum`, `type`
+    - **TypeScript-Specific:** `interface`, `namespace`
+
+    Python module-level type aliases support both the legacy `Name: TypeAlias = ...`
+    form and PEP 695 `type Name[...] = ...` on Python 3.12+ interpreters.
+    Alias targets use the existing type renderer; generic names, bounds and
+    variadic markers populate `type_parameters` and survive snapshot roundtrips.
+    Alias names follow normal module binding invalidation, while their type
+    parameters remain local. Existing class/local alias behavior is unchanged.
+    Earlier interpreters retain explicit syntax errors for unsupported syntax.
+
+    Imported type aliases used in Python parameter, return and variable annotations
+    count as behavioral type references, including nested generics/unions and
+    quoted forward expressions. These references preserve import/alias identity
+    and lexical shadowing and cover only `type`/`interface` artifacts; they do
+    not establish runtime use of functions, classes or attributes. Known
+    `typing`/`typing_extensions` Literal arguments and Annotated metadata are
+    value positions, not type proof. Forward expressions are parsed without
+    evaluation; malformed or unresolved expressions remain unproven. Generic
+    parameters and PEP 695 alias bindings retain their own scope.
+
+    Python path-loaded hook references support a bounded standard importlib helper:
+    a unique undecorated module-level zero-argument function containing exactly
+    spec creation with `importlib.util.spec_from_file_location`, module creation
+    with `module_from_spec`, `spec.loader.exec_module(module)`, and return of that
+    module. Trusted imported aliases are supported; the runtime module label
+    does not identify the source file. Paths may be literal Python file paths or
+    `Path(__file__)` with argument-free `resolve()`, `parent`, constant `parents`
+    indexing and literal `/` joins, optionally via an unchanged module root
+    constant. Helper globals determine loader/path identity independently of
+    caller-local names. Ancestry is anchored to an absolute source path and must
+    remain inside the project. Rebound or globally writable `__file__`, loader
+    and Path imports remain unproven, including multiply-bound imports restored
+    after root initialization. Unknown paths, rebinding, decorators and extra
+    helper statements remain unproven. Interior-dotted Python filesystem components retain
+    exact file-path identity: `gunicorn.conf.py` differs from `gunicorn/conf.py`,
+    and `a.b/conf.py` differs from `a/b/conf.py`. Ordinary package identities and
+    imports are unchanged, including existing sys.path imports from hidden
+    .codex/.claude and hyphenated skill directories without interior dots. A
+    leading hidden-directory dot alone keeps its existing identity. No source
+    execution or general helper/control-flow
+    evaluation occurs during collection. Existing literal `load_module` path
+    support keeps its validation rules and uses the same exact file identity.
+
+    Python variadic parameters use starred argument names: `*items` for positional
+    variadics and `**options` for keyword variadics. Their annotations describe
+    each positional element or keyword value. Snapshot roundtrips retain these
+    names, annotations and declaration order; ordinary and starred names remain
+    distinct in signature validation. No additional argument schema flags apply.
+
+    Python signature comparison normalizes supported nested pipe unions, Optional
+    and Union type positions symmetrically, including generic and Callable
+    arguments. Literal strings retain their quotes and remain distinct from
+    numeric values; Annotated metadata remains value data. The shared matcher
+    retains its existing path for unsupported language syntax, and Python's
+    legacy tuple-ellipsis compatibility remains available.
 
     Python enum artifacts use a deliberately narrow syntactic boundary. A class
     directly subclassing a standard-library `enum.Enum`, `IntEnum`, `StrEnum`,

@@ -488,6 +488,8 @@ import time
 from contextlib import contextmanager
 from pathlib import Path
 
+import pytest
+
 try:
     import fcntl
 except ImportError:
@@ -700,6 +702,7 @@ def pytest_configure(config):
     _start_call_monitoring()
 
 
+@pytest.hookimpl(optionalhook=True)
 def pytest_configure_node(node):
     if os.environ.get(_controller_pid_name) == str(os.getpid()):
         node.workerinput["maid_artifact_coverage_worker"] = True

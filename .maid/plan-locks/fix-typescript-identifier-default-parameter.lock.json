@@ -1,0 +1,250 @@
+{
+  "manifest_path": "manifests/fix-typescript-identifier-default-parameter.manifest.yaml",
+  "manifest_hash": "sha256-contract:8483dc9e95616b63bc20b43386f2f3a71547650e3e4cff51795855b84873ea3a",
+  "test_hashes": {
+    "tests/validators/test_fix_typescript_identifier_default_parameter.py": "sha256-pyast:v2:40227270030352a2826f038d8e98d9bf156e4af035a45c59033e4103a3d52370",
+    "tests/validators/test_typescript.py": "sha256-pyast:v2:3c753d04055b0d300a9e58b86f3a2f0f44fe60537bd61279148c18d420f3dac1",
+    "tests/validators/test_typescript_artifact_edge_cases.py": "sha256-pyast:v2:29c27a469d9783795c52ae1639eda7658710fe4b4fcc27aa6fbb3888fc624a1c",
+    "tests/core/test_typescript_return_validation.py": "sha256-pyast:v2:358bc05c211fb8f802f7c5ad5c83309e35cea71ce6efebad6227bd1cd9043a45",
+    "tests/core/test_ts_return_contracts.py": "sha256-pyast:v2:0c3ba859a4f787493983b01cf9c60482892bba339dd1010ab79e4a93db19221b"
+  },
+  "created_at": "2026-10-20T20:41:52.411331+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:5081917b0e6b595f972ec5b68609012bb482ed8e6ef2345313348218dc1417b0",
+      "prior_test_hashes": {
+        "tests/validators/test_fix_typescript_identifier_default_parameter.py": "sha256-pyast:v2:40227270030352a2826f038d8e98d9bf156e4af035a45c59033e4103a3d52370",
+        "tests/validators/test_typescript.py": "sha256-pyast:v2:3c753d04055b0d300a9e58b86f3a2f0f44fe60537bd61279148c18d420f3dac1",
+        "tests/validators/test_typescript_artifact_edge_cases.py": "sha256-pyast:v2:29c27a469d9783795c52ae1639eda7658710fe4b4fcc27aa6fbb3888fc624a1c",
+        "tests/core/test_typescript_return_validation.py": "sha256-pyast:v2:358bc05c211fb8f802f7c5ad5c83309e35cea71ce6efebad6227bd1cd9043a45",
+        "tests/core/test_ts_return_contracts.py": "sha256-pyast:v2:0c3ba859a4f787493983b01cf9c60482892bba339dd1010ab79e4a93db19221b"
+      },
+      "revised_at": "2026-10-20T20:42:11.866416+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-typescript-identifier-default-parameter.manifest.yaml -> manifests/fix-typescript-identifier-default-parameter.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-typescript-identifier-default-parameter.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-typescript-identifier-default-parameter.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-20T20:42:33.049735+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/validators/test_fix_typescript_identifier_default_parameter.py -q",
+        "exit_code": 1,
+        "output_tail": "        )\n        result = ValidationEngine(project_root=tmp_path).validate(\n            path, mode=ValidationMode.IMPLEMENTATION\n        )\n>       assert not result.success\nE       AssertionError: assert not True\nE        +  where True = ValidationResult(success=True, manifest_slug='sample', manifest_path='/tmp/pytest-of-atomrem/pytest-1711/test_initiali...tionMode.IMPLEMENTATION: 'implementation'>, errors=[], warnings=[], file_tracking=None, duration_ms=3.0775370250921696).success\n\ntests/validators/test_fix_typescript_identifier_default_parameter.py:212: AssertionError\n=========================== short test summary info ============================\nFAILED tests/validators/test_fix_typescript_identifier_default_parameter.py::test_identifier_initializer_keeps_binding_name_type_and_default[export function read(windowMs: number = W): number { return windowMs; }-read]\nFAILED tests/validators/test_fix_typescript_identifier_default_parameter.py::test_identifier_initializer_keeps_binding_name_type_and_default[export function read(windowMs = W): number { return windowMs; }-read]\nFAILED tests/validators/test_fix_typescript_identifier_default_parameter.py::test_identifier_initializer_keeps_binding_name_type_and_default[export const read = (windowMs: number = W): number => windowMs;-read]\nFAILED tests/validators/test_fix_typescript_identifier_default_parameter.py::test_identifier_initializer_keeps_binding_name_type_and_default[export const read = (windowMs = W): number => windowMs;-read]\nFAILED tests/validators/test_fix_typescript_identifier_default_parameter.py::test_identifier_initializer_keeps_binding_name_type_and_default[export class Reader { read(windowMs: number = W): number { return windowMs; } }-read]\nFAILED tests/validators/test_fix_typescript_identifier_default_parameter.py::test_identifier_initializer_keeps_binding_name_type_and_default[export class Reader { static read(windowMs: number = W): number { return windowMs; } }-read]\nFAILED tests/validators/test_fix_typescript_identifier_default_parameter.py::test_constructor_property_keeps_its_declared_name\nFAILED tests/validators/test_fix_typescript_identifier_default_parameter.py::test_identifier_default_validates_and_snapshot_roundtrips\nFAILED tests/validators/test_fix_typescript_identifier_default_parameter.py::test_initializer_name_cannot_satisfy_the_parameter_contract\n9 failed, 11 passed in 0.52s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest tests/validators/test_typescript.py tests/validators/test_typescript_artifact_edge_cases.py tests/core/test_typescript_return_validation.py tests/core/test_ts_return_contracts.py -q",
+        "exit_code": 0,
+        "output_tail": "........................................................................ [ 36%]\n........................................................................ [ 72%]\n........................................................                 [100%]\n200 passed in 20.02s",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-typescript-identifier-default-parameter.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/validators/_typescript_implementation.py:function:collect_implementation_artifacts",
+      "maid_runner/validators/_typescript_implementation.py:function:collect_implementation_artifacts:arg=allow_jsdoc_returns:type=bool:default=False",
+      "maid_runner/validators/_typescript_implementation.py:function:collect_implementation_artifacts:arg=root:type=Any:default=None",
+      "maid_runner/validators/_typescript_implementation.py:function:collect_implementation_artifacts:arg=source:type=bytes:default=None",
+      "maid_runner/validators/_typescript_implementation.py:function:collect_implementation_artifacts:kind=function",
+      "maid_runner/validators/_typescript_implementation.py:function:collect_implementation_artifacts:returns=list[FoundArtifact]",
+      "tests/validators/test_fix_typescript_identifier_default_parameter.py:test_constructor_property_keeps_its_declared_name",
+      "tests/validators/test_fix_typescript_identifier_default_parameter.py:test_constructor_property_keeps_its_declared_name:kind=test_function",
+      "tests/validators/test_fix_typescript_identifier_default_parameter.py:test_constructor_property_keeps_its_declared_name:returns=None",
+      "tests/validators/test_fix_typescript_identifier_default_parameter.py:test_identifier_default_validates_and_snapshot_roundtrips",
+      "tests/validators/test_fix_typescript_identifier_default_parameter.py:test_identifier_default_validates_and_snapshot_roundtrips:arg=tmp_path:type=Path:default=None",
+      "tests/validators/test_fix_typescript_identifier_default_parameter.py:test_identifier_default_validates_and_snapshot_roundtrips:kind=test_function",
+      "tests/validators/test_fix_typescript_identifier_default_parameter.py:test_identifier_default_validates_and_snapshot_roundtrips:returns=None",
+      "tests/validators/test_fix_typescript_identifier_default_parameter.py:test_identifier_initializer_keeps_binding_name_type_and_default",
+      "tests/validators/test_fix_typescript_identifier_default_parameter.py:test_identifier_initializer_keeps_binding_name_type_and_default:arg=header:type=str:default=None",
+      "tests/validators/test_fix_typescript_identifier_default_parameter.py:test_identifier_initializer_keeps_binding_name_type_and_default:arg=kind:type=str:default=None",
+      "tests/validators/test_fix_typescript_identifier_default_parameter.py:test_identifier_initializer_keeps_binding_name_type_and_default:kind=test_function",
+      "tests/validators/test_fix_typescript_identifier_default_parameter.py:test_identifier_initializer_keeps_binding_name_type_and_default:returns=None",
+      "tests/validators/test_fix_typescript_identifier_default_parameter.py:test_initializer_name_cannot_satisfy_the_parameter_contract",
+      "tests/validators/test_fix_typescript_identifier_default_parameter.py:test_initializer_name_cannot_satisfy_the_parameter_contract:arg=tmp_path:type=Path:default=None",
+      "tests/validators/test_fix_typescript_identifier_default_parameter.py:test_initializer_name_cannot_satisfy_the_parameter_contract:kind=test_function",
+      "tests/validators/test_fix_typescript_identifier_default_parameter.py:test_initializer_name_cannot_satisfy_the_parameter_contract:returns=None",
+      "tests/validators/test_fix_typescript_identifier_default_parameter.py:test_literal_and_expression_default_compatibility_is_preserved",
+      "tests/validators/test_fix_typescript_identifier_default_parameter.py:test_literal_and_expression_default_compatibility_is_preserved:arg=default:type=str:default=None",
+      "tests/validators/test_fix_typescript_identifier_default_parameter.py:test_literal_and_expression_default_compatibility_is_preserved:kind=test_function",
+      "tests/validators/test_fix_typescript_identifier_default_parameter.py:test_literal_and_expression_default_compatibility_is_preserved:returns=None",
+      "tests/validators/test_fix_typescript_identifier_default_parameter.py:test_optional_destructured_and_rest_parameters_remain_unchanged",
+      "tests/validators/test_fix_typescript_identifier_default_parameter.py:test_optional_destructured_and_rest_parameters_remain_unchanged:kind=test_function",
+      "tests/validators/test_fix_typescript_identifier_default_parameter.py:test_optional_destructured_and_rest_parameters_remain_unchanged:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/validators/test_fix_typescript_identifier_default_parameter.py"
+      ],
+      "edit": [
+        "maid_runner/validators/_typescript_implementation.py"
+      ],
+      "read": [
+        "docs/draft-manifest-workflow.md",
+        "docs/unit-testing-rules.md",
+        "maid_runner/core/_implementation_validation.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/snapshot.py",
+        "maid_runner/core/types.py",
+        "maid_runner/validators/typescript.py"
+      ],
+      "scope": [
+        "docs/plans/bug-report-triage-2026-10-20.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/validators/test_fix_typescript_identifier_default_parameter.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_identifier_initializer_keeps_binding_name_type_and_default",
+              "description": "identifier initializer keeps binding name type and default",
+              "args": [
+                {
+                  "name": "header",
+                  "type": "str"
+                },
+                {
+                  "name": "kind",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_literal_and_expression_default_compatibility_is_preserved",
+              "description": "literal and expression default compatibility is preserved",
+              "args": [
+                {
+                  "name": "default",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_constructor_property_keeps_its_declared_name",
+              "description": "constructor property keeps its declared name",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_optional_destructured_and_rest_parameters_remain_unchanged",
+              "description": "optional destructured and rest parameters remain unchanged",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_identifier_default_validates_and_snapshot_roundtrips",
+              "description": "identifier default validates and snapshot roundtrips",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_initializer_name_cannot_satisfy_the_parameter_contract",
+              "description": "initializer name cannot satisfy the parameter contract",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/validators/_typescript_implementation.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "collect_implementation_artifacts",
+              "description": "Preserve public TypeScript collection with exact parameter/default identities.",
+              "args": [
+                {
+                  "name": "root",
+                  "type": "Any"
+                },
+                {
+                  "name": "source",
+                  "type": "bytes"
+                },
+                {
+                  "name": "allow_jsdoc_returns",
+                  "type": "bool",
+                  "default": "False"
+                }
+              ],
+              "returns": "list[FoundArtifact]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "docs/unit-testing-rules.md",
+        "docs/draft-manifest-workflow.md",
+        "maid_runner/validators/typescript.py",
+        "maid_runner/core/types.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/_implementation_validation.py",
+        "maid_runner/core/snapshot.py"
+      ],
+      "scope": [
+        {
+          "path": "docs/plans/bug-report-triage-2026-10-20.md",
+          "reason": "Reconcile promoted contract and resolved source report."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_ts_return_contracts.py",
+      "tests/core/test_typescript_return_validation.py",
+      "tests/validators/test_fix_typescript_identifier_default_parameter.py",
+      "tests/validators/test_typescript.py",
+      "tests/validators/test_typescript_artifact_edge_cases.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/validators/test_fix_typescript_identifier_default_parameter.py -q",
+      "uv run python -m pytest tests/validators/test_typescript.py tests/validators/test_typescript_artifact_edge_cases.py tests/core/test_typescript_return_validation.py tests/core/test_ts_return_contracts.py -q",
+      "uv run maid validate manifests/fix-typescript-identifier-default-parameter.manifest.yaml --mode schema --quiet"
+    ],
+    "acceptance_commands": []
+  }
+}

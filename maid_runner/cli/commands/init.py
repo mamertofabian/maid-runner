@@ -1230,6 +1230,11 @@ def _install_agent_payload(
         section = _render_claude_md_section(manifest)
     else:
         section = _render_agents_md_section(manifest)
+    if (project_root / "scripts" / "maid").is_file():
+        # Adapt only freshly rendered command examples, before merging user text.
+        section = section.replace("`uv run maid ", "`./scripts/maid ").replace(
+            "`maid ", "`./scripts/maid "
+        )
     _update_marked_guidance(project_root / guidance_file_name, section)
 
 

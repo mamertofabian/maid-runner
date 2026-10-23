@@ -1,0 +1,258 @@
+{
+  "manifest_path": "manifests/website-hero-real-refusal.manifest.yaml",
+  "manifest_hash": "sha256-contract:cabcda922396ebba787f8959df08433054c63f64e6232fb00dce4baf94d93362",
+  "test_hashes": {
+    "tests/test_website_hero_refusal.py": "sha256-pyast:v2:a623d65c7b09f80951877866e162fc6d441c14db74812c072431da41608c2912",
+    "tests/test_website_static_contract.py": "sha256-pyast:v2:8b3dd4990d3962ddd8f8830be5a8fb676128b3848f2dd86fe78e118f225b2f18",
+    "tests/test_website_rendered_typography.py": "sha256-pyast:v2:e5c2f19cda149ab54adb560cf6dbe0217992465f59aeff0510795ef85f5056fc",
+    "tests/test_website_distilled_story.py": "sha256-pyast:v2:d6fe48b21ea30c4205956fd34d48944d133652d2643a40a8471c878e22613158",
+    "tests/test_practice_stats_update.py": "sha256-pyast:v2:527087739de5ff6634665a1c92809713dd954c12d964d419f9a7adc335b7db4b"
+  },
+  "created_at": "2026-10-08T14:55:55.568340+00:00",
+  "revision": 6,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:09e6c4d16a574efb37257f6842eeba10304cc04abae33ac45e865436dd70b6e0",
+      "prior_test_hashes": {
+        "tests/test_website_hero_refusal.py": "sha256-pyast:v2:766cc0c0d922d261c2a97dec680e71c734dc82c5647c8dfe65b5e4ddc0e9f05f",
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:8b3dd4990d3962ddd8f8830be5a8fb676128b3848f2dd86fe78e118f225b2f18",
+        "tests/test_website_rendered_typography.py": "sha256-pyast:v2:e5c2f19cda149ab54adb560cf6dbe0217992465f59aeff0510795ef85f5056fc",
+        "tests/test_website_distilled_story.py": "sha256-pyast:v2:d6fe48b21ea30c4205956fd34d48944d133652d2643a40a8471c878e22613158",
+        "tests/test_practice_stats_update.py": "sha256-pyast:v2:527087739de5ff6634665a1c92809713dd954c12d964d419f9a7adc335b7db4b"
+      },
+      "revised_at": "2026-10-08T14:56:17.745093+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/website-hero-real-refusal.manifest.yaml -> manifests/website-hero-real-refusal.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/website-hero-real-refusal.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/website-hero-real-refusal.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/website-hero-real-refusal.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/website-hero-real-refusal.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:fad03c764f28e36ae55d480423b227df9389c612c3a8368a848d53a2fdc08e92",
+      "prior_test_hashes": {
+        "tests/test_website_hero_refusal.py": "sha256-pyast:v2:766cc0c0d922d261c2a97dec680e71c734dc82c5647c8dfe65b5e4ddc0e9f05f",
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:8b3dd4990d3962ddd8f8830be5a8fb676128b3848f2dd86fe78e118f225b2f18",
+        "tests/test_website_rendered_typography.py": "sha256-pyast:v2:e5c2f19cda149ab54adb560cf6dbe0217992465f59aeff0510795ef85f5056fc",
+        "tests/test_website_distilled_story.py": "sha256-pyast:v2:d6fe48b21ea30c4205956fd34d48944d133652d2643a40a8471c878e22613158",
+        "tests/test_practice_stats_update.py": "sha256-pyast:v2:527087739de5ff6634665a1c92809713dd954c12d964d419f9a7adc335b7db4b"
+      },
+      "revised_at": "2026-10-08T15:05:23.436672+00:00",
+      "reason": "add website/data/practice-stats.json to scope so the practice numbers can be refreshed after this change; behavioral tests unchanged",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:website/data/practice-stats.json"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4a6f81fe0df01ad752e4f5508699fc2041e9dcf87e9de97535aa9400166f1eee",
+      "prior_test_hashes": {
+        "tests/test_website_hero_refusal.py": "sha256-pyast:v2:766cc0c0d922d261c2a97dec680e71c734dc82c5647c8dfe65b5e4ddc0e9f05f",
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:8b3dd4990d3962ddd8f8830be5a8fb676128b3848f2dd86fe78e118f225b2f18",
+        "tests/test_website_rendered_typography.py": "sha256-pyast:v2:e5c2f19cda149ab54adb560cf6dbe0217992465f59aeff0510795ef85f5056fc",
+        "tests/test_website_distilled_story.py": "sha256-pyast:v2:d6fe48b21ea30c4205956fd34d48944d133652d2643a40a8471c878e22613158",
+        "tests/test_practice_stats_update.py": "sha256-pyast:v2:527087739de5ff6634665a1c92809713dd954c12d964d419f9a7adc335b7db4b"
+      },
+      "revised_at": "2026-10-08T15:20:12.084272+00:00",
+      "reason": "implementation review: hero manifest clipped at 360/375px; add 320 and 360 to the geometry widths, isolate the real-run test from machine git config, check git exit codes, confine the rm path",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4a6f81fe0df01ad752e4f5508699fc2041e9dcf87e9de97535aa9400166f1eee",
+      "prior_test_hashes": {
+        "tests/test_website_hero_refusal.py": "sha256-pyast:v2:9f925b6d5c646f56d4286359d1ba69bf92f075918080a9ae48a926cf0ef6c2aa",
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:8b3dd4990d3962ddd8f8830be5a8fb676128b3848f2dd86fe78e118f225b2f18",
+        "tests/test_website_rendered_typography.py": "sha256-pyast:v2:e5c2f19cda149ab54adb560cf6dbe0217992465f59aeff0510795ef85f5056fc",
+        "tests/test_website_distilled_story.py": "sha256-pyast:v2:d6fe48b21ea30c4205956fd34d48944d133652d2643a40a8471c878e22613158",
+        "tests/test_practice_stats_update.py": "sha256-pyast:v2:527087739de5ff6634665a1c92809713dd954c12d964d419f9a7adc335b7db4b"
+      },
+      "revised_at": "2026-10-08T15:21:01.325885+00:00",
+      "reason": "description now matches the shipped hero: reset_password in block form and the 320/360px geometry widths",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:cabcda922396ebba787f8959df08433054c63f64e6232fb00dce4baf94d93362",
+      "prior_test_hashes": {
+        "tests/test_website_hero_refusal.py": "sha256-pyast:v2:9f925b6d5c646f56d4286359d1ba69bf92f075918080a9ae48a926cf0ef6c2aa",
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:8b3dd4990d3962ddd8f8830be5a8fb676128b3848f2dd86fe78e118f225b2f18",
+        "tests/test_website_rendered_typography.py": "sha256-pyast:v2:e5c2f19cda149ab54adb560cf6dbe0217992465f59aeff0510795ef85f5056fc",
+        "tests/test_website_distilled_story.py": "sha256-pyast:v2:d6fe48b21ea30c4205956fd34d48944d133652d2643a40a8471c878e22613158",
+        "tests/test_practice_stats_update.py": "sha256-pyast:v2:527087739de5ff6634665a1c92809713dd954c12d964d419f9a7adc335b7db4b"
+      },
+      "revised_at": "2026-10-08T15:32:01.823539+00:00",
+      "reason": "implementation re-review lows: real-run test drops inherited PYTEST_/MAID_ environment variables",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-08T15:32:24.948153+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_website_hero_refusal.py tests/test_website_static_contract.py tests/test_website_rendered_typography.py tests/test_website_distilled_story.py tests/test_practice_stats_update.py",
+        "exit_code": 1,
+        "output_tail": ">       assert failures == {}, f\"Hero preview problems by width: {failures}\"\nE       AssertionError: Hero preview problems by width: {820: {'panels': 2, 'problems': [['under the other panel', '- expired tokens are rejected'], ['covered', '- expired tokens are rejected'], ['under the other panel', '- valid tokens can only be'], ['covered', '- valid tokens can only be'], ['under the other panel', 'used once'], ['covered', 'used once'], ['under the other panel', 'Ln 8, Col 1'], ['covered', 'Ln 8, Col 1'], ['under the other panel', '>_'], ['under the other panel', 'maid validate'], ['under the other panel', '\u2713 Approved plan lock'], ['under the other panel', '\u2713'], ['under the other panel', '\u2713 Red-phase evidence'], ['under the other panel', '\u2713'], ['under the other panel', '\u2713 Declared file scope'], ['under the other panel', '\u2713']], 'renderedManifest': ['goal: Add password recovery', 'files:', '- src/auth/service.ts', 'edit:', 'behavior:', '- expired tokens are rejected', '- valid tokens can only be', 'used once']}, 1001: {'panels': 2, 'problems': [['under the other panel', '\u2022\u2022\u2022'], ['covered', '\u2022\u2022\u2022'], ['under the other panel', 'goal: Add password recovery'], ['covered', 'goal: Add password recovery'], ['under the other panel', '- src/auth/service.ts'], ['covered', '- src/auth/service.ts'], ['under the other panel', '- expired tokens are rejected'], ['covered', '- expired tokens are rejected'], ['under the other panel', '- valid tokens can only be'], ['covered', '- valid tokens can only be'], ['under the other panel', 'used once'], ['covered', 'used once'], ['under the other panel', 'Ln 8, Col 1'], ['covered', 'Ln 8, Col 1'], ['under the other panel', '>_'], ['under the other panel', 'maid validate'], ['under the other panel', '\u2713 Approved plan lock'], ['under the other panel', '\u2713'], ['under the other panel', '\u2713 Red-phase evidence'], ['under the other panel', '\u2713'], ['under the other panel', '\u2713 Declared file scope'], ['under the other panel', '\u2713'], ['under the other panel', '\u2713 Structural contract'], ['under the other panel', '\u2713'], ['under the other panel', '\u2713 Behavioral tests'], ['under the other panel', '\u2713'], ['under the other panel', '\u2713 Independent review'], ['under the other panel', '\u2713'], ['under the other panel', 'HANDOFF READY']], 'renderedManifest': ['goal: Add password recovery', 'files:', '- src/auth/service.ts', 'edit:', 'behavior:', '- expired tokens are rejected', '- valid tokens can only be', 'used once']}, 1440: {'panels': 2, 'problems': [['under the other panel', '\u2022\u2022\u2022'], ['covered', '\u2022\u2022\u2022'], ['under the other panel', 'goal: Add password recovery'], ['covered', 'goal: Add password recovery'], ['under the other panel', '- src/auth/service.ts'], ['covered', '- src/auth/service.ts'], ['under the other panel', '- expired tokens are rejected'], ['covered', '- expired tokens are rejected'], ['under the other panel', '- valid tokens can only be'], ['covered', '- valid tokens can only be'], ['under the other panel', 'used once'], ['covered', 'used once'], ['under the other panel', 'Ln 8, Col 1'], ['covered', 'Ln 8, Col 1'], ['under the other panel', '>_'], ['under the other panel', 'maid validate'], ['under the other panel', '\u2713 Approved plan lock'], ['under the other panel', '\u2713'], ['under the other panel', '\u2713 Red-phase evidence'], ['under the other panel', '\u2713'], ['under the other panel', '\u2713 Declared file scope'], ['under the other panel', '\u2713'], ['under the other panel', '\u2713 Structural contract'], ['under the other panel', '\u2713'], ['under the other panel', '\u2713 Behavioral tests'], ['under the other panel', '\u2713'], ['under the other panel', '\u2713 Independent review'], ['under the other panel', '\u2713'], ['under the other panel', 'HANDOFF READY']], 'renderedManifest': ['goal: Add password recovery', 'files:', '- src/auth/service.ts', 'edit:', 'behavior:', '- expired tokens are rejected', '- valid tokens can only be', 'used once']}, 1920: {'panels': 2, 'problems': [['under the other panel', '\u2022\u2022\u2022'], ['covered', '\u2022\u2022\u2022'], ['under the other panel', 'goal: Add password recovery'], ['covered', 'goal: Add password recovery'], ['under the other panel', '- src/auth/service.ts'], ['covered', '- src/auth/service.ts'], ['under the other panel', '- expired tokens are rejected'], ['covered', '- expired tokens are rejected'], ['under the other panel', '- valid tokens can only be'], ['covered', '- valid tokens can only be'], ['under the other panel', 'used once'], ['covered', 'used once'], ['under the other panel', 'Ln 8, Col 1'], ['covered', 'Ln 8, Col 1'], ['under the other panel', '>_'], ['under the other panel', 'maid validate'], ['under the other panel', '\u2713 Approved plan lock'], ['under the other panel', '\u2713'], ['under the other panel', '\u2713 Red-phase evidence'], ['under the other panel', '\u2713'], ['under the other panel', '\u2713 Declared file scope'], ['under the other panel', '\u2713'], ['under the other panel', '\u2713 Structural contract'], ['under the other panel', '\u2713'], ['under the other panel', '\u2713 Behavioral tests'], ['under the other panel', '\u2713'], ['under the other panel', '\u2713 Independent review'], ['under the other panel', '\u2713'], ['under the other panel', 'HANDOFF READY']], 'renderedManifest': ['goal: Add password recovery', 'files:', '- src/auth/service.ts', 'edit:', 'behavior:', '- expired tokens are rejected', '- valid tokens can only be', 'used once']}}\nE       assert {820: {'panel...ected', ...]}} == {}\nE         \nE         Left contains 4 more items:\nE         {820: {'panels': 2,\nE                'problems': [['under the other panel', '- expired tokens are rejected'],\nE                             ['covered', '- expired tokens are rejected'],\nE                             ['under the other panel', '- valid tokens can only be'],\nE                             ['covered', '- valid tokens can only be'],...\nE         \nE         ...Full output truncated (135 lines hidden), use '-vv' to show\n\ntests/test_website_hero_refusal.py:330: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_website_hero_refusal.py::test_hero_manifest_passes_the_real_v2_schema\nFAILED tests/test_website_hero_refusal.py::test_hero_transcript_is_a_real_maid_verify_run\nFAILED tests/test_website_hero_refusal.py::test_hero_refusal_names_a_file_the_manifest_does_not_declare\nFAILED tests/test_website_hero_refusal.py::test_hero_panels_show_all_their_text_without_overlap\n4 failed, 29 passed in 18.30s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/website-hero-real-refusal.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/website-hero-real-refusal.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/test_website_hero_refusal.py:test_hero_manifest_passes_the_real_v2_schema",
+      "tests/test_website_hero_refusal.py:test_hero_manifest_passes_the_real_v2_schema:kind=test_function",
+      "tests/test_website_hero_refusal.py:test_hero_manifest_passes_the_real_v2_schema:returns=None",
+      "tests/test_website_hero_refusal.py:test_hero_panels_show_all_their_text_without_overlap",
+      "tests/test_website_hero_refusal.py:test_hero_panels_show_all_their_text_without_overlap:kind=test_function",
+      "tests/test_website_hero_refusal.py:test_hero_panels_show_all_their_text_without_overlap:returns=None",
+      "tests/test_website_hero_refusal.py:test_hero_refusal_names_a_file_the_manifest_does_not_declare",
+      "tests/test_website_hero_refusal.py:test_hero_refusal_names_a_file_the_manifest_does_not_declare:kind=test_function",
+      "tests/test_website_hero_refusal.py:test_hero_refusal_names_a_file_the_manifest_does_not_declare:returns=None",
+      "tests/test_website_hero_refusal.py:test_hero_transcript_is_a_real_maid_verify_run",
+      "tests/test_website_hero_refusal.py:test_hero_transcript_is_a_real_maid_verify_run:arg=tmp_path:type=Path:default=None",
+      "tests/test_website_hero_refusal.py:test_hero_transcript_is_a_real_maid_verify_run:kind=test_function",
+      "tests/test_website_hero_refusal.py:test_hero_transcript_is_a_real_maid_verify_run:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/test_website_hero_refusal.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/cli/commands/_format.py",
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/schemas/manifest.v2.schema.json"
+      ],
+      "scope": [
+        "website/data/practice-stats.json",
+        "website/index.html",
+        "website/styles.css"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_website_hero_refusal.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_hero_manifest_passes_the_real_v2_schema",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_hero_transcript_is_a_real_maid_verify_run",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_hero_refusal_names_a_file_the_manifest_does_not_declare",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_hero_panels_show_all_their_text_without_overlap",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/manifest.py",
+        "maid_runner/cli/commands/_format.py",
+        "maid_runner/cli/commands/verify.py",
+        "maid_runner/schemas/manifest.v2.schema.json"
+      ],
+      "scope": [
+        {
+          "path": "website/index.html",
+          "reason": "Hero manifest panel markup and the maid verify transcript panel."
+        },
+        {
+          "path": "website/styles.css",
+          "reason": "Literal-space code lines, refusal and pass styling, and a non-overlapping hero panel layout at every breakpoint."
+        },
+        {
+          "path": "website/data/practice-stats.json",
+          "reason": "Refreshed by scripts/update_practice_stats.py after this change, so the published counts include this change's tests and manifest; the script also rewrites the mirrored numbers in website/index.html."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/test_practice_stats_update.py",
+      "tests/test_website_distilled_story.py",
+      "tests/test_website_hero_refusal.py",
+      "tests/test_website_rendered_typography.py",
+      "tests/test_website_static_contract.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_website_hero_refusal.py tests/test_website_static_contract.py tests/test_website_rendered_typography.py tests/test_website_distilled_story.py tests/test_practice_stats_update.py",
+      "uv run maid validate manifests/website-hero-real-refusal.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/website-hero-real-refusal.manifest.yaml --mode schema --quiet"
+    ],
+    "acceptance_commands": []
+  }
+}

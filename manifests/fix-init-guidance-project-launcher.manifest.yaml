@@ -1,0 +1,274 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Use the detected project MAID launcher in generated agent guidance
+type: fix
+created: '2026-10-20T22:27:54Z'
+description: Use the same scripts/maid file detection already used by init hooks to adapt runnable MAID
+  commands in freshly rendered owned CLAUDE.md/AGENTS.md sections to ./scripts/maid. Cover recall, insights,
+  learn, promotion, revision, validators and Codex scope-check examples. Preserve existing public cmd_init
+  signature, marker ownership, all user text outside markers, skill identifiers, copied payload files
+  and no-wrapper guidance. Force reruns keep the owned guidance stable and reflect wrapper appearance/removal.
+  No new launcher inference, dependency installation, project dependency requirement, copied-skill rewriting,
+  marker-boundary whitespace normalization, or changes to hook/precommit selection. A project path containing
+  spaces still runs the emitted relative launcher. Bounded rendered-section adaptation avoids changing
+  reusable packaged templates and unrelated user text. Tests build real distribution assets from tracked
+  agent sources in a disposable workspace, then inject that filesystem through the owned _agent_payload_root
+  I/O adapter. This avoids ignored generated source-tree dependencies without faking assets or mutating
+  the project. Assert an installed skill matches the real generated payload bytes. All public cmd_init
+  execution and owned guidance assertions remain real.
+temptations:
+- risk: Rewrite every maid occurrence including user text or skill identifiers, or require a new global/project
+    dependency.
+  instead: Adapt only freshly rendered owned guidance with existing wrapper-file detection; preserve skill
+    names, marker-external text and no-wrapper commands. Execute an emitted concrete command through a
+    fixture wrapper.
+- risk: Fix only one agent or one command family and leave stale force reruns.
+  instead: Exercise both public cmd_init agent modes, all runnable MAID prefixes, repeated force init
+    owned-section stability and wrapper appearance/removal.
+files:
+  create:
+  - path: tests/cli/test_fix_init_guidance_project_launcher.py
+    artifacts:
+    - kind: test_function
+      name: test_wrapper_is_used_for_all_runnable_owned_maid_commands
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: tool
+        type: str
+      - name: file
+        type: str
+      - name: _real_payload
+        type: Path
+      returns: None
+      description: wrapper is used for all runnable owned maid commands
+    - kind: test_function
+      name: test_force_init_preserves_user_text_and_managed_launcher_idempotently
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: tool
+        type: str
+      - name: file
+        type: str
+      returns: None
+      description: force init preserves user text and managed launcher idempotently
+    - kind: test_function
+      name: test_without_wrapper_preserves_existing_project_guidance
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      - name: tool
+        type: str
+      - name: file
+        type: str
+      returns: None
+      description: without wrapper preserves existing project guidance
+    - kind: test_function
+      name: test_force_refresh_tracks_wrapper_presence_without_rewriting_user_text
+      args:
+      - name: tmp_path
+        type: Path
+      - name: monkeypatch
+        type: pytest.MonkeyPatch
+      returns: None
+      description: force refresh tracks wrapper presence without rewriting user text
+  read:
+  - docs/unit-testing-rules.md
+  - docs/draft-manifest-workflow.md
+  - tests/cli/test_init_cmd.py
+  - tests/test_init_draft_workflow_payload.py
+  - tests/cli/test_init_stash_revise_guidance.py
+  - tests/cli/test_init_validator_plugin_guidance.py
+  - tests/cli/test_init_hook_payloads.py
+  - tests/cli/test_init_payload_portability.py
+  - scripts/sync_claude_files.py
+  - .claude/AGENTS.md
+  - .claude/README.md
+  - .claude/agents/maid-implementation-reviewer.md
+  - .claude/manifest.json
+  - .claude/settings.json
+  - .claude/skills/maid-auditor/SKILL.md
+  - .claude/skills/maid-evolver/SKILL.md
+  - .claude/skills/maid-implement-draft/SKILL.md
+  - .claude/skills/maid-implementation-review/SKILL.md
+  - .claude/skills/maid-implementer/SKILL.md
+  - .claude/skills/maid-incident-logger/SKILL.md
+  - .claude/skills/maid-onboard/SKILL.md
+  - .claude/skills/maid-outcome-enrich/SKILL.md
+  - .claude/skills/maid-plan-review/SKILL.md
+  - .claude/skills/maid-planner/SKILL.md
+  - .claude/skills/maid-run-review/SKILL.md
+  - .claude/skills/maid-runner-cleanup-and-refactor/SKILL.md
+  - .claude/skills/maid-runner-draft-implement/SKILL.md
+  - .claude/skills/maid-runner-performance-optimization/SKILL.md
+  - .claude/skills/maid-runner-self-improvement/SKILL.md
+  - .claude/skills/maid-validate-hardening/SKILL.md
+  - .codex/skills/maid-auditor/SKILL.md
+  - .codex/skills/maid-auditor/agents/openai.yaml
+  - .codex/skills/maid-evolver/SKILL.md
+  - .codex/skills/maid-evolver/agents/openai.yaml
+  - .codex/skills/maid-implement-draft/SKILL.md
+  - .codex/skills/maid-implement-draft/agents/openai.yaml
+  - .codex/skills/maid-implementation-review/SKILL.md
+  - .codex/skills/maid-implementation-review/agents/openai.yaml
+  - .codex/skills/maid-implementer/SKILL.md
+  - .codex/skills/maid-implementer/agents/openai.yaml
+  - .codex/skills/maid-incident-logger/SKILL.md
+  - .codex/skills/maid-incident-logger/agents/openai.yaml
+  - .codex/skills/maid-onboard/SKILL.md
+  - .codex/skills/maid-onboard/agents/openai.yaml
+  - .codex/skills/maid-outcome-enrich/SKILL.md
+  - .codex/skills/maid-outcome-enrich/agents/openai.yaml
+  - .codex/skills/maid-plan-review/SKILL.md
+  - .codex/skills/maid-plan-review/agents/openai.yaml
+  - .codex/skills/maid-planner/SKILL.md
+  - .codex/skills/maid-planner/agents/openai.yaml
+  - .codex/skills/maid-run-review/SKILL.md
+  - .codex/skills/maid-run-review/agents/openai.yaml
+  - .codex/skills/maid-runner-cleanup-and-refactor/SKILL.md
+  - .codex/skills/maid-runner-cleanup-and-refactor/agents/openai.yaml
+  - .codex/skills/maid-runner-draft-implement/SKILL.md
+  - .codex/skills/maid-runner-performance-optimization/SKILL.md
+  - .codex/skills/maid-runner-performance-optimization/agents/openai.yaml
+  - .codex/skills/maid-runner-self-improvement/SKILL.md
+  - .codex/skills/maid-runner-self-improvement/agents/openai.yaml
+  - .codex/skills/maid-validate-hardening/SKILL.md
+  - .codex/skills/maid-validate-hardening/agents/openai.yaml
+  - .cursor/hooks.json
+  - .cursor/rules/maid-runner-rules.mdc
+  - .cursor/rules/unit-testing-rules.mdc
+  edit:
+  - path: maid_runner/cli/commands/init.py
+    artifacts:
+    - kind: function
+      name: cmd_init
+      args:
+      - name: args
+        type: argparse.Namespace
+      returns: int
+      description: Existing public seam exercised by the planned regression scenarios; preserve its signature.
+  scope:
+  - path: docs/plans/bug-report-triage-2026-10-20.md
+    reason: Reconcile source report and promoted contract after verified completion.
+validate:
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/cli/test_fix_init_guidance_project_launcher.py
+  - -q
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/cli/test_init_cmd.py
+  - tests/test_init_draft_workflow_payload.py
+  - tests/cli/test_init_stash_revise_guidance.py
+  - tests/cli/test_init_validator_plugin_guidance.py
+  - tests/cli/test_init_hook_payloads.py
+  - tests/cli/test_init_payload_portability.py
+  - -q
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/fix-init-guidance-project-launcher.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+outcome:
+  status: completed
+  completed_at: '2026-10-20T22:45:22.904277+00:00'
+  summary: Use the existing project scripts/maid wrapper in all runnable MAID inline examples freshly
+    rendered into owned CLAUDE.md/AGENTS.md guidance. Both agents retain skill identifiers, external user
+    text, no-wrapper defaults and stable owned guidance on force refresh; wrapper appearance/removal is
+    reflected. Copied payload and hook/precommit selection remain unchanged. Tests generate actual distribution
+    assets from tracked sources in a disposable workspace through the owned filesystem adapter, avoiding
+    ignored build-output prerequisites. Marker-boundary whitespace normalization was explicitly outside
+    this launcher repair.
+  lessons:
+  - lesson_type: artifact-identity
+    summary: 'Project launcher selection belongs at the owned render boundary: adapt command prefixes
+      before merging user text, preserving skill identifiers and unrelated payload files. Execute an emitted
+      command from a project path containing spaces as a public regression.'
+    tags:
+    - init
+    - launcher
+    - owned-guidance
+    paths:
+    - maid_runner/cli/commands/init.py
+    - tests/cli/test_fix_init_guidance_project_launcher.py
+  review_notes:
+  - source: independent-read-only-implementation_review_init_wrapper_v2
+    severity: ready
+    summary: Ready to merge; no blocking code, scope, behavioral-test or contract-fidelity findings. Independently
+      reran 39 focused cases.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/cli/test_fix_init_guidance_project_launcher.py
+    - -q
+    status: passed
+    summary: 7 dedicated and 32 adjacent cases passed. Real baseline 5 intended launcher failures 2 passes.
+      Behavioral/schema/scoped implementation, Ruff/Black/diff and lock revision 4 all 7 test hashes passed.
+  - command:
+    - /tmp/maid-identity-python310/.venv/bin/python
+    - -m
+    - pytest
+    - tests/cli/test_fix_init_guidance_project_launcher.py
+    - -q
+    status: passed
+    summary: Actual Python 3.10 all 7 dedicated cases passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --packet
+    status: passed
+    summary: 350 active manifests passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: All 322 declared commands passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - 12ba731eb016830277f636700b96ba492915c1eb
+    status: passed
+    summary: All 11 assessed deep stages passed with required plan-lock/red-evidence checks.

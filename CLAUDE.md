@@ -30,22 +30,55 @@ When available, use the installed Claude MAID skills as the primary workflow:
 The repo-level Claude payload also includes the
 `maid-implementation-reviewer` agent for independent implementation review.
 
-## Claude Planning Role (this repo)
+Repo-specific maid-runner skills (under `.claude/skills/`):
 
-This repository uses the optional multi-agent split described in `AGENTS.md`
-("Optional Multi-Agent Division of Labor"). Claude Code's default role here is
-strategy and planning.
+- `maid-runner-draft-implement`: implement `manifests/drafts` children as a
+  batch through promotion, validation, and review.
+- `maid-runner-self-improvement`: synthesize lessons into a prioritized
+  self-improvement backlog and draft queues.
+- `maid-validate-hardening`: audit `maid validate` / `maid verify` for
+  anti-gaming loopholes.
+- `maid-runner-cleanup-and-refactor`: audit for cleanup and safe-refactor work.
+- `maid-runner-performance-optimization`: profile and queue speedups.
 
-- When asked to create an epic or draft manifest, default to the `maid-planner`
-  skill's **Planning Handoff Mode**: design the draft under `manifests/drafts/`,
-  run the adversarial self-review, then emit the handoff packet and stop —
-  before behavioral tests, red phase, or `maid plan lock`. Codex (or another
-  implementing agent) uses `maid-implement-draft` to harden the contract and
-  implement.
-- Only run the full single-agent planner flow (through plan lock and promotion)
-  when the user explicitly asks Claude to complete the contract or implement.
-- This is a repo preference, not a MAID requirement; the shipped skills remain
-  tool-agnostic, and any agent can run the full lifecycle.
+## Claude Role (this repo)
+
+Claude Code is the primary agent in this repository. By default, Claude runs
+the full single-agent MAID lifecycle described in `AGENTS.md`: draft or evolve
+the manifest, write behavioral tests, confirm the red phase, plan-review,
+`maid plan lock`, `maid manifest promote`, implement within scope, validate,
+run the implementation review gate below, and capture Outcome.
+
+- When continuing from `manifests/drafts/*.manifest.yaml`, use
+  `maid-implement-draft` (or `maid-runner-draft-implement` for batches).
+- Use the `maid-planner` skill's **Planning Handoff Mode** (stop after the
+  draft and adversarial self-review, emit a handoff packet) only when the user
+  explicitly asks for a handoff to another agent.
+- The optional multi-agent split in `AGENTS.md` remains available; any agent
+  can play any role.
+
+## Claude Implementation Review Gate
+
+`AGENTS.md` ("MAID Review-Fix-Ready Loop") requires an independent read-only
+review before handoff. Standing authorization: for MAID implementation review
+in this repository, the user explicitly authorizes Claude to spawn the required
+read-only reviewer subagent without a separate per-turn approval.
+
+Claude equivalents of the Codex mechanics in `AGENTS.md`:
+
+- `fork_context=false` → spawn a fresh agent with the Agent tool, never
+  `subagent_type: "fork"`, so the reviewer does not inherit the implementation
+  transcript.
+- `agent_type=explorer` → `subagent_type: "maid-implementation-reviewer"`
+  (read-only tools). If it is unavailable, use a general-purpose agent with the
+  same read-only packet.
+- Leave `model` and `effort` unset so the reviewer inherits from the main agent.
+- `close_agent` → not needed; the reviewer ends when it returns its verdict.
+  Do not reuse a prior reviewer via SendMessage for a re-review; spawn a fresh
+  one with an updated packet.
+
+Pass only the verdict-neutral review packet defined in `AGENTS.md`, and exclude
+prior review lineage and coordinator-owned follow-up state.
 
 ## MAID Workflow Anchors
 

@@ -213,9 +213,9 @@ def test_shell_installer_passes_shellcheck() -> None:
 def test_readme_and_landing_page_publish_bootstrap_installers_as_primary() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     homepage = (WEBSITE / "index.html").read_text(encoding="utf-8")
-    quickstart = homepage.split('id="quickstart"', 1)[1].split('class="final-cta"', 1)[
-        0
-    ]
+    quickstart = homepage.split('id="quickstart"', 1)[1].split(
+        'id="maid-in-practice"', 1
+    )[0]
     shell_command = "curl -LsSf https://maidrunner.dev/install.sh | sh"
     powershell_command = "irm https://maidrunner.dev/install.ps1 | iex"
 

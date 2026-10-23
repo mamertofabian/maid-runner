@@ -418,6 +418,7 @@ def _render_promoted_yaml(
     from ruamel.yaml.error import YAMLError
     from ruamel.yaml.scalarstring import FoldedScalarString, LiteralScalarString
     from ruamel.yaml.util import load_yaml_guess_indent
+    import yaml as safe_yaml
 
     yaml = YAML()
     yaml.preserve_quotes = True
@@ -438,18 +439,28 @@ def _render_promoted_yaml(
         LiteralScalarString,
         (LiteralScalarString, FoldedScalarString),
     )
-    if sequence_indent is not None:
+    offset = sequence_offset or 0
+    # Literal block contents can confuse the raw-text guesser. The emitter
+    # needs room for the dash and space; otherwise keep its safe defaults.
+    if sequence_indent is not None and offset >= 0 and sequence_indent >= offset + 2:
         yaml.indent(
             mapping=_guess_mapping_indent(source_text),
             sequence=sequence_indent,
-            offset=sequence_offset or 0,
+            offset=offset,
         )
     output = StringIO()
     try:
         yaml.dump(data, output)
     except YAMLError as exc:
         raise ValueError(str(exc)) from exc
-    return output.getvalue()
+    rendered = output.getvalue()
+    try:
+        parsed = safe_yaml.safe_load(rendered)
+    except safe_yaml.YAMLError as exc:
+        raise ValueError(str(exc)) from exc
+    if not isinstance(parsed, dict):
+        raise ValueError("Rendered manifest YAML must be a mapping.")
+    return rendered
 
 
 def _guess_mapping_indent(source_text: str) -> int:

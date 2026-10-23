@@ -1,0 +1,114 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Keep explicit Deno test targets discoverable when standard dependency-resolution flags are present
+type: fix
+created: '2026-10-23T06:35:29Z'
+description: |
+  Bug reports 20261022-142557-relay-deno-no-lock-command-targets.md and
+  20261023-031613-deno-test-discovery-flags.md: `deno test --no-lock <file>` and
+  `deno test --no-lock --node-modules-dir=none <file>` execute the native test,
+  but the bounded Deno target scanner returns no targets for any flag outside
+  --allow-env/--no-check/--allow-all/-A/--junit-path. The test then disappears
+  from behavioral discovery (false E200), plan-lock test_hashes and command
+  integrity (false E230).
+
+  Recognize an exact, natively verified (deno 2.3.6) set of dependency-resolution
+  flags that neither select tests, prevent execution, nor consume a positional
+  target:
+  - flag-only: --no-lock, --cached-only, --no-remote, --no-npm. An attached
+    value (`--no-lock=true`) is rejected natively, so it yields no targets.
+  - optional attached value: --node-modules-dir[=auto|manual|none|true|false]
+    and --frozen[=true|false]. Native clap parsing never consumes the next token
+    for the bare form; values attach only with `=`. Deno 2.3.6 still accepts the
+    hidden legacy --node-modules-dir=true/false values, so they are accepted.
+    Other values (including case variants such as TRUE) and empty values are
+    rejected natively, so they yield no targets.
+  Each newly recognized flag may appear at most once; native Deno rejects
+  repeats before running tests. Existing selector (--filter), --no-run,
+  unknown-option, --junit-path value, `--` and permission-conflict boundaries are
+  unchanged. Rationale: the 2026-09-28 Deno permission fix's Outcome lesson
+  requires exact tokens plus native-proven rejection of incompatible
+  combinations, because a CLI argument failure is not evidence that tests ran.
+  --lock [<FILE>] (space-separated optional value), --config, --import-map,
+  --reload and other flags stay unrecognized and out of scope. Existing
+  limitation, unchanged here: a space-separated value after a bare optional-value
+  flag (`--node-modules-dir none <file>`) is a positional to native Deno and to
+  the scanner alike; native Deno fails to import it, and maid test reports that
+  command failure. It is not treated as covered behavior.
+
+  The separate Deno.test callback limitation from the second report is handled
+  by fix-typescript-deno-test-declarations.
+temptations:
+- risk: Accept any `--no-*` or unknown Deno flag so the target falls through.
+  instead: Add only the listed exact flags with natively checked value rules, and keep the unknown-option rejection covered by tests.
+- risk: Let the bare optional-value flags consume the next token or accept arbitrary attached values.
+  instead: Accept bare forms as flag-only and attached values only from the documented enums; reject empty, unknown and duplicate forms.
+files:
+  scope:
+  - path: maid_runner/core/_test_runner_invocation.py
+    reason: Recognize the exact Deno dependency-resolution flags in the private bounded target scanner.
+  read:
+  - tests/core/validation/test_deno_dependency_flag_discovery.py
+  - maid_runner/core/_validation_test_artifacts.py
+  - maid_runner/core/plan_lock.py
+  - maid_runner/core/test_runner.py
+  - maid_runner/core/validate.py
+  - maid_runner/core/manifest.py
+  - maid_runner/core/result.py
+  - maid_runner/core/types.py
+validate:
+- [uv, run, pytest, tests/core/validation/test_deno_dependency_flag_discovery.py, -q]
+
+outcome:
+  status: completed
+  completed_at: '2026-10-23T06:46:26Z'
+  summary: The bounded Deno target scanner recognizes exact natively verified dependency-resolution flags
+    (--no-lock, --cached-only, --no-remote, --no-npm, --node-modules-dir[=MODE], --frozen[=BOOL]), so explicit
+    native test files stay in behavioral discovery, plan-lock test_hashes and command integrity.
+  rationale: Flag-only flags reject attached values; optional-value flags accept only native enum values
+    via '=' and never consume the next token. Each newly recognized flag may appear once, matching native
+    rejection of repeats. Existing selector, --no-run, unknown-option, '--', --junit-path and permission
+    conflict boundaries are unchanged. Plan review corrected the description to accept the hidden legacy
+    --node-modules-dir=true/false values that Deno 2.3.6 still runs.
+  lessons:
+  - lesson_type: validation-trust
+    summary: Probe the native runner for every value form before writing an allow-list; Deno accepts hidden
+      legacy --node-modules-dir=true/false values that its help text omits.
+    tags:
+    - deno
+    - command-integrity
+    - e230
+    - maid-runner-feedback
+    paths:
+    - maid_runner/core/_test_runner_invocation.py
+    - tests/core/validation/test_deno_dependency_flag_discovery.py
+  review_notes:
+  - source: independent-read-only-plan-review
+    severity: warning
+    summary: Needs revision; the description wrongly said --node-modules-dir=true/false are rejected natively.
+      Fixed by accepting and testing them, adding --no-remote/--no-npm duplicate cases and documenting
+      the existing space-separated value limitation.
+  - source: independent-read-only-implementation-review
+    severity: ready
+    summary: Ready to merge; no blocking findings. Reviewer re-ran 113 new and 291 Deno/validator tests with
+      native Deno and probed guards directly. Non-blocking gaps were combinations of new flags with
+      '--' or permission conflicts, which existing tests cover.
+  validation:
+  - command: [uv, run, pytest, tests/core/validation/test_deno_dependency_flag_discovery.py, -q]
+    status: passed
+    summary: All flag discovery, plan-lock, command-integrity and native Deno 2.3.6 cases pass.
+  - command: [uv, run, maid, validate]
+    status: passed
+    summary: All active manifests pass.
+  - command: [uv, run, maid, test]
+    status: passed
+    summary: All declared manifest commands pass, 0 failed. Full pytest 6290 passed, 20 skipped.
+  - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --file-tracking-scope, task,
+      --plan-lock-scope, task, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, 849c7a64,
+      --summary]
+    status: passed
+    summary: All 11 stages passed; existing non-blocking E307 for ts_compiler_resolver.cjs only.

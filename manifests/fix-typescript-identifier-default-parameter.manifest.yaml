@@ -1,0 +1,212 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Preserve parameter names and bare identifier default expressions in TypeScript
+type: fix
+created: '2026-10-20T20:42:11Z'
+description: Separate TypeScript parameter binding identity from its default expression in the existing
+  tree-sitter extractor. Once = is seen, consume the following expression as default before considering
+  identifier/pattern binding branches. Preserve the exact initializer source, declared type and parameter
+  name for typed/inferred functions, arrows, methods and constructor parameter properties. Keep existing
+  optional/destructured/rest/literal/expression behavior and public signatures. Verify both public collectors,
+  implementation validation and snapshot save/load plus a negative where initializer W cannot satisfy
+  parameter windowMs. No default-expression evaluation, type inference extension, schema change or broader
+  comparison-policy change. Both inventory and hardened-scope recall found no related records. Apply existing
+  exact-identity and producer-only regression discipline; no advisory lesson requires broader scope.
+temptations:
+- risk: Fix only a named-function special case or accept the initializer as a second binding name.
+  instead: Repair the shared parameter extractor and exercise functions/arrows/methods and constructor-property
+    identity, including wrong-name rejection.
+- risk: Evaluate defaults or broaden type inference/default comparison while repairing collection.
+  instead: Keep exact source expression strings with literal/expression and optional/destructured/rest
+    compatibility controls; use existing snapshot/validation APIs.
+files:
+  edit:
+  - path: maid_runner/validators/_typescript_implementation.py
+    artifacts:
+    - kind: function
+      name: collect_implementation_artifacts
+      args:
+      - name: root
+        type: Any
+      - name: source
+        type: bytes
+      - name: allow_jsdoc_returns
+        type: bool
+        default: 'False'
+      returns: list[FoundArtifact]
+      description: Preserve public TypeScript collection with exact parameter/default identities.
+  create:
+  - path: tests/validators/test_fix_typescript_identifier_default_parameter.py
+    artifacts:
+    - kind: test_function
+      name: test_identifier_initializer_keeps_binding_name_type_and_default
+      args:
+      - name: header
+        type: str
+      - name: kind
+        type: str
+      returns: None
+      description: identifier initializer keeps binding name type and default
+    - kind: test_function
+      name: test_literal_and_expression_default_compatibility_is_preserved
+      args:
+      - name: default
+        type: str
+      returns: None
+      description: literal and expression default compatibility is preserved
+    - kind: test_function
+      name: test_constructor_property_keeps_its_declared_name
+      args: []
+      returns: None
+      description: constructor property keeps its declared name
+    - kind: test_function
+      name: test_optional_destructured_and_rest_parameters_remain_unchanged
+      args: []
+      returns: None
+      description: optional destructured and rest parameters remain unchanged
+    - kind: test_function
+      name: test_identifier_default_validates_and_snapshot_roundtrips
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: identifier default validates and snapshot roundtrips
+    - kind: test_function
+      name: test_initializer_name_cannot_satisfy_the_parameter_contract
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: initializer name cannot satisfy the parameter contract
+  read:
+  - docs/unit-testing-rules.md
+  - docs/draft-manifest-workflow.md
+  - maid_runner/validators/typescript.py
+  - maid_runner/core/types.py
+  - maid_runner/core/manifest.py
+  - maid_runner/core/_implementation_validation.py
+  - maid_runner/core/snapshot.py
+  scope:
+  - path: docs/plans/bug-report-triage-2026-10-20.md
+    reason: Reconcile promoted contract and resolved source report.
+validate:
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/validators/test_fix_typescript_identifier_default_parameter.py
+  - -q
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/validators/test_typescript.py
+  - tests/validators/test_typescript_artifact_edge_cases.py
+  - tests/core/test_typescript_return_validation.py
+  - tests/core/test_ts_return_contracts.py
+  - -q
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/fix-typescript-identifier-default-parameter.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+outcome:
+  status: completed
+  completed_at: '2026-10-20T20:49:30.275972+00:00'
+  summary: Separate TypeScript parameter binding identity from default expression identity in the existing
+    shared extractor. Preserve identifier defaults, inferred/declared types and exact expression source
+    for functions, arrows, methods and constructor properties without schema or comparison-policy changes.
+  lessons:
+  - lesson_type: artifact-identity
+    summary: Interpret parameter children according to their existing default-expression state before
+      binding-node cases. An initializer identifier otherwise overwrites the public parameter name and
+      can satisfy an incorrect contract. Pair collection and snapshot positives with wrong-binding rejection
+      and real executable fixture context.
+    tags:
+    - typescript
+    - signature
+    - default
+    paths:
+    - maid_runner/validators/_typescript_implementation.py
+    - tests/validators/test_fix_typescript_identifier_default_parameter.py
+  review_notes:
+  - source: independent-read-only-implementation_review_ts_default
+    severity: ready
+    summary: Ready to merge; no blocking findings.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/validators/test_fix_typescript_identifier_default_parameter.py
+    - -q
+    status: passed
+    summary: 20 dedicated plus 200 adjacent cases passed, including real Node26 fixture test executions.
+      Scoped implementation, Ruff/Black/diff and lock hashes passed. Original baseline 9 failed / 11 passed.
+  - command:
+    - uv
+    - run
+    - --no-project
+    - --isolated
+    - --python
+    - '3.10'
+    - --with-editable
+    - .[typescript]
+    - --with
+    - pytest
+    - --with
+    - pytest-xdist
+    - python
+    - -m
+    - pytest
+    - tests/validators/test_fix_typescript_identifier_default_parameter.py
+    - -q
+    status: passed
+    summary: 'Actual Python 3.10 with declared optional TypeScript dependencies: all 20 passed.'
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --packet
+    status: passed
+    summary: 346 active manifests passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: All 318 declared commands passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - 5f406253349694f4ccf90cab391087b5a6205c49
+    status: passed
+    summary: All 11 assessment-directed deep stages passed with required plan-lock/red evidence.

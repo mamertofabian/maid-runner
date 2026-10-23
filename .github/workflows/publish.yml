@@ -37,6 +37,8 @@ jobs:
       run: uv sync --python "$pythonLocation/bin/python"
     - name: Install npm dependencies
       run: npm ci
+    - name: Install Chromium for website browser tests
+      run: uv run playwright install --with-deps chromium
     - name: Sync Claude Code files for validation
       run: uv run python scripts/sync_claude_files.py
     - name: Run MAID validation

@@ -1,0 +1,131 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: Prepare maid-runner 2.28.1 patch release metadata and changelog
+type: fix
+created: "2026-10-23T07:04:56Z"
+supersedes:
+  - bump-version-2.28.0
+description: |
+  Bump maid-runner from published 2.28.0 to patch release 2.28.1 and
+  synchronize pyproject, editable uv lock metadata, CLI runtime version,
+  changelog and roadmap. The v2.28.0..HEAD package inventory is fixes only:
+  the 19 fixes from the 2026-10-20 bug-report triage, the scope-check
+  outside-project-root fix and the Deno dependency-flag / Deno.test fix.
+  Website, CI browser-install and documentation changes are not package
+  behavior and stay out of the release notes. All entries go under
+  `### Fixed`. The Deno.test entry must state that the object form
+  `Deno.test({ name, fn })` remains unrecognized.
+
+  This supersedes bump-version-2.28.0 because its dedicated release test pins
+  2.28.0 metadata. That test file is replaced by
+  tests/integration/test_release_2_28_1.py and deleted, so full pytest does
+  not keep a stale version assertion. Historical metadata checks in
+  tests/integration/test_library_api.py stay dynamic and unchanged.
+
+  The active snapshot-cli-commands--main-2 lock hashes the whole test suite,
+  including the deleted file. Revise it with
+  `maid plan revise manifests/snapshot-cli-commands--main-2.manifest.yaml --no-run`
+  and a reason naming the superseded release test, so its test hashes drop
+  test_release_2_28_0.py and add test_release_2_28_1.py. Its red_evidence is
+  already null and its manifest contract and commands are unchanged.
+
+  After implementation, build wheel and sdist, run twine check and smoke-test
+  `maid --version` from the wheel in an isolated environment.
+
+  This task prepares local release metadata only. Pushing, opening the
+  release pull request, merging to main, tagging and publishing are separate
+  actions that need explicit user approval.
+temptations:
+  - risk: Update only pyproject.toml and leave lock, roadmap or changelog links stale.
+    instead: Test every release mirror and regenerate uv.lock through uv.
+  - risk: Collapse the fix inventory into one generic validation-hardening line.
+    instead: Name each post-2.28.0 fix separately with behaviorally accurate boundaries, as the release test requires.
+  - risk: Claim the Deno.test object form is supported because the release test names it.
+    instead: State that `Deno.test({ name, fn })` remains unrecognized, matching the dd0640ab Outcome.
+  - risk: Call this a feature release because website commits use feat prefixes.
+    instead: Keep the patch version; website changes are not shipped in the package.
+files:
+  scope:
+    - path: pyproject.toml
+      reason: Package version metadata has no analyzer-visible public artifact.
+    - path: uv.lock
+      reason: Editable package metadata must match the version through uv regeneration.
+    - path: CHANGELOG.md
+      reason: Date the patch release, inventory its fixes and synchronize comparison links.
+    - path: docs/ROADMAP.md
+      reason: Synchronize prepared CLI version and last-updated date.
+  delete:
+    - path: tests/integration/test_release_2_28_0.py
+      reason: Replaced by the 2.28.1 release test; it pins superseded 2.28.0 metadata.
+  read:
+    - tests/integration/test_release_2_28_1.py
+    - tests/integration/test_library_api.py
+    - maid_runner/__version__.py
+    - manifests/bump-version-2.28.0.manifest.yaml
+    - docs/plans/bug-report-triage-2026-10-20.md
+validate:
+  - uv run python -m pytest -q tests/integration/test_release_2_28_1.py tests/integration/test_library_api.py
+
+outcome:
+  status: completed
+  completed_at: '2026-10-23T07:19:46Z'
+  summary: Prepared maid-runner 2.28.1 on release/v2.next with package, lock, roadmap and CLI metadata
+    synchronized and a dated changelog naming all 21 post-2.28.0 package fixes. Built and checked wheel and
+    sdist. No push, tag, merge or publication was performed.
+  rationale: Every package-affecting commit since v2.28.0 is a fix; feat commits change only the website,
+    so a patch release is correct. The 2.28.0 release test pinned old metadata, so this manifest supersedes
+    bump-version-2.28.0 and replaces that test. The snapshot-cli-commands--main-2 lock hashes the whole
+    suite; its revision 71 (--no-run, unchanged contract and commands, red_evidence still null) drops the
+    deleted test, adds test_release_2_28_1.py and also records 9 test files committed after its previous
+    revision, with no existing hash changed.
+  lessons:
+  - lesson_type: release
+    summary: Deleting a release test pinned by a broad whole-suite lock needs a planned revision of that
+      lock; check maid plan dependents before deleting any test file.
+    tags:
+    - release
+    - plan-lock
+    - maid-runner-feedback
+    paths:
+    - tests/integration/test_release_2_28_1.py
+    - .maid/plan-locks/snapshot-cli-commands--main-2.lock.json
+  - lesson_type: environment
+    summary: uv sync --group dev removes the docs group; use uv sync --all-groups before full pytest or the
+      Sphinx reference test fails for environment reasons.
+    tags:
+    - uv
+    - environment
+    paths:
+    - pyproject.toml
+  review_notes:
+  - source: independent-read-only-plan-review
+    severity: warning
+    summary: Needs revision; the snapshot lock dependency on the deleted test was unplanned, the test allowed
+      overclaiming the Deno.test object form and did not pin the Fixed section. All fixed before lock.
+  - source: independent-read-only-implementation-review
+    severity: ready
+    summary: Ready to merge; every package-affecting commit is covered without overclaiming. Applied its
+      wording note (imported type artifacts) and noted the 9 extra snapshot-lock hashes here.
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/integration/test_release_2_28_1.py, tests/integration/test_library_api.py]
+    status: passed
+    summary: 36 passed.
+  - command: [uv, run, python, -m, pytest, tests/, -q, -n, auto]
+    status: passed
+    summary: 6294 passed, 20 skipped after restoring all dependency groups.
+  - command: [uv, run, maid, test]
+    status: passed
+    summary: All declared manifest commands passed, 0 failed.
+  - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --file-tracking-scope, task,
+      --plan-lock-scope, task, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, dd0640ab,
+      --summary]
+    status: passed
+    summary: All 11 stages passed; existing non-blocking E307 for ts_compiler_resolver.cjs only.
+  - command: [uv, build]
+    status: passed
+    summary: maid_runner-2.28.1 wheel and sdist built; twine check passed for both; an isolated wheel install
+      reports maid 2.28.1.

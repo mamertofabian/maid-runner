@@ -1,0 +1,486 @@
+{
+  "manifest_path": "manifests/fix-stash-readonly-sibling-dependencies.manifest.yaml",
+  "manifest_hash": "sha256-contract:91b8181f3f32cd99fbde0f526f0fd617c4968fdaca4387c415f42a31cc5f0420",
+  "test_hashes": {
+    "tests/core/test_fix_stash_readonly_sibling_dependencies.py": "sha256-pyast:v2:affe263976d5113e1fd74201534611182466fd5b5a36b01461820bd5d8251135",
+    "tests/cli/test_stash_revise_files_read_targets.py": "sha256-pyast:v2:c3206abb83e16f8031788b2ca0b856463d2b441fbd5d88a3a6e289b59825932e",
+    "tests/cli/test_stash_revise_session_robustness.py": "sha256-pyast:v2:c85909b286f09e44a0ea34cc247adbd66d997a9749750a4f9a525311ae1762a5",
+    "tests/cli/test_plan_cmd_stash_scope_targets.py": "sha256-pyast:v2:274b7b1f8a2bc7a5189d60cf4446b1edddb94ed6e8362f80197028c539bdb8d3",
+    "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:5b2ce9458cfaec7a9eb2eabebb103be617604185ba7fbe7bca4d88a869289820"
+  },
+  "created_at": "2026-10-20T16:11:16.588815+00:00",
+  "revision": 8,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:14c2ad51ff1dbbb980ec3a0c4f69c9d2cbc0449ae2dabc82535a5163b96af9e7",
+      "prior_test_hashes": {
+        "tests/core/test_fix_stash_readonly_sibling_dependencies.py": "sha256-pyast:v2:b4b905b9ee025d70b5c8900ebf34a7c2b9f7a294b896c6166930d74fed063b4b",
+        "tests/cli/test_stash_revise_files_read_targets.py": "sha256-pyast:v2:c3206abb83e16f8031788b2ca0b856463d2b441fbd5d88a3a6e289b59825932e",
+        "tests/cli/test_stash_revise_session_robustness.py": "sha256-pyast:v2:c85909b286f09e44a0ea34cc247adbd66d997a9749750a4f9a525311ae1762a5",
+        "tests/cli/test_plan_cmd_stash_scope_targets.py": "sha256-pyast:v2:274b7b1f8a2bc7a5189d60cf4446b1edddb94ed6e8362f80197028c539bdb8d3",
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:5b2ce9458cfaec7a9eb2eabebb103be617604185ba7fbe7bca4d88a869289820"
+      },
+      "revised_at": "2026-10-20T16:11:40.936002+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-stash-readonly-sibling-dependencies.manifest.yaml -> manifests/fix-stash-readonly-sibling-dependencies.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2dfc8c632aafb04d52a3b9aa8610e65d61cda84aee0fc7ea33f0a6632151a6f8",
+      "prior_test_hashes": {
+        "tests/core/test_fix_stash_readonly_sibling_dependencies.py": "sha256-pyast:v2:b4b905b9ee025d70b5c8900ebf34a7c2b9f7a294b896c6166930d74fed063b4b",
+        "tests/cli/test_stash_revise_files_read_targets.py": "sha256-pyast:v2:c3206abb83e16f8031788b2ca0b856463d2b441fbd5d88a3a6e289b59825932e",
+        "tests/cli/test_stash_revise_session_robustness.py": "sha256-pyast:v2:c85909b286f09e44a0ea34cc247adbd66d997a9749750a4f9a525311ae1762a5",
+        "tests/cli/test_plan_cmd_stash_scope_targets.py": "sha256-pyast:v2:274b7b1f8a2bc7a5189d60cf4446b1edddb94ed6e8362f80197028c539bdb8d3",
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:5b2ce9458cfaec7a9eb2eabebb103be617604185ba7fbe7bca4d88a869289820"
+      },
+      "revised_at": "2026-10-20T16:21:21.914885+00:00",
+      "reason": "Correct lock-only fixture to use plain revision without a stash-only flag; capture intended dependency preservation failure",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2dfc8c632aafb04d52a3b9aa8610e65d61cda84aee0fc7ea33f0a6632151a6f8",
+      "prior_test_hashes": {
+        "tests/core/test_fix_stash_readonly_sibling_dependencies.py": "sha256-pyast:v2:6d56ab7598ef0fa2ed8cfacc45a4b27bea79bff420303e7ae7fff23f42aa1431",
+        "tests/cli/test_stash_revise_files_read_targets.py": "sha256-pyast:v2:c3206abb83e16f8031788b2ca0b856463d2b441fbd5d88a3a6e289b59825932e",
+        "tests/cli/test_stash_revise_session_robustness.py": "sha256-pyast:v2:c85909b286f09e44a0ea34cc247adbd66d997a9749750a4f9a525311ae1762a5",
+        "tests/cli/test_plan_cmd_stash_scope_targets.py": "sha256-pyast:v2:274b7b1f8a2bc7a5189d60cf4446b1edddb94ed6e8362f80197028c539bdb8d3",
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:5b2ce9458cfaec7a9eb2eabebb103be617604185ba7fbe7bca4d88a869289820"
+      },
+      "revised_at": "2026-10-20T16:39:46.034234+00:00",
+      "reason": "Cover configured chain selection and refuse unsupported symlink-backed retained proof inputs; synchronize packaged documentation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_symlink_sibling_context_refuses_before_stashing",
+          "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_symlink_sibling_context_refuses_before_stashing:arg=capsys:type=CaptureFixture[str]:default=None",
+          "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_symlink_sibling_context_refuses_before_stashing:arg=context:type=str:default=None",
+          "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_symlink_sibling_context_refuses_before_stashing:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_symlink_sibling_context_refuses_before_stashing:kind=test_function",
+          "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_symlink_sibling_context_refuses_before_stashing:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "read:maid_runner/core/config.py",
+          "scope:maid_runner/docs/draft-manifest-workflow.md"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:af56634e3a6927ae0d46db4a7882b96b548e4550285d0df3f22abd4c51ba5763",
+      "prior_test_hashes": {
+        "tests/core/test_fix_stash_readonly_sibling_dependencies.py": "sha256-pyast:v2:094ed3f74595fa609b561b07290c69b6af7ea972010aa6ea5867e6eee23624f9",
+        "tests/cli/test_stash_revise_files_read_targets.py": "sha256-pyast:v2:c3206abb83e16f8031788b2ca0b856463d2b441fbd5d88a3a6e289b59825932e",
+        "tests/cli/test_stash_revise_session_robustness.py": "sha256-pyast:v2:c85909b286f09e44a0ea34cc247adbd66d997a9749750a4f9a525311ae1762a5",
+        "tests/cli/test_plan_cmd_stash_scope_targets.py": "sha256-pyast:v2:274b7b1f8a2bc7a5189d60cf4446b1edddb94ed6e8362f80197028c539bdb8d3",
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:5b2ce9458cfaec7a9eb2eabebb103be617604185ba7fbe7bca4d88a869289820"
+      },
+      "revised_at": "2026-10-20T16:40:25.508143+00:00",
+      "reason": "Use actual .maidrc.yaml config path in custom manifest-directory regression",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:af56634e3a6927ae0d46db4a7882b96b548e4550285d0df3f22abd4c51ba5763",
+      "prior_test_hashes": {
+        "tests/core/test_fix_stash_readonly_sibling_dependencies.py": "sha256-pyast:v2:326828938dcfdf95063c10903fd553fff8af677dc487a659c3d12601da15de85",
+        "tests/cli/test_stash_revise_files_read_targets.py": "sha256-pyast:v2:c3206abb83e16f8031788b2ca0b856463d2b441fbd5d88a3a6e289b59825932e",
+        "tests/cli/test_stash_revise_session_robustness.py": "sha256-pyast:v2:c85909b286f09e44a0ea34cc247adbd66d997a9749750a4f9a525311ae1762a5",
+        "tests/cli/test_plan_cmd_stash_scope_targets.py": "sha256-pyast:v2:274b7b1f8a2bc7a5189d60cf4446b1edddb94ed6e8362f80197028c539bdb8d3",
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:5b2ce9458cfaec7a9eb2eabebb103be617604185ba7fbe7bca4d88a869289820"
+      },
+      "revised_at": "2026-10-20T16:43:56.251024+00:00",
+      "reason": "Cover lexical sibling-manifest symlink identity before resolved ownership proofs",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:af56634e3a6927ae0d46db4a7882b96b548e4550285d0df3f22abd4c51ba5763",
+      "prior_test_hashes": {
+        "tests/core/test_fix_stash_readonly_sibling_dependencies.py": "sha256-pyast:v2:54871248199ccaf8b343279eb647c637113659798265d016fc59e3039caa8239",
+        "tests/cli/test_stash_revise_files_read_targets.py": "sha256-pyast:v2:c3206abb83e16f8031788b2ca0b856463d2b441fbd5d88a3a6e289b59825932e",
+        "tests/cli/test_stash_revise_session_robustness.py": "sha256-pyast:v2:c85909b286f09e44a0ea34cc247adbd66d997a9749750a4f9a525311ae1762a5",
+        "tests/cli/test_plan_cmd_stash_scope_targets.py": "sha256-pyast:v2:274b7b1f8a2bc7a5189d60cf4446b1edddb94ed6e8362f80197028c539bdb8d3",
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:5b2ce9458cfaec7a9eb2eabebb103be617604185ba7fbe7bca4d88a869289820"
+      },
+      "revised_at": "2026-10-20T16:44:52.577578+00:00",
+      "reason": "Pin matching in-project symlink owner identity to reproduce evidence-save bypass rather than generic invalid-owner refusal",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:af56634e3a6927ae0d46db4a7882b96b548e4550285d0df3f22abd4c51ba5763",
+      "prior_test_hashes": {
+        "tests/core/test_fix_stash_readonly_sibling_dependencies.py": "sha256-pyast:v2:5c08253232280a0da467fd7b3d8f377e17815a7d7b405d853233d41984230eb1",
+        "tests/cli/test_stash_revise_files_read_targets.py": "sha256-pyast:v2:c3206abb83e16f8031788b2ca0b856463d2b441fbd5d88a3a6e289b59825932e",
+        "tests/cli/test_stash_revise_session_robustness.py": "sha256-pyast:v2:c85909b286f09e44a0ea34cc247adbd66d997a9749750a4f9a525311ae1762a5",
+        "tests/cli/test_plan_cmd_stash_scope_targets.py": "sha256-pyast:v2:274b7b1f8a2bc7a5189d60cf4446b1edddb94ed6e8362f80197028c539bdb8d3",
+        "tests/cli/test_plan_cmd_stash_import_obstruction.py": "sha256-pyast:v2:5b2ce9458cfaec7a9eb2eabebb103be617604185ba7fbe7bca4d88a869289820"
+      },
+      "revised_at": "2026-10-20T16:50:17.500785+00:00",
+      "reason": "Enforce existing regular-file retained-context contract with directory preflight and replacement regressions",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_unsupported_sibling_context_refuses_before_stashing",
+          "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_unsupported_sibling_context_refuses_before_stashing:arg=capsys:type=CaptureFixture[str]:default=None",
+          "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_unsupported_sibling_context_refuses_before_stashing:arg=context:type=str:default=None",
+          "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_unsupported_sibling_context_refuses_before_stashing:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_unsupported_sibling_context_refuses_before_stashing:kind=test_function",
+          "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_unsupported_sibling_context_refuses_before_stashing:returns=None"
+        ],
+        "artifacts_removed": [
+          "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_symlink_sibling_context_refuses_before_stashing",
+          "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_symlink_sibling_context_refuses_before_stashing:arg=capsys:type=CaptureFixture[str]:default=None",
+          "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_symlink_sibling_context_refuses_before_stashing:arg=context:type=str:default=None",
+          "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_symlink_sibling_context_refuses_before_stashing:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_symlink_sibling_context_refuses_before_stashing:kind=test_function",
+          "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_symlink_sibling_context_refuses_before_stashing:returns=None"
+        ],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-20T16:50:47.466409+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_fix_stash_readonly_sibling_dependencies.py -q",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/core/test_fix_stash_readonly_sibling_dependencies.py::test_invalid_current_sibling_ownership_refuses_without_stash[spliced-command]\nFAILED tests/core/test_fix_stash_readonly_sibling_dependencies.py::test_invalid_current_sibling_ownership_refuses_without_stash[invalid-evidence]\nFAILED tests/core/test_fix_stash_readonly_sibling_dependencies.py::test_invalid_current_sibling_ownership_refuses_without_stash[missing-evidence]\nFAILED tests/core/test_fix_stash_readonly_sibling_dependencies.py::test_invalid_current_sibling_ownership_refuses_without_stash[missing-test-hash]\nFAILED tests/core/test_fix_stash_readonly_sibling_dependencies.py::test_changed_readonly_context_blocks_lock_save[capture-source]\nFAILED tests/core/test_fix_stash_readonly_sibling_dependencies.py::test_changed_readonly_context_blocks_lock_save[capture-manifest]\nFAILED tests/core/test_fix_stash_readonly_sibling_dependencies.py::test_changed_readonly_context_blocks_lock_save[capture-lock]\nFAILED tests/core/test_fix_stash_readonly_sibling_dependencies.py::test_changed_readonly_context_blocks_lock_save[capture-proof-test]\nFAILED tests/core/test_fix_stash_readonly_sibling_dependencies.py::test_changed_readonly_context_blocks_lock_save[capture-directory]\nFAILED tests/core/test_fix_stash_readonly_sibling_dependencies.py::test_changed_readonly_context_blocks_lock_save[restored-source]\nFAILED tests/core/test_fix_stash_readonly_sibling_dependencies.py::test_changed_readonly_context_blocks_lock_save[restored-manifest]\nFAILED tests/core/test_fix_stash_readonly_sibling_dependencies.py::test_changed_readonly_context_blocks_lock_save[restored-lock]\nFAILED tests/core/test_fix_stash_readonly_sibling_dependencies.py::test_changed_readonly_context_blocks_lock_save[restored-proof-test]\nFAILED tests/core/test_fix_stash_readonly_sibling_dependencies.py::test_changed_readonly_context_blocks_lock_save[restored-directory]\nFAILED tests/core/test_fix_stash_readonly_sibling_dependencies.py::test_unsupported_sibling_context_refuses_before_stashing[source]\nFAILED tests/core/test_fix_stash_readonly_sibling_dependencies.py::test_unsupported_sibling_context_refuses_before_stashing[manifest]\nFAILED tests/core/test_fix_stash_readonly_sibling_dependencies.py::test_unsupported_sibling_context_refuses_before_stashing[lock]\nFAILED tests/core/test_fix_stash_readonly_sibling_dependencies.py::test_unsupported_sibling_context_refuses_before_stashing[proof-test]\nFAILED tests/core/test_fix_stash_readonly_sibling_dependencies.py::test_unsupported_sibling_context_refuses_before_stashing[directory]\n30 failed, 6 passed in 23.73s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest tests/cli/test_stash_revise_files_read_targets.py tests/cli/test_stash_revise_session_robustness.py tests/cli/test_plan_cmd_stash_scope_targets.py tests/cli/test_plan_cmd_stash_import_obstruction.py -q",
+        "exit_code": 0,
+        "output_tail": "...................                                                      [100%]\n19 passed in 5.79s",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:kind=function",
+      "maid_runner/cli/commands/plan.py:function:cmd_plan_revise:returns=int",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_actual_read_listed_wiring_is_stashed",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_actual_read_listed_wiring_is_stashed:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_actual_read_listed_wiring_is_stashed:kind=test_function",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_actual_read_listed_wiring_is_stashed:returns=None",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_changed_readonly_context_blocks_lock_save",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_changed_readonly_context_blocks_lock_save:arg=capsys:type=CaptureFixture[str]:default=None",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_changed_readonly_context_blocks_lock_save:arg=context:type=str:default=None",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_changed_readonly_context_blocks_lock_save:arg=phase:type=str:default=None",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_changed_readonly_context_blocks_lock_save:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_changed_readonly_context_blocks_lock_save:kind=test_function",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_changed_readonly_context_blocks_lock_save:returns=None",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_context_inventory_is_not_current_writable_ownership",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_context_inventory_is_not_current_writable_ownership:arg=role:type=str:default=None",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_context_inventory_is_not_current_writable_ownership:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_context_inventory_is_not_current_writable_ownership:kind=test_function",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_context_inventory_is_not_current_writable_ownership:returns=None",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_current_writable_ownership_is_not_exempted_as_sibling_context",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_current_writable_ownership_is_not_exempted_as_sibling_context:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_current_writable_ownership_is_not_exempted_as_sibling_context:kind=test_function",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_current_writable_ownership_is_not_exempted_as_sibling_context:returns=None",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_dirty_readonly_sibling_survives_stash_revise",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_dirty_readonly_sibling_survives_stash_revise:arg=owner_state:type=str:default=None",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_dirty_readonly_sibling_survives_stash_revise:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_dirty_readonly_sibling_survives_stash_revise:kind=test_function",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_dirty_readonly_sibling_survives_stash_revise:returns=None",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_failed_revision_restores_all_original_bytes",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_failed_revision_restores_all_original_bytes:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_failed_revision_restores_all_original_bytes:kind=test_function",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_failed_revision_restores_all_original_bytes:returns=None",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_invalid_current_sibling_ownership_refuses_without_stash",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_invalid_current_sibling_ownership_refuses_without_stash:arg=capsys:type=CaptureFixture[str]:default=None",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_invalid_current_sibling_ownership_refuses_without_stash:arg=owner_case:type=str:default=None",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_invalid_current_sibling_ownership_refuses_without_stash:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_invalid_current_sibling_ownership_refuses_without_stash:kind=test_function",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_invalid_current_sibling_ownership_refuses_without_stash:returns=None",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_sibling_flag_is_required_for_current_dependency_context",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_sibling_flag_is_required_for_current_dependency_context:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_sibling_flag_is_required_for_current_dependency_context:kind=test_function",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_sibling_flag_is_required_for_current_dependency_context:returns=None",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_unsupported_sibling_context_refuses_before_stashing",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_unsupported_sibling_context_refuses_before_stashing:arg=capsys:type=CaptureFixture[str]:default=None",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_unsupported_sibling_context_refuses_before_stashing:arg=context:type=str:default=None",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_unsupported_sibling_context_refuses_before_stashing:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_unsupported_sibling_context_refuses_before_stashing:kind=test_function",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py:test_unsupported_sibling_context_refuses_before_stashing:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_fix_stash_readonly_sibling_dependencies.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/plan.py"
+      ],
+      "read": [
+        "docs/draft-manifest-workflow.md",
+        "docs/unit-testing-rules.md",
+        "maid_runner/core/chain.py",
+        "maid_runner/core/config.py",
+        "maid_runner/core/plan_lock.py"
+      ],
+      "scope": [
+        "docs/draft-manifest-workflow.md",
+        "docs/plans/bug-report-triage-2026-10-20.md",
+        "maid_runner/docs/draft-manifest-workflow.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_fix_stash_readonly_sibling_dependencies.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_dirty_readonly_sibling_survives_stash_revise",
+              "description": "dirty readonly sibling survives stash revise",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "owner_state",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_actual_read_listed_wiring_is_stashed",
+              "description": "actual read listed wiring is stashed",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_failed_revision_restores_all_original_bytes",
+              "description": "failed revision restores all original bytes",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_invalid_current_sibling_ownership_refuses_without_stash",
+              "description": "Missing, mismatched, unreadable or competing current ownership fails with actionable scope guidance and untouched bytes.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "owner_case",
+                  "type": "str"
+                },
+                {
+                  "name": "capsys",
+                  "type": "CaptureFixture[str]"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_sibling_flag_is_required_for_current_dependency_context",
+              "description": "Explicit sibling-dirty authorization remains required.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_current_writable_ownership_is_not_exempted_as_sibling_context",
+              "description": "An active writable path cannot be exempted through a sibling claim or allow flag.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_changed_readonly_context_blocks_lock_save",
+              "description": "Changed sibling source, manifest or lock aborts evidence save, restores own implementation, and reports the unowned context mutation without overwriting it.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "context",
+                  "type": "str"
+                },
+                {
+                  "name": "phase",
+                  "type": "str"
+                },
+                {
+                  "name": "capsys",
+                  "type": "CaptureFixture[str]"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_context_inventory_is_not_current_writable_ownership",
+              "description": "Current snapshot/read inventory cannot substitute for implementation-writable ownership.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "role",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unsupported_sibling_context_refuses_before_stashing",
+              "description": "Refuse nonregular or symlink-backed retained inputs before stash or evidence changes.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "context",
+                  "type": "str"
+                },
+                {
+                  "name": "capsys",
+                  "type": "CaptureFixture[str]"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/plan.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_plan_revise",
+              "description": "Existing public seam exercised by the planned regression scenarios; preserve its signature.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "docs/unit-testing-rules.md",
+        "docs/draft-manifest-workflow.md",
+        "maid_runner/core/chain.py",
+        "maid_runner/core/plan_lock.py",
+        "maid_runner/core/config.py"
+      ],
+      "scope": [
+        {
+          "path": "docs/draft-manifest-workflow.md",
+          "reason": "Document the narrow verified-current sibling context exception while retaining legacy read-wiring and scope-only rules."
+        },
+        {
+          "path": "docs/plans/bug-report-triage-2026-10-20.md",
+          "reason": "Synchronize promoted fix link and resolved canonical report disposition."
+        },
+        {
+          "path": "maid_runner/docs/draft-manifest-workflow.md",
+          "reason": "Synchronize packaged workflow documentation with source."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_plan_cmd_stash_import_obstruction.py",
+      "tests/cli/test_plan_cmd_stash_scope_targets.py",
+      "tests/cli/test_stash_revise_files_read_targets.py",
+      "tests/cli/test_stash_revise_session_robustness.py",
+      "tests/core/test_fix_stash_readonly_sibling_dependencies.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_fix_stash_readonly_sibling_dependencies.py -q",
+      "uv run python -m pytest tests/cli/test_stash_revise_files_read_targets.py tests/cli/test_stash_revise_session_robustness.py tests/cli/test_plan_cmd_stash_scope_targets.py tests/cli/test_plan_cmd_stash_import_obstruction.py -q"
+    ],
+    "acceptance_commands": []
+  }
+}

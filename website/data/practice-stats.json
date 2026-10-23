@@ -1,16 +1,18 @@
 {
-  "updatedAt": "2026-08-04",
   "semantics": {
     "manifests": "Total manifests reported by `uv run maid validate` (passed + superseded).",
-    "tests": "Full-suite pytest passed count from `uv run python -m pytest tests/ -q`.",
-    "maidCommandGroups": "Command count from `uv run maid test`."
+    "tests": "Full-suite pytest passed count from `uv run python -m pytest tests/ -q -n auto`.",
+    "maidCommandGroups": "Command count from `uv run maid test`.",
+    "refresh": "MAID Runner numbers are written by `uv run python scripts/update_practice_stats.py`; the C# validator numbers come from its own repository."
   },
   "maidRunner": {
-    "manifests": 484,
-    "tests": 3698,
-    "maidCommandGroups": 218
+    "updatedAt": "2026-10-08",
+    "manifests": 706,
+    "tests": 5587,
+    "maidCommandGroups": 312
   },
   "csharpValidator": {
+    "updatedAt": "2026-08-04",
     "manifests": 7,
     "tests": 116
   }

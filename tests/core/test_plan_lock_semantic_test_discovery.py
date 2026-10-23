@@ -317,10 +317,10 @@ def test_enforce_plan_lock_keeps_implicit_root_historical_tests_fail_closed(
     current_path = "tests/test_current_contract.py"
     legacy_file = tmp_path / legacy_path
     legacy_file.write_text(
-        "import unittest\n\n\n"
-        "class ContractCase(unittest.TestCase):\n"
+        "# Historical custom-runner test outside pytest/unittest discovery.\n"
+        "class ContractCase:\n"
         "    def test_contract(self):\n"
-        "        self.assertTrue(True)\n"
+        "        assert True\n"
     )
     (tmp_path / current_path).write_text(
         "from src.demo import demo\n\n\n"

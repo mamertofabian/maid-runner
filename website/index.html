@@ -63,9 +63,8 @@
         <nav id="primary-navigation" class="primary-nav" aria-label="Primary navigation">
           <a href="#why-maid">Why MAID Runner</a>
           <a href="#workflow">Workflow</a>
-          <a href="#capabilities">Capabilities</a>
-          <a href="#maid-in-practice">MAID in practice</a>
           <a href="#quickstart">Quick start</a>
+          <a href="#maid-in-practice">MAID in practice</a>
           <a
             class="nav-github"
             href="https://github.com/mamertofabian/maid-runner"
@@ -120,7 +119,7 @@
             </p>
           </div>
 
-          <div class="hero-console" aria-label="Manifest and validation handoff preview">
+          <div class="hero-console" role="figure" aria-label="A manifest and the maid verify run that enforces it">
             <article class="console-panel manifest-panel">
               <div class="panel-header">
                 <span class="panel-file-icon" aria-hidden="true">□</span>
@@ -128,87 +127,45 @@
                 <span class="panel-dots" aria-hidden="true">•••</span>
               </div>
               <div class="code-window">
-                <div class="code-line">
-                  <span class="line-number">1</span>
-                  <code><b>goal:</b> Add password recovery</code>
-                </div>
-                <div class="code-line">
-                  <span class="line-number">2</span>
-                  <code><b>files:</b></code>
-                </div>
-                <div class="code-line">
-                  <span class="line-number">3</span>
-                  <code class="code-indent">- src/auth/service.ts</code>
-                </div>
-                <div class="code-line">
-                  <span class="line-number">4</span>
-                  <code><b>edit:</b></code>
-                </div>
-                <div class="code-line">
-                  <span class="line-number">5</span>
-                  <code><b>behavior:</b></code>
-                </div>
-                <div class="code-line">
-                  <span class="line-number">6</span>
-                  <code class="code-indent">- expired tokens are rejected</code>
-                </div>
-                <div class="code-line">
-                  <span class="line-number">7</span>
-                  <code class="code-indent">- valid tokens can only be</code>
-                </div>
-                <div class="code-line">
-                  <span class="line-number">8</span>
-                  <code class="code-indent code-indent-double">used once</code>
-                </div>
+                <div class="code-line"><span class="line-number">1</span><code><b>schema:</b> "2"</code></div>
+                <div class="code-line"><span class="line-number">2</span><code><b>goal:</b> Add password recovery</code></div>
+                <div class="code-line"><span class="line-number">3</span><code><b>type:</b> feature</code></div>
+                <div class="code-line"><span class="line-number">4</span><code><b>files:</b></code></div>
+                <div class="code-line"><span class="line-number">5</span><code>  <b>edit:</b></code></div>
+                <div class="code-line"><span class="line-number">6</span><code>    - <b>path:</b> src/auth/service.py</code></div>
+                <div class="code-line"><span class="line-number">7</span><code>      <b>artifacts:</b></code></div>
+                <div class="code-line"><span class="line-number">8</span><code>        - <b>kind:</b> function</code></div>
+                <div class="code-line"><span class="line-number">9</span><code>          <b>name:</b> reset_password</code></div>
+                <div class="code-line"><span class="line-number">10</span><code>          <b>args:</b></code></div>
+                <div class="code-line"><span class="line-number">11</span><code>            - <b>name:</b> email</code></div>
+                <div class="code-line"><span class="line-number">12</span><code>              <b>type:</b> str</code></div>
+                <div class="code-line"><span class="line-number">13</span><code>          <b>returns:</b> bool</code></div>
+                <div class="code-line"><span class="line-number">14</span><code><b>validate:</b></code></div>
+                <div class="code-line"><span class="line-number">15</span><code>  - pytest tests/test_reset.py</code></div>
               </div>
-              <div class="panel-status"><span>YAML</span><span>Ln 8, Col 1 <b class="status-dot"></b></span></div>
+              <div class="panel-status"><span>YAML</span><span>Ln 15, Col 1 <b class="status-dot"></b></span></div>
             </article>
 
             <article class="console-panel validation-panel">
               <div class="panel-header">
                 <span class="terminal-prompt" aria-hidden="true">&gt;_</span>
-                <span>maid validate</span>
+                <span>maid verify</span>
                 <span class="panel-dots" aria-hidden="true">•••</span>
               </div>
-              <ul class="validation-list">
-                <li><span class="validation-check">✓</span> Approved plan lock</li>
-                <li><span class="validation-check">✓</span> Red-phase evidence</li>
-                <li><span class="validation-check">✓</span> Declared file scope</li>
-                <li><span class="validation-check">✓</span> Structural contract</li>
-                <li><span class="validation-check">✓</span> Behavioral tests</li>
-                <li><span class="validation-check">✓</span> Independent review</li>
-              </ul>
+              <pre class="verify-transcript"><span class="term-cmd">$ maid verify --summary --since main</span>
+<span class="term-fail">VERIFY: FAIL (1 blocking, 0 warnings unique / 0 raw, 4 passed, 0 skipped)</span>
+BLOCKING (1):
+<span class="term-fail">  FAIL file_tracking</span>
+    Undeclared (1):
+<span class="term-fail">      src/auth/session.py</span>
+    Tracked (1):
+      src/auth/service.py
+PASSED (4): schema, behavioral, implementation, coherence
+<span class="term-cmd term-step">$ rm src/auth/session.py</span>
+<span class="term-cmd">$ maid verify --summary --since main</span>
+<span class="term-pass">VERIFY: PASS (0 blocking, 0 warnings unique / 0 raw, 8 passed, 0 skipped)</span>
+PASSED (8): schema, behavioral, implementation, coherence, file_tracking, worktree_scope, changed_scope, tests</pre>
               <p class="handoff-ready">HANDOFF READY</p>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section class="strengths" aria-labelledby="strengths-title">
-        <div class="container">
-          <h2 id="strengths-title" class="strengths-lede">
-            Governs the artifacts your agents produce — not just the prompts they follow.
-          </h2>
-          <div class="strengths-grid">
-            <article class="strength-card">
-              <h3>Machine-checkable contracts</h3>
-              <p>A manifest is a deterministic, AST-level contract for the change — not prose an agent reinterprets.</p>
-            </article>
-            <article class="strength-card">
-              <h3>Tamper-evident planning</h3>
-              <p>Plan locks and genuine red-phase evidence mean an agent can't quietly rewrite the contract or fake a passing test.</p>
-            </article>
-            <article class="strength-card">
-              <h3>Portable across agents</h3>
-              <p>MAID governs the code your agents produce, and runs under Claude, Codex, Cursor, or any harness.</p>
-            </article>
-            <article class="strength-card">
-              <h3>Evidence-backed handoff</h3>
-              <p>Scope, structure, and behavior are verified before handoff — not self-reported as "done".</p>
-            </article>
-            <article class="strength-card">
-              <h3>Proven, not just covered</h3>
-              <p>Deep verification can delete a function's body and require your tests to fail — proof they exercise the code, not just execute a line. (Python, opt-in.)</p>
             </article>
           </div>
         </div>
@@ -217,6 +174,7 @@
       <section id="why-maid" class="section section-frame-section" aria-labelledby="why-title">
         <div class="container section-frame">
           <h2 id="why-title">Why MAID Runner</h2>
+          <p class="why-lede">Governs the artifacts your agents produce — not just the prompts they follow.</p>
           <div class="problem-grid">
             <article class="problem-card">
               <div class="problem-icon icon-drift" aria-hidden="true">
@@ -224,11 +182,11 @@
               </div>
               <div>
                 <h3>Plan drift</h3>
-                <p>Agents deviate from the plan and change things you didn't ask for.</p>
+                <p>Agents deviate from the plan and touch files you didn't ask for.</p>
               </div>
               <div class="problem-answer">
                 <span>MAID's answer:</span>
-                Plan locks and scope enforcement keep work tightly aligned.
+                An approved plan lock becomes the contract an agent can't quietly rewrite; only declared files and operations are allowed.
               </div>
             </article>
 
@@ -242,7 +200,7 @@
               </div>
               <div class="problem-answer">
                 <span>MAID's answer:</span>
-                Red-phase evidence and behavioral tests prove the change works — and deep verification can knock out the code to confirm a test actually fails without it, so a gutted test can't pass.
+                Tests must fail before the change (or produce equivalent red evidence), and behavioral tests prove it works. Deep verification can delete a function's body and require your tests to fail, so a gutted test can't pass. (Knockout: Python, opt-in.)
               </div>
             </article>
 
@@ -251,12 +209,36 @@
                 <span class="scope-arrow arrow-top"></span><span class="scope-arrow arrow-right"></span><span class="scope-arrow arrow-bottom"></span><span class="scope-arrow arrow-left"></span>
               </div>
               <div>
-                <h3>Scope expansion</h3>
-                <p>Agents touch extra files or introduce out-of-scope changes.</p>
+                <h3>Self-reported "done"</h3>
+                <p>Agents say the work is finished without proof.</p>
               </div>
               <div class="problem-answer">
                 <span>MAID's answer:</span>
-                Declared file scope and structural contracts prevent creep.
+                Structure, behavior, and scope are verified, then independently reviewed before handoff.
+              </div>
+            </article>
+
+            <article class="problem-card">
+              <div class="problem-icon icon-agents" aria-hidden="true">
+                <span></span><span></span><span></span>
+              </div>
+              <div>
+                <h3>Rules that live in one tool</h3>
+                <p>Prompt rules don't travel between agents.</p>
+              </div>
+              <div class="problem-answer">
+                <span>MAID's answer:</span>
+                The manifest is the contract, so MAID runs the same under Claude Code, Codex, Cursor, Windsurf, or any harness: a deterministic, AST-level contract, not prose an agent reinterprets.
+              </div>
+              <div class="problem-tools">
+                <div class="tools-heading" id="tools-heading">Works with your existing tools</div>
+                <div class="tools-grid" role="group" aria-labelledby="tools-heading">
+                  <div class="tool-chip"><span class="tool-glyph tool-claude" aria-hidden="true">✳</span>Claude Code</div>
+                  <div class="tool-chip"><span class="tool-glyph tool-codex" aria-hidden="true">◎</span>Codex</div>
+                  <div class="tool-chip"><span class="tool-glyph tool-cursor" aria-hidden="true">◆</span>Cursor</div>
+                  <div class="tool-chip"><span class="tool-glyph tool-windsurf" aria-hidden="true">W</span>Windsurf</div>
+                  <div class="tool-chip"><span class="tool-glyph tool-generic" aria-hidden="true">•••</span>Generic</div>
+                </div>
               </div>
             </article>
           </div>
@@ -313,43 +295,83 @@
         </div>
       </section>
 
-      <section id="capabilities" class="section capabilities-section" aria-labelledby="capabilities-title">
-        <div class="container section-frame">
-          <h2 id="capabilities-title">Capabilities</h2>
-          <div class="capability-grid">
-            <article class="capability-card">
-              <div class="capability-icon" aria-hidden="true">♙</div>
-              <div><h3>Plan locks</h3><p>An approved manifest lock becomes the contract for the work.</p></div>
-            </article>
-            <article class="capability-card">
-              <div class="capability-icon" aria-hidden="true">♧</div>
-              <div><h3>Red-phase evidence</h3><p>Require failing tests (or equivalent evidence) before implementation.</p></div>
-            </article>
-            <article class="capability-card">
-              <div class="capability-icon" aria-hidden="true">▱</div>
-              <div><h3>Scope enforcement</h3><p>Only declared files and operations are allowed.</p></div>
-            </article>
-            <article class="capability-card">
-              <div class="capability-icon" aria-hidden="true">▱</div>
-              <div><h3>Three-stream validation</h3><p>Structural, behavioral, and implementation validation.</p></div>
-            </article>
-            <article class="capability-card">
-              <div class="capability-icon" aria-hidden="true">♧</div>
-              <div><h3>Independent review</h3><p>A separate review step ensures quality and alignment.</p></div>
-            </article>
-            <article class="capability-card">
-              <div class="capability-icon" aria-hidden="true">⌁</div>
-              <div><h3>Outcome learning</h3><p>Capture results to continuously improve future work.</p></div>
-            </article>
+      <section id="quickstart" class="section quickstart-section" aria-labelledby="quickstart-title">
+        <div class="container quickstart-card">
+          <div class="quickstart-copy">
+            <h2 id="quickstart-title">Quick start</h2>
+            <p>
+              One command installs MAID Runner on macOS, Linux, or Windows—no
+              existing Python setup required.
+            </p>
+            <a
+              class="text-link"
+              href="https://github.com/mamertofabian/maid-runner#quick-start"
+              target="_blank"
+              rel="noreferrer"
+            >
+              See the docs for detailed guides
+              <span aria-hidden="true">→</span>
+            </a>
           </div>
-
-          <p class="tools-heading">Works with your existing tools</p>
-          <div class="tools-grid" aria-label="Compatible tools">
-            <div class="tool-chip"><span class="tool-glyph tool-claude" aria-hidden="true">✳</span>Claude Code</div>
-            <div class="tool-chip"><span class="tool-glyph tool-codex" aria-hidden="true">◎</span>Codex</div>
-            <div class="tool-chip"><span class="tool-glyph tool-cursor" aria-hidden="true">◆</span>Cursor</div>
-            <div class="tool-chip"><span class="tool-glyph tool-windsurf" aria-hidden="true">W</span>Windsurf</div>
-            <div class="tool-chip"><span class="tool-glyph tool-generic" aria-hidden="true">•••</span>Generic</div>
+          <div class="terminal-card install-card" aria-label="MAID Runner installation commands">
+            <div class="terminal-bar">
+              <div class="terminal-controls" aria-hidden="true"><span></span><span></span><span></span></div>
+              <span class="terminal-name">terminal</span>
+              <div class="install-tabs" role="tablist" aria-label="Choose your platform">
+                <button class="install-tab" type="button" role="tab" id="install-tab-unix" aria-controls="install-panel-unix" aria-selected="true" tabindex="0">macOS / Linux</button>
+                <button class="install-tab" type="button" role="tab" id="install-tab-windows" aria-controls="install-panel-windows" aria-selected="false" tabindex="-1" data-platform="windows">Windows</button>
+                <button class="install-tab" type="button" role="tab" id="install-tab-python" aria-controls="install-panel-python" aria-selected="false" tabindex="-1">uv / pip</button>
+              </div>
+            </div>
+            <div class="install-panel" id="install-panel-unix">
+              <p class="install-panel-label">macOS / Linux</p>
+              <div class="copy-row" data-copy-row>
+                <code data-command>curl -LsSf https://maidrunner.dev/install.sh | sh</code>
+                <button class="copy-button" type="button" aria-label="Copy macOS / Linux install command" hidden>Copy</button>
+              </div>
+              <p class="install-note">
+                Installs uv if it is missing, then MAID Runner as a uv tool, and adds uv's tool directory to your PATH.
+                <a href="install.sh">Read install.sh</a> before you run it.
+              </p>
+              <p class="install-pin">
+                Pin a release:
+                <code>curl -LsSf https://maidrunner.dev/install.sh | sh -s -- --version &lt;version&gt;</code>
+              </p>
+            </div>
+            <div class="install-panel" id="install-panel-windows">
+              <p class="install-panel-label">Windows PowerShell</p>
+              <div class="copy-row" data-copy-row>
+                <code data-command>irm https://maidrunner.dev/install.ps1 | iex</code>
+                <button class="copy-button" type="button" aria-label="Copy Windows PowerShell install command" hidden>Copy</button>
+              </div>
+              <p class="install-note">
+                Installs uv if it is missing, then MAID Runner as a uv tool, and adds uv's tool directory to your PATH.
+                <a href="install.ps1">Read install.ps1</a> before you run it.
+              </p>
+              <p class="install-pin">
+                Pin a release:
+                <code>&amp; ([scriptblock]::Create((irm https://maidrunner.dev/install.ps1))) -Version &lt;version&gt;</code>
+              </p>
+            </div>
+            <div class="install-panel" id="install-panel-python">
+              <p class="install-panel-label">uv / pip</p>
+              <div class="copy-row" data-copy-row>
+                <code data-command>uv tool install maid-runner</code>
+                <button class="copy-button" type="button" aria-label="Copy uv install command" hidden>Copy</button>
+              </div>
+              <div class="copy-row" data-copy-row>
+                <code data-command>pip install maid-runner</code>
+                <button class="copy-button" type="button" aria-label="Copy pip install command" hidden>Copy</button>
+              </div>
+              <p class="install-note">Already manage Python tools? Install the package from PyPI directly.</p>
+            </div>
+            <p class="copy-status" data-copy-status role="status" aria-live="polite"></p>
+            <div class="install-next">
+              <p class="install-next-label">Then, in your project:</p>
+              <pre><code><span class="terminal-prompt">$</span> maid init
+<span class="terminal-prompt">$</span> maid howto --section quickstart
+<span class="terminal-success">✓</span> ready to write a verifiable change</code></pre>
+            </div>
           </div>
         </div>
       </section>
@@ -390,21 +412,25 @@
             </p>
             <div class="practice-stats" aria-label="MAID Runner evidence">
               <div class="practice-stat">
-                <span class="practice-stat-value">484</span>
+                <span class="practice-stat-value" data-stat="maidRunner.manifests">706</span>
                 <span class="practice-stat-label">validated manifests</span>
               </div>
               <div class="practice-stat">
-                <span class="practice-stat-value">3698</span>
+                <span class="practice-stat-value" data-stat="maidRunner.tests">5587</span>
                 <span class="practice-stat-label">passing tests</span>
               </div>
               <div class="practice-stat">
-                <span class="practice-stat-value">218</span>
+                <span class="practice-stat-value" data-stat="maidRunner.maidCommandGroups">312</span>
                 <span class="practice-stat-label">MAID validation command groups</span>
               </div>
               <div class="practice-stat">
                 <span class="practice-stat-value">Strict verification</span>
                 <span class="practice-stat-label">required before handoff</span>
               </div>
+            </div>
+            <div class="practice-asof">
+              Numbers as of <time data-stat-date="maidRunner" datetime="2026-10-08">October 8, 2026</time>,
+              from <code>maid validate</code>, the test suite, and <code>maid test</code>.
             </div>
             <a
               class="text-link"
@@ -429,17 +455,20 @@
               </p>
               <div class="practice-stats practice-stats-compact" aria-label="C# validator evidence">
                 <div class="practice-stat">
-                  <span class="practice-stat-value">7</span>
+                  <span class="practice-stat-value" data-stat="csharpValidator.manifests">7</span>
                   <span class="practice-stat-label">published MAID manifests</span>
                 </div>
                 <div class="practice-stat">
-                  <span class="practice-stat-value">116</span>
+                  <span class="practice-stat-value" data-stat="csharpValidator.tests">116</span>
                   <span class="practice-stat-label">passing tests</span>
                 </div>
                 <div class="practice-stat">
                   <span class="practice-stat-value">Python 3.10–3.14</span>
                   <span class="practice-stat-label">verified package discovery</span>
                 </div>
+              </div>
+              <div class="practice-asof">
+                Numbers as of <time data-stat-date="csharpValidator" datetime="2026-08-04">August 4, 2026</time>.
               </div>
               <a
                 class="text-link"
@@ -496,47 +525,6 @@
               Share your project
               <span aria-hidden="true">→</span>
             </a>
-          </div>
-        </div>
-      </section>
-
-      <section id="quickstart" class="section quickstart-section" aria-labelledby="quickstart-title">
-        <div class="container quickstart-card">
-          <div class="quickstart-copy">
-            <h2 id="quickstart-title">Quick start</h2>
-            <p>
-              One command installs MAID Runner on macOS, Linux, or Windows—no
-              existing Python setup required.
-            </p>
-            <a
-              class="text-link"
-              href="https://github.com/mamertofabian/maid-runner#quick-start"
-              target="_blank"
-              rel="noreferrer"
-            >
-              See the docs for detailed guides
-              <span aria-hidden="true">→</span>
-            </a>
-          </div>
-          <div class="terminal-card" aria-label="MAID Runner installation commands">
-            <div class="terminal-bar">
-              <div class="terminal-controls" aria-hidden="true"><span></span><span></span><span></span></div>
-              <span class="terminal-name">terminal</span>
-            </div>
-            <pre><code><span class="terminal-success"># macOS / Linux</span>
-<span class="terminal-prompt">$</span> curl -LsSf https://maidrunner.dev/install.sh | sh
-
-<span class="terminal-success"># Windows PowerShell</span>
-<span class="terminal-prompt">&gt;</span> irm https://maidrunner.dev/install.ps1 | iex
-
-<span class="terminal-prompt">$</span> maid init
-<span class="terminal-prompt">$</span> maid howto --section quickstart
-<span class="terminal-success">✓</span> ready to write a verifiable change</code></pre>
-            <details>
-              <summary>Alternative installation methods</summary>
-              <p><code>uv tool install maid-runner</code></p>
-              <p><code>pip install maid-runner</code></p>
-            </details>
           </div>
         </div>
       </section>

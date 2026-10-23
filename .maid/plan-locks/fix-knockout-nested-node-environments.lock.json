@@ -1,0 +1,431 @@
+{
+  "manifest_path": "manifests/fix-knockout-nested-node-environments.manifest.yaml",
+  "manifest_hash": "sha256-contract:8547e7efebba81eccc72390692aa6123f64eabba6f0d3034702aaad8ca03d2f0",
+  "test_hashes": {
+    "tests/core/test_fix_knockout_nested_node_environments.py": "sha256-pyast:v2:e0260beab2b46ac9b0b7d46132b330599a60408d4331f672c5aa10285e944118",
+    "tests/core/test_shared_environment_snapshots.py": "sha256-pyast:v2:6448d990b81f756d4cea4bf4ab553147091350c7e5ac782e2539702bc0c882a5",
+    "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:235da5154eb612bdd088aee7a4dfeb9df1ff32dca5352ce6c486e7e66e5d0aa6",
+    "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:4dc08f1cc7886ba96a6c50cc9f4fbe1b6f20f84bc547b52075afacf361688eb7",
+    "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d"
+  },
+  "created_at": "2026-10-20T21:41:45.160639+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:e02d0bf729f42fcb56780112440be38fef19fa7139cbd13c8564d3bd80450d19",
+      "prior_test_hashes": {
+        "tests/core/test_fix_knockout_nested_node_environments.py": "sha256-pyast:v2:821139b883fb41527520edb846e5b0c6e404347d0fa75fee2f0423a60395da61",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:235da5154eb612bdd088aee7a4dfeb9df1ff32dca5352ce6c486e7e66e5d0aa6",
+        "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:4dc08f1cc7886ba96a6c50cc9f4fbe1b6f20f84bc547b52075afacf361688eb7",
+        "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d"
+      },
+      "revised_at": "2026-10-20T21:42:26.520790+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-knockout-nested-node-environments.manifest.yaml -> manifests/fix-knockout-nested-node-environments.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-knockout-nested-node-environments.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-knockout-nested-node-environments.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:bb3a493bc90e2c5430f8e5f36c1e7a5cce7c55eb08a725bcc7d36a4839c19c6a",
+      "prior_test_hashes": {
+        "tests/core/test_fix_knockout_nested_node_environments.py": "sha256-pyast:v2:821139b883fb41527520edb846e5b0c6e404347d0fa75fee2f0423a60395da61",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:235da5154eb612bdd088aee7a4dfeb9df1ff32dca5352ce6c486e7e66e5d0aa6",
+        "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:4dc08f1cc7886ba96a6c50cc9f4fbe1b6f20f84bc547b52075afacf361688eb7",
+        "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d"
+      },
+      "revised_at": "2026-10-20T21:53:42.532861+00:00",
+      "reason": "Preserve native package namespace and reject dependency roots aliasing project source",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_fix_knockout_nested_node_environments.py:test_dependency_root_alias_cannot_reclassify_project_source",
+          "tests/core/test_fix_knockout_nested_node_environments.py:test_dependency_root_alias_cannot_reclassify_project_source:arg=kind:type=str:default=None",
+          "tests/core/test_fix_knockout_nested_node_environments.py:test_dependency_root_alias_cannot_reclassify_project_source:arg=slot:type=str:default=None",
+          "tests/core/test_fix_knockout_nested_node_environments.py:test_dependency_root_alias_cannot_reclassify_project_source:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_fix_knockout_nested_node_environments.py:test_dependency_root_alias_cannot_reclassify_project_source:kind=test_function",
+          "tests/core/test_fix_knockout_nested_node_environments.py:test_dependency_root_alias_cannot_reclassify_project_source:returns=None",
+          "tests/core/test_fix_knockout_nested_node_environments.py:test_root_cannot_execute_subproject_only_tool",
+          "tests/core/test_fix_knockout_nested_node_environments.py:test_root_cannot_execute_subproject_only_tool:arg=kind:type=str:default=None",
+          "tests/core/test_fix_knockout_nested_node_environments.py:test_root_cannot_execute_subproject_only_tool:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_fix_knockout_nested_node_environments.py:test_root_cannot_execute_subproject_only_tool:kind=test_function",
+          "tests/core/test_fix_knockout_nested_node_environments.py:test_root_cannot_execute_subproject_only_tool:returns=None",
+          "tests/core/test_fix_knockout_nested_node_environments.py:test_root_cannot_resolve_subproject_only_module",
+          "tests/core/test_fix_knockout_nested_node_environments.py:test_root_cannot_resolve_subproject_only_module:arg=kind:type=str:default=None",
+          "tests/core/test_fix_knockout_nested_node_environments.py:test_root_cannot_resolve_subproject_only_module:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_fix_knockout_nested_node_environments.py:test_root_cannot_resolve_subproject_only_module:kind=test_function",
+          "tests/core/test_fix_knockout_nested_node_environments.py:test_root_cannot_resolve_subproject_only_module:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:ce15baf032aa52c3ddcfc22ebd5ecd0248c2004bbff94918225f06b1ca77f73a",
+      "prior_test_hashes": {
+        "tests/core/test_fix_knockout_nested_node_environments.py": "sha256-pyast:v2:e0260beab2b46ac9b0b7d46132b330599a60408d4331f672c5aa10285e944118",
+        "tests/core/test_knockout_snapshot.py": "sha256-pyast:v2:235da5154eb612bdd088aee7a4dfeb9df1ff32dca5352ce6c486e7e66e5d0aa6",
+        "tests/core/test_knockout_snapshot_template.py": "sha256-pyast:v2:4dc08f1cc7886ba96a6c50cc9f4fbe1b6f20f84bc547b52075afacf361688eb7",
+        "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d"
+      },
+      "revised_at": "2026-10-20T22:08:15.762600+00:00",
+      "reason": "Evolve shared environment no-copy fixture to borrowed managed-path identity and retain source invariants",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:tests/core/test_shared_environment_snapshots.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest tests/core/test_knockout_snapshot.py tests/core/test_knockout_snapshot_template.py tests/docs/test_chain_merge_docs.py tests/core/test_shared_environment_snapshots.py -q"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest tests/core/test_knockout_snapshot.py tests/core/test_knockout_snapshot_template.py tests/docs/test_chain_merge_docs.py -q"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-20T22:09:07.830568+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_fix_knockout_nested_node_environments.py -q",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/core/test_fix_knockout_nested_node_environments.py::test_nested_node_resolution_and_local_executable_survive_snapshot[True-pnpm-shared]\nFAILED tests/core/test_fix_knockout_nested_node_environments.py::test_nested_node_resolution_and_local_executable_survive_snapshot[True-pnpm-materialized]\nFAILED tests/core/test_fix_knockout_nested_node_environments.py::test_nested_node_resolution_and_local_executable_survive_snapshot[True-pnpm-retained]\nFAILED tests/core/test_fix_knockout_nested_node_environments.py::test_nested_dependency_symlink_escape_is_rejected[entry-shared]\nFAILED tests/core/test_fix_knockout_nested_node_environments.py::test_nested_dependency_symlink_escape_is_rejected[entry-materialized]\nFAILED tests/core/test_fix_knockout_nested_node_environments.py::test_nested_dependency_symlink_escape_is_rejected[entry-retained]\nFAILED tests/core/test_fix_knockout_nested_node_environments.py::test_nested_dependency_symlink_escape_is_rejected[entry-source-shared]\nFAILED tests/core/test_fix_knockout_nested_node_environments.py::test_nested_dependency_symlink_escape_is_rejected[entry-source-materialized]\nFAILED tests/core/test_fix_knockout_nested_node_environments.py::test_nested_dependency_symlink_escape_is_rejected[entry-source-retained]\nFAILED tests/core/test_fix_knockout_nested_node_environments.py::test_nested_dependency_symlink_escape_is_rejected[root-shared]\nFAILED tests/core/test_fix_knockout_nested_node_environments.py::test_nested_dependency_symlink_escape_is_rejected[root-materialized]\nFAILED tests/core/test_fix_knockout_nested_node_environments.py::test_nested_dependency_symlink_escape_is_rejected[root-retained]\nFAILED tests/core/test_fix_knockout_nested_node_environments.py::test_shared_nested_dependency_changes_are_detected\nFAILED tests/core/test_fix_knockout_nested_node_environments.py::test_retained_workers_keep_nested_dependency_paths_across_fresh_roots\nFAILED tests/core/test_fix_knockout_nested_node_environments.py::test_real_python_knockout_runs_after_nested_node_baseline\nFAILED tests/core/test_fix_knockout_nested_node_environments.py::test_dependency_root_alias_cannot_reclassify_project_source[node_modules-shared]\nFAILED tests/core/test_fix_knockout_nested_node_environments.py::test_dependency_root_alias_cannot_reclassify_project_source[ui/node_modules-shared]\nFAILED tests/core/test_fix_knockout_nested_node_environments.py::test_dependency_root_alias_cannot_reclassify_project_source[ui/node_modules-materialized]\nFAILED tests/core/test_fix_knockout_nested_node_environments.py::test_dependency_root_alias_cannot_reclassify_project_source[ui/node_modules-retained]\n28 failed, 9 passed in 37.61s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest tests/core/test_knockout_snapshot.py tests/core/test_knockout_snapshot_template.py tests/docs/test_chain_merge_docs.py tests/core/test_shared_environment_snapshots.py -q",
+        "exit_code": 1,
+        "output_tail": "        )\n    \n        root = _project_with_dependencies(tmp_path)\n        venv_before = _file_set(root / \".venv\")\n        node_before = _file_set(root / \"node_modules\")\n    \n        with SharedEnvironmentProjectSnapshotBackend().create(\n            root, (\"src/target.py\",), \"shared-env\"\n        ) as snapshot:\n            assert not (snapshot.root / \".venv\").exists()\n>           assert (snapshot.root / \"node_modules\").is_dir()\nE           AssertionError: assert False\nE            +  where False = is_dir()\nE            +    where is_dir = (PosixPath('/tmp/maid-knockout-shared-env-eiv54cyf') / 'node_modules').is_dir\nE            +      where PosixPath('/tmp/maid-knockout-shared-env-eiv54cyf') = KnockoutProjectSnapshot(root=PosixPath('/tmp/maid-knockout-shared-env-eiv54cyf'), input_digest='c13dc6a3c7ed60040dd2a4...YSTEM', 'GIT_PAGER', 'NODE_PATH', 'PWD', 'PYTHONPATH', 'PYTHONPYCACHEPREFIX', 'UV_PROJECT_ENVIRONMENT', 'VIRTUAL_ENV')).root\n\ntests/core/test_shared_environment_snapshots.py:33: AssertionError\n=========================== short test summary info ============================\nFAILED tests/core/test_shared_environment_snapshots.py::test_shared_environment_snapshot_reuses_source_venv_without_copying\n1 failed, 36 passed in 13.70s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-knockout-nested-node-environments.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_knockout_snapshot.py:method:SharedEnvironmentProjectSnapshotBackend.create",
+      "maid_runner/core/_knockout_snapshot.py:method:SharedEnvironmentProjectSnapshotBackend.create:arg=project_root:type=Path:default=None",
+      "maid_runner/core/_knockout_snapshot.py:method:SharedEnvironmentProjectSnapshotBackend.create:arg=required_paths:type=Sequence[str]:default=None",
+      "maid_runner/core/_knockout_snapshot.py:method:SharedEnvironmentProjectSnapshotBackend.create:arg=worker_id:type=str:default=None",
+      "maid_runner/core/_knockout_snapshot.py:method:SharedEnvironmentProjectSnapshotBackend.create:kind=method",
+      "maid_runner/core/_knockout_snapshot.py:method:SharedEnvironmentProjectSnapshotBackend.create:of=SharedEnvironmentProjectSnapshotBackend",
+      "maid_runner/core/_knockout_snapshot.py:method:SharedEnvironmentProjectSnapshotBackend.create:returns=AbstractContextManager[KnockoutProjectSnapshot]",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_dependency_root_alias_cannot_reclassify_project_source",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_dependency_root_alias_cannot_reclassify_project_source:arg=kind:type=str:default=None",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_dependency_root_alias_cannot_reclassify_project_source:arg=slot:type=str:default=None",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_dependency_root_alias_cannot_reclassify_project_source:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_dependency_root_alias_cannot_reclassify_project_source:kind=test_function",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_dependency_root_alias_cannot_reclassify_project_source:returns=None",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_nested_dependency_symlink_escape_is_rejected",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_nested_dependency_symlink_escape_is_rejected:arg=escape_style:type=str:default=None",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_nested_dependency_symlink_escape_is_rejected:arg=kind:type=str:default=None",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_nested_dependency_symlink_escape_is_rejected:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_nested_dependency_symlink_escape_is_rejected:kind=test_function",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_nested_dependency_symlink_escape_is_rejected:returns=None",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_nested_node_directory_without_package_input_stays_excluded",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_nested_node_directory_without_package_input_stays_excluded:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_nested_node_directory_without_package_input_stays_excluded:kind=test_function",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_nested_node_directory_without_package_input_stays_excluded:returns=None",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_nested_node_resolution_and_local_executable_survive_snapshot",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_nested_node_resolution_and_local_executable_survive_snapshot:arg=command_kind:type=str:default=None",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_nested_node_resolution_and_local_executable_survive_snapshot:arg=cross_store:type=bool:default=None",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_nested_node_resolution_and_local_executable_survive_snapshot:arg=kind:type=str:default=None",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_nested_node_resolution_and_local_executable_survive_snapshot:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_nested_node_resolution_and_local_executable_survive_snapshot:kind=test_function",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_nested_node_resolution_and_local_executable_survive_snapshot:returns=None",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_real_python_knockout_runs_after_nested_node_baseline",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_real_python_knockout_runs_after_nested_node_baseline:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_real_python_knockout_runs_after_nested_node_baseline:kind=test_function",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_real_python_knockout_runs_after_nested_node_baseline:returns=None",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_retained_workers_keep_nested_dependency_paths_across_fresh_roots",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_retained_workers_keep_nested_dependency_paths_across_fresh_roots:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_retained_workers_keep_nested_dependency_paths_across_fresh_roots:kind=test_function",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_retained_workers_keep_nested_dependency_paths_across_fresh_roots:returns=None",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_root_cannot_execute_subproject_only_tool",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_root_cannot_execute_subproject_only_tool:arg=kind:type=str:default=None",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_root_cannot_execute_subproject_only_tool:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_root_cannot_execute_subproject_only_tool:kind=test_function",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_root_cannot_execute_subproject_only_tool:returns=None",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_root_cannot_resolve_subproject_only_module",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_root_cannot_resolve_subproject_only_module:arg=kind:type=str:default=None",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_root_cannot_resolve_subproject_only_module:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_root_cannot_resolve_subproject_only_module:kind=test_function",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_root_cannot_resolve_subproject_only_module:returns=None",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_shared_nested_dependency_changes_are_detected",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_shared_nested_dependency_changes_are_detected:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_shared_nested_dependency_changes_are_detected:kind=test_function",
+      "tests/core/test_fix_knockout_nested_node_environments.py:test_shared_nested_dependency_changes_are_detected:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_fix_knockout_nested_node_environments.py"
+      ],
+      "edit": [
+        "maid_runner/core/_knockout_snapshot.py"
+      ],
+      "read": [
+        "docs/draft-manifest-workflow.md",
+        "docs/unit-testing-rules.md",
+        "maid_runner/core/knockout.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/types.py"
+      ],
+      "scope": [
+        ".maid/docs/maid_specs.md",
+        "docs/maid_specs.md",
+        "docs/plans/bug-report-triage-2026-10-20.md",
+        "maid_runner/docs/maid_specs.md",
+        "tests/core/test_shared_environment_snapshots.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_fix_knockout_nested_node_environments.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_nested_node_resolution_and_local_executable_survive_snapshot",
+              "description": "nested node resolution and local executable survive snapshot",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "kind",
+                  "type": "str"
+                },
+                {
+                  "name": "command_kind",
+                  "type": "str"
+                },
+                {
+                  "name": "cross_store",
+                  "type": "bool"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_nested_dependency_symlink_escape_is_rejected",
+              "description": "nested dependency symlink escape is rejected",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "kind",
+                  "type": "str"
+                },
+                {
+                  "name": "escape_style",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_shared_nested_dependency_changes_are_detected",
+              "description": "shared nested dependency changes are detected",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_nested_node_directory_without_package_input_stays_excluded",
+              "description": "nested node directory without package input stays excluded",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_retained_workers_keep_nested_dependency_paths_across_fresh_roots",
+              "description": "retained workers keep nested dependency paths across fresh roots",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_real_python_knockout_runs_after_nested_node_baseline",
+              "description": "real python knockout runs after nested node baseline",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_root_cannot_resolve_subproject_only_module",
+              "description": "root cannot resolve subproject only module",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "kind",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_root_cannot_execute_subproject_only_tool",
+              "description": "root cannot execute subproject only tool",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "kind",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_dependency_root_alias_cannot_reclassify_project_source",
+              "description": "dependency root alias cannot reclassify project source",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "kind",
+                  "type": "str"
+                },
+                {
+                  "name": "slot",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/_knockout_snapshot.py",
+          "artifacts": [
+            {
+              "kind": "method",
+              "name": "create",
+              "description": "Retain validated subproject Node dependency environments with existing public snapshot API.",
+              "of": "SharedEnvironmentProjectSnapshotBackend",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "required_paths",
+                  "type": "Sequence[str]"
+                },
+                {
+                  "name": "worker_id",
+                  "type": "str"
+                }
+              ],
+              "returns": "AbstractContextManager[KnockoutProjectSnapshot]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "docs/unit-testing-rules.md",
+        "docs/draft-manifest-workflow.md",
+        "maid_runner/core/knockout.py",
+        "maid_runner/core/manifest.py",
+        "maid_runner/core/types.py"
+      ],
+      "scope": [
+        {
+          "path": "docs/maid_specs.md",
+          "reason": "Document bounded Node package-root retention and managed dependency safety; synchronize mirrors."
+        },
+        {
+          "path": "maid_runner/docs/maid_specs.md",
+          "reason": "Document bounded Node package-root retention and managed dependency safety; synchronize mirrors."
+        },
+        {
+          "path": ".maid/docs/maid_specs.md",
+          "reason": "Document bounded Node package-root retention and managed dependency safety; synchronize mirrors."
+        },
+        {
+          "path": "docs/plans/bug-report-triage-2026-10-20.md",
+          "reason": "Reconcile promoted contract and resolved report."
+        },
+        {
+          "path": "tests/core/test_shared_environment_snapshots.py",
+          "reason": "Evolve old no-path assertion to borrowed managed-path identity while preserving no-copy/source integrity contract."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_fix_knockout_nested_node_environments.py",
+      "tests/core/test_knockout_snapshot.py",
+      "tests/core/test_knockout_snapshot_template.py",
+      "tests/core/test_shared_environment_snapshots.py",
+      "tests/docs/test_chain_merge_docs.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_fix_knockout_nested_node_environments.py -q",
+      "uv run python -m pytest tests/core/test_knockout_snapshot.py tests/core/test_knockout_snapshot_template.py tests/docs/test_chain_merge_docs.py tests/core/test_shared_environment_snapshots.py -q",
+      "uv run maid validate manifests/fix-knockout-nested-node-environments.manifest.yaml --mode schema --quiet"
+    ],
+    "acceptance_commands": []
+  }
+}

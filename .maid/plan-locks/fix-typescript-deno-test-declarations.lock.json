@@ -1,0 +1,83 @@
+{
+  "manifest_path": "manifests/fix-typescript-deno-test-declarations.manifest.yaml",
+  "manifest_hash": "sha256-contract:28d56cf4a98583d3f592aadb8b684b2c61f2531d7d9f25f2743c3bbd6734d4c9",
+  "test_hashes": {
+    "tests/validators/test_typescript_deno_test_declarations.py": "sha256-pyast:v2:faf92a5d919d2f33d5c3fae3c74f52a192dc845afec8d39c1a9cc2cd08395b09"
+  },
+  "created_at": "2026-10-23T06:35:29.694331+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:51b6c7cd3c73f2f21bc5705cdfa8c1295570d336f7e8b5fc1868c729ec82c019",
+      "prior_test_hashes": {
+        "tests/validators/test_typescript_deno_test_declarations.py": "sha256-pyast:v2:faf92a5d919d2f33d5c3fae3c74f52a192dc845afec8d39c1a9cc2cd08395b09"
+      },
+      "revised_at": "2026-10-23T06:35:30.395919+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-typescript-deno-test-declarations.manifest.yaml -> manifests/fix-typescript-deno-test-declarations.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-23T06:35:30.142777+00:00",
+    "commands": [
+      {
+        "command": "uv run pytest tests/validators/test_typescript_deno_test_declarations.py -q",
+        "exit_code": 1,
+        "output_tail": "        )\n    \n>       assert [error.code for error in result.errors] == []\nE       AssertionError: assert [<ErrorCode.T...CODE: 'E600'>] == []\nE         \nE         Left contains one more item: <ErrorCode.TEST_FUNCTION_MISSING_IN_CODE: 'E600'>\nE         Use -v to get more diff\n\ntests/validators/test_typescript_deno_test_declarations.py:141: AssertionError\n=========================== short test summary info ============================\nFAILED tests/validators/test_typescript_deno_test_declarations.py::test_module_level_deno_test_label_is_a_test_declaration[Deno.test(\"normalizes env\", () => { check(); });]\nFAILED tests/validators/test_typescript_deno_test_declarations.py::test_module_level_deno_test_label_is_a_test_declaration[Deno.test(\"normalizes env\", async () => { await check(); });]\nFAILED tests/validators/test_typescript_deno_test_declarations.py::test_module_level_deno_test_label_is_a_test_declaration[Deno.test(\"normalizes env\", function () { check(); });]\nFAILED tests/validators/test_typescript_deno_test_declarations.py::test_module_level_deno_test_label_is_a_test_declaration[Deno.test('normalizes env', { permissions: { read: true } }, () => { check(); });]\nFAILED tests/validators/test_typescript_deno_test_declarations.py::test_module_level_deno_test_label_is_a_test_declaration[Deno.test(`normalizes env`, () => { check(); });]\nFAILED tests/validators/test_typescript_deno_test_declarations.py::test_module_level_deno_test_label_is_a_test_declaration[Deno.test.only(\"normalizes env\", () => { check(); });]\nFAILED tests/validators/test_typescript_deno_test_declarations.py::test_module_level_deno_test_label_is_a_test_declaration[Deno.test.ignore(\"normalizes env\", () => { check(); });]\nFAILED tests/validators/test_typescript_deno_test_declarations.py::test_deno_test_body_is_the_registered_callback_after_options\nFAILED tests/validators/test_typescript_deno_test_declarations.py::test_declared_deno_test_label_passes_behavioral_validation\n9 failed, 10 passed in 0.17s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [],
+    "files": {
+      "create": [],
+      "edit": [],
+      "read": [
+        "maid_runner/core/result.py",
+        "maid_runner/core/types.py",
+        "maid_runner/core/validate.py",
+        "maid_runner/validators/typescript.py",
+        "tests/validators/test_typescript_deno_test_declarations.py"
+      ],
+      "scope": [
+        "maid_runner/validators/_typescript_behavioral.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "read": [
+        "tests/validators/test_typescript_deno_test_declarations.py",
+        "maid_runner/validators/typescript.py",
+        "maid_runner/core/validate.py",
+        "maid_runner/core/result.py",
+        "maid_runner/core/types.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/validators/_typescript_behavioral.py",
+          "reason": "Recognize the exact Deno.test registration chain in the private test-target classifier."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/validators/test_typescript_deno_test_declarations.py"
+    ],
+    "validate_commands": [
+      "uv run pytest tests/validators/test_typescript_deno_test_declarations.py -q"
+    ],
+    "acceptance_commands": []
+  }
+}

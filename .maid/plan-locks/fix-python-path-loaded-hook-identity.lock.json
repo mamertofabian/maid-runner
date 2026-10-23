@@ -1,0 +1,487 @@
+{
+  "manifest_path": "manifests/fix-python-path-loaded-hook-identity.manifest.yaml",
+  "manifest_hash": "sha256-contract:0bb23a3f879a0b1978d34740f0c5bd88f001ba6de2a199f235bda05ea46ecfea",
+  "test_hashes": {
+    "tests/validators/test_python_identity.py": "sha256-pyast:v2:68fcec9e6eaf6bc36dfd49ac66b54a4f732c68e71a0622e2a28c3b5199b8624f",
+    "tests/validators/test_python_behavioral_module_alias_events.py": "sha256-pyast:v2:8bd4879acaf4c520e5ad85da902f18dbb61bc4e12379a16a76ed17861d869058",
+    "tests/validators/test_python_behavioral_references.py": "sha256-pyast:v2:07f2953330b7b94e41dcc73b0b3cef207484a6c46987cfa7254a664ccc7adcbe",
+    "tests/core/validation/test_path_backed_e200_identities.py": "sha256-pyast:v2:59830a0fabf85819975ffc92a5549a8103b1a30826e521c0cceed839b14bab2a",
+    "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d",
+    "tests/core/validation/test_behavioral_coverage.py": "sha256-pyast:v2:947ef5a68bc824910f74a46bfbbcb8b4dc20b548ac880ca34c95529aa9719683",
+    "tests/core/test_python_path_loaded_hook_identity.py": "sha256-pyast:v2:4ef29c6fe50dcf2f980bbbf6b6e8fc2a7b7afa6c9331814e4e8fd1ea57a3d967"
+  },
+  "created_at": "2026-10-20T22:50:00.442715+00:00",
+  "revision": 8,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:7d496db181969513b73d865107e164303a80d3c1afd7e5d6a8d1cb7ae460b268",
+      "prior_test_hashes": {
+        "tests/validators/test_python_identity.py": "sha256-pyast:v2:68fcec9e6eaf6bc36dfd49ac66b54a4f732c68e71a0622e2a28c3b5199b8624f",
+        "tests/validators/test_python_behavioral_module_alias_events.py": "sha256-pyast:v2:8bd4879acaf4c520e5ad85da902f18dbb61bc4e12379a16a76ed17861d869058",
+        "tests/validators/test_python_behavioral_references.py": "sha256-pyast:v2:07f2953330b7b94e41dcc73b0b3cef207484a6c46987cfa7254a664ccc7adcbe",
+        "tests/core/validation/test_path_backed_e200_identities.py": "sha256-pyast:v2:59830a0fabf85819975ffc92a5549a8103b1a30826e521c0cceed839b14bab2a",
+        "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d",
+        "tests/core/test_python_path_loaded_hook_identity.py": "sha256-pyast:v2:e22149070eac87e259b7c4b8f0310663b6110571d5bf1924d59829a0d156c0f5"
+      },
+      "revised_at": "2026-10-20T22:50:06.526961+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-python-path-loaded-hook-identity.manifest.yaml -> manifests/fix-python-path-loaded-hook-identity.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/fix-python-path-loaded-hook-identity.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/fix-python-path-loaded-hook-identity.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c5dfb5bb2c0a430b484c82fd08322510612fd4b7b226757f53f2c41753cdca61",
+      "prior_test_hashes": {
+        "tests/validators/test_python_identity.py": "sha256-pyast:v2:68fcec9e6eaf6bc36dfd49ac66b54a4f732c68e71a0622e2a28c3b5199b8624f",
+        "tests/validators/test_python_behavioral_module_alias_events.py": "sha256-pyast:v2:8bd4879acaf4c520e5ad85da902f18dbb61bc4e12379a16a76ed17861d869058",
+        "tests/validators/test_python_behavioral_references.py": "sha256-pyast:v2:07f2953330b7b94e41dcc73b0b3cef207484a6c46987cfa7254a664ccc7adcbe",
+        "tests/core/validation/test_path_backed_e200_identities.py": "sha256-pyast:v2:59830a0fabf85819975ffc92a5549a8103b1a30826e521c0cceed839b14bab2a",
+        "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d",
+        "tests/core/test_python_path_loaded_hook_identity.py": "sha256-pyast:v2:e22149070eac87e259b7c4b8f0310663b6110571d5bf1924d59829a0d156c0f5"
+      },
+      "revised_at": "2026-10-20T22:51:34.518966+00:00",
+      "reason": "Pin helper-global lexical identity independently of caller-local shadow/import state before implementation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:714e64c2d5a6056e2f02c252148b9d14242765ff6e98890f8961068579fb2d08",
+      "prior_test_hashes": {
+        "tests/validators/test_python_identity.py": "sha256-pyast:v2:68fcec9e6eaf6bc36dfd49ac66b54a4f732c68e71a0622e2a28c3b5199b8624f",
+        "tests/validators/test_python_behavioral_module_alias_events.py": "sha256-pyast:v2:8bd4879acaf4c520e5ad85da902f18dbb61bc4e12379a16a76ed17861d869058",
+        "tests/validators/test_python_behavioral_references.py": "sha256-pyast:v2:07f2953330b7b94e41dcc73b0b3cef207484a6c46987cfa7254a664ccc7adcbe",
+        "tests/core/validation/test_path_backed_e200_identities.py": "sha256-pyast:v2:59830a0fabf85819975ffc92a5549a8103b1a30826e521c0cceed839b14bab2a",
+        "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d",
+        "tests/core/test_python_path_loaded_hook_identity.py": "sha256-pyast:v2:5dda30da88616aa0a6f395d78de97d1226ef3f70af7d47b659af79f0e9ea986e"
+      },
+      "revised_at": "2026-10-20T23:00:03.257879+00:00",
+      "reason": "Pin absolute ancestry and globally writable import/file guards plus dotted filename versus package exact identity; preserve ordinary package imports",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "maid_runner/validators/python.py:method:PythonValidator.module_path",
+          "maid_runner/validators/python.py:method:PythonValidator.module_path:arg=file_path:type=Union[str, Path]:default=None",
+          "maid_runner/validators/python.py:method:PythonValidator.module_path:arg=project_root:type=Path:default=None",
+          "maid_runner/validators/python.py:method:PythonValidator.module_path:kind=method",
+          "maid_runner/validators/python.py:method:PythonValidator.module_path:of=PythonValidator",
+          "maid_runner/validators/python.py:method:PythonValidator.module_path:returns=Optional[str]",
+          "tests/core/test_python_path_loaded_hook_identity.py:test_dotted_file_identity_is_distinct_from_normal_package_identity",
+          "tests/core/test_python_path_loaded_hook_identity.py:test_dotted_file_identity_is_distinct_from_normal_package_identity:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_python_path_loaded_hook_identity.py:test_dotted_file_identity_is_distinct_from_normal_package_identity:kind=test_function",
+          "tests/core/test_python_path_loaded_hook_identity.py:test_dotted_file_identity_is_distinct_from_normal_package_identity:returns=None",
+          "tests/core/test_python_path_loaded_hook_identity.py:test_outside_ancestry_remains_unproven",
+          "tests/core/test_python_path_loaded_hook_identity.py:test_outside_ancestry_remains_unproven:arg=expression:type=str:default=None",
+          "tests/core/test_python_path_loaded_hook_identity.py:test_outside_ancestry_remains_unproven:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+          "tests/core/test_python_path_loaded_hook_identity.py:test_outside_ancestry_remains_unproven:arg=tmp_path:type=Path:default=None",
+          "tests/core/test_python_path_loaded_hook_identity.py:test_outside_ancestry_remains_unproven:kind=test_function",
+          "tests/core/test_python_path_loaded_hook_identity.py:test_outside_ancestry_remains_unproven:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:990ccf0bea2d501a79a9aa97b58c4ed6310a8a298f46c1e2ede148752f37ba74",
+      "prior_test_hashes": {
+        "tests/validators/test_python_identity.py": "sha256-pyast:v2:68fcec9e6eaf6bc36dfd49ac66b54a4f732c68e71a0622e2a28c3b5199b8624f",
+        "tests/validators/test_python_behavioral_module_alias_events.py": "sha256-pyast:v2:8bd4879acaf4c520e5ad85da902f18dbb61bc4e12379a16a76ed17861d869058",
+        "tests/validators/test_python_behavioral_references.py": "sha256-pyast:v2:07f2953330b7b94e41dcc73b0b3cef207484a6c46987cfa7254a664ccc7adcbe",
+        "tests/core/validation/test_path_backed_e200_identities.py": "sha256-pyast:v2:59830a0fabf85819975ffc92a5549a8103b1a30826e521c0cceed839b14bab2a",
+        "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d",
+        "tests/core/test_python_path_loaded_hook_identity.py": "sha256-pyast:v2:c3012bb13cd8afa281cece5866ef96e761a275d5a6018eb68a5c339fe8817293"
+      },
+      "revised_at": "2026-10-20T23:01:20.843149+00:00",
+      "reason": "Cover dotted directory exact identity and ordinary package collision through public module_path and loader validation",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:990ccf0bea2d501a79a9aa97b58c4ed6310a8a298f46c1e2ede148752f37ba74",
+      "prior_test_hashes": {
+        "tests/validators/test_python_identity.py": "sha256-pyast:v2:68fcec9e6eaf6bc36dfd49ac66b54a4f732c68e71a0622e2a28c3b5199b8624f",
+        "tests/validators/test_python_behavioral_module_alias_events.py": "sha256-pyast:v2:8bd4879acaf4c520e5ad85da902f18dbb61bc4e12379a16a76ed17861d869058",
+        "tests/validators/test_python_behavioral_references.py": "sha256-pyast:v2:07f2953330b7b94e41dcc73b0b3cef207484a6c46987cfa7254a664ccc7adcbe",
+        "tests/core/validation/test_path_backed_e200_identities.py": "sha256-pyast:v2:59830a0fabf85819975ffc92a5549a8103b1a30826e521c0cceed839b14bab2a",
+        "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d",
+        "tests/core/test_python_path_loaded_hook_identity.py": "sha256-pyast:v2:ac9fc84363ddb9f78544e9b6c2f140b8345ac1b06a8f9aebbe52d318e19921cd"
+      },
+      "revised_at": "2026-10-20T23:01:33.699299+00:00",
+      "reason": "Use each fixture declared target consistently in dotted directory public identity assertion",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:990ccf0bea2d501a79a9aa97b58c4ed6310a8a298f46c1e2ede148752f37ba74",
+      "prior_test_hashes": {
+        "tests/validators/test_python_identity.py": "sha256-pyast:v2:68fcec9e6eaf6bc36dfd49ac66b54a4f732c68e71a0622e2a28c3b5199b8624f",
+        "tests/validators/test_python_behavioral_module_alias_events.py": "sha256-pyast:v2:8bd4879acaf4c520e5ad85da902f18dbb61bc4e12379a16a76ed17861d869058",
+        "tests/validators/test_python_behavioral_references.py": "sha256-pyast:v2:07f2953330b7b94e41dcc73b0b3cef207484a6c46987cfa7254a664ccc7adcbe",
+        "tests/core/validation/test_path_backed_e200_identities.py": "sha256-pyast:v2:59830a0fabf85819975ffc92a5549a8103b1a30826e521c0cceed839b14bab2a",
+        "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d",
+        "tests/core/test_python_path_loaded_hook_identity.py": "sha256-pyast:v2:67b89b60fd677b138b246681d1a2d5d67fb1f0aae3f62a8bb09784a03025ae86"
+      },
+      "revised_at": "2026-10-20T23:05:47.934549+00:00",
+      "reason": "Reject restored multiply-bound import dependencies and retain existing literal path-loader exact identity compatibility",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:46427ca80c578cce236eab394f8950d97b36035846e10c41758fb62ec5b17359",
+      "prior_test_hashes": {
+        "tests/validators/test_python_identity.py": "sha256-pyast:v2:68fcec9e6eaf6bc36dfd49ac66b54a4f732c68e71a0622e2a28c3b5199b8624f",
+        "tests/validators/test_python_behavioral_module_alias_events.py": "sha256-pyast:v2:8bd4879acaf4c520e5ad85da902f18dbb61bc4e12379a16a76ed17861d869058",
+        "tests/validators/test_python_behavioral_references.py": "sha256-pyast:v2:07f2953330b7b94e41dcc73b0b3cef207484a6c46987cfa7254a664ccc7adcbe",
+        "tests/core/validation/test_path_backed_e200_identities.py": "sha256-pyast:v2:59830a0fabf85819975ffc92a5549a8103b1a30826e521c0cceed839b14bab2a",
+        "tests/docs/test_chain_merge_docs.py": "sha256-pyast:v2:b0e420c52f44a768a4c4833a3719f4de105e1fcfc289392d47797d0b2b1bfa9d",
+        "tests/core/test_python_path_loaded_hook_identity.py": "sha256-pyast:v2:1ce29432204dcc2624a6ea334c86a18b5c07eb8a9c36a4133d55c8d93177ad15"
+      },
+      "revised_at": "2026-10-20T23:14:11.420096+00:00",
+      "reason": "Restrict exact dotted-component identities to interior dots and preserve existing hidden skill sys.path import compatibility",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [
+          "read:tests/core/validation/test_behavioral_coverage.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest tests/validators/test_python_identity.py tests/validators/test_python_behavioral_module_alias_events.py tests/validators/test_python_behavioral_references.py tests/core/validation/test_path_backed_e200_identities.py tests/docs/test_chain_merge_docs.py tests/core/validation/test_behavioral_coverage.py -q"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest tests/validators/test_python_identity.py tests/validators/test_python_behavioral_module_alias_events.py tests/validators/test_python_behavioral_references.py tests/core/validation/test_path_backed_e200_identities.py tests/docs/test_chain_merge_docs.py -q"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-10-20T23:14:21.509001+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_python_path_loaded_hook_identity.py -q",
+        "exit_code": 1,
+        "output_tail": "=========================== short test summary info ============================\nFAILED tests/core/test_python_path_loaded_hook_identity.py::test_standard_loader_helper_records_exact_file_identity[literal]\nFAILED tests/core/test_python_path_loaded_hook_identity.py::test_standard_loader_helper_records_exact_file_identity[file_parents]\nFAILED tests/core/test_python_path_loaded_hook_identity.py::test_standard_loader_helper_records_exact_file_identity[repo_root]\nFAILED tests/core/test_python_path_loaded_hook_identity.py::test_standard_loader_helper_records_exact_file_identity[import_aliases]\nFAILED tests/core/test_python_path_loaded_hook_identity.py::test_standard_loader_helper_records_exact_file_identity[bound_hook]\nFAILED tests/core/test_python_path_loaded_hook_identity.py::test_standard_loader_helper_records_exact_file_identity[unittest]\nFAILED tests/core/test_python_path_loaded_hook_identity.py::test_standard_loader_helper_records_exact_file_identity[caller_local_shadow]\nFAILED tests/core/test_python_path_loaded_hook_identity.py::test_standard_loader_helper_records_exact_file_identity[dotted_directory]\nFAILED tests/core/test_python_path_loaded_hook_identity.py::test_executed_path_loaded_hook_satisfies_public_behavioral_validation[literal]\nFAILED tests/core/test_python_path_loaded_hook_identity.py::test_executed_path_loaded_hook_satisfies_public_behavioral_validation[file_parents]\nFAILED tests/core/test_python_path_loaded_hook_identity.py::test_executed_path_loaded_hook_satisfies_public_behavioral_validation[repo_root]\nFAILED tests/core/test_python_path_loaded_hook_identity.py::test_executed_path_loaded_hook_satisfies_public_behavioral_validation[import_aliases]\nFAILED tests/core/test_python_path_loaded_hook_identity.py::test_executed_path_loaded_hook_satisfies_public_behavioral_validation[bound_hook]\nFAILED tests/core/test_python_path_loaded_hook_identity.py::test_executed_path_loaded_hook_satisfies_public_behavioral_validation[unittest]\nFAILED tests/core/test_python_path_loaded_hook_identity.py::test_executed_path_loaded_hook_satisfies_public_behavioral_validation[caller_local_shadow]\nFAILED tests/core/test_python_path_loaded_hook_identity.py::test_executed_path_loaded_hook_satisfies_public_behavioral_validation[dotted_directory]\nFAILED tests/core/test_python_path_loaded_hook_identity.py::test_unproven_or_different_loader_identity_does_not_cover_declared_hook[ordinary_package_import]\nFAILED tests/core/test_python_path_loaded_hook_identity.py::test_dotted_file_identity_is_distinct_from_normal_package_identity\n18 failed, 27 passed in 8.70s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest tests/validators/test_python_identity.py tests/validators/test_python_behavioral_module_alias_events.py tests/validators/test_python_behavioral_references.py tests/core/validation/test_path_backed_e200_identities.py tests/docs/test_chain_merge_docs.py tests/core/validation/test_behavioral_coverage.py -q",
+        "exit_code": 0,
+        "output_tail": "........................................................................ [ 35%]\n........................................................................ [ 71%]\n..........................................................               [100%]\n202 passed in 0.69s",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/fix-python-path-loaded-hook-identity.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/validators/python.py:method:PythonValidator.collect_behavioral_artifacts",
+      "maid_runner/validators/python.py:method:PythonValidator.collect_behavioral_artifacts:arg=file_path:type=Union[str, Path]:default=None",
+      "maid_runner/validators/python.py:method:PythonValidator.collect_behavioral_artifacts:arg=source:type=str:default=None",
+      "maid_runner/validators/python.py:method:PythonValidator.collect_behavioral_artifacts:kind=method",
+      "maid_runner/validators/python.py:method:PythonValidator.collect_behavioral_artifacts:of=PythonValidator",
+      "maid_runner/validators/python.py:method:PythonValidator.collect_behavioral_artifacts:returns=CollectionResult",
+      "maid_runner/validators/python.py:method:PythonValidator.module_path",
+      "maid_runner/validators/python.py:method:PythonValidator.module_path:arg=file_path:type=Union[str, Path]:default=None",
+      "maid_runner/validators/python.py:method:PythonValidator.module_path:arg=project_root:type=Path:default=None",
+      "maid_runner/validators/python.py:method:PythonValidator.module_path:kind=method",
+      "maid_runner/validators/python.py:method:PythonValidator.module_path:of=PythonValidator",
+      "maid_runner/validators/python.py:method:PythonValidator.module_path:returns=Optional[str]",
+      "tests/core/test_python_path_loaded_hook_identity.py:test_dotted_file_identity_is_distinct_from_normal_package_identity",
+      "tests/core/test_python_path_loaded_hook_identity.py:test_dotted_file_identity_is_distinct_from_normal_package_identity:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_python_path_loaded_hook_identity.py:test_dotted_file_identity_is_distinct_from_normal_package_identity:kind=test_function",
+      "tests/core/test_python_path_loaded_hook_identity.py:test_dotted_file_identity_is_distinct_from_normal_package_identity:returns=None",
+      "tests/core/test_python_path_loaded_hook_identity.py:test_executed_path_loaded_hook_satisfies_public_behavioral_validation",
+      "tests/core/test_python_path_loaded_hook_identity.py:test_executed_path_loaded_hook_satisfies_public_behavioral_validation:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/core/test_python_path_loaded_hook_identity.py:test_executed_path_loaded_hook_satisfies_public_behavioral_validation:arg=scenario:type=str:default=None",
+      "tests/core/test_python_path_loaded_hook_identity.py:test_executed_path_loaded_hook_satisfies_public_behavioral_validation:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_python_path_loaded_hook_identity.py:test_executed_path_loaded_hook_satisfies_public_behavioral_validation:kind=test_function",
+      "tests/core/test_python_path_loaded_hook_identity.py:test_executed_path_loaded_hook_satisfies_public_behavioral_validation:returns=None",
+      "tests/core/test_python_path_loaded_hook_identity.py:test_outside_ancestry_remains_unproven",
+      "tests/core/test_python_path_loaded_hook_identity.py:test_outside_ancestry_remains_unproven:arg=expression:type=str:default=None",
+      "tests/core/test_python_path_loaded_hook_identity.py:test_outside_ancestry_remains_unproven:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/core/test_python_path_loaded_hook_identity.py:test_outside_ancestry_remains_unproven:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_python_path_loaded_hook_identity.py:test_outside_ancestry_remains_unproven:kind=test_function",
+      "tests/core/test_python_path_loaded_hook_identity.py:test_outside_ancestry_remains_unproven:returns=None",
+      "tests/core/test_python_path_loaded_hook_identity.py:test_standard_loader_helper_records_exact_file_identity",
+      "tests/core/test_python_path_loaded_hook_identity.py:test_standard_loader_helper_records_exact_file_identity:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/core/test_python_path_loaded_hook_identity.py:test_standard_loader_helper_records_exact_file_identity:arg=scenario:type=str:default=None",
+      "tests/core/test_python_path_loaded_hook_identity.py:test_standard_loader_helper_records_exact_file_identity:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_python_path_loaded_hook_identity.py:test_standard_loader_helper_records_exact_file_identity:kind=test_function",
+      "tests/core/test_python_path_loaded_hook_identity.py:test_standard_loader_helper_records_exact_file_identity:returns=None",
+      "tests/core/test_python_path_loaded_hook_identity.py:test_unproven_or_different_loader_identity_does_not_cover_declared_hook",
+      "tests/core/test_python_path_loaded_hook_identity.py:test_unproven_or_different_loader_identity_does_not_cover_declared_hook:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/core/test_python_path_loaded_hook_identity.py:test_unproven_or_different_loader_identity_does_not_cover_declared_hook:arg=scenario:type=str:default=None",
+      "tests/core/test_python_path_loaded_hook_identity.py:test_unproven_or_different_loader_identity_does_not_cover_declared_hook:arg=tmp_path:type=Path:default=None",
+      "tests/core/test_python_path_loaded_hook_identity.py:test_unproven_or_different_loader_identity_does_not_cover_declared_hook:kind=test_function",
+      "tests/core/test_python_path_loaded_hook_identity.py:test_unproven_or_different_loader_identity_does_not_cover_declared_hook:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_python_path_loaded_hook_identity.py"
+      ],
+      "edit": [
+        "maid_runner/validators/python.py"
+      ],
+      "read": [
+        "docs/draft-manifest-workflow.md",
+        "docs/unit-testing-rules.md",
+        "maid_runner/core/identity.py",
+        "maid_runner/core/module_paths.py",
+        "maid_runner/validators/_python_behavioral_references.py",
+        "maid_runner/validators/_python_behavioral_scope.py",
+        "tests/core/validation/test_behavioral_coverage.py",
+        "tests/core/validation/test_path_backed_e200_identities.py",
+        "tests/docs/test_chain_merge_docs.py",
+        "tests/validators/test_python_behavioral_module_alias_events.py",
+        "tests/validators/test_python_behavioral_references.py",
+        "tests/validators/test_python_identity.py"
+      ],
+      "scope": [
+        ".maid/docs/maid_specs.md",
+        "docs/maid_specs.md",
+        "docs/plans/bug-report-triage-2026-10-20.md",
+        "maid_runner/docs/maid_specs.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_python_path_loaded_hook_identity.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_standard_loader_helper_records_exact_file_identity",
+              "description": "standard loader helper records exact file identity",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "scenario",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_executed_path_loaded_hook_satisfies_public_behavioral_validation",
+              "description": "executed path loaded hook satisfies public behavioral validation",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "scenario",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unproven_or_different_loader_identity_does_not_cover_declared_hook",
+              "description": "unproven or different loader identity does not cover declared hook",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "scenario",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_outside_ancestry_remains_unproven",
+              "description": "outside ancestry remains unproven",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "expression",
+                  "type": "str"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_dotted_file_identity_is_distinct_from_normal_package_identity",
+              "description": "dotted file identity is distinct from normal package identity",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/validators/python.py",
+          "artifacts": [
+            {
+              "kind": "method",
+              "name": "collect_behavioral_artifacts",
+              "description": "Existing public seam exercised by the planned regression scenarios; preserve its signature.",
+              "of": "PythonValidator",
+              "args": [
+                {
+                  "name": "source",
+                  "type": "str"
+                },
+                {
+                  "name": "file_path",
+                  "type": "Union[str, Path]"
+                }
+              ],
+              "returns": "CollectionResult"
+            },
+            {
+              "kind": "method",
+              "name": "module_path",
+              "description": "Retain existing public signature and normal module identities; dotted Python path components use exact file identity to avoid package-path collision.",
+              "of": "PythonValidator",
+              "args": [
+                {
+                  "name": "file_path",
+                  "type": "Union[str, Path]"
+                },
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                }
+              ],
+              "returns": "Optional[str]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "docs/unit-testing-rules.md",
+        "docs/draft-manifest-workflow.md",
+        "tests/validators/test_python_identity.py",
+        "tests/validators/test_python_behavioral_module_alias_events.py",
+        "tests/validators/test_python_behavioral_references.py",
+        "tests/core/validation/test_path_backed_e200_identities.py",
+        "tests/docs/test_chain_merge_docs.py",
+        "maid_runner/core/module_paths.py",
+        "maid_runner/validators/_python_behavioral_scope.py",
+        "maid_runner/validators/_python_behavioral_references.py",
+        "maid_runner/core/identity.py",
+        "tests/core/validation/test_behavioral_coverage.py"
+      ],
+      "scope": [
+        {
+          "path": "docs/maid_specs.md",
+          "reason": "Document bounded standard loader helper/path identity support consistently."
+        },
+        {
+          "path": "maid_runner/docs/maid_specs.md",
+          "reason": "Document bounded standard loader helper/path identity support consistently."
+        },
+        {
+          "path": ".maid/docs/maid_specs.md",
+          "reason": "Document bounded standard loader helper/path identity support consistently."
+        },
+        {
+          "path": "docs/plans/bug-report-triage-2026-10-20.md",
+          "reason": "Reconcile source report and promoted contract after verified completion."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_python_path_loaded_hook_identity.py",
+      "tests/core/validation/test_behavioral_coverage.py",
+      "tests/core/validation/test_path_backed_e200_identities.py",
+      "tests/docs/test_chain_merge_docs.py",
+      "tests/validators/test_python_behavioral_module_alias_events.py",
+      "tests/validators/test_python_behavioral_references.py",
+      "tests/validators/test_python_identity.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_python_path_loaded_hook_identity.py -q",
+      "uv run python -m pytest tests/validators/test_python_identity.py tests/validators/test_python_behavioral_module_alias_events.py tests/validators/test_python_behavioral_references.py tests/core/validation/test_path_backed_e200_identities.py tests/docs/test_chain_merge_docs.py tests/core/validation/test_behavioral_coverage.py -q",
+      "uv run maid validate manifests/fix-python-path-loaded-hook-identity.manifest.yaml --mode schema --quiet"
+    ],
+    "acceptance_commands": []
+  }
+}

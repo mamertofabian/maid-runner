@@ -1,0 +1,258 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Collect Python PEP 695 type aliases as declared type artifacts
+type: fix
+created: '2026-10-20T19:09:05Z'
+description: 'Collect public module-level PEP695 type statements as TYPE artifacts on interpreters that
+  support the syntax, using the existing alias target renderer and type_parameters fields. Preserve alias
+  name, target, source position and exact type-parameter declaration text (ordinary, bounded, TypeVarTuple
+  and ParamSpec). Both public collection seams, exact implementation validation and public snapshot/save/load/validation
+  roundtrips must agree. Wrong declared target or nonempty parameters remain E302 rather than a missing
+  E300. No schema, parser or type-matching redesign. Preserve Python3.10 import/legacy TypeAlias compatibility
+  using guarded AST access; unsupported or malformed syntax remains explicit parse errors. Preserve existing
+  class/local alias behavior and private snapshot filtering; this report concerns module aliases, not
+  new class-member type semantics. A module alias name is a binding: reuse the existing module-target
+  invalidation path so aliases shadowing Protocol/module imports cannot retain trusted identities, while
+  type-parameter names stay local to the alias and do not rebind module Protocol. Recall had no related
+  records; apply existing producer/bounded-binding lessons and reject unrelated performance/enrichment
+  work.'
+temptations:
+- risk: Emit only alias names while losing target or generic metadata, or bypass public exact validation/snapshot
+    paths.
+  instead: Reuse existing renderer/type_parameters fields and test both public collectors, exact positive/mismatch
+    gates and serialized snapshot roundtrip.
+- risk: Keep trusted Protocol/typing import identity after a type alias rebinds its module name, or treat
+    type-parameter names as module assignments.
+  instead: Route actual module alias binding through the existing unbinding path; retain type-parameter
+    local scope and fail closed on shadowed origins.
+- risk: Require ast.TypeAlias at import time on older interpreters or expand into new class/local alias
+    semantics.
+  instead: Keep guarded AST handling and explicit parse errors for unsupported syntax; preserve legacy/private/class/local
+    behavior within this module-alias fix.
+files:
+  edit:
+  - path: maid_runner/validators/_python_implementation.py
+    artifacts:
+    - kind: function
+      name: collect_implementation_artifacts
+      args:
+      - name: tree
+        type: ast.AST
+      - name: file_path
+        type: str
+      returns: list[FoundArtifact]
+      description: Preserve the public collector signature while collecting module PEP695 aliases and
+        their binding events.
+  create:
+  - path: tests/validators/test_fix_python_pep695_type_alias_artifacts.py
+    artifacts:
+    - kind: test_function
+      name: test_pep695_alias_metadata_survives_public_collection_and_snapshot
+      args:
+      - name: tmp_path
+        type: Path
+      - name: source
+        type: str
+      - name: target
+        type: str
+      - name: parameters
+        type: tuple[str, ...]
+      returns: None
+      description: pep695 alias metadata survives public collection and snapshot
+    - kind: test_function
+      name: test_pep695_exact_implementation_rejects_wrong_contract
+      args:
+      - name: tmp_path
+        type: Path
+      - name: mismatch
+        type: str
+      returns: None
+      description: pep695 exact implementation rejects wrong contract
+    - kind: test_function
+      name: test_legacy_type_alias_definition_and_validation_stay_compatible
+      args:
+      - name: tmp_path
+        type: Path
+      - name: source
+        type: str
+      returns: None
+      description: legacy type alias definition and validation stay compatible
+    - kind: test_function
+      name: test_pep695_alias_binding_invalidates_known_protocol_identity
+      args:
+      - name: imports
+        type: str
+      - name: alias
+        type: str
+      - name: base
+        type: str
+      returns: None
+      description: pep695 alias binding invalidates known protocol identity
+    - kind: test_function
+      name: test_pep695_type_parameter_names_do_not_rebind_module_protocol
+      args: []
+      returns: None
+      description: pep695 type parameter names do not rebind module protocol
+    - kind: test_function
+      name: test_pep695_private_alias_filtering_and_local_class_scope_are_preserved
+      args:
+      - name: tmp_path
+        type: Path
+      returns: None
+      description: pep695 private alias filtering and local class scope are preserved
+    - kind: test_function
+      name: test_pep695_unsupported_or_malformed_syntax_is_an_explicit_parse_error
+      args: []
+      returns: None
+      description: pep695 unsupported or malformed syntax is an explicit parse error
+  read:
+  - docs/unit-testing-rules.md
+  - docs/draft-manifest-workflow.md
+  - maid_runner/validators/python.py
+  - maid_runner/validators/base.py
+  - maid_runner/core/types.py
+  - maid_runner/core/snapshot.py
+  - maid_runner/core/manifest.py
+  - maid_runner/core/_implementation_validation.py
+  scope:
+  - path: docs/maid_specs.md
+    reason: Document supported module aliases and interpreter boundary.
+  - path: maid_runner/docs/maid_specs.md
+    reason: Keep packaged spec mirror identical.
+  - path: .maid/docs/maid_specs.md
+    reason: Keep initialized spec mirror identical.
+  - path: docs/plans/bug-report-triage-2026-10-20.md
+    reason: Update promoted queue and completed combined report location.
+validate:
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/validators/test_fix_python_pep695_type_alias_artifacts.py
+  - -q
+- - uv
+  - run
+  - python
+  - -m
+  - pytest
+  - tests/validators/test_python_type_alias.py
+  - tests/core/test_fix_protocol_interface_stub_detection.py
+  - tests/validators/test_python_parser_replacement_boundaries.py
+  - tests/core/test_snapshot.py
+  - tests/docs/test_chain_merge_docs.py
+  - -q
+- - uv
+  - run
+  - maid
+  - validate
+  - manifests/fix-python-pep695-type-alias-artifacts.manifest.yaml
+  - --mode
+  - schema
+  - --quiet
+outcome:
+  status: completed
+  completed_at: '2026-10-20T19:16:52.592613+00:00'
+  summary: Collect module-level PEP695 type aliases with existing target and type_parameters metadata
+    through both collection APIs, exact validation and serialized snapshots. Preserve legacy/private/local/class
+    policy and invalidate shadowed module import identities without leaking alias type-parameter scope.
+  lessons:
+  - lesson_type: artifact-identity
+    summary: An alias statement is both a TYPE artifact and a module binding. Reuse existing target rendering
+      and target unbinding so supporting new syntax cannot preserve stale trusted Protocol/typing identities;
+      type-parameter names remain local.
+    tags:
+    - python
+    - type-alias
+    - binding
+    paths:
+    - maid_runner/validators/_python_implementation.py
+  - lesson_type: compatibility
+    summary: 'Keep newer AST node access off module import paths and verify an actual older interpreter:
+      legacy aliases and explicit unsupported-syntax errors remain usable without pretending older parsers
+      support PEP695.'
+    tags:
+    - python
+    - interpreter-compatibility
+    - snapshot
+    paths:
+    - tests/validators/test_fix_python_pep695_type_alias_artifacts.py
+  review_notes:
+  - source: independent-read-only-implementation_review_pep695
+    severity: ready
+    summary: Ready to merge; no blocking or advisory findings. Independently passed 19 regressions and
+      scoped implementation; confirmed actual Python 3.10 compatibility evidence.
+  validation:
+  - command:
+    - uv
+    - run
+    - python
+    - -m
+    - pytest
+    - tests/validators/test_fix_python_pep695_type_alias_artifacts.py
+    - -q
+    status: passed
+    summary: 19 dedicated and 164 adjacent alias/Protocol/parser/snapshot/docs cases passed. Scoped implementation,
+      Ruff/Black/diff checks and lock revision 2 all 6 test hashes pass; real preimplementation evidence
+      15 failed / 4 passed.
+  - command:
+    - uv
+    - run
+    - --no-project
+    - --isolated
+    - --python
+    - '3.10'
+    - --with-editable
+    - .
+    - --with
+    - pytest
+    - --with
+    - pytest-xdist
+    - python
+    - -m
+    - pytest
+    - tests/validators/test_fix_python_pep695_type_alias_artifacts.py
+    - -q
+    status: passed
+    summary: 'Actual Python 3.10: 3 legacy/snapshot/unsupported-syntax cases passed; 16 syntax-dependent
+      cases appropriately skipped.'
+  - command:
+    - uv
+    - run
+    - maid
+    - validate
+    - --packet
+    status: passed
+    summary: 342 active manifests passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - test
+    status: passed
+    summary: All 314 declared commands passed.
+  - command:
+    - uv
+    - run
+    - maid
+    - verify
+    - --profile
+    - deep
+    - --manifest-dir
+    - manifests
+    - --file-tracking-scope
+    - task
+    - --plan-lock-scope
+    - task
+    - --test-scope
+    - task
+    - --require-plan-lock
+    - --require-red-evidence
+    - --since
+    - 5ecfce0aebfcd19892ba5de30ba9c3e41696157b
+    status: passed
+    summary: All 11 assessment-directed deep stages passed with required plan-lock/red-evidence gates.
