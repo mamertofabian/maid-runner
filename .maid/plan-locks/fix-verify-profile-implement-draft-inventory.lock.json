@@ -2,10 +2,10 @@
   "manifest_path": "manifests/fix-verify-profile-implement-draft-inventory.manifest.yaml",
   "manifest_hash": "sha256-contract:bc741a9bffe14a1e837de970fbc614a6e6657b1dfa49efa021f470574185a7a7",
   "test_hashes": {
-    "tests/cli/test_verify_profile_distribution.py": "sha256-pyast:v2:a894073d6c192f393c5f4ca5f29f0624dfd6211153d403e0c763530e1935e874"
+    "tests/cli/test_verify_profile_distribution.py": "sha256-pyast:v2:b4f56ccc02a1506e536ae34cfdf1d74eba70c50fa0835e667bc75bf6e9aa9211"
   },
   "created_at": "2026-09-02T02:52:42.267043+00:00",
-  "revision": 4,
+  "revision": 5,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:5f5caa075538dd79ab853bdc6e360eabc7c08383f6d56261962ee65150b13763",
@@ -48,6 +48,23 @@
       },
       "revised_at": "2026-09-02T02:54:57.580070+00:00",
       "reason": "Capture Outcome after inventory fix review",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:bc741a9bffe14a1e837de970fbc614a6e6657b1dfa49efa021f470574185a7a7",
+      "prior_test_hashes": {
+        "tests/cli/test_verify_profile_distribution.py": "sha256-pyast:v2:a894073d6c192f393c5f4ca5f29f0624dfd6211153d403e0c763530e1935e874"
+      },
+      "revised_at": "2026-11-26T05:52:33.596766+00:00",
+      "reason": "Register maid_runner/user_skills/antigravity/maid-onboard/SKILL.md in PACKAGED_VERIFY_PAYLOADS",
       "agent": null,
       "contract_delta": {
         "artifacts_added": [],

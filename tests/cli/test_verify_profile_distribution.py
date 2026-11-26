@@ -34,6 +34,7 @@ PACKAGED_VERIFY_PAYLOADS = {
     "maid_runner/user_skills/claude/maid-onboard/SKILL.md",
     "maid_runner/user_skills/codex/maid-onboard/SKILL.md",
     "maid_runner/user_skills/codex/maid-onboard/agents/openai.yaml",
+    "maid_runner/user_skills/antigravity/maid-onboard/SKILL.md",
 }
 
 ACTIONABLE_SOURCE_COPIES = {

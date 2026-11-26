@@ -526,17 +526,22 @@ def sync_user_skills() -> None:
     """Copy the repo maid-onboard skill sources into maid_runner/user_skills/.
 
     The maid-onboard skill is a user-level bootstrapper: it is packaged so
-    `maid skills install` can deliver it to ~/.claude and ~/.codex, but it is
-    kept out of the per-repo init payloads (maid_runner/<tool>/skills) and the
-    distributable manifests so `maid init` never installs it into a project.
+    `maid skills install` can deliver it to ~/.claude, ~/.codex, and
+    ~/.gemini/config (Antigravity), but it is kept out of the per-repo init
+    payloads (maid_runner/<tool>/skills) and the distributable manifests so
+    `maid init` never installs it into a project.
     """
     project_root = _project_root()
     dest_root = project_root / "maid_runner" / "user_skills"
     _remove_directory(dest_root)
 
     copied = 0
-    for tool in ("claude", "codex"):
-        source = project_root / f".{tool}" / "skills" / "maid-onboard"
+    user_skill_sources = (
+        ("claude", project_root / ".claude" / "skills" / "maid-onboard"),
+        ("codex", project_root / ".codex" / "skills" / "maid-onboard"),
+        ("antigravity", project_root / ".claude" / "skills" / "maid-onboard"),
+    )
+    for tool, source in user_skill_sources:
         if not source.exists():
             continue
         shutil.copytree(source, dest_root / tool / "maid-onboard")

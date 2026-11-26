@@ -21,7 +21,13 @@ from maid_runner.core.uninstall import (
 )
 
 
-_USER_SKILL_TOOLS = ("claude", "codex")
+_REQUIRED_USER_SKILL_TOOLS = ("claude", "codex")
+_OPTIONAL_USER_SKILL_TOOLS = ("antigravity",)
+_USER_SKILL_DESTINATIONS = {
+    "claude": Path(".claude") / "skills",
+    "codex": Path(".codex") / "skills",
+    "antigravity": Path(".gemini") / "config" / "skills",
+}
 _ONBOARD_SKILL = "maid-onboard"
 
 
@@ -30,16 +36,17 @@ def install_onboard_skill(
 ) -> list[str]:
     """Install the maid-onboard skill from ``payload_root`` into ``target_root``.
 
-    For each supported tool, the skill is written under
-    ``<target_root>/.<tool>/skills/maid-onboard/``. The destination skill
-    directory is replaced wholesale so reinstalls are convergent (stale files
-    from an older payload are removed). Files are copied by default; when
-    ``link`` is true they are symlinked, falling back to a copy when the
-    platform does not support symlinks. Returns the POSIX-relative paths written
-    under ``target_root``.
+    For each supported tool, the skill is written under its user-level skills
+    directory (``.claude/skills/maid-onboard``, ``.codex/skills/maid-onboard``,
+    and ``.gemini/config/skills/maid-onboard`` when the Antigravity payload is
+    present). The destination skill directory is replaced wholesale so
+    reinstalls are convergent (stale files from an older payload are removed).
+    Files are copied by default; when ``link`` is true they are symlinked,
+    falling back to a copy when the platform does not support symlinks. Returns
+    the POSIX-relative paths written under ``target_root``.
 
     Raises ``FileNotFoundError`` if the payload does not contain a maid-onboard
-    skill for every supported tool, so an incomplete package fails loudly rather
+    skill for every required tool, so an incomplete package fails loudly rather
     than installing a partial skill set.
     """
     target_root = Path(target_root)
@@ -47,7 +54,7 @@ def install_onboard_skill(
 
     missing = [
         tool
-        for tool in _USER_SKILL_TOOLS
+        for tool in _REQUIRED_USER_SKILL_TOOLS
         if not (payload_root / tool / _ONBOARD_SKILL).is_dir()
     ]
     if missing:
@@ -56,10 +63,20 @@ def install_onboard_skill(
             f"missing {', '.join(missing)} skill source."
         )
 
+    tools = [
+        *_REQUIRED_USER_SKILL_TOOLS,
+        *(
+            tool
+            for tool in _OPTIONAL_USER_SKILL_TOOLS
+            if (payload_root / tool / _ONBOARD_SKILL).is_dir()
+        ),
+    ]
+
     written: list[str] = []
-    for tool in _USER_SKILL_TOOLS:
+    for tool in tools:
         source_dir = payload_root / tool / _ONBOARD_SKILL
-        dest_dir = target_root / f".{tool}" / "skills" / _ONBOARD_SKILL
+        relative_skill_dir = _USER_SKILL_DESTINATIONS[tool] / _ONBOARD_SKILL
+        dest_dir = target_root / relative_skill_dir
         _reset_directory(dest_dir)
         for source_file in sorted(source_dir.rglob("*")):
             if not source_file.is_file():
@@ -68,9 +85,7 @@ def install_onboard_skill(
             destination = dest_dir / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
             _place_file(source_file, destination, link)
-            written.append(
-                (Path(f".{tool}") / "skills" / _ONBOARD_SKILL / relative).as_posix()
-            )
+            written.append((relative_skill_dir / relative).as_posix())
     return written
 
 
@@ -83,12 +98,22 @@ def uninstall_onboard_skill(
     removed: list[str] = []
     preserved: list[str] = []
     missing: list[str] = []
+    label_to_tool: dict[str, str] = {}
 
-    for tool in _USER_SKILL_TOOLS:
-        relative = Path(f".{tool}") / "skills" / _ONBOARD_SKILL
+    tools = list(_REQUIRED_USER_SKILL_TOOLS)
+    for tool in _OPTIONAL_USER_SKILL_TOOLS:
+        relative = _USER_SKILL_DESTINATIONS[tool] / _ONBOARD_SKILL
+        if (payload_root / tool / _ONBOARD_SKILL).is_dir() or os.path.lexists(
+            target_root / relative
+        ):
+            tools.append(tool)
+
+    for tool in tools:
+        relative = _USER_SKILL_DESTINATIONS[tool] / _ONBOARD_SKILL
         destination = target_root / relative
         source = payload_root / tool / _ONBOARD_SKILL
         label = relative.as_posix()
+        label_to_tool[label] = tool
         if not os.path.lexists(destination):
             missing.append(label)
             continue
@@ -115,9 +140,7 @@ def uninstall_onboard_skill(
             raise ValueError(
                 f"refusing to cross symlink boundary during uninstall: {destination}"
             )
-        source = (
-            payload_root / label.split("/", 1)[0].removeprefix(".") / _ONBOARD_SKILL
-        )
+        source = payload_root / label_to_tool[label] / _ONBOARD_SKILL
         _remove_owned_skill_tree(target_root, destination, source)
     return report
 

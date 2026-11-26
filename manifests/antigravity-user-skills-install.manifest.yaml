@@ -1,0 +1,248 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Deliver and safely uninstall the user-level `maid-onboard` skill for Antigravity under `~/.gemini/config/skills/maid-onboard` via `maid skills install|uninstall`"
+type: feature
+created: "2026-11-26T05:42:05Z"
+metadata:
+  epic: antigravity-support
+  tags:
+    - antigravity
+    - user-skills
+    - packaging
+    - agent-integration
+  priority: medium
+description: |
+  Slice 3 (final child) of `manifests/drafts/antigravity-support.epic.yaml`.
+
+  Extends the user-level `maid-onboard` bootstrapper (`maid skills install` /
+  `maid skills uninstall`) to cover Google Antigravity's documented global
+  discovery path (`~/.gemini/config/skills/maid-onboard/`) without duplicating
+  a third manual `maid-onboard` source file or breaking existing 2-tool
+  synthetic-payload tests.
+
+  Design decisions (rationale):
+
+  1. Explicit per-tool destination map in `maid_runner/core/skill_install.py`:
+     Replace the implicit `f".{tool}" / "skills"` assumption with an explicit
+     mapping (`claude -> .claude/skills`, `codex -> .codex/skills`,
+     `antigravity -> .gemini/config/skills`) and map each installed destination
+     label back to its payload tool name directly during uninstall rather than
+     parsing the first path segment (`label.split("/")[0]`). This also ensures
+     `_has_symlinked_parent()` guards every component (`.gemini`,
+     `.gemini/config`, `.gemini/config/skills`) before removing anything.
+  2. Backward-compatible optional tool handling for synthetic unit-test
+     payloads:
+     `claude` and `codex` remain required payload directories (`FileNotFoundError`
+     if either is absent, preserving `test_install_onboard_skill_requires_both_tool_payloads`).
+     `antigravity` is installed whenever `payload_root / "antigravity" / "maid-onboard"`
+     exists (always true in the real packaged `maid_runner/user_skills/`). During
+     uninstall, `antigravity` is evaluated whenever either its packaged payload
+     source exists OR `<target_root>/.gemini/config/skills/maid-onboard` exists
+     on disk (preserving it safely if installed without a matching payload
+     source, while keeping 2-tool synthetic test expectations identical).
+  3. Single canonical `maid-onboard` source (`scripts/sync_claude_files.py`):
+     `sync_user_skills()` copies `.claude/skills/maid-onboard` into
+     `maid_runner/user_skills/antigravity/maid-onboard` alongside the existing
+     `claude` and `codex` user-skill copies, keeping `maid-onboard` out of
+     `maid_runner/antigravity/manifest.json` (`skills.distributable`).
+  4. Onboard guidance & epic closure:
+     Updates `.claude/skills/maid-onboard/SKILL.md` and
+     `.codex/skills/maid-onboard/SKILL.md` (and their synced `user_skills`
+     copies) so `maid-onboard` knows about `--tool antigravity`,
+     `.agents/skills`, and `~/.gemini/config/skills`; updates `pyproject.toml`
+     package-data and `README.md`; and archives the consumed epic
+     `manifests/drafts/antigravity-support.epic.yaml`.
+
+  Outcome recall digestion:
+  - Applied lesson from `add-skills-install-command`: keep `install_onboard_skill`
+    and `uninstall_onboard_skill` pure over injected `(target_root, payload_root)`
+    parameters, keep `maid-onboard` out of per-repo init distributables, and
+    preserve fail-loud / convergent-reinstall / copy-fallback behavior.
+  - Applied lesson from `069-03` and `antigravity-init-payload`: place new
+    behavioral tests in a dedicated manifest-owned file
+    (`tests/cli/test_skills_antigravity_install.py`) so plan-locked
+    `tests/cli/test_skills_install.py` and `tests/cli/test_uninstall_cmd.py`
+    stay untouched and green.
+temptations:
+  - risk: "Do not hardcode `label.split('/', 1)[0].removeprefix('.')` to map `.gemini/config/skills/maid-onboard` back to its payload directory."
+    instead: "Use an explicit tool-to-relative-destination table so uninstall resolves `payload_root / tool / 'maid-onboard'` directly for every tool."
+  - risk: "Do not break existing 2-tool synthetic payload tests in `test_skills_install.py` and `test_uninstall_cmd.py` by unconditionally requiring `payload_root / 'antigravity'`."
+    instead: "Require `claude` and `codex`, install `antigravity` whenever `payload_root / 'antigravity' / 'maid-onboard'` is present, and always ship `maid_runner/user_skills/antigravity/maid-onboard` in the package."
+  - risk: "Do not let `maid-onboard` leak into `maid_runner/antigravity/manifest.json` (`skills.distributable`)."
+    instead: "Keep `maid-onboard` exclusively under `maid_runner/user_skills/` and assert its absence from `maid_runner/antigravity/manifest.json`."
+  - risk: "Do not drop existing `maid-onboard` workflow anchors tested by `tests/cli/test_skills_install.py`."
+    instead: "Add Antigravity (`--tool antigravity`, `.agents/skills`, `~/.gemini/config/skills`) alongside existing Claude/Codex guidance while preserving every existing anchor."
+files:
+  create:
+    - path: tests/cli/test_skills_antigravity_install.py
+      artifacts:
+        - kind: test_function
+          name: test_sync_user_skills_packages_antigravity_onboard_from_canonical_source
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+          returns: None
+          description: "`sync_user_skills` generates `maid_runner/user_skills/antigravity/maid-onboard/SKILL.md` from `.claude/skills/maid-onboard`, matches the committed package copy, updates `pyproject.toml`, and keeps `maid-onboard` out of per-repo `maid_runner/antigravity/manifest.json`."
+        - kind: test_function
+          name: test_install_onboard_skill_delivers_antigravity_under_gemini_config_and_links
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: "`install_onboard_skill` copies or symlinks the Antigravity onboard skill into `<target_root>/.gemini/config/skills/maid-onboard/`, prunes stale files on reinstall, and stays compatible with 2-tool payloads."
+        - kind: test_function
+          name: test_uninstall_onboard_skill_removes_antigravity_and_respects_modifications_and_symlinks
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: "`uninstall_onboard_skill` previews and removes unchanged `.gemini/config/skills/maid-onboard`, preserves custom skills, modified files, symlinked ancestor directories (`.gemini`, `.gemini/config`, `.gemini/config/skills`), and installed copies when payload lacks `antigravity`."
+        - kind: test_function
+          name: test_skills_cli_install_and_uninstall_cover_antigravity_and_docs
+          args:
+            - name: tmp_path
+              type: Path
+          returns: None
+          description: "`maid skills install` and `maid skills uninstall` deliver and cleanly remove `.gemini/config/skills/maid-onboard/SKILL.md` end-to-end, and `README.md` documents `~/.gemini/config`."
+  edit:
+    - path: maid_runner/core/skill_install.py
+      artifacts:
+        - kind: function
+          name: install_onboard_skill
+          args:
+            - name: target_root
+              type: Path
+            - name: payload_root
+              type: Path
+            - name: link
+              type: bool
+          returns: list[str]
+          description: "Install `maid-onboard` into `.claude/skills/maid-onboard`, `.codex/skills/maid-onboard`, and (when present in `payload_root`) `.gemini/config/skills/maid-onboard`."
+        - kind: function
+          name: uninstall_onboard_skill
+          args:
+            - name: target_root
+              type: Path
+            - name: payload_root
+              type: Path
+            - name: dry_run
+              type: bool
+          returns: UninstallReport
+          description: "Safely preview and remove unchanged `maid-onboard` installs across `.claude/skills`, `.codex/skills`, and `.gemini/config/skills` without crossing symlink boundaries."
+    - path: scripts/sync_claude_files.py
+      artifacts:
+        - kind: function
+          name: sync_user_skills
+          args: []
+          returns: None
+          description: "Copy repo `maid-onboard` sources into `maid_runner/user_skills/{claude,codex,antigravity}/maid-onboard`."
+    - path: tests/cli/test_verify_profile_distribution.py
+      artifacts:
+        - kind: test_function
+          name: test_verify_payload_inventory_and_generated_copies_are_synchronized
+          args: []
+          returns: None
+          description: "Found packaged verify payloads match `PACKAGED_VERIFY_PAYLOADS` including `maid_runner/user_skills/antigravity/maid-onboard/SKILL.md`."
+  scope:
+    - path: .claude/skills/maid-onboard/SKILL.md
+      reason: "Document `--tool antigravity`, `.agents/skills`, and `~/.gemini/config/skills` in canonical `maid-onboard` guidance."
+    - path: .codex/skills/maid-onboard/SKILL.md
+      reason: "Keep Codex `maid-onboard` source aligned with canonical `maid-onboard` guidance."
+    - path: maid_runner/user_skills/claude/maid-onboard/SKILL.md
+      reason: "Synced packaged Claude `maid-onboard` skill."
+    - path: maid_runner/user_skills/codex/maid-onboard/SKILL.md
+      reason: "Synced packaged Codex `maid-onboard` skill."
+    - path: maid_runner/user_skills/antigravity/maid-onboard/SKILL.md
+      reason: "Synced packaged Antigravity `maid-onboard` skill derived from canonical `.claude/skills/maid-onboard`."
+    - path: pyproject.toml
+      reason: "Add `user_skills/antigravity/*/SKILL.md` to setuptools package-data."
+    - path: README.md
+      reason: "Update `maid skills install` CLI reference row to include `~/.gemini/config`."
+    - path: manifests/drafts/antigravity-support.epic.yaml
+      reason: "Archive the consumed 3-slice Antigravity support epic once Slice 3 lands."
+  read:
+    - manifests/antigravity-hook-scope-check-envelope.manifest.yaml
+    - manifests/antigravity-init-payload.manifest.yaml
+    - manifests/add-skills-install-command.manifest.yaml
+    - maid_runner/cli/commands/skills.py
+    - maid_runner/antigravity/manifest.json
+    - tests/cli/test_skills_install.py
+validate:
+  - uv run python -m pytest -q tests/cli/test_skills_antigravity_install.py tests/cli/test_skills_install.py tests/cli/test_verify_profile_distribution.py
+  - uv run maid validate manifests/antigravity-user-skills-install.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/antigravity-user-skills-install.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-11-26T06:00:00Z"
+  summary: "Extended `maid skills install` and `maid skills uninstall` to deliver and safely remove the user-level `maid-onboard` skill for Google Antigravity under `~/.gemini/config/skills/maid-onboard/`, derived `maid_runner/user_skills/antigravity/maid-onboard` from canonical `.claude/skills/maid-onboard`, updated `maid-onboard` guidance, `pyproject.toml`, `README.md`, and `PACKAGED_VERIFY_PAYLOADS`, and archived the consumed `antigravity-support` epic."
+  rationale: "Antigravity discovers global user skills under `~/.gemini/config/skills/` rather than `~/.<tool>/skills/`, so `maid_runner/core/skill_install.py` now uses an explicit destination table and reverse `label_to_tool` lookup while guarding every ancestor component (`.gemini`, `.gemini/config`, `.gemini/config/skills`) against symlink traversal. Treating `antigravity` as optional when absent from synthetic 2-tool unit-test payloads preserves full backward compatibility while shipping all three tools in the real package."
+  lessons:
+    - lesson_type: validation
+      summary: "Adding any new packaged skill under `maid_runner/user_skills/` that mentions `maid verify` must also register its path in `PACKAGED_VERIFY_PAYLOADS` in `tests/cli/test_verify_profile_distribution.py` (and revise affected sibling plan locks), otherwise full `maid test` and CI fail even when task-scoped tests pass."
+      tags:
+        - user-skills
+        - verification
+        - ci
+        - antigravity
+      paths:
+        - tests/cli/test_verify_profile_distribution.py
+        - maid_runner/user_skills/antigravity/maid-onboard/SKILL.md
+    - lesson_type: design
+      summary: "User-level skill destinations should be configured via an explicit tool-to-path table rather than assuming `~/.<tool>/skills` and deriving tool names from the first path segment; multi-segment roots like `.gemini/config/skills` require explicit reverse lookup for safe uninstall."
+      tags:
+        - user-skills
+        - uninstall
+        - antigravity
+      paths:
+        - maid_runner/core/skill_install.py
+        - tests/cli/test_skills_antigravity_install.py
+  review_notes:
+    - source: implementation-reviewer-5c0cf60e-f8f7-49c4-8adb-a7e4a5d00ca3
+      severity: blocking
+      summary: "Round 1 independent review caught a P1 CI regression: `tests/cli/test_verify_profile_distribution.py::test_verify_payload_inventory_and_generated_copies_are_synchronized` failed because `maid_runner/user_skills/antigravity/maid-onboard/SKILL.md` was missing from `PACKAGED_VERIFY_PAYLOADS`. Added it to `PACKAGED_VERIFY_PAYLOADS`, revised Slice 3 lock (rev 3) and the 4 affected historical sibling locks (`095-04`, `fix-assess-real-repo-adoption-blockers`, `fix-verify-profile-implement-draft-inventory`, `snapshot-cli-commands--main-2`), and polished two minor `maid-onboard` Antigravity wording notes."
+    - source: implementation-reviewer-acc7b51c-b560-4a54-af5c-e0c9d015cf2f
+      severity: info
+      summary: "Round 2 independent read-only review found 0 blocking issues and returned verdict ready."
+  validation:
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --profile
+        - handoff
+        - --manifest-dir
+        - manifests
+        - --file-tracking-scope
+        - task
+        - --plan-lock-scope
+        - repository
+        - --test-scope
+        - task
+        - --since
+        - HEAD
+      status: passed
+      summary: "Repository-wide plan-lock and handoff verify passed all 9 stages with 0 blocking findings."
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/cli/test_skills_antigravity_install.py
+        - tests/cli/test_skills_install.py
+        - tests/cli/test_verify_profile_distribution.py
+        - tests/cli/test_verify_profile_adoption.py
+        - tests/cli/test_uninstall_cmd.py
+        - tests/test_coverage_recommendation_guidance.py
+        - tests/test_learning_loop_init_payload.py
+        - tests/test_implement_draft_skill_guidance.py
+      status: passed
+      summary: "All 8 user-skills, verify-profile, uninstall, and onboard-guidance test suites passed (66 passed)."
