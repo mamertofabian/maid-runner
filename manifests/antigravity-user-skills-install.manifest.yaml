@@ -174,7 +174,8 @@ files:
     - maid_runner/antigravity/manifest.json
     - tests/cli/test_skills_install.py
 validate:
-  - uv run python -m pytest -q tests/cli/test_skills_antigravity_install.py tests/cli/test_skills_install.py tests/cli/test_verify_profile_distribution.py
+  - uv run python -m pytest -q tests/cli/test_skills_antigravity_install.py
+  - uv run python -m pytest -q tests/cli/test_skills_install.py tests/cli/test_verify_profile_distribution.py
   - uv run maid validate manifests/antigravity-user-skills-install.manifest.yaml --mode behavioral --quiet
   - uv run maid validate manifests/antigravity-user-skills-install.manifest.yaml --mode schema --quiet
 outcome:
@@ -202,6 +203,13 @@ outcome:
       paths:
         - maid_runner/core/skill_install.py
         - tests/cli/test_skills_antigravity_install.py
+    - lesson_type: validation
+      summary: "Keep knockout-compatible behavioral tests in a separate validate command from distribution tests that require Git-ignored generated payloads; retain both commands for ordinary manifest testing."
+      tags: [knockout, generated-files, testing]
+      paths:
+        - manifests/antigravity-user-skills-install.manifest.yaml
+        - tests/cli/test_skills_antigravity_install.py
+        - tests/cli/test_verify_profile_distribution.py
   review_notes:
     - source: implementation-reviewer-5c0cf60e-f8f7-49c4-8adb-a7e4a5d00ca3
       severity: blocking
@@ -209,6 +217,9 @@ outcome:
     - source: implementation-reviewer-acc7b51c-b560-4a54-af5c-e0c9d015cf2f
       severity: info
       summary: "Round 2 independent read-only review found 0 blocking issues and returned verdict ready."
+    - source: independent-review-release-contract
+      severity: info
+      summary: "The independent read-only review of the release preparation revision returned ready with no blocking findings; it verified the retained test suites, revised red evidence, plan status, focused validation, and deep verification."
   validation:
     - command:
         - uv
@@ -246,3 +257,12 @@ outcome:
         - tests/test_implement_draft_skill_guidance.py
       status: passed
       summary: "All 8 user-skills, verify-profile, uninstall, and onboard-guidance test suites passed (66 passed)."
+    - command: [uv, run, maid, plan, revise, manifests/antigravity-user-skills-install.manifest.yaml, --reason, "Split snapshot-compatible behavioral tests from payload distribution regressions while retaining both suites"]
+      status: passed
+      summary: "Revision 4 captured genuine red evidence in an isolated recovery worktree with pre-feature implementation files from ea952ea0 and current tests: four Antigravity behavioral failures and one missing payload inventory failure. Restoring the current implementation passed plan status and all four manifest commands."
+    - command: [uv, run, maid, test, --manifest, manifests/antigravity-user-skills-install.manifest.yaml]
+      status: passed
+      summary: "All four revised manifest commands passed, retaining the Antigravity, existing skills, and distribution inventory test modules."
+    - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --file-tracking-scope, task, --plan-lock-scope, task, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, main]
+      status: passed
+      summary: "All 11 release-range deep verification stages passed, including artifact coverage, knockout, plan-lock integrity, red evidence, scope checks, and tests; the existing E307 warning for ts_compiler_resolver.cjs was non-blocking."

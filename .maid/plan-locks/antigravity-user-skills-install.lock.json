@@ -1,13 +1,13 @@
 {
   "manifest_path": "manifests/antigravity-user-skills-install.manifest.yaml",
-  "manifest_hash": "sha256-contract:276162e4e221524ab44e94a1895d9e9d94cc8459bce9bc7218397361d408cf2b",
+  "manifest_hash": "sha256-contract:e8536be52aec4820a8f72aec9528337074f4ce808d1f6a04b62a5ab3900ee0a3",
   "test_hashes": {
     "tests/cli/test_skills_install.py": "sha256-pyast:v2:efaeda0150ab0d4292b938689448b05d25cec76cb72793267b1d0dd130f2a4bc",
     "tests/cli/test_skills_antigravity_install.py": "sha256-pyast:v2:dbae07af1b8153e3a8dcdae8009dcc64fcecc1b4f394f3f9acca852052757974",
     "tests/cli/test_verify_profile_distribution.py": "sha256-pyast:v2:b4f56ccc02a1506e536ae34cfdf1d74eba70c50fa0835e667bc75bf6e9aa9211"
   },
   "created_at": "2026-11-26T05:41:55.480130+00:00",
-  "revision": 3,
+  "revision": 4,
   "revisions": [
     {
       "prior_manifest_hash": "sha256-contract:93f5b9d41df68523eff35dca91c5d9b054502dcdb94a445df04dc5eba4bbca9e",
@@ -60,16 +60,46 @@
           "uv run python -m pytest -q tests/cli/test_skills_antigravity_install.py tests/cli/test_skills_install.py"
         ]
       }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:276162e4e221524ab44e94a1895d9e9d94cc8459bce9bc7218397361d408cf2b",
+      "prior_test_hashes": {
+        "tests/cli/test_skills_install.py": "sha256-pyast:v2:efaeda0150ab0d4292b938689448b05d25cec76cb72793267b1d0dd130f2a4bc",
+        "tests/cli/test_skills_antigravity_install.py": "sha256-pyast:v2:dbae07af1b8153e3a8dcdae8009dcc64fcecc1b4f394f3f9acca852052757974",
+        "tests/cli/test_verify_profile_distribution.py": "sha256-pyast:v2:b4f56ccc02a1506e536ae34cfdf1d74eba70c50fa0835e667bc75bf6e9aa9211"
+      },
+      "revised_at": "2026-11-26T14:33:39.273763+00:00",
+      "reason": "Split snapshot-compatible behavioral tests from payload distribution regressions while retaining both suites",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/cli/test_skills_antigravity_install.py",
+          "uv run python -m pytest -q tests/cli/test_skills_install.py tests/cli/test_verify_profile_distribution.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/cli/test_skills_antigravity_install.py tests/cli/test_skills_install.py tests/cli/test_verify_profile_distribution.py"
+        ]
+      }
     }
   ],
   "red_evidence": {
     "red": true,
-    "captured_at": "2026-11-26T05:52:04.603081+00:00",
+    "captured_at": "2026-11-26T14:33:44.660457+00:00",
     "commands": [
       {
-        "command": "uv run python -m pytest -q tests/cli/test_skills_antigravity_install.py tests/cli/test_skills_install.py tests/cli/test_verify_profile_distribution.py",
+        "command": "uv run python -m pytest -q tests/cli/test_skills_antigravity_install.py",
         "exit_code": 1,
-        "output_tail": ">       assert found == PACKAGED_VERIFY_PAYLOADS\nE       AssertionError: assert {'maid_runner...KILL.md', ...} == {'maid_runner...KILL.md', ...}\nE         \nE         Extra items in the right set:\nE         'maid_runner/user_skills/antigravity/maid-onboard/SKILL.md'\nE         Use -v to get more diff\n\ntests/cli/test_verify_profile_distribution.py:244: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_skills_antigravity_install.py::test_sync_user_skills_packages_antigravity_onboard_from_canonical_source\nFAILED tests/cli/test_skills_antigravity_install.py::test_install_onboard_skill_delivers_antigravity_under_gemini_config_and_links\nFAILED tests/cli/test_skills_antigravity_install.py::test_uninstall_onboard_skill_removes_antigravity_and_respects_modifications_and_symlinks\nFAILED tests/cli/test_skills_antigravity_install.py::test_skills_cli_install_and_uninstall_cover_antigravity_and_docs\nFAILED tests/cli/test_verify_profile_distribution.py::test_verify_payload_inventory_and_generated_copies_are_synchronized\n5 failed, 17 passed in 0.47s\n\n   Building maid-runner @ file:///home/atomrem/projects/codefrost-dev/maid-runner\n      Built maid-runner @ file:///home/atomrem/projects/codefrost-dev/maid-runner\nUninstalled 1 package in 1ms\nInstalled 1 package in 1ms",
+        "output_tail": "    \n        assert main([\"skills\", \"install\", \"--target-root\", str(home)]) == 0\n        agy_skill = home / \".gemini\" / \"config\" / \"skills\" / \"maid-onboard\" / \"SKILL.md\"\n>       assert agy_skill.is_file()\nE       AssertionError: assert False\nE        +  where False = is_file()\nE        +    where is_file = PosixPath('/tmp/pytest-of-atomrem/pytest-1053/test_skills_cli_install_and_un0/cli-home/.gemini/config/skills/maid-onboard/SKILL.md').is_file\n\ntests/cli/test_skills_antigravity_install.py:230: AssertionError\n----------------------------- Captured stdout call -----------------------------\nInstalled maid-onboard skill (3 files) under /tmp/pytest-of-atomrem/pytest-1053/test_skills_cli_install_and_un0/cli-home\n  .claude/skills/maid-onboard/SKILL.md\n  .codex/skills/maid-onboard/SKILL.md\n  .codex/skills/maid-onboard/agents/openai.yaml\n=========================== short test summary info ============================\nFAILED tests/cli/test_skills_antigravity_install.py::test_sync_user_skills_packages_antigravity_onboard_from_canonical_source\nFAILED tests/cli/test_skills_antigravity_install.py::test_install_onboard_skill_delivers_antigravity_under_gemini_config_and_links\nFAILED tests/cli/test_skills_antigravity_install.py::test_uninstall_onboard_skill_removes_antigravity_and_respects_modifications_and_symlinks\nFAILED tests/cli/test_skills_antigravity_install.py::test_skills_cli_install_and_uninstall_cover_antigravity_and_docs\n4 failed in 0.21s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_skills_install.py tests/cli/test_verify_profile_distribution.py",
+        "exit_code": 1,
+        "output_tail": "            path.relative_to(ROOT).as_posix()\n            for root in (\n                ROOT / \"maid_runner\" / \"claude\",\n                ROOT / \"maid_runner\" / \"codex\",\n                ROOT / \"maid_runner\" / \"user_skills\",\n            )\n            for path in root.rglob(\"*\")\n            if path.is_file() and \"maid verify\" in path.read_text(encoding=\"utf-8\")\n        }\n>       assert found == PACKAGED_VERIFY_PAYLOADS\nE       AssertionError: assert {'maid_runner...KILL.md', ...} == {'maid_runner...KILL.md', ...}\nE         \nE         Extra items in the right set:\nE         'maid_runner/user_skills/antigravity/maid-onboard/SKILL.md'\nE         Use -v to get more diff\n\ntests/cli/test_verify_profile_distribution.py:244: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_verify_profile_distribution.py::test_verify_payload_inventory_and_generated_copies_are_synchronized\n1 failed, 17 passed in 0.27s",
         "classification": "red"
       },
       {
@@ -334,7 +364,8 @@
       "tests/cli/test_verify_profile_distribution.py"
     ],
     "validate_commands": [
-      "uv run python -m pytest -q tests/cli/test_skills_antigravity_install.py tests/cli/test_skills_install.py tests/cli/test_verify_profile_distribution.py",
+      "uv run python -m pytest -q tests/cli/test_skills_antigravity_install.py",
+      "uv run python -m pytest -q tests/cli/test_skills_install.py tests/cli/test_verify_profile_distribution.py",
       "uv run maid validate manifests/antigravity-user-skills-install.manifest.yaml --mode behavioral --quiet",
       "uv run maid validate manifests/antigravity-user-skills-install.manifest.yaml --mode schema --quiet"
     ],
