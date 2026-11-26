@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - **TypeScript function re-exports** — Validate named imported function re-exports against their originating declarations, including aliases and supported TypeScript project configuration, instead of reporting a false `E300` for the public function.
+- **Awaited JavaScript and TypeScript test helpers** — Recognize supported directly awaited local helpers containing `expect(...)` matcher assertions, preventing false `E210` warnings for those behavioral tests. The parser-backed check uses the optional TypeScript parser; without it, the legacy scanner remains available with a visible warning.
 
 ## [2.28.1] - 2026-10-23
 
