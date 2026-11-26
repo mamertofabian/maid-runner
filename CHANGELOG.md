@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.28.2] - 2026-11-26
+
+### Fixed
+- **TypeScript function re-exports** — Validate named imported function re-exports against their originating declarations, including aliases and supported TypeScript project configuration, instead of reporting a false `E300` for the public function.
+
 ## [2.28.1] - 2026-10-23
 
 ### Fixed
@@ -1395,7 +1400,8 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
-[Unreleased]: https://github.com/mamertofabian/maid-runner/compare/v2.28.1...HEAD
+[Unreleased]: https://github.com/mamertofabian/maid-runner/compare/v2.28.2...HEAD
+[2.28.2]: https://github.com/mamertofabian/maid-runner/compare/v2.28.1...v2.28.2
 [2.28.1]: https://github.com/mamertofabian/maid-runner/compare/v2.28.0...v2.28.1
 [2.28.0]: https://github.com/mamertofabian/maid-runner/compare/v2.27.6...v2.28.0
 [2.27.5]: https://github.com/mamertofabian/maid-runner/compare/v2.27.4...v2.27.5

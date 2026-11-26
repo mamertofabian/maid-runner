@@ -1,0 +1,152 @@
+{
+  "manifest_path": "manifests/bump-version-2.28.2.manifest.yaml",
+  "manifest_hash": "sha256-contract:a8ab77829ec36c1eb8d2a810e34c1404c7a15318f666d4c46d5013b39021426c",
+  "test_hashes": {
+    "tests/integration/test_library_api.py": "sha256-pyast:v2:afd9ea020575cd6aecfe8ba433c05196578fdb978f9c0102608ce850b669feb0",
+    "tests/integration/test_release_2_28_2.py": "sha256-pyast:v2:d910301399ccb4cf6183695c2e272e86c6eeeada5e74823f91d52d656a8fd89e"
+  },
+  "created_at": "2026-11-26T02:41:38.340702+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:5321b3cba4dc4db1647bc33a5a442313c855431520dead3578a5bc5e854f4ae2",
+      "prior_test_hashes": {
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:afd9ea020575cd6aecfe8ba433c05196578fdb978f9c0102608ce850b669feb0",
+        "tests/integration/test_release_2_28_2.py": "sha256-pyast:v2:d910301399ccb4cf6183695c2e272e86c6eeeada5e74823f91d52d656a8fd89e"
+      },
+      "revised_at": "2026-11-26T02:41:45.250159+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/bump-version-2.28.2.manifest.yaml -> manifests/bump-version-2.28.2.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-11-26T02:41:39.151366+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/integration/test_release_2_28_2.py tests/integration/test_library_api.py",
+        "exit_code": 1,
+        "output_tail": "        )\nE       AssertionError: assert '[Unreleased]: https://github.com/mamertofabian/maid-runner/compare/v2.28.2...HEAD' in '# Changelog\\n\\nAll notable changes to this project will be documented in this file.\\n\\nThe format is based on [Keep a...n/maid-runner/compare/v2.5.2...v2.6.0\\n[2.5.2]: https://github.com/mamertofabian/maid-runner/compare/v2.5.1...v2.5.2\\n'\n\ntests/integration/test_release_2_28_2.py:63: AssertionError\n_________________ test_roadmap_reports_prepared_patch_version __________________\n\n    def test_roadmap_reports_prepared_patch_version():\n        roadmap = (_ROOT / \"docs/ROADMAP.md\").read_text()\n    \n>       assert \"**Current Version:** 2.28.2\" in roadmap\nE       AssertionError: assert '**Current Version:** 2.28.2' in '# MAID Runner Roadmap\\n\\n**Project:** MAID Runner - validation framework for Manifest-driven AI Development\\n**Status...should name the owning lane, current evidence, and the next\\nmanifest or spec needed to make the work implementable.\\n'\n\ntests/integration/test_release_2_28_2.py:80: AssertionError\n=========================== short test summary info ============================\nFAILED tests/integration/test_release_2_28_2.py::test_package_lock_and_cli_report_2_28_2\nFAILED tests/integration/test_release_2_28_2.py::test_changelog_places_patch_after_empty_unreleased_section\nFAILED tests/integration/test_release_2_28_2.py::test_patch_notes_describe_the_named_function_reexport_fix\nFAILED tests/integration/test_release_2_28_2.py::test_changelog_preserves_prior_release_and_compare_links\nFAILED tests/integration/test_release_2_28_2.py::test_roadmap_reports_prepared_patch_version\n5 failed, 29 passed in 0.61s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/integration/test_release_2_28_2.py:test_changelog_places_patch_after_empty_unreleased_section",
+      "tests/integration/test_release_2_28_2.py:test_changelog_places_patch_after_empty_unreleased_section:kind=test_function",
+      "tests/integration/test_release_2_28_2.py:test_changelog_preserves_prior_release_and_compare_links",
+      "tests/integration/test_release_2_28_2.py:test_changelog_preserves_prior_release_and_compare_links:kind=test_function",
+      "tests/integration/test_release_2_28_2.py:test_package_lock_and_cli_report_2_28_2",
+      "tests/integration/test_release_2_28_2.py:test_package_lock_and_cli_report_2_28_2:kind=test_function",
+      "tests/integration/test_release_2_28_2.py:test_patch_notes_describe_the_named_function_reexport_fix",
+      "tests/integration/test_release_2_28_2.py:test_patch_notes_describe_the_named_function_reexport_fix:kind=test_function",
+      "tests/integration/test_release_2_28_2.py:test_roadmap_reports_prepared_patch_version",
+      "tests/integration/test_release_2_28_2.py:test_roadmap_reports_prepared_patch_version:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/integration/test_release_2_28_2.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/__version__.py",
+        "manifests/bump-version-2.28.1.manifest.yaml",
+        "manifests/snapshot-cli-commands--main-2.manifest.yaml",
+        "tests/integration/test_library_api.py"
+      ],
+      "scope": [
+        ".maid/plan-locks/snapshot-cli-commands--main-2.lock.json",
+        "CHANGELOG.md",
+        "docs/ROADMAP.md",
+        "pyproject.toml",
+        "uv.lock"
+      ],
+      "delete": [
+        "tests/integration/test_release_2_28_1.py"
+      ],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/integration/test_release_2_28_2.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_package_lock_and_cli_report_2_28_2"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_changelog_places_patch_after_empty_unreleased_section"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_patch_notes_describe_the_named_function_reexport_fix"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_changelog_preserves_prior_release_and_compare_links"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_roadmap_reports_prepared_patch_version"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "tests/integration/test_library_api.py",
+        "maid_runner/__version__.py",
+        "manifests/bump-version-2.28.1.manifest.yaml",
+        "manifests/snapshot-cli-commands--main-2.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "pyproject.toml",
+          "reason": "Advance the packaged project version."
+        },
+        {
+          "path": "uv.lock",
+          "reason": "Regenerate editable package metadata for the new version."
+        },
+        {
+          "path": "CHANGELOG.md",
+          "reason": "Record the patch fix, release date, and comparison links."
+        },
+        {
+          "path": "docs/ROADMAP.md",
+          "reason": "Synchronize the documented current CLI version and date."
+        },
+        {
+          "path": ".maid/plan-locks/snapshot-cli-commands--main-2.lock.json",
+          "reason": "Refresh the existing broad lock after replacing its version-pinned behavioral test."
+        }
+      ],
+      "delete": [
+        {
+          "path": "tests/integration/test_release_2_28_1.py",
+          "reason": "Replace the superseded test that pins 2.28.1 as the current release."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/integration/test_library_api.py",
+      "tests/integration/test_release_2_28_2.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/integration/test_release_2_28_2.py tests/integration/test_library_api.py"
+    ],
+    "acceptance_commands": []
+  }
+}
