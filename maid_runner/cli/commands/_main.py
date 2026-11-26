@@ -905,6 +905,12 @@ def _register_hook_parser(sub: argparse._SubParsersAction) -> None:
         action="store_true",
         help="Fail when the candidate path is outside writable scope",
     )
+    scope_check.add_argument(
+        "--format",
+        choices=["default", "antigravity"],
+        default="default",
+        help="Output contract format for hook decisions (default or antigravity)",
+    )
 
 
 def _register_snapshot_parser(sub: argparse._SubParsersAction) -> None:
@@ -1653,7 +1659,15 @@ def _register_init_parser(sub: argparse._SubParsersAction) -> None:
     p.add_argument(
         "--tool",
         default="auto",
-        choices=["claude", "codex", "cursor", "windsurf", "generic", "auto"],
+        choices=[
+            "claude",
+            "codex",
+            "antigravity",
+            "cursor",
+            "windsurf",
+            "generic",
+            "auto",
+        ],
         help="Agent tool payload to initialize",
     )
     p.add_argument(

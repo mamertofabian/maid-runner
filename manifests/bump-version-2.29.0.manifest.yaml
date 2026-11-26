@@ -1,0 +1,142 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: Prepare maid-runner 2.29.0 minor version metadata for Antigravity support
+type: feature
+created: "2026-11-26T09:40:41Z"
+supersedes:
+  - bump-version-2.28.2
+description: |
+  Advance the locally prepared, unpublished 2.28.2 package metadata on
+  release/v2.next to minor version 2.29.0 for Google Antigravity support and
+  keep pyproject metadata, the editable uv lock, runtime and CLI version,
+  roadmap, and changelog links aligned.
+
+  Because v2.28.1 is the latest published git tag and 2.28.2 was never tagged
+  or published before the three Antigravity commits (c92ac672, ea952ea0,
+  ff4e922e) landed on release/v2.next, fold the post-v2.28.1 TypeScript
+  named-function re-export fix (90430b5a) into a dated 2.29.0 section alongside
+  Added entries for Antigravity PreToolUse scope-check support, repo-level
+  maid init --tool antigravity payloads, and user-level maid skills
+  install/uninstall delivery under ~/.gemini/config/skills/maid-onboard. Point
+  [Unreleased] at v2.29.0...HEAD and [2.29.0] at v2.28.1...v2.29.0 while
+  removing the unpublished 2.28.2 heading and compare link, matching the
+  2.18.0, 2.22.0, and 2.28.0 precedent. Also include antigravity in the
+  documented maid init --tool choices in docs/ROADMAP.md.
+
+  Supersede bump-version-2.28.2 and replace its version-pinned release test
+  with tests/integration/test_release_2_29_0.py so the full test suite retains
+  no stale 2.28.2 assertions. Refresh the shared
+  snapshot-cli-commands--main-2.lock.json through maid plan revise --no-run
+  after replacing that test while preserving existing hashes and its null red
+  evidence. Keep maid_runner/__version__.py dynamic and
+  tests/integration/test_library_api.py intact.
+temptations:
+  - risk: "Do not leave an unpublished [2.28.2] section or v2.28.2 compare target in CHANGELOG.md."
+    instead: "Fold the post-v2.28.1 TypeScript function re-export fix into [2.29.0] alongside Antigravity Added entries and link [2.29.0] to compare/v2.28.1...v2.29.0."
+  - risk: "Do not update only pyproject.toml while leaving uv.lock, CLI output, CHANGELOG.md, or docs/ROADMAP.md stale."
+    instead: "Regenerate uv.lock through uv and validate package, lock, __version__, maid --version, changelog, and roadmap mirrors (including maid init --tool choices) together."
+  - risk: "Do not retain tests/integration/test_release_2_28_2.py or hand-edit .maid/plan-locks/snapshot-cli-commands--main-2.lock.json."
+    instead: "Supersede bump-version-2.28.2, delete tests/integration/test_release_2_28_2.py, and refresh snapshot-cli-commands--main-2.lock.json via maid plan revise --no-run."
+  - risk: "Do not overclaim Antigravity auto-detection in maid init --tool auto or heuristic directory walking in maid hook scope-check."
+    instead: "Document explicit maid init --tool antigravity (.agents/ and AGENTS.md), explicit stdin cwd plus --format antigravity in maid hook scope-check, and ~/.gemini/config/skills/maid-onboard in maid skills install/uninstall."
+files:
+  create:
+    - path: tests/integration/test_release_2_29_0.py
+      artifacts:
+        - kind: test_function
+          name: test_package_lock_and_cli_report_2_29_0
+          args: []
+          returns: None
+          description: "pyproject.toml, editable uv.lock, maid_runner.__version__, and maid --version all report 2.29.0."
+        - kind: test_function
+          name: test_changelog_places_minor_release_after_empty_unreleased_section
+          args: []
+          returns: None
+          description: "CHANGELOG.md places ## [2.29.0] - 2026-11-26 after an empty ## [Unreleased] section and omits any unpublished 2.28.2 section."
+        - kind: test_function
+          name: test_release_notes_cover_antigravity_features_and_typescript_reexport_fix
+          args: []
+          returns: None
+          description: "The 2.29.0 release section documents the three Antigravity Added capabilities and the TypeScript named-function re-export Fixed entry accurately."
+        - kind: test_function
+          name: test_changelog_preserves_prior_release_and_compare_links
+          args: []
+          returns: None
+          description: "CHANGELOG.md preserves 2.28.1 notes and links [Unreleased] to v2.29.0...HEAD and [2.29.0] to v2.28.1...v2.29.0 without dangling 2.28.2 links."
+        - kind: test_function
+          name: test_roadmap_reports_prepared_minor_version_and_antigravity_init_tool
+          args: []
+          returns: None
+          description: "docs/ROADMAP.md reports Current Version 2.29.0, Last Updated 2026-11-26, maid 2.29.0, and antigravity among maid init --tool choices."
+  scope:
+    - path: pyproject.toml
+      reason: "Advance the packaged project version to 2.29.0."
+    - path: uv.lock
+      reason: "Regenerate editable package metadata for 2.29.0."
+    - path: CHANGELOG.md
+      reason: "Record the 2.29.0 minor release notes, fold the unpublished 2.28.2 fix, and update comparison links."
+    - path: docs/ROADMAP.md
+      reason: "Synchronize the documented current CLI version, date, and maid init --tool choices."
+    - path: .maid/plan-locks/snapshot-cli-commands--main-2.lock.json
+      reason: "Refresh the existing broad lock after replacing its version-pinned release test."
+  delete:
+    - path: tests/integration/test_release_2_28_2.py
+      reason: "Replace the superseded test that pins unpublished 2.28.2 as the current version."
+  read:
+    - tests/integration/test_library_api.py
+    - maid_runner/__version__.py
+    - manifests/bump-version-2.28.2.manifest.yaml
+    - manifests/antigravity-hook-scope-check-envelope.manifest.yaml
+    - manifests/antigravity-init-payload.manifest.yaml
+    - manifests/antigravity-user-skills-install.manifest.yaml
+    - manifests/snapshot-cli-commands--main-2.manifest.yaml
+validate:
+  - ["uv", "run", "python", "-m", "pytest", "-q", "tests/integration/test_release_2_29_0.py", "tests/integration/test_library_api.py"]
+outcome:
+  status: completed
+  completed_at: "2026-11-26T17:58:30+08:00"
+  summary: "Prepared maid-runner 2.29.0 minor version metadata on release/v2.next for Google Antigravity support, synchronizing pyproject.toml, uv.lock, runtime and CLI version, CHANGELOG.md, and docs/ROADMAP.md."
+  rationale: "Google Antigravity PreToolUse scope-check support, repo-level maid init --tool antigravity workspace payloads, and user-level maid skills install/uninstall delivery under ~/.gemini/config/skills/maid-onboard add backward-compatible user-facing functionality warranting a SemVer minor bump from published v2.28.1 to 2.29.0. Because 2.28.2 was only prepared locally on release/v2.next and never tagged or published, its TypeScript named-function re-export fix was folded into the dated 2.29.0 release notes with compare link v2.28.1...v2.29.0."
+  lessons:
+    - lesson_type: release-version-consistency
+      summary: "When a locally prepared patch version on release/v2.next is superseded by minor feature commits before tagging, fold its changelog entry into the new minor section and compare against the last published tag, and verify CLI --tool documentation mirrors in docs/ROADMAP.md alongside version mirrors."
+      tags: [release, version, semver, antigravity]
+      paths:
+        - pyproject.toml
+        - uv.lock
+        - CHANGELOG.md
+        - docs/ROADMAP.md
+        - tests/integration/test_release_2_29_0.py
+  review_notes:
+    - source: independent-read-only-plan-review-ae9d6f49
+      severity: ready
+      summary: "Plan reviewer returned Approved with zero blockers; anchored the docs/ROADMAP.md antigravity assertion to the maid init --tool sentence and ordered created timestamp chronologically before locking."
+    - source: independent-read-only-implementation-review-094b018c
+      severity: ready
+      summary: "Implementation reviewer returned verdict ready with zero blocking findings across scope, version mirrors, Antigravity release notes, folded TypeScript re-export fix, compare links, and plan-lock integrity."
+    - source: snapshot-lock-revision
+      severity: advisory
+      summary: "Revision 74 of snapshot-cli-commands--main-2.lock.json replaced test_release_2_28_2.py with test_release_2_29_0.py and recorded the already-committed tests/test_antigravity_repo_dogfood_config.py hash while preserving all existing hashes and null red evidence."
+  validation:
+    - command: ["uv", "run", "python", "-m", "pytest", "-q", "tests/integration/test_release_2_29_0.py", "tests/integration/test_library_api.py"]
+      status: passed
+      summary: "34 focused release and library API tests passed after the expected pre-bump red phase (5 failed, 29 passed)."
+    - command: ["uv", "run", "maid", "validate"]
+      status: passed
+      summary: "361 active manifests passed; 374 superseded manifests were skipped."
+    - command: ["uv", "run", "maid", "test", "--manifest", "manifests/bump-version-2.29.0.manifest.yaml"]
+      status: passed
+      summary: "Manifest validation command passed; repository-wide maid test was skipped locally per user instruction to run focused verification only."
+    - command: ["uv", "run", "maid", "verify", "--profile", "handoff", "--manifest-dir", "manifests", "--file-tracking-scope", "task", "--plan-lock-scope", "task", "--test-scope", "task", "--since", "67c901b4"]
+      status: passed
+      summary: "All 9 task-scoped handoff verification stages passed (after an earlier task-scoped deep verify also passed all 11 stages)."
+    - command: ["uv", "build", "--out-dir", "/tmp/maid-2.29.0-build", "--quiet"]
+      status: passed
+      summary: "Built maid_runner-2.29.0 wheel and source distribution with all packaged Antigravity payloads; twine check passed for both."
+    - command: ["uv", "run", "--no-project", "--with", "/tmp/maid-2.29.0-build/maid_runner-2.29.0-py3-none-any.whl", "maid", "--version"]
+      status: passed
+      summary: "An isolated wheel installation reported maid 2.29.0."

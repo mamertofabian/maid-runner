@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.29.0] - 2026-11-26
+
+### Added
+- **Antigravity hook scope-check support** — Parse Google Antigravity `PreToolUse` stdin envelopes (`toolCall.args` path keys and explicit stdin `cwd`) in `maid hook scope-check` without heuristic directory walking, and add `--format antigravity` so allow, deny, and internal-error outcomes emit strict `{"decision", "reason"}` JSON on exit `0` while keeping `--format default` unchanged.
+- **Antigravity workspace initialization** — Add `maid init --tool antigravity` to install packaged `.agents/` skills, a version-stamped `.agents/manifest.json`, non-destructively merged `.agents/hooks.json` scope-check configuration (rewriting the command to `../scripts/maid` when a project launcher exists), and managed `AGENTS.md` guidance, with `maid init --check` and safe `--uninstall` support.
+- **Antigravity user-level onboarding skill** — Extend `maid skills install` and `maid skills uninstall` to deliver and safely remove the global `maid-onboard` skill under `~/.gemini/config/skills/maid-onboard` while guarding ancestor directories against symlink traversal and preserving custom or modified files.
+
+### Fixed
+- **TypeScript function re-exports** — Validate named imported function re-exports against their originating declarations, including aliases and supported TypeScript project configuration, instead of reporting a false `E300` for the public function.
+- **Awaited JavaScript and TypeScript test helpers** — Recognize supported directly awaited local helpers containing `expect(...)` matcher assertions, preventing false `E210` warnings for those behavioral tests. The parser-backed check uses the optional TypeScript parser; without it, the legacy scanner remains available with a visible warning.
+
 ## [2.28.1] - 2026-10-23
 
 ### Fixed
@@ -1395,7 +1406,8 @@ This is the first public release of MAID Runner, implementing the core Manifest-
 - black >= 25.1.0 (for code formatting)
 - ruff >= 0.13.0 (for linting)
 
-[Unreleased]: https://github.com/mamertofabian/maid-runner/compare/v2.28.1...HEAD
+[Unreleased]: https://github.com/mamertofabian/maid-runner/compare/v2.29.0...HEAD
+[2.29.0]: https://github.com/mamertofabian/maid-runner/compare/v2.28.1...v2.29.0
 [2.28.1]: https://github.com/mamertofabian/maid-runner/compare/v2.28.0...v2.28.1
 [2.28.0]: https://github.com/mamertofabian/maid-runner/compare/v2.27.6...v2.28.0
 [2.27.5]: https://github.com/mamertofabian/maid-runner/compare/v2.27.4...v2.27.5

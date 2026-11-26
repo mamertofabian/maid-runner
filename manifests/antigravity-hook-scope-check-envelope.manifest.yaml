@@ -1,0 +1,264 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Support Antigravity PreToolUse stdin envelopes, explicit stdin cwd, and `--format antigravity` output in `maid hook scope-check`"
+type: feature
+created: "2026-11-26T04:44:37Z"
+metadata:
+  epic: antigravity-support
+  tags:
+    - hooks
+    - antigravity
+    - scope-enforcement
+    - agent-integration
+  priority: medium
+description: |
+  Slice 1 of `manifests/drafts/antigravity-support.epic.yaml`.
+
+  Antigravity `PreToolUse` hooks (configured in `.agents/hooks.json`) differ
+  from Claude Code and Cursor in three concrete ways:
+
+  1. Stdin envelope shape: Antigravity sends camelCase protojson with the
+     target file inside `toolCall.args` (`Path` for CLI/App `write_file` and
+     `edit_file`, or `TargetFile` for IDE `write_to_file` /
+     `replace_file_content` / `multi_replace_file_content`, plus `path` /
+     `file_path` fallbacks).
+  2. Hook working directory: Antigravity launches command hooks with process
+     CWD set to the directory containing `hooks.json` (e.g. `<repo>/.agents/`),
+     not the repository root, and passes the agent's workspace working
+     directory explicitly in stdin as `"cwd"`.
+  3. Output & exit-code protocol: Antigravity parses `PreToolUse` hook stdout
+     as protojson containing documented fields (`decision`, `reason`, etc.) on
+     exit 0. Unknown fields like `active_manifest` risk protojson unmarshal
+     failures, and non-zero exit codes like `2` risk being treated as hook
+     crashes rather than structured allow/deny decisions.
+
+  Design decisions (rationale):
+
+  - Preserve 100% of the existing `--format default` contract: keys are
+    `{"decision", "reason", "active_manifest"}` and exit codes remain `0`
+    (allow), `2` (deny), and `1` (internal error). Existing callers that pass a
+    `SimpleNamespace` without a `format` attribute continue to behave as
+    `default`.
+  - Parse Antigravity `toolCall.args` (`Path`, `TargetFile`, `path`,
+    `file_path`) and explicit stdin `cwd` in `--stdin` mode regardless of
+    `--format`, so both default and Antigravity output modes understand the
+    Antigravity stdin envelope.
+  - When stdin JSON supplies a `"cwd"` key that is not `None`, require it to be
+    a non-empty string (otherwise fail via the existing internal-error path)
+    and pass it as `project_root` to both `resolve_active_manifest(project_root)`
+    and `scope_check_path(..., project_root=project_root)`. Never use heuristic
+    directory walking; `scope_check_path`'s existing ownership invariant
+    (`_root_owns_manifest`) continues to guard `outside-project-root` allows
+    when `cwd` points to a subdirectory or foreign directory.
+  - Add `--format` (`choices=["default", "antigravity"]`, default `"default"`)
+    to `maid hook scope-check`. Under `--format antigravity`, emit a single
+    JSON object with exact keys `{"decision", "reason"}` and exit `0` for
+    allow, deny, and fail-open/fail-closed internal-error decisions so
+    Antigravity receives a valid structured `PreToolUse` decision without
+    crashing or rejecting unknown protojson fields.
+
+  Outcome recall digestion:
+  - Applied lesson from `fix-scope-check-outside-project-root`: avoid heuristic
+    project-root discovery; accept only the harness-supplied explicit `cwd` and
+    keep `_root_owns_manifest` fail-closed for subdirectory/foreign `cwd`.
+  - Applied lesson from `fix-claude-scope-check-stdin-envelope` and `069-03`:
+    place all new behavioral and envelope tests in a dedicated manifest-owned
+    test file (`tests/cli/test_hook_antigravity_envelope.py`) rather than
+    editing plan-locked legacy hook test files.
+  - Applied lesson from `069-02`: do not retry active-manifest resolution inside
+    the exception handler; malformed stdin payloads or unreadable active-task
+    state must still emit exactly one JSON object matching the active format.
+
+  Out of scope for Slice 1: `maid init --tool antigravity`, `.agents/` payload
+  generation and sync (Slice 2), and `maid skills install` Antigravity global
+  path support (Slice 3).
+temptations:
+  - risk: "Do not walk parent directories looking for `.git` or `.maid` when running from `.agents/`."
+    instead: "Pass only the explicit stdin `cwd` field (when provided) as `project_root` to `resolve_active_manifest` and `scope_check_path`, defaulting to `.` when `cwd` is absent."
+  - risk: "Do not include `active_manifest` in `--format antigravity` stdout or exit non-zero on allow/deny/error decisions in that mode."
+    instead: "Under `--format antigravity`, print only `{\"decision\": ..., \"reason\": ...}` and return 0 while keeping `--format default` unchanged (keys `decision`, `reason`, `active_manifest`, exit 0/2/1)."
+  - risk: "Do not break callers constructing `argparse.Namespace` or `SimpleNamespace` without a `format` attribute."
+    instead: "Read `getattr(args, 'format', 'default')` and validate that it is in `{'default', 'antigravity'}`."
+  - risk: "Do not edit plan-locked hook test modules (`test_hook_cmd.py`, `test_hook_claude_stdin_envelope.py`, `test_scope_check_outside_project_root.py`)."
+    instead: "Put all new behavioral tests in `tests/cli/test_hook_antigravity_envelope.py` and run the older modules as regression checks."
+files:
+  create:
+    - path: tests/cli/test_hook_antigravity_envelope.py
+      artifacts:
+        - kind: test_function
+          name: test_build_parser_registers_hook_scope_check_format_option
+          args: []
+          returns: None
+          description: "The CLI parser exposes `--format` on `maid hook scope-check` with choices default and antigravity (defaulting to default) and rejects unknown values."
+        - kind: test_function
+          name: test_scope_check_accepts_antigravity_pretooluse_envelopes_with_cwd
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+            - name: capsys
+              type: pytest.CaptureFixture[str]
+          returns: None
+          description: "Antigravity PreToolUse envelopes (`write_file`/`edit_file` Path and IDE TargetFile) invoked from `.agents/` with stdin `cwd` pointing to the repo root return exit 0 and strict `{\"decision\", \"reason\"}` JSON under `--format antigravity` for both allow and deny."
+        - kind: test_function
+          name: test_scope_check_antigravity_envelope_default_format_preserves_legacy_contract
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+            - name: capsys
+              type: pytest.CaptureFixture[str]
+          returns: None
+          description: "An Antigravity PreToolUse envelope with `--format default` (or omitted `format` attribute) resolves `toolCall.args.Path` and `cwd` while preserving `{\"decision\", \"reason\", \"active_manifest\"}` and exit codes 0 (allow) / 2 (deny)."
+        - kind: test_function
+          name: test_scope_check_antigravity_format_respects_outside_root_and_subdir_cwd_guard
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+            - name: capsys
+              type: pytest.CaptureFixture[str]
+          returns: None
+          description: "Under `--format antigravity`, out-of-repo paths are allowed when stdin `cwd` owns the active manifest, while a subdirectory `cwd` that does not own the manifest still denies undeclared repo files under `--strict`."
+        - kind: test_function
+          name: test_scope_check_antigravity_format_no_active_task_and_internal_errors
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+            - name: capsys
+              type: pytest.CaptureFixture[str]
+          returns: None
+          description: "Under `--format antigravity`, missing active task, unloadable active manifest, corrupt active-task state, and malformed envelopes (missing/empty Path, empty/whitespace/falsy/non-string cwd) emit strict `{\"decision\", \"reason\"}` JSON with exit 0, failing open by default and denying under `--strict`; explicit `cwd: null` falls back to `.`, and a programmatic unknown format fails through the default internal-error path."
+  edit:
+    - path: maid_runner/cli/commands/hook.py
+      artifacts:
+        - kind: function
+          name: cmd_hook
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Handle `maid hook scope-check`, accepting legacy `{\"path\": ...}`, Claude `tool_input.file_path`, and Antigravity `toolCall.args` (`Path`/`TargetFile`/`path`/`file_path`) plus explicit stdin `cwd` as `project_root`, and formatting output as either default (`{\"decision\", \"reason\", \"active_manifest\"}`, exit 0/2/1) or antigravity (`{\"decision\", \"reason\"}`, exit 0)."
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          description: "Parser registers `--format` (`default` or `antigravity`, defaulting to `default`) on `maid hook scope-check` alongside `--path`, `--stdin`, and `--strict`."
+        - kind: function
+          name: main
+          args:
+            - name: argv
+              type: list[str] | None
+              default: None
+          returns: int
+          description: "CLI dispatches `maid hook scope-check` including `--format` to `maid_runner.cli.commands.hook.cmd_hook`."
+  scope:
+    - path: README.md
+      reason: "Document the `--format default|antigravity` option in the `maid hook scope-check` CLI reference row."
+  read:
+    - manifests/drafts/antigravity-support.epic.yaml
+    - manifests/069-02-add-hook-scope-check-command.manifest.yaml
+    - manifests/fix-claude-scope-check-stdin-envelope.manifest.yaml
+    - manifests/fix-scope-check-outside-project-root.manifest.yaml
+    - maid_runner/core/active_task.py
+    - maid_runner/core/scope_check.py
+    - tests/cli/test_hook_cmd.py
+    - tests/cli/test_hook_claude_stdin_envelope.py
+    - tests/core/test_scope_check_outside_project_root.py
+validate:
+  - uv run python -m pytest -q tests/cli/test_hook_antigravity_envelope.py tests/cli/test_hook_cmd.py tests/cli/test_hook_claude_stdin_envelope.py tests/core/test_scope_check_outside_project_root.py
+  - uv run maid validate manifests/antigravity-hook-scope-check-envelope.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/antigravity-hook-scope-check-envelope.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-11-26T04:53:00Z"
+  summary: "Extended `maid hook scope-check` to parse Antigravity PreToolUse stdin envelopes (`toolCall.args` Path/TargetFile/path/file_path) and explicit stdin `cwd` as `project_root`, and added `--format default|antigravity` so Antigravity receives strict `{\"decision\", \"reason\"}` protojson stdout with exit 0 while preserving the existing default contract (`{\"decision\", \"reason\", \"active_manifest\"}`, exit 0/2/1)."
+  rationale: "Antigravity executes command hooks with CWD set to the folder containing `hooks.json` (`.agents/`), passes the workspace root explicitly in stdin `cwd`, and unmarshals `PreToolUse` stdout as protojson on exit 0. Honoring explicit stdin `cwd` avoids heuristic directory walking and keeps `_root_owns_manifest` fail-closed, while gating protojson stdout and exit-0 behavior behind `--format antigravity` keeps legacy, Claude, and Cursor hook contracts untouched."
+  lessons:
+    - lesson_type: design
+      summary: "When adding a new agent harness hook protocol whose stdout schema and exit-code semantics differ (such as Antigravity protojson on exit 0 without unknown fields like `active_manifest`), gate the new output contract behind an explicit `--format` flag while letting `--stdin` parse all known envelope shapes."
+      tags:
+        - hooks
+        - antigravity
+        - cli
+      paths:
+        - maid_runner/cli/commands/hook.py
+        - maid_runner/cli/commands/_main.py
+    - lesson_type: validation
+      summary: "Plan-review adversarial checks caught three subtle test gaps before locking: the `scope_check_path()` internal-error return branch (separate from `except Exception`), loose `decision == 'deny'` assertions under `--strict`, and falsy non-None `cwd` values (`''`, `False`) versus explicit `cwd: null`."
+      tags:
+        - hooks
+        - plan-review
+        - behavioral-testing
+      paths:
+        - tests/cli/test_hook_antigravity_envelope.py
+        - maid_runner/cli/commands/hook.py
+  review_notes:
+    - source: plan-reviewer-bb7267ab-eeca-4fe7-83fe-9bc61c5f6199
+      severity: blocking
+      summary: "Plan review flagged 3 behavioral-test coverage gaps (unloadable-manifest return path under `--format antigravity`, explicit out-of-scope reason assertion on subdirectory `cwd` guard, and falsy non-None `cwd` vs `cwd: null`); all 3 blocking items and 2 advisory notes were applied before `maid plan lock`."
+    - source: implementation-reviewer-9773934f-8e15-4718-9ef2-f2829e8b0020
+      severity: info
+      summary: "Independent read-only implementation review returned verdict ready with 0 blocking findings and 4 minor advisory notes (including syncing the README Edit-Time Scope Enforcement prose in Slice 2)."
+  validation:
+    - command:
+        - uv
+        - run
+        - maid
+        - validate
+        - manifests/antigravity-hook-scope-check-envelope.manifest.yaml
+        - --mode
+        - implementation
+      status: passed
+      summary: "Implementation validation passed for the promoted manifest."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/antigravity-hook-scope-check-envelope.manifest.yaml
+      status: passed
+      summary: "All 3 manifest validation commands passed (pytest hook suite + behavioral + schema)."
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --profile
+        - deep
+        - --manifest-dir
+        - manifests
+        - --file-tracking-scope
+        - task
+        - --plan-lock-scope
+        - task
+        - --test-scope
+        - task
+        - --require-plan-lock
+        - --require-red-evidence
+        - --since
+        - HEAD
+      status: passed
+      summary: "Assessed deep handoff gate passed all 11 stages including artifact_coverage and knockout with 0 blocking findings (pre-existing E307 warnings only)."
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/test_agent_payload_distribution.py
+      status: passed
+      summary: "Command-documentation and payload distribution parity tests passed (5 passed)."

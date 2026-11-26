@@ -1,0 +1,135 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Dogfood Antigravity workspace configuration (`.agents/skills.json`, `.agents/hooks.json`, and `AGENTS.md` reviewer note) in `maid-runner` without duplicating `SKILL.md` files"
+type: feature
+created: "2026-11-26T06:12:49Z"
+metadata:
+  tags:
+    - antigravity
+    - dogfooding
+    - hooks
+    - agent-integration
+  priority: medium
+description: |
+  `maid-runner` checks in `.claude/`, `.codex/`, and `.cursor/` so those agents
+  discover repo skills and edit-time scope hooks automatically when opening this
+  repository, while using custom repo-level `AGENTS.md` and `.pre-commit-config.yaml`
+  rather than `maid init` scaffolding. Without `.agents/`, Antigravity sessions
+  in `maid-runner` loaded `AGENTS.md` rules automatically but did not discover
+  any of the repository's 15 MAID skills or the `PreToolUse` scope-check hook.
+
+  Design decisions (rationale):
+
+  1. Zero-duplication `.agents/skills.json`:
+     Instead of copying 15 `SKILL.md` files into `.agents/skills/`, declare
+     `.agents/skills.json` pointing to `maid_runner/antigravity/skills` (for all
+     10 generic skills, including the Antigravity-overlaid
+     `maid-implementation-review`) plus `.claude/skills` filtered via
+     `include_only` to the 5 repo-internal `maid-runner-*` /
+     `maid-validate-hardening` skills (excluding `maid-onboard` and avoiding
+     duplicate generic skills).
+  2. Repo-local `.agents/hooks.json`:
+     Wire `maid-scope-check` on `PreToolUse` (`write_file|edit_file|write_to_file|replace_file_content|multi_replace_file_content`)
+     to `uv run maid hook scope-check --stdin --format antigravity`, matching how
+     this repository runs `uv run maid` from its dev environment.
+  3. Shared `AGENTS.md` standing reviewer note:
+     Add a brief Antigravity subagent note alongside the Codex reviewer-subagent
+     paragraph in `AGENTS.md` (`invoke_subagent` with `TypeName="research"`,
+     `Model="inherit"`, and `manage_subagents` `kill`).
+temptations:
+  - risk: "Do not duplicate `SKILL.md` files into `.agents/skills/` in this repository."
+    instead: "Use `.agents/skills.json` referencing `maid_runner/antigravity/skills` and the 5 repo-internal skills in `.claude/skills`."
+  - risk: "Do not expose user-level `maid-onboard` through `.agents/skills.json`."
+    instead: "Restrict the `.claude/skills` entry with explicit `include_only` for the 5 repo-internal skills."
+  - risk: "Do not run `maid init --force` on `maid-runner` itself, which would conflict with its custom `.pre-commit-config.yaml` and `AGENTS.md`."
+    instead: "Author `.agents/skills.json`, `.agents/hooks.json`, and the targeted `AGENTS.md` note directly under this manifest."
+files:
+  create:
+    - path: tests/test_antigravity_repo_dogfood_config.py
+      artifacts:
+        - kind: test_function
+          name: test_repo_antigravity_skills_json_resolves_generic_and_internal_skills_without_duplicates
+          args: []
+          returns: None
+          description: "`.agents/skills.json` resolves all 10 generic Antigravity skills (including the Antigravity `maid-implementation-review` overlay) plus the 5 repo-internal skills with zero duplicates and excludes `maid-onboard`."
+        - kind: test_function
+          name: test_repo_antigravity_hooks_json_executes_scope_check_from_agents_dir
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+            - name: capsys
+              type: pytest.CaptureFixture[str]
+          returns: None
+          description: "`.agents/hooks.json` declares `maid-scope-check` with `--format antigravity` and its `maid hook ...` arguments execute cleanly from `.agents/` with stdin `cwd`, and `AGENTS.md` documents the Antigravity reviewer subagent mechanics."
+  scope:
+    - path: .agents/skills.json
+      reason: "Antigravity skill discovery manifest for `maid-runner` dogfooding."
+    - path: .agents/hooks.json
+      reason: "Antigravity PreToolUse scope-check hook configuration for `maid-runner` dogfooding."
+    - path: AGENTS.md
+      reason: "Document Antigravity read-only reviewer subagent mechanics alongside Codex in `AGENTS.md`."
+  read:
+    - maid_runner/antigravity/manifest.json
+    - maid_runner/antigravity/hooks.json
+    - .claude/manifest.json
+    - maid_runner/cli/commands/_main.py
+validate:
+  - uv run python -m pytest -q tests/test_antigravity_repo_dogfood_config.py
+  - uv run maid validate manifests/dogfood-antigravity-workspace-config.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/dogfood-antigravity-workspace-config.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-11-26T08:45:00Z"
+  summary: "Added `.agents/skills.json` and `.agents/hooks.json` so Google Antigravity sessions in `maid-runner` automatically discover all 10 generic Antigravity MAID skills (with the Antigravity reviewer overlay) plus the 5 repo-internal `maid-runner-*` / `maid-validate-hardening` skills without duplicating `SKILL.md` files, enforce `maid hook scope-check --stdin --format antigravity` on `PreToolUse`, and documented Antigravity read-only reviewer subagent mechanics in `AGENTS.md`."
+  rationale: "Running `maid init --tool antigravity --force` on `maid-runner` itself would collide with the repository's custom `AGENTS.md` and `.pre-commit-config.yaml` and duplicate `SKILL.md` sources. Using Antigravity's native `.agents/skills.json` (`maid_runner/antigravity/skills` plus `.claude/skills` filtered via `include_only` to the 5 repo-internal skills) gives zero-duplication skill discovery while excluding user-level `maid-onboard`."
+  lessons:
+    - lesson_type: design
+      summary: "When dogfooding Antigravity in `maid-runner`, `.agents/skills.json` can combine `maid_runner/antigravity/skills` with an `include_only`-filtered `.claude/skills` entry to expose both generic overlaid skills and repo-internal skills without duplicating `SKILL.md` files or leaking user-level `maid-onboard`."
+      tags:
+        - antigravity
+        - dogfooding
+        - skills
+        - hooks
+      paths:
+        - .agents/skills.json
+        - .agents/hooks.json
+        - tests/test_antigravity_repo_dogfood_config.py
+  review_notes:
+    - source: implementation-reviewer-2c41a235-761f-4ce1-a15a-461e7d1dd033
+      severity: info
+      summary: "Independent read-only implementation review verified contract fidelity, `.agents/skills.json` skill resolution, `.agents/hooks.json` `PreToolUse` scope-check execution, and `AGENTS.md` reviewer documentation with 0 blocking findings (verdict: ready)."
+  validation:
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --profile
+        - handoff
+        - --manifest-dir
+        - manifests
+        - --file-tracking-scope
+        - task
+        - --plan-lock-scope
+        - task
+        - --test-scope
+        - task
+        - --since
+        - HEAD
+      status: passed
+      summary: "Task-scoped handoff verify passed all 9 stages with 0 blocking findings."
+    - command:
+        - uv
+        - run
+        - maid
+        - test
+        - --manifest
+        - manifests/dogfood-antigravity-workspace-config.manifest.yaml
+      status: passed
+      summary: "All 3 manifest validation commands passed."

@@ -1,0 +1,493 @@
+{
+  "manifest_path": "manifests/fix-js-ts-awaited-helper-assertions.manifest.yaml",
+  "manifest_hash": "sha256-contract:fef05251bc4bd9445b3850697e116bc9c5a08dfa5e9ad859828b713b165951a2",
+  "test_hashes": {
+    "tests/core/validation/test_js_ts_awaited_helper_assertions.py": "sha256-pyast:v2:986363368b0f3e0e885bda8a4771237e782613bcdfce876275820d0e20cf46bf"
+  },
+  "created_at": "2026-11-26T10:19:37.674108+00:00",
+  "revision": 17,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:7697dca73664f33ec719da38470e3e737dde8b5861202a46fbce1b551469145c",
+      "prior_test_hashes": {
+        "tests/core/validation/test_js_ts_regex_assertion_boundaries.py": "sha256-pyast:v2:4963e8b0acf07f1421af2fab0343bf3e136293f40893ac78c5c0cfb74bb630fb",
+        "tests/core/validation/test_js_ts_awaited_helper_assertions.py": "sha256-pyast:v2:0686fcec9e3f29343d323fc912f270d3928a78a525fe7f398e96a420ab626fce"
+      },
+      "revised_at": "2026-11-26T10:19:42.174070+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-js-ts-awaited-helper-assertions.manifest.yaml -> manifests/fix-js-ts-awaited-helper-assertions.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:3302904e2cf8a33588ef42be3d885d20f111f88b15716b68b54c1c3ac2c304f3",
+      "prior_test_hashes": {
+        "tests/core/validation/test_js_ts_regex_assertion_boundaries.py": "sha256-pyast:v2:4963e8b0acf07f1421af2fab0343bf3e136293f40893ac78c5c0cfb74bb630fb",
+        "tests/core/validation/test_js_ts_awaited_helper_assertions.py": "sha256-pyast:v2:0686fcec9e3f29343d323fc912f270d3928a78a525fe7f398e96a420ab626fce"
+      },
+      "revised_at": "2026-11-26T10:23:08.554498+00:00",
+      "reason": "Remove unrelated historical test from behavioral inputs; its regression remains covered separately",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [
+          "read:tests/core/validation/test_js_ts_regex_assertion_boundaries.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:5adbe009677de5689c77cb7da37751d16121ba06d967b50ee5ab31d1d80a7bdf",
+      "prior_test_hashes": {
+        "tests/core/validation/test_js_ts_awaited_helper_assertions.py": "sha256-pyast:v2:0686fcec9e3f29343d323fc912f270d3928a78a525fe7f398e96a420ab626fce"
+      },
+      "revised_at": "2026-11-26T10:27:43.305936+00:00",
+      "reason": "Cover helper reassignment in setup callbacks as an ambiguous binding",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:5adbe009677de5689c77cb7da37751d16121ba06d967b50ee5ab31d1d80a7bdf",
+      "prior_test_hashes": {
+        "tests/core/validation/test_js_ts_awaited_helper_assertions.py": "sha256-pyast:v2:5343bae13f732f4e15d1f2590d1817e022c94705dba88e246eef1ac58fe9e6fa"
+      },
+      "revised_at": "2026-11-26T10:37:17.479994+00:00",
+      "reason": "Cover review findings on bindings, matcher identity, statement forms, suite modifiers, and repeated-test scaling",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_awaited_calls_and_matchers_in_direct_statement_forms_count",
+          "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_awaited_calls_and_matchers_in_direct_statement_forms_count:kind=test_function",
+          "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_exported_helpers_work_through_suite_modifiers",
+          "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_exported_helpers_work_through_suite_modifiers:kind=test_function",
+          "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_many_tests_share_local_helper_without_losing_individual_results",
+          "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_many_tests_share_local_helper_without_losing_individual_results:kind=test_function",
+          "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_non_matchers_and_shadowed_expect_keep_e210",
+          "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_non_matchers_and_shadowed_expect_keep_e210:kind=test_function",
+          "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_suite_parameter_shadowing_expect_keeps_e210",
+          "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_suite_parameter_shadowing_expect_keeps_e210:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b906bff1b3388d8c3a3939cfb36fa80189dabfafd41a6a873f22f50d22e93c17",
+      "prior_test_hashes": {
+        "tests/core/validation/test_js_ts_awaited_helper_assertions.py": "sha256-pyast:v2:789c1d436448e78149664ca363ff3634b19f70ddf7c5fb02436314f6d271ce29"
+      },
+      "revised_at": "2026-11-26T10:41:56.742509+00:00",
+      "reason": "Cover matcher-chain and expect-binding controls",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b906bff1b3388d8c3a3939cfb36fa80189dabfafd41a6a873f22f50d22e93c17",
+      "prior_test_hashes": {
+        "tests/core/validation/test_js_ts_awaited_helper_assertions.py": "sha256-pyast:v2:5abfdc0c09b9c2397d5aad3f42cf8c6fcfb0dadba62dccd0b2f93717400ed943"
+      },
+      "revised_at": "2026-11-26T10:49:31.800285+00:00",
+      "reason": "Cover runtime TypeScript declarations and comments in awaited matcher expressions",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b906bff1b3388d8c3a3939cfb36fa80189dabfafd41a6a873f22f50d22e93c17",
+      "prior_test_hashes": {
+        "tests/core/validation/test_js_ts_awaited_helper_assertions.py": "sha256-pyast:v2:c240713b705797ceec5d79892d73e3b6b2d36b87f2f1b02cba54fa9e33626e1e"
+      },
+      "revised_at": "2026-11-26T10:55:33.279904+00:00",
+      "reason": "Cover class and import shadowing, direct global writes, and parenthesized calls",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b906bff1b3388d8c3a3939cfb36fa80189dabfafd41a6a873f22f50d22e93c17",
+      "prior_test_hashes": {
+        "tests/core/validation/test_js_ts_awaited_helper_assertions.py": "sha256-pyast:v2:6e45a6baad0b87de3551cf28f4fff7b5795f8a46e51ec563da9ce13a7447dc26"
+      },
+      "revised_at": "2026-11-26T11:03:57.409048+00:00",
+      "reason": "Cover optional assertion calls and global helper replacement",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b906bff1b3388d8c3a3939cfb36fa80189dabfafd41a6a873f22f50d22e93c17",
+      "prior_test_hashes": {
+        "tests/core/validation/test_js_ts_awaited_helper_assertions.py": "sha256-pyast:v2:da9b3266fc8fb236fa7b5acf5a56649cd382a9842a4e6817cf357b349154f124"
+      },
+      "revised_at": "2026-11-26T11:11:02.777164+00:00",
+      "reason": "Distinguish unrelated lexical scopes and property-key reads from writes",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_unrelated_scopes_and_property_reads_do_not_hide_helper",
+          "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_unrelated_scopes_and_property_reads_do_not_hide_helper:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b8553564142cd790ffdde88ac46c7db38576d4e087892bf88c49bb9a3226849f",
+      "prior_test_hashes": {
+        "tests/core/validation/test_js_ts_awaited_helper_assertions.py": "sha256-pyast:v2:2c8131db2e67bb9e372f2525715efb79e25907c6c03f8cdafea619809a34ce8f"
+      },
+      "revised_at": "2026-11-26T11:14:14.164069+00:00",
+      "reason": "Cover lexical loop and switch scopes",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b8553564142cd790ffdde88ac46c7db38576d4e087892bf88c49bb9a3226849f",
+      "prior_test_hashes": {
+        "tests/core/validation/test_js_ts_awaited_helper_assertions.py": "sha256-pyast:v2:fdb1c55ee62b6427cfaf248f0a9b602c4f3988dd8c38fe14fb7c9ad104a590cb"
+      },
+      "revised_at": "2026-11-26T11:21:41.668431+00:00",
+      "reason": "Cover escaped names, wrapped global writes, isolated generators, and scoped write scaling",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_many_scoped_helpers_do_not_cross_contaminate",
+          "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_many_scoped_helpers_do_not_cross_contaminate:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:51b46c260cfa6fabaa76869e81e7249d95e0ad839c60ef17cfc6034bfa3a7905",
+      "prior_test_hashes": {
+        "tests/core/validation/test_js_ts_awaited_helper_assertions.py": "sha256-pyast:v2:afcf282f760ba9a7dccef3708cc362b085eced467d524ccc43af5241ac97863e"
+      },
+      "revised_at": "2026-11-26T11:28:31.359088+00:00",
+      "reason": "Distinguish nested global reads and support direct assigned or conditional suite registrations",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_assigned_test_and_suite_registrations_remain_supported",
+          "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_assigned_test_and_suite_registrations_remain_supported:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:866a9ab5a4e8a77923e164e3d301e2aa2d1657fdb5c3313ed883ecbd426144be",
+      "prior_test_hashes": {
+        "tests/core/validation/test_js_ts_awaited_helper_assertions.py": "sha256-pyast:v2:f6a6ec4271e952bdafbba66b0d5f6f3302f76894846e17ecfda29246627fb9fd"
+      },
+      "revised_at": "2026-11-26T11:35:11.594350+00:00",
+      "reason": "Cover standard Vitest file snapshot and benchmark matchers",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:866a9ab5a4e8a77923e164e3d301e2aa2d1657fdb5c3313ed883ecbd426144be",
+      "prior_test_hashes": {
+        "tests/core/validation/test_js_ts_awaited_helper_assertions.py": "sha256-pyast:v2:70850d6dce6f04ca6a66715b186701cb3721ef61c0f4020e500d0434b9e1629e"
+      },
+      "revised_at": "2026-11-26T11:40:45.269660+00:00",
+      "reason": "Distinguish locally shadowed global-object receivers",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:866a9ab5a4e8a77923e164e3d301e2aa2d1657fdb5c3313ed883ecbd426144be",
+      "prior_test_hashes": {
+        "tests/core/validation/test_js_ts_awaited_helper_assertions.py": "sha256-pyast:v2:be5ad60689d6b0b607553a721ef2cb18d8fcb8cca63ff1a48e584a17d5b81bfd"
+      },
+      "revised_at": "2026-11-26T11:47:04.340022+00:00",
+      "reason": "Preserve enclosing block scopes and class-expression bindings",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:866a9ab5a4e8a77923e164e3d301e2aa2d1657fdb5c3313ed883ecbd426144be",
+      "prior_test_hashes": {
+        "tests/core/validation/test_js_ts_awaited_helper_assertions.py": "sha256-pyast:v2:c7979af0a4261706cd71048fcc920d940c5ec354ff5fa63ce0efeed9f45557f0"
+      },
+      "revised_at": "2026-11-26T11:52:26.706676+00:00",
+      "reason": "Distinguish program and block scopes with identical byte ranges",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_top_level_block_var_shadowing_does_not_reuse_program_scope",
+          "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_top_level_block_var_shadowing_does_not_reuse_program_scope:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-11-26T11:52:27.601636+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/core/validation/test_js_ts_awaited_helper_assertions.py",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/core/validation/test_js_ts_awaited_helper_assertions.py::test_awaited_calls_and_matchers_in_direct_statement_forms_count[expect(spy).toHaveBeenExhausted();-return /* comment */ await verify();]\nFAILED tests/core/validation/test_js_ts_awaited_helper_assertions.py::test_awaited_calls_and_matchers_in_direct_statement_forms_count[expect(spy).toHaveBeenExhausted();-return (await verify());]\nFAILED tests/core/validation/test_js_ts_awaited_helper_assertions.py::test_awaited_calls_and_matchers_in_direct_statement_forms_count[expect(spy).toHaveBeenExhausted();-const value = await verify();]\nFAILED tests/core/validation/test_js_ts_awaited_helper_assertions.py::test_exported_helpers_work_through_suite_modifiers[describe]\nFAILED tests/core/validation/test_js_ts_awaited_helper_assertions.py::test_exported_helpers_work_through_suite_modifiers[describe.only]\nFAILED tests/core/validation/test_js_ts_awaited_helper_assertions.py::test_exported_helpers_work_through_suite_modifiers[describe.each([1])]\nFAILED tests/core/validation/test_js_ts_awaited_helper_assertions.py::test_exported_helpers_work_through_suite_modifiers[describe.for([1])]\nFAILED tests/core/validation/test_js_ts_awaited_helper_assertions.py::test_exported_helpers_work_through_suite_modifiers[describe.runIf(true)]\nFAILED tests/core/validation/test_js_ts_awaited_helper_assertions.py::test_exported_helpers_work_through_suite_modifiers[describe.skipIf(false)]\nFAILED tests/core/validation/test_js_ts_awaited_helper_assertions.py::test_exported_helpers_work_through_suite_modifiers[describe.skipIf(false).concurrent]\nFAILED tests/core/validation/test_js_ts_awaited_helper_assertions.py::test_assigned_test_and_suite_registrations_remain_supported[const registered = it('valid', async () => { await verify(); });]\nFAILED tests/core/validation/test_js_ts_awaited_helper_assertions.py::test_assigned_test_and_suite_registrations_remain_supported[const registered = describe('suite', () => { it('valid', async () => { await verify(); }); });]\nFAILED tests/core/validation/test_js_ts_awaited_helper_assertions.py::test_assigned_test_and_suite_registrations_remain_supported[export const registered = describe('suite', () => { it('valid', async () => { await verify(); }); });]\nFAILED tests/core/validation/test_js_ts_awaited_helper_assertions.py::test_assigned_test_and_suite_registrations_remain_supported[{ it('valid', async () => { await verify(); }); }]\nFAILED tests/core/validation/test_js_ts_awaited_helper_assertions.py::test_assigned_test_and_suite_registrations_remain_supported[if (true) { it('valid', async () => { await verify(); }); }]\nFAILED tests/core/validation/test_js_ts_awaited_helper_assertions.py::test_assigned_test_and_suite_registrations_remain_supported[describe('suite', () => { { it('valid', async () => { await verify(); }); } });]\nFAILED tests/core/validation/test_js_ts_awaited_helper_assertions.py::test_many_tests_share_local_helper_without_losing_individual_results\nFAILED tests/core/validation/test_js_ts_awaited_helper_assertions.py::test_many_scoped_helpers_do_not_cross_contaminate\nFAILED tests/core/validation/test_js_ts_awaited_helper_assertions.py::test_behavioral_validation_accepts_awaited_helper_assertion\n105 failed, 62 passed in 0.66s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/_test_assertions.py:function:check_test_assertions",
+      "maid_runner/core/_test_assertions.py:function:check_test_assertions:arg=source:type=str:default=None",
+      "maid_runner/core/_test_assertions.py:function:check_test_assertions:arg=test_path:type=str:default=None",
+      "maid_runner/core/_test_assertions.py:function:check_test_assertions:kind=function",
+      "maid_runner/core/_test_assertions.py:function:check_test_assertions:returns=list[ValidationError]",
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_assigned_test_and_suite_registrations_remain_supported",
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_assigned_test_and_suite_registrations_remain_supported:kind=test_function",
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_awaited_calls_and_matchers_in_direct_statement_forms_count",
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_awaited_calls_and_matchers_in_direct_statement_forms_count:kind=test_function",
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_awaited_local_helpers_with_direct_expect_are_recognized",
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_awaited_local_helpers_with_direct_expect_are_recognized:kind=test_function",
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_behavioral_validation_accepts_awaited_helper_assertion",
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_behavioral_validation_accepts_awaited_helper_assertion:kind=test_function",
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_duplicate_labels_and_unicode_keep_precise_diagnostics",
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_duplicate_labels_and_unicode_keep_precise_diagnostics:kind=test_function",
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_exported_helpers_work_through_suite_modifiers",
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_exported_helpers_work_through_suite_modifiers:kind=test_function",
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_lexical_scope_and_shadowing_keep_e210",
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_lexical_scope_and_shadowing_keep_e210:kind=test_function",
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_many_scoped_helpers_do_not_cross_contaminate",
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_many_scoped_helpers_do_not_cross_contaminate:kind=test_function",
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_many_tests_share_local_helper_without_losing_individual_results",
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_many_tests_share_local_helper_without_losing_individual_results:kind=test_function",
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_missing_parser_retains_legacy_warning_and_e210",
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_missing_parser_retains_legacy_warning_and_e210:kind=test_function",
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_non_matchers_and_shadowed_expect_keep_e210",
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_non_matchers_and_shadowed_expect_keep_e210:kind=test_function",
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_nonasserting_or_indirect_helpers_keep_e210",
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_nonasserting_or_indirect_helpers_keep_e210:kind=test_function",
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_suite_parameter_shadowing_expect_keeps_e210",
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_suite_parameter_shadowing_expect_keeps_e210:kind=test_function",
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_top_level_block_var_shadowing_does_not_reuse_program_scope",
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_top_level_block_var_shadowing_does_not_reuse_program_scope:kind=test_function",
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_unrelated_scopes_and_property_reads_do_not_hide_helper",
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py:test_unrelated_scopes_and_property_reads_do_not_hide_helper:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/validation/test_js_ts_awaited_helper_assertions.py"
+      ],
+      "edit": [
+        "maid_runner/core/_test_assertions.py"
+      ],
+      "read": [
+        "maid_runner/core/_behavioral_validation.py",
+        "maid_runner/core/result.py",
+        "maid_runner/validators/_typescript_parse.py",
+        "manifests/fix-js-ts-regex-assertion-boundaries.manifest.yaml"
+      ],
+      "scope": [
+        "docs/troubleshooting.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/validation/test_js_ts_awaited_helper_assertions.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_awaited_local_helpers_with_direct_expect_are_recognized"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_nonasserting_or_indirect_helpers_keep_e210"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_lexical_scope_and_shadowing_keep_e210"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_duplicate_labels_and_unicode_keep_precise_diagnostics"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_missing_parser_retains_legacy_warning_and_e210"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_non_matchers_and_shadowed_expect_keep_e210"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_suite_parameter_shadowing_expect_keeps_e210"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_top_level_block_var_shadowing_does_not_reuse_program_scope"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unrelated_scopes_and_property_reads_do_not_hide_helper"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_awaited_calls_and_matchers_in_direct_statement_forms_count"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_exported_helpers_work_through_suite_modifiers"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_assigned_test_and_suite_registrations_remain_supported"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_many_tests_share_local_helper_without_losing_individual_results"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_many_scoped_helpers_do_not_cross_contaminate"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_behavioral_validation_accepts_awaited_helper_assertion"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/_test_assertions.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "check_test_assertions",
+              "description": "Recognize bounded directly awaited local helper assertions while preserving existing diagnostics and language behavior.",
+              "args": [
+                {
+                  "name": "source",
+                  "type": "str"
+                },
+                {
+                  "name": "test_path",
+                  "type": "str"
+                }
+              ],
+              "returns": "list[ValidationError]"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/validators/_typescript_parse.py",
+        "maid_runner/core/result.py",
+        "maid_runner/core/_behavioral_validation.py",
+        "manifests/fix-js-ts-regex-assertion-boundaries.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "docs/troubleshooting.md",
+          "reason": "Describe the supported local-helper syntax and its parser and analysis limits."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/validation/test_js_ts_awaited_helper_assertions.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/core/validation/test_js_ts_awaited_helper_assertions.py"
+    ],
+    "acceptance_commands": []
+  }
+}

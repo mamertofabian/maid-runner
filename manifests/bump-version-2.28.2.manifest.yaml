@@ -1,0 +1,104 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: Prepare maid-runner 2.28.2 patch version metadata
+type: fix
+created: "2026-11-26T02:41:45Z"
+supersedes:
+  - bump-version-2.28.1
+description: |
+  Advance the published 2.28.1 package to local patch version 2.28.2 and
+  keep pyproject metadata, the uv lock, runtime and CLI version, roadmap, and
+  changelog links aligned. The only package change since v2.28.1 is the
+  TypeScript named-function re-export validation fix in 90430b5a. Add a dated
+  Fixed entry for that change while preserving the 2.28.1 release notes.
+
+  Supersede the prior release contract and replace its version-pinned test so
+  the full test suite does not retain stale current-version assertions. The
+  broad snapshot-cli-commands--main-2 lock also hashes that test; refresh the
+  existing lock through maid plan revise after the replacement, without
+  manufacturing red evidence for that unchanged legacy snapshot contract.
+  Keep the public dynamic version loader and the shared library API test intact.
+temptations:
+  - risk: "Do not update only the package version while leaving lock, CLI, roadmap, or changelog references stale."
+    instead: "Regenerate the uv lock and validate every version mirror and release link together."
+  - risk: "Do not leave a test pinned to the previous current version in the full suite."
+    instead: "Supersede the old release contract, replace its test, and refresh the dependent snapshot lock through maid plan revise."
+  - risk: "Do not describe unsupported re-export forms as universally supported."
+    instead: "Describe the shipped named-function re-export fix and its originating signature checks accurately."
+files:
+  create:
+    - path: tests/integration/test_release_2_28_2.py
+      artifacts:
+        - kind: test_function
+          name: test_package_lock_and_cli_report_2_28_2
+        - kind: test_function
+          name: test_changelog_places_patch_after_empty_unreleased_section
+        - kind: test_function
+          name: test_patch_notes_describe_the_named_function_reexport_fix
+        - kind: test_function
+          name: test_changelog_preserves_prior_release_and_compare_links
+        - kind: test_function
+          name: test_roadmap_reports_prepared_patch_version
+  scope:
+    - path: pyproject.toml
+      reason: "Advance the packaged project version."
+    - path: uv.lock
+      reason: "Regenerate editable package metadata for the new version."
+    - path: CHANGELOG.md
+      reason: "Record the patch fix, release date, and comparison links."
+    - path: docs/ROADMAP.md
+      reason: "Synchronize the documented current CLI version and date."
+    - path: .maid/plan-locks/snapshot-cli-commands--main-2.lock.json
+      reason: "Refresh the existing broad lock after replacing its version-pinned behavioral test."
+  delete:
+    - path: tests/integration/test_release_2_28_1.py
+      reason: "Replace the superseded test that pins 2.28.1 as the current release."
+  read:
+    - tests/integration/test_library_api.py
+    - maid_runner/__version__.py
+    - manifests/bump-version-2.28.1.manifest.yaml
+    - manifests/snapshot-cli-commands--main-2.manifest.yaml
+validate:
+  - ["uv", "run", "python", "-m", "pytest", "-q", "tests/integration/test_release_2_28_2.py", "tests/integration/test_library_api.py"]
+outcome:
+  status: completed
+  completed_at: "2026-11-26T10:49:55+08:00"
+  summary: "Prepared the local 2.28.2 patch version with synchronized package, lock, CLI, changelog, and roadmap metadata."
+  rationale: "The only package change since v2.28.1 is the named TypeScript function re-export fix. The previous current-version test was superseded and replaced, and the existing broad snapshot lock was refreshed through maid plan revise."
+  lessons:
+    - lesson_type: release
+      summary: "A version-pinned release test and any broader lock that hashes it must be updated together when preparing the next patch."
+      tags: [release, plan-lock]
+      paths:
+        - tests/integration/test_release_2_28_2.py
+        - .maid/plan-locks/snapshot-cli-commands--main-2.lock.json
+  review_notes:
+    - source: independent-read-only-review
+      severity: ready
+      summary: "The scoped review found no release-version, changelog, lock, or packaging issues."
+    - source: snapshot-lock-revision
+      severity: advisory
+      summary: "Revision 72 replaced the previous release test and added the already-committed TypeScript re-export test; existing hashes and the prior null red evidence were preserved."
+  validation:
+    - command: ["uv", "run", "python", "-m", "pytest", "-q", "tests/integration/test_release_2_28_2.py", "tests/integration/test_library_api.py"]
+      status: passed
+      summary: "34 focused release and library API tests passed after the expected pre-bump red phase."
+    - command: ["uv", "run", "maid", "validate"]
+      status: passed
+      summary: "357 active manifests passed; 373 superseded manifests were skipped."
+    - command: ["uv", "run", "maid", "test", "--jobs", "1", "--pytest-workers", "4"]
+      status: passed
+      summary: "All 326 manifest test commands passed."
+    - command: ["uv", "run", "maid", "verify", "--profile", "deep", "--manifest-dir", "manifests", "--file-tracking-scope", "task", "--plan-lock-scope", "task", "--test-scope", "task", "--require-plan-lock", "--require-red-evidence", "--since", "90430b5a"]
+      status: passed
+      summary: "All 11 assessed deep-verification stages passed; the existing CJS validator warning remained non-blocking."
+    - command: ["uv", "build", "--out-dir", "/tmp/maid-2.28.2-build", "--quiet"]
+      status: passed
+      summary: "Built the 2.28.2 wheel and source distribution; twine check passed for both."
+    - command: ["uv", "run", "--no-project", "--with", "/tmp/maid-2.28.2-build/maid_runner-2.28.2-py3-none-any.whl", "maid", "--version"]
+      status: passed
+      summary: "An isolated wheel installation reported maid 2.28.2."

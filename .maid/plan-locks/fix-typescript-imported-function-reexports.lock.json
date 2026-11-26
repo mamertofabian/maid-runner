@@ -1,0 +1,712 @@
+{
+  "manifest_path": "manifests/fix-typescript-imported-function-reexports.manifest.yaml",
+  "manifest_hash": "sha256-contract:d7be3e65b40324df4594627538a40abfb6799955dc43c363037406503dcdc7f3",
+  "test_hashes": {
+    "tests/core/test_typescript_imported_function_reexports.py": "sha256-pyast:v2:0c7a6f9bf8c2b4318e8f65e4852e20794597ac40d40733fea38bbb3288b93579"
+  },
+  "created_at": "2026-11-26T00:24:57.609302+00:00",
+  "revision": 11,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:1ad423ad1a98f85c36b94d1a475c5c8081cb31f95bfcf2779027a76a22b333c2",
+      "prior_test_hashes": {
+        "tests/core/test_typescript_imported_function_reexports.py": "sha256-pyast:v2:46f4fd77bd1f9dac4bc372f9a1a5f81a41a63f696c71b17c1aa0c0bd05142539"
+      },
+      "revised_at": "2026-11-26T00:25:01.371821+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/fix-typescript-imported-function-reexports.manifest.yaml -> manifests/fix-typescript-imported-function-reexports.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:5376b6f00a29448cf23002b742dcff985605168f6fcffc082db9e9820a187c29",
+      "prior_test_hashes": {
+        "tests/core/test_typescript_imported_function_reexports.py": "sha256-pyast:v2:46f4fd77bd1f9dac4bc372f9a1a5f81a41a63f696c71b17c1aa0c0bd05142539"
+      },
+      "revised_at": "2026-11-26T00:35:09.095642+00:00",
+      "reason": "Cover reviewed binding identity, compiler resolution, source precedence, and return-proof cases",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_typescript_imported_function_reexports.py:test_inherited_alias_ignores_misrebased_decoy",
+          "tests/core/test_typescript_imported_function_reexports.py:test_inherited_alias_ignores_misrebased_decoy:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_origin_alias_selects_its_actual_local_declaration",
+          "tests/core/test_typescript_imported_function_reexports.py:test_origin_alias_selects_its_actual_local_declaration:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_origin_public_export_cannot_credit_a_different_declaration",
+          "tests/core/test_typescript_imported_function_reexports.py:test_origin_public_export_cannot_credit_a_different_declaration:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_reexport_uses_origin_for_compiler_return_proof",
+          "tests/core/test_typescript_imported_function_reexports.py:test_reexport_uses_origin_for_compiler_return_proof:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_same_named_interface_does_not_hide_function_reexport",
+          "tests/core/test_typescript_imported_function_reexports.py:test_same_named_interface_does_not_hide_function_reexport:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_string_literal_specifiers_do_not_certify_wrong_bindings",
+          "tests/core/test_typescript_imported_function_reexports.py:test_string_literal_specifiers_do_not_certify_wrong_bindings:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_typescript_file_precedence_rejects_a_matching_sibling_decoy",
+          "tests/core/test_typescript_imported_function_reexports.py:test_typescript_file_precedence_rejects_a_matching_sibling_decoy:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:b9a74eb8d679e75fae548c8efa051d7d2ff648b26ff14221a929512731902709",
+      "prior_test_hashes": {
+        "tests/core/test_typescript_imported_function_reexports.py": "sha256-pyast:v2:1d308e3b93816f38f2a591442d3556d34aa88e64345833dd3619ece4c720ab15"
+      },
+      "revised_at": "2026-11-26T00:39:04.566388+00:00",
+      "reason": "Cover module-specific TypeScript extension resolution",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_typescript_imported_function_reexports.py:test_extensionless_import_does_not_claim_mts_source",
+          "tests/core/test_typescript_imported_function_reexports.py:test_extensionless_import_does_not_claim_mts_source:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_mjs_import_uses_the_mts_declaration",
+          "tests/core/test_typescript_imported_function_reexports.py:test_mjs_import_uses_the_mts_declaration:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4f618ed06c95fbcaa62a516b7cb41a15677ba98dc8fa3336498c3472e8204497",
+      "prior_test_hashes": {
+        "tests/core/test_typescript_imported_function_reexports.py": "sha256-pyast:v2:09180bea8b54c3a0d2c3b8de371199501775b23916547b61c6523b625ded0616"
+      },
+      "revised_at": "2026-11-26T00:47:14.798599+00:00",
+      "reason": "Verify exact runtime declarations and compiler-resolved file identity across module modes",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_typescript_imported_function_reexports.py:test_aliased_module_extensions_use_compiler_resolved_file",
+          "tests/core/test_typescript_imported_function_reexports.py:test_aliased_module_extensions_use_compiler_resolved_file:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_nested_and_ambient_functions_do_not_satisfy_value_export",
+          "tests/core/test_typescript_imported_function_reexports.py:test_nested_and_ambient_functions_do_not_satisfy_value_export:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_nested_config_alias_can_resolve_project_sibling",
+          "tests/core/test_typescript_imported_function_reexports.py:test_nested_config_alias_can_resolve_project_sibling:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_nodenext_requires_resolvable_import_for_package_mode",
+          "tests/core/test_typescript_imported_function_reexports.py:test_nodenext_requires_resolvable_import_for_package_mode:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_top_level_exported_arrow_function_is_recognized",
+          "tests/core/test_typescript_imported_function_reexports.py:test_top_level_exported_arrow_function_is_recognized:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:maid_runner/core/ts_compiler_resolver.cjs"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:7da642eb3e6852c0aa45f928fa70a378e039f87904adbd14306a2ee3f4ad5add",
+      "prior_test_hashes": {
+        "tests/core/test_typescript_imported_function_reexports.py": "sha256-pyast:v2:af9484ce7c56bb389097e5ca8bcd8b32494f197b6e24dab693088c044a380b26"
+      },
+      "revised_at": "2026-11-26T00:55:59.531216+00:00",
+      "reason": "Guard strict exports, runtime binding identity, unsupported callable contracts, and compiler resolution failures",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_typescript_imported_function_reexports.py:test_exporter_nested_function_cannot_mask_imported_binding",
+          "tests/core/test_typescript_imported_function_reexports.py:test_exporter_nested_function_cannot_mask_imported_binding:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_invalid_inherited_tsconfig_does_not_resolve_alias",
+          "tests/core/test_typescript_imported_function_reexports.py:test_invalid_inherited_tsconfig_does_not_resolve_alias:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_no_compiler_relative_file_resolution_still_works",
+          "tests/core/test_typescript_imported_function_reexports.py:test_no_compiler_relative_file_resolution_still_works:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_no_compiler_relative_resolution_rejects_directory",
+          "tests/core/test_typescript_imported_function_reexports.py:test_no_compiler_relative_resolution_rejects_directory:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_strict_manifest_rejects_undeclared_function_reexport",
+          "tests/core/test_typescript_imported_function_reexports.py:test_strict_manifest_rejects_undeclared_function_reexport:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_unconfigured_package_import_uses_compiler_target",
+          "tests/core/test_typescript_imported_function_reexports.py:test_unconfigured_package_import_uses_compiler_target:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_unsupported_callable_contracts_do_not_match_implementation",
+          "tests/core/test_typescript_imported_function_reexports.py:test_unsupported_callable_contracts_do_not_match_implementation:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:4c75482b653939e03463ae2f864c9ac4f77b4423eb92bb18f27fd755871fd69c",
+      "prior_test_hashes": {
+        "tests/core/test_typescript_imported_function_reexports.py": "sha256-pyast:v2:549c4fd8cba2bba918585bc0041398a04fcd8598cced570e57df3864fdaf575d"
+      },
+      "revised_at": "2026-11-26T01:04:16.526964+00:00",
+      "reason": "Cover unsupported imports, repeated runtime bindings, JSDoc, and parenthesized callables",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_typescript_imported_function_reexports.py:test_javascript_jsdoc_return_type_is_compared",
+          "tests/core/test_typescript_imported_function_reexports.py:test_javascript_jsdoc_return_type_is_compared:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_no_compiler_prefers_direct_typescript_file_to_directory",
+          "tests/core/test_typescript_imported_function_reexports.py:test_no_compiler_prefers_direct_typescript_file_to_directory:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_parenthesized_arrow_function_is_recognized",
+          "tests/core/test_typescript_imported_function_reexports.py:test_parenthesized_arrow_function_is_recognized:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_repeated_value_declarations_do_not_certify_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_repeated_value_declarations_do_not_certify_function:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_type_only_import_does_not_hide_real_local_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_type_only_import_does_not_hide_real_local_function:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_unsupported_imports_and_exports_do_not_credit_nested_functions",
+          "tests/core/test_typescript_imported_function_reexports.py:test_unsupported_imports_and_exports_do_not_credit_nested_functions:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "read:maid_runner/validators/_jsdoc.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:5f0074bd17e712f6e6c20846bd3bbbc4ddec6801a023f08070b25ef70ca078d4",
+      "prior_test_hashes": {
+        "tests/core/test_typescript_imported_function_reexports.py": "sha256-pyast:v2:84b0a68220bc4c581075f455843e481816c03aa3c50cf68c58962d553a57fae6"
+      },
+      "revised_at": "2026-11-26T01:13:21.425370+00:00",
+      "reason": "Cover module formats, default exports, destructuring, inline JSDoc, and shared resolution cost",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_typescript_imported_function_reexports.py:test_destructured_redeclarations_do_not_certify_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_destructured_redeclarations_do_not_certify_function:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_inline_javascript_jsdoc_return_type_is_compared",
+          "tests/core/test_typescript_imported_function_reexports.py:test_inline_javascript_jsdoc_return_type_is_compared:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_mjs_source_preserves_jsdoc_contract",
+          "tests/core/test_typescript_imported_function_reexports.py:test_mjs_source_preserves_jsdoc_contract:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_mts_and_cts_origin_supports_compiler_return_proof",
+          "tests/core/test_typescript_imported_function_reexports.py:test_mts_and_cts_origin_supports_compiler_return_proof:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_shared_import_source_is_resolved_once",
+          "tests/core/test_typescript_imported_function_reexports.py:test_shared_import_source_is_resolved_once:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:d7939ba4c959a388c1854c420586d02ed71023472d043a51fd92dca40ab36559",
+      "prior_test_hashes": {
+        "tests/core/test_typescript_imported_function_reexports.py": "sha256-pyast:v2:40de0cca670469ea82dabddef5b5704c469b847846ef0602087cfcd2691325d0"
+      },
+      "revised_at": "2026-11-26T01:22:47.217195+00:00",
+      "reason": "Honor normalized parsing, scoped var redeclarations, parenthesized JSDoc, and referenced owning projects",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_typescript_imported_function_reexports.py:test_ambiguous_referenced_project_ownership_fails_closed",
+          "tests/core/test_typescript_imported_function_reexports.py:test_ambiguous_referenced_project_ownership_fails_closed:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_module_scoped_var_redeclarations_do_not_certify_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_module_scoped_var_redeclarations_do_not_certify_function:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_normalized_typescript_syntax_preserves_binding_validation",
+          "tests/core/test_typescript_imported_function_reexports.py:test_normalized_typescript_syntax_preserves_binding_validation:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_parenthesized_inline_jsdoc_return_type_is_compared",
+          "tests/core/test_typescript_imported_function_reexports.py:test_parenthesized_inline_jsdoc_return_type_is_compared:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_referenced_nodenext_project_uses_owning_module_mode",
+          "tests/core/test_typescript_imported_function_reexports.py:test_referenced_nodenext_project_uses_owning_module_mode:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_referenced_project_config_resolves_owning_alias",
+          "tests/core/test_typescript_imported_function_reexports.py:test_referenced_project_config_resolves_owning_alias:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "read:maid_runner/validators/_typescript_parse.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:c36470d4abee43c27993735aa4e865963c7801bf4c532684f047df681e6ca397",
+      "prior_test_hashes": {
+        "tests/core/test_typescript_imported_function_reexports.py": "sha256-pyast:v2:5cd7bb9f7c11616aed5a1175022dc99245959d14cdad17d04fee20568aaa1773"
+      },
+      "revised_at": "2026-11-26T01:30:42.143852+00:00",
+      "reason": "Distinguish binding positions and fail closed for unresolved project references",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_typescript_imported_function_reexports.py:test_destructuring_property_keys_do_not_shadow_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_destructuring_property_keys_do_not_shadow_function:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_no_compiler_referenced_ownership_fails_closed",
+          "tests/core/test_typescript_imported_function_reexports.py:test_no_compiler_referenced_ownership_fails_closed:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_no_compiler_simple_config_keeps_relative_file_resolution",
+          "tests/core/test_typescript_imported_function_reexports.py:test_no_compiler_simple_config_keeps_relative_file_resolution:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:2d751d780bd055503b1652715dc04b16293f11509520cc997f139efa9c1e009f",
+      "prior_test_hashes": {
+        "tests/core/test_typescript_imported_function_reexports.py": "sha256-pyast:v2:7ad19ff48f7e9b76cb24920cac14945fc4e614308c9cced5821b559fefb6bfea"
+      },
+      "revised_at": "2026-11-26T01:43:07.965974+00:00",
+      "reason": "Use program-backed transitive ownership and guard ambiguous value and JSDoc contracts",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/core/test_typescript_imported_function_reexports.py:test_compiler_project_transitively_includes_reexporter",
+          "tests/core/test_typescript_imported_function_reexports.py:test_compiler_project_transitively_includes_reexporter:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_compiler_return_proof_accepts_transitive_origin",
+          "tests/core/test_typescript_imported_function_reexports.py:test_compiler_return_proof_accepts_transitive_origin:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_conflicting_value_bindings_do_not_certify_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_conflicting_value_bindings_do_not_certify_function:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_jsdoc_callable_type_and_overload_are_unsupported",
+          "tests/core/test_typescript_imported_function_reexports.py:test_jsdoc_callable_type_and_overload_are_unsupported:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_namespace_and_ambient_var_do_not_shadow_top_level_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_namespace_and_ambient_var_do_not_shadow_top_level_function:kind=test_function",
+          "tests/core/test_typescript_imported_function_reexports.py:test_no_compiler_config_rejects_nonmember_importer",
+          "tests/core/test_typescript_imported_function_reexports.py:test_no_compiler_config_rejects_nonmember_importer:kind=test_function"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "scope:maid_runner/core/ts_compiler_resolver.py"
+        ],
+        "files_removed": [
+          "read:maid_runner/core/ts_compiler_resolver.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-11-26T01:43:11.329560+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest tests/core/test_typescript_imported_function_reexports.py -q",
+        "exit_code": 1,
+        "output_tail": "FAILED tests/core/test_typescript_imported_function_reexports.py::test_mts_and_cts_origin_supports_compiler_return_proof[cts-cjs]\nFAILED tests/core/test_typescript_imported_function_reexports.py::test_shared_import_source_is_resolved_once\nFAILED tests/core/test_typescript_imported_function_reexports.py::test_normalized_typescript_syntax_preserves_binding_validation[exporter]\nFAILED tests/core/test_typescript_imported_function_reexports.py::test_normalized_typescript_syntax_preserves_binding_validation[origin]\nFAILED tests/core/test_typescript_imported_function_reexports.py::test_normalized_typescript_syntax_preserves_binding_validation[unresolved]\nFAILED tests/core/test_typescript_imported_function_reexports.py::test_parenthesized_inline_jsdoc_return_type_is_compared\nFAILED tests/core/test_typescript_imported_function_reexports.py::test_referenced_project_config_resolves_owning_alias\nFAILED tests/core/test_typescript_imported_function_reexports.py::test_referenced_nodenext_project_uses_owning_module_mode[commonjs-True]\nFAILED tests/core/test_typescript_imported_function_reexports.py::test_destructuring_property_keys_do_not_shadow_function[False-{isBrowserOnlyUrl: another}]\nFAILED tests/core/test_typescript_imported_function_reexports.py::test_destructuring_property_keys_do_not_shadow_function[False-{[String(isBrowserOnlyUrl)]: another}]\nFAILED tests/core/test_typescript_imported_function_reexports.py::test_destructuring_property_keys_do_not_shadow_function[True-{isBrowserOnlyUrl: another}]\nFAILED tests/core/test_typescript_imported_function_reexports.py::test_destructuring_property_keys_do_not_shadow_function[True-{[String(isBrowserOnlyUrl)]: another}]\nFAILED tests/core/test_typescript_imported_function_reexports.py::test_no_compiler_simple_config_keeps_relative_file_resolution\nFAILED tests/core/test_typescript_imported_function_reexports.py::test_compiler_project_transitively_includes_reexporter\nFAILED tests/core/test_typescript_imported_function_reexports.py::test_compiler_return_proof_accepts_transitive_origin\nFAILED tests/core/test_typescript_imported_function_reexports.py::test_conflicting_value_bindings_do_not_certify_function[exporter_function]\nFAILED tests/core/test_typescript_imported_function_reexports.py::test_namespace_and_ambient_var_do_not_shadow_top_level_function[namespace Other { var isBrowserOnlyUrl = 42; }]\nFAILED tests/core/test_typescript_imported_function_reexports.py::test_namespace_and_ambient_var_do_not_shadow_top_level_function[declare namespace Other { var isBrowserOnlyUrl: number; }]\nFAILED tests/core/test_typescript_imported_function_reexports.py::test_namespace_and_ambient_var_do_not_shadow_top_level_function[declare global { var isBrowserOnlyUrl: number; }]\n58 failed, 43 passed in 3.02s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/core/test_typescript_imported_function_reexports.py:test_aliased_module_extensions_use_compiler_resolved_file",
+      "tests/core/test_typescript_imported_function_reexports.py:test_aliased_module_extensions_use_compiler_resolved_file:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_ambiguous_referenced_project_ownership_fails_closed",
+      "tests/core/test_typescript_imported_function_reexports.py:test_ambiguous_referenced_project_ownership_fails_closed:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_compiler_project_transitively_includes_reexporter",
+      "tests/core/test_typescript_imported_function_reexports.py:test_compiler_project_transitively_includes_reexporter:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_compiler_return_proof_accepts_transitive_origin",
+      "tests/core/test_typescript_imported_function_reexports.py:test_compiler_return_proof_accepts_transitive_origin:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_conflicting_value_bindings_do_not_certify_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_conflicting_value_bindings_do_not_certify_function:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_destructured_redeclarations_do_not_certify_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_destructured_redeclarations_do_not_certify_function:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_destructuring_property_keys_do_not_shadow_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_destructuring_property_keys_do_not_shadow_function:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_exporter_nested_function_cannot_mask_imported_binding",
+      "tests/core/test_typescript_imported_function_reexports.py:test_exporter_nested_function_cannot_mask_imported_binding:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_extensionless_import_does_not_claim_mts_source",
+      "tests/core/test_typescript_imported_function_reexports.py:test_extensionless_import_does_not_claim_mts_source:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_inherited_alias_ignores_misrebased_decoy",
+      "tests/core/test_typescript_imported_function_reexports.py:test_inherited_alias_ignores_misrebased_decoy:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_inline_javascript_jsdoc_return_type_is_compared",
+      "tests/core/test_typescript_imported_function_reexports.py:test_inline_javascript_jsdoc_return_type_is_compared:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_invalid_inherited_tsconfig_does_not_resolve_alias",
+      "tests/core/test_typescript_imported_function_reexports.py:test_invalid_inherited_tsconfig_does_not_resolve_alias:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_javascript_jsdoc_return_type_is_compared",
+      "tests/core/test_typescript_imported_function_reexports.py:test_javascript_jsdoc_return_type_is_compared:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_jsdoc_callable_type_and_overload_are_unsupported",
+      "tests/core/test_typescript_imported_function_reexports.py:test_jsdoc_callable_type_and_overload_are_unsupported:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_mjs_import_uses_the_mts_declaration",
+      "tests/core/test_typescript_imported_function_reexports.py:test_mjs_import_uses_the_mts_declaration:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_mjs_source_preserves_jsdoc_contract",
+      "tests/core/test_typescript_imported_function_reexports.py:test_mjs_source_preserves_jsdoc_contract:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_module_scoped_var_redeclarations_do_not_certify_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_module_scoped_var_redeclarations_do_not_certify_function:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_mts_and_cts_origin_supports_compiler_return_proof",
+      "tests/core/test_typescript_imported_function_reexports.py:test_mts_and_cts_origin_supports_compiler_return_proof:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_named_import_reexport_uses_real_function_contract",
+      "tests/core/test_typescript_imported_function_reexports.py:test_named_import_reexport_uses_real_function_contract:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_namespace_and_ambient_var_do_not_shadow_top_level_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_namespace_and_ambient_var_do_not_shadow_top_level_function:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_nested_and_ambient_functions_do_not_satisfy_value_export",
+      "tests/core/test_typescript_imported_function_reexports.py:test_nested_and_ambient_functions_do_not_satisfy_value_export:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_nested_config_alias_can_resolve_project_sibling",
+      "tests/core/test_typescript_imported_function_reexports.py:test_nested_config_alias_can_resolve_project_sibling:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_nested_inherited_tsconfig_alias_resolves_real_declaration",
+      "tests/core/test_typescript_imported_function_reexports.py:test_nested_inherited_tsconfig_alias_resolves_real_declaration:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_no_compiler_config_rejects_nonmember_importer",
+      "tests/core/test_typescript_imported_function_reexports.py:test_no_compiler_config_rejects_nonmember_importer:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_no_compiler_prefers_direct_typescript_file_to_directory",
+      "tests/core/test_typescript_imported_function_reexports.py:test_no_compiler_prefers_direct_typescript_file_to_directory:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_no_compiler_referenced_ownership_fails_closed",
+      "tests/core/test_typescript_imported_function_reexports.py:test_no_compiler_referenced_ownership_fails_closed:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_no_compiler_relative_file_resolution_still_works",
+      "tests/core/test_typescript_imported_function_reexports.py:test_no_compiler_relative_file_resolution_still_works:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_no_compiler_relative_resolution_rejects_directory",
+      "tests/core/test_typescript_imported_function_reexports.py:test_no_compiler_relative_resolution_rejects_directory:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_no_compiler_simple_config_keeps_relative_file_resolution",
+      "tests/core/test_typescript_imported_function_reexports.py:test_no_compiler_simple_config_keeps_relative_file_resolution:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_nodenext_requires_resolvable_import_for_package_mode",
+      "tests/core/test_typescript_imported_function_reexports.py:test_nodenext_requires_resolvable_import_for_package_mode:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_non_runtime_or_unavailable_bindings_are_rejected",
+      "tests/core/test_typescript_imported_function_reexports.py:test_non_runtime_or_unavailable_bindings_are_rejected:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_normalized_typescript_syntax_preserves_binding_validation",
+      "tests/core/test_typescript_imported_function_reexports.py:test_normalized_typescript_syntax_preserves_binding_validation:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_origin_alias_selects_its_actual_local_declaration",
+      "tests/core/test_typescript_imported_function_reexports.py:test_origin_alias_selects_its_actual_local_declaration:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_origin_public_export_cannot_credit_a_different_declaration",
+      "tests/core/test_typescript_imported_function_reexports.py:test_origin_public_export_cannot_credit_a_different_declaration:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_parenthesized_arrow_function_is_recognized",
+      "tests/core/test_typescript_imported_function_reexports.py:test_parenthesized_arrow_function_is_recognized:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_parenthesized_inline_jsdoc_return_type_is_compared",
+      "tests/core/test_typescript_imported_function_reexports.py:test_parenthesized_inline_jsdoc_return_type_is_compared:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_reexport_outside_project_via_symlink_is_rejected",
+      "tests/core/test_typescript_imported_function_reexports.py:test_reexport_outside_project_via_symlink_is_rejected:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_reexport_signature_mismatch_is_rejected",
+      "tests/core/test_typescript_imported_function_reexports.py:test_reexport_signature_mismatch_is_rejected:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_reexport_source_changes_are_not_cached_as_stale_contracts",
+      "tests/core/test_typescript_imported_function_reexports.py:test_reexport_source_changes_are_not_cached_as_stale_contracts:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_reexport_uses_origin_for_compiler_return_proof",
+      "tests/core/test_typescript_imported_function_reexports.py:test_reexport_uses_origin_for_compiler_return_proof:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_reexported_stub_is_reported",
+      "tests/core/test_typescript_imported_function_reexports.py:test_reexported_stub_is_reported:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_referenced_nodenext_project_uses_owning_module_mode",
+      "tests/core/test_typescript_imported_function_reexports.py:test_referenced_nodenext_project_uses_owning_module_mode:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_referenced_project_config_resolves_owning_alias",
+      "tests/core/test_typescript_imported_function_reexports.py:test_referenced_project_config_resolves_owning_alias:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_renamed_import_and_export_use_public_identity",
+      "tests/core/test_typescript_imported_function_reexports.py:test_renamed_import_and_export_use_public_identity:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_repeated_value_declarations_do_not_certify_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_repeated_value_declarations_do_not_certify_function:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_same_named_interface_does_not_hide_function_reexport",
+      "tests/core/test_typescript_imported_function_reexports.py:test_same_named_interface_does_not_hide_function_reexport:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_shared_import_source_is_resolved_once",
+      "tests/core/test_typescript_imported_function_reexports.py:test_shared_import_source_is_resolved_once:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_strict_manifest_rejects_undeclared_function_reexport",
+      "tests/core/test_typescript_imported_function_reexports.py:test_strict_manifest_rejects_undeclared_function_reexport:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_string_literal_specifiers_do_not_certify_wrong_bindings",
+      "tests/core/test_typescript_imported_function_reexports.py:test_string_literal_specifiers_do_not_certify_wrong_bindings:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_top_level_exported_arrow_function_is_recognized",
+      "tests/core/test_typescript_imported_function_reexports.py:test_top_level_exported_arrow_function_is_recognized:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_type_only_import_does_not_hide_real_local_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_type_only_import_does_not_hide_real_local_function:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_typescript_file_precedence_rejects_a_matching_sibling_decoy",
+      "tests/core/test_typescript_imported_function_reexports.py:test_typescript_file_precedence_rejects_a_matching_sibling_decoy:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_unconfigured_package_import_uses_compiler_target",
+      "tests/core/test_typescript_imported_function_reexports.py:test_unconfigured_package_import_uses_compiler_target:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_unsupported_callable_contracts_do_not_match_implementation",
+      "tests/core/test_typescript_imported_function_reexports.py:test_unsupported_callable_contracts_do_not_match_implementation:kind=test_function",
+      "tests/core/test_typescript_imported_function_reexports.py:test_unsupported_imports_and_exports_do_not_credit_nested_functions",
+      "tests/core/test_typescript_imported_function_reexports.py:test_unsupported_imports_and_exports_do_not_credit_nested_functions:kind=test_function"
+    ],
+    "files": {
+      "create": [
+        "tests/core/test_typescript_imported_function_reexports.py"
+      ],
+      "edit": [],
+      "read": [
+        "docs/unit-testing-rules.md",
+        "maid_runner/core/_artifact_collection_cache.py",
+        "maid_runner/core/_ts_export_scanner.py",
+        "maid_runner/core/ts_module_paths.py",
+        "maid_runner/core/validate.py",
+        "maid_runner/validators/_jsdoc.py",
+        "maid_runner/validators/_typescript_parse.py",
+        "maid_runner/validators/base.py",
+        "maid_runner/validators/typescript.py"
+      ],
+      "scope": [
+        "maid_runner/core/_implementation_validation.py",
+        "maid_runner/core/_ts_implementation_reexports.py",
+        "maid_runner/core/ts_compiler_resolver.cjs",
+        "maid_runner/core/ts_compiler_resolver.py"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/core/test_typescript_imported_function_reexports.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_named_import_reexport_uses_real_function_contract"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_renamed_import_and_export_use_public_identity"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_reexport_signature_mismatch_is_rejected"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_non_runtime_or_unavailable_bindings_are_rejected"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_nested_inherited_tsconfig_alias_resolves_real_declaration"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_reexport_outside_project_via_symlink_is_rejected"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_reexported_stub_is_reported"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_reexport_source_changes_are_not_cached_as_stale_contracts"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_origin_alias_selects_its_actual_local_declaration"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_origin_public_export_cannot_credit_a_different_declaration"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_inherited_alias_ignores_misrebased_decoy"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_typescript_file_precedence_rejects_a_matching_sibling_decoy"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_reexport_uses_origin_for_compiler_return_proof"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_same_named_interface_does_not_hide_function_reexport"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_string_literal_specifiers_do_not_certify_wrong_bindings"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_extensionless_import_does_not_claim_mts_source"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_mjs_import_uses_the_mts_declaration"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_aliased_module_extensions_use_compiler_resolved_file"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_nested_and_ambient_functions_do_not_satisfy_value_export"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_top_level_exported_arrow_function_is_recognized"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_nodenext_requires_resolvable_import_for_package_mode"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_nested_config_alias_can_resolve_project_sibling"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unconfigured_package_import_uses_compiler_target"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_no_compiler_relative_resolution_rejects_directory"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_no_compiler_relative_file_resolution_still_works"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unsupported_callable_contracts_do_not_match_implementation"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_exporter_nested_function_cannot_mask_imported_binding"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_invalid_inherited_tsconfig_does_not_resolve_alias"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_strict_manifest_rejects_undeclared_function_reexport"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_unsupported_imports_and_exports_do_not_credit_nested_functions"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_type_only_import_does_not_hide_real_local_function"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_repeated_value_declarations_do_not_certify_function"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_no_compiler_prefers_direct_typescript_file_to_directory"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_javascript_jsdoc_return_type_is_compared"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_parenthesized_arrow_function_is_recognized"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_destructured_redeclarations_do_not_certify_function"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_inline_javascript_jsdoc_return_type_is_compared"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_mjs_source_preserves_jsdoc_contract"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_mts_and_cts_origin_supports_compiler_return_proof"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_shared_import_source_is_resolved_once"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_normalized_typescript_syntax_preserves_binding_validation"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_module_scoped_var_redeclarations_do_not_certify_function"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_parenthesized_inline_jsdoc_return_type_is_compared"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_referenced_project_config_resolves_owning_alias"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_referenced_nodenext_project_uses_owning_module_mode"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_ambiguous_referenced_project_ownership_fails_closed"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_destructuring_property_keys_do_not_shadow_function"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_no_compiler_referenced_ownership_fails_closed"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_no_compiler_simple_config_keeps_relative_file_resolution"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_no_compiler_config_rejects_nonmember_importer"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_compiler_project_transitively_includes_reexporter"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_compiler_return_proof_accepts_transitive_origin"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_conflicting_value_bindings_do_not_certify_function"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_jsdoc_callable_type_and_overload_are_unsupported"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_namespace_and_ambient_var_do_not_shadow_top_level_function"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "maid_runner/core/ts_module_paths.py",
+        "maid_runner/core/_ts_export_scanner.py",
+        "maid_runner/core/_artifact_collection_cache.py",
+        "maid_runner/validators/typescript.py",
+        "maid_runner/validators/_jsdoc.py",
+        "maid_runner/validators/_typescript_parse.py",
+        "maid_runner/validators/base.py",
+        "maid_runner/core/validate.py",
+        "docs/unit-testing-rules.md"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/core/_implementation_validation.py",
+          "reason": "Integrate resolved function artifacts into existing per-file comparison and stub checks."
+        },
+        {
+          "path": "maid_runner/core/_ts_implementation_reexports.py",
+          "reason": "Private bounded value-binding resolution and project-local source collection, with no public API."
+        },
+        {
+          "path": "maid_runner/core/ts_compiler_resolver.cjs",
+          "reason": "Return the compiler's exact, project-local resolved source file using the importer's module mode and owning config."
+        },
+        {
+          "path": "maid_runner/core/ts_compiler_resolver.py",
+          "reason": "Allow bounded compiler time for program-backed source membership checks."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/core/test_typescript_imported_function_reexports.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest tests/core/test_typescript_imported_function_reexports.py -q"
+    ],
+    "acceptance_commands": []
+  }
+}

@@ -1,0 +1,54 @@
+# archive-kind: consumed-draft-epic
+schema: "2"
+goal: "Archive consumed Google Antigravity support epic"
+type: feature
+created: "2026-11-26T12:40:00Z"
+metadata:
+  status: archived
+  priority: low
+  tags:
+    - antigravity
+    - hooks
+    - init-payloads
+    - agent-integration
+    - user-skills
+    - archive
+description: |
+  This split-before-promote epic has been consumed. Its three
+  implementation-sized child contracts were promoted as:
+
+  - `antigravity-hook-scope-check-envelope` (Slice 1: `maid hook scope-check`
+    Antigravity `PreToolUse` stdin envelope, explicit `cwd`, and
+    `--format antigravity`)
+  - `antigravity-init-payload` (Slice 2: generated `maid_runner/antigravity/`
+    payload, `maid init --tool antigravity`, `.agents/hooks.json` merge/cleanup,
+    `../scripts/maid` launcher rewriting, `--check`, shared `AGENTS.md`
+    co-owner uninstall isolation, and docs)
+  - `antigravity-user-skills-install` (Slice 3: `maid skills install|uninstall`
+    support for `~/.gemini/config/skills/maid-onboard` and updated `maid-onboard`
+    guidance)
+
+  The file remains in `manifests/drafts/` only as a historical pointer. Do not
+  promote or implement this archived epic. Future Antigravity enhancements
+  (such as an autonomous `tools/agy_maid_loop.py` runner) should start from a
+  fresh scoped manifest.
+temptations:
+  - risk: "Do not guess the project root with directory-walking heuristics in `maid hook scope-check`."
+    instead: "Preserve explicit stdin `cwd` handling and `scope_check_path`'s active-manifest ownership invariant."
+  - risk: "Do not copy a third manual tree of identical `SKILL.md` files into the repo."
+    instead: "Continue generating `maid_runner/antigravity/` from canonical `.claude/skills/` via `scripts/sync_claude_files.py`."
+files:
+  edit:
+    - path: manifests/drafts/antigravity-support.epic.yaml
+      artifacts:
+        - kind: attribute
+          name: _archived_antigravity_support_epic
+          of: manifest
+          type: draft epic
+          description: "Historical pointer for promoted Antigravity support child manifests."
+  read:
+    - manifests/antigravity-hook-scope-check-envelope.manifest.yaml
+    - manifests/antigravity-init-payload.manifest.yaml
+    - manifests/antigravity-user-skills-install.manifest.yaml
+validate:
+  - uv run maid validate manifests/drafts/antigravity-support.epic.yaml --mode schema --quiet

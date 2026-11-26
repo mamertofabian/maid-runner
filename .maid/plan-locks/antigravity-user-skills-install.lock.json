@@ -1,0 +1,374 @@
+{
+  "manifest_path": "manifests/antigravity-user-skills-install.manifest.yaml",
+  "manifest_hash": "sha256-contract:e8536be52aec4820a8f72aec9528337074f4ce808d1f6a04b62a5ab3900ee0a3",
+  "test_hashes": {
+    "tests/cli/test_skills_install.py": "sha256-pyast:v2:efaeda0150ab0d4292b938689448b05d25cec76cb72793267b1d0dd130f2a4bc",
+    "tests/cli/test_skills_antigravity_install.py": "sha256-pyast:v2:dbae07af1b8153e3a8dcdae8009dcc64fcecc1b4f394f3f9acca852052757974",
+    "tests/cli/test_verify_profile_distribution.py": "sha256-pyast:v2:b4f56ccc02a1506e536ae34cfdf1d74eba70c50fa0835e667bc75bf6e9aa9211"
+  },
+  "created_at": "2026-11-26T05:41:55.480130+00:00",
+  "revision": 4,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:93f5b9d41df68523eff35dca91c5d9b054502dcdb94a445df04dc5eba4bbca9e",
+      "prior_test_hashes": {
+        "tests/cli/test_skills_install.py": "sha256-pyast:v2:efaeda0150ab0d4292b938689448b05d25cec76cb72793267b1d0dd130f2a4bc",
+        "tests/cli/test_skills_antigravity_install.py": "sha256-pyast:v2:dbae07af1b8153e3a8dcdae8009dcc64fcecc1b4f394f3f9acca852052757974"
+      },
+      "revised_at": "2026-11-26T05:42:05.133656+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/antigravity-user-skills-install.manifest.yaml -> manifests/antigravity-user-skills-install.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/antigravity-user-skills-install.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/antigravity-user-skills-install.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/antigravity-user-skills-install.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/antigravity-user-skills-install.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:9b1619cf011522d032a7b7aadee8583aeb7f239ab8424b110e783323d47c76e2",
+      "prior_test_hashes": {
+        "tests/cli/test_skills_install.py": "sha256-pyast:v2:efaeda0150ab0d4292b938689448b05d25cec76cb72793267b1d0dd130f2a4bc",
+        "tests/cli/test_skills_antigravity_install.py": "sha256-pyast:v2:dbae07af1b8153e3a8dcdae8009dcc64fcecc1b4f394f3f9acca852052757974"
+      },
+      "revised_at": "2026-11-26T05:51:56.224701+00:00",
+      "reason": "Register maid_runner/user_skills/antigravity/maid-onboard/SKILL.md in PACKAGED_VERIFY_PAYLOADS",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [
+          "tests/cli/test_verify_profile_distribution.py:test_verify_payload_inventory_and_generated_copies_are_synchronized",
+          "tests/cli/test_verify_profile_distribution.py:test_verify_payload_inventory_and_generated_copies_are_synchronized:kind=test_function",
+          "tests/cli/test_verify_profile_distribution.py:test_verify_payload_inventory_and_generated_copies_are_synchronized:returns=None"
+        ],
+        "artifacts_removed": [],
+        "files_added": [
+          "edit:tests/cli/test_verify_profile_distribution.py"
+        ],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/cli/test_skills_antigravity_install.py tests/cli/test_skills_install.py tests/cli/test_verify_profile_distribution.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/cli/test_skills_antigravity_install.py tests/cli/test_skills_install.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:276162e4e221524ab44e94a1895d9e9d94cc8459bce9bc7218397361d408cf2b",
+      "prior_test_hashes": {
+        "tests/cli/test_skills_install.py": "sha256-pyast:v2:efaeda0150ab0d4292b938689448b05d25cec76cb72793267b1d0dd130f2a4bc",
+        "tests/cli/test_skills_antigravity_install.py": "sha256-pyast:v2:dbae07af1b8153e3a8dcdae8009dcc64fcecc1b4f394f3f9acca852052757974",
+        "tests/cli/test_verify_profile_distribution.py": "sha256-pyast:v2:b4f56ccc02a1506e536ae34cfdf1d74eba70c50fa0835e667bc75bf6e9aa9211"
+      },
+      "revised_at": "2026-11-26T14:33:39.273763+00:00",
+      "reason": "Split snapshot-compatible behavioral tests from payload distribution regressions while retaining both suites",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/cli/test_skills_antigravity_install.py",
+          "uv run python -m pytest -q tests/cli/test_skills_install.py tests/cli/test_verify_profile_distribution.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/cli/test_skills_antigravity_install.py tests/cli/test_skills_install.py tests/cli/test_verify_profile_distribution.py"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-11-26T14:33:44.660457+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_skills_antigravity_install.py",
+        "exit_code": 1,
+        "output_tail": "    \n        assert main([\"skills\", \"install\", \"--target-root\", str(home)]) == 0\n        agy_skill = home / \".gemini\" / \"config\" / \"skills\" / \"maid-onboard\" / \"SKILL.md\"\n>       assert agy_skill.is_file()\nE       AssertionError: assert False\nE        +  where False = is_file()\nE        +    where is_file = PosixPath('/tmp/pytest-of-atomrem/pytest-1053/test_skills_cli_install_and_un0/cli-home/.gemini/config/skills/maid-onboard/SKILL.md').is_file\n\ntests/cli/test_skills_antigravity_install.py:230: AssertionError\n----------------------------- Captured stdout call -----------------------------\nInstalled maid-onboard skill (3 files) under /tmp/pytest-of-atomrem/pytest-1053/test_skills_cli_install_and_un0/cli-home\n  .claude/skills/maid-onboard/SKILL.md\n  .codex/skills/maid-onboard/SKILL.md\n  .codex/skills/maid-onboard/agents/openai.yaml\n=========================== short test summary info ============================\nFAILED tests/cli/test_skills_antigravity_install.py::test_sync_user_skills_packages_antigravity_onboard_from_canonical_source\nFAILED tests/cli/test_skills_antigravity_install.py::test_install_onboard_skill_delivers_antigravity_under_gemini_config_and_links\nFAILED tests/cli/test_skills_antigravity_install.py::test_uninstall_onboard_skill_removes_antigravity_and_respects_modifications_and_symlinks\nFAILED tests/cli/test_skills_antigravity_install.py::test_skills_cli_install_and_uninstall_cover_antigravity_and_docs\n4 failed in 0.21s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_skills_install.py tests/cli/test_verify_profile_distribution.py",
+        "exit_code": 1,
+        "output_tail": "            path.relative_to(ROOT).as_posix()\n            for root in (\n                ROOT / \"maid_runner\" / \"claude\",\n                ROOT / \"maid_runner\" / \"codex\",\n                ROOT / \"maid_runner\" / \"user_skills\",\n            )\n            for path in root.rglob(\"*\")\n            if path.is_file() and \"maid verify\" in path.read_text(encoding=\"utf-8\")\n        }\n>       assert found == PACKAGED_VERIFY_PAYLOADS\nE       AssertionError: assert {'maid_runner...KILL.md', ...} == {'maid_runner...KILL.md', ...}\nE         \nE         Extra items in the right set:\nE         'maid_runner/user_skills/antigravity/maid-onboard/SKILL.md'\nE         Use -v to get more diff\n\ntests/cli/test_verify_profile_distribution.py:244: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_verify_profile_distribution.py::test_verify_payload_inventory_and_generated_copies_are_synchronized\n1 failed, 17 passed in 0.27s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/antigravity-user-skills-install.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/antigravity-user-skills-install.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/core/skill_install.py:function:install_onboard_skill",
+      "maid_runner/core/skill_install.py:function:install_onboard_skill:arg=link:type=bool:default=None",
+      "maid_runner/core/skill_install.py:function:install_onboard_skill:arg=payload_root:type=Path:default=None",
+      "maid_runner/core/skill_install.py:function:install_onboard_skill:arg=target_root:type=Path:default=None",
+      "maid_runner/core/skill_install.py:function:install_onboard_skill:kind=function",
+      "maid_runner/core/skill_install.py:function:install_onboard_skill:returns=list[str]",
+      "maid_runner/core/skill_install.py:function:uninstall_onboard_skill",
+      "maid_runner/core/skill_install.py:function:uninstall_onboard_skill:arg=dry_run:type=bool:default=None",
+      "maid_runner/core/skill_install.py:function:uninstall_onboard_skill:arg=payload_root:type=Path:default=None",
+      "maid_runner/core/skill_install.py:function:uninstall_onboard_skill:arg=target_root:type=Path:default=None",
+      "maid_runner/core/skill_install.py:function:uninstall_onboard_skill:kind=function",
+      "maid_runner/core/skill_install.py:function:uninstall_onboard_skill:returns=UninstallReport",
+      "scripts/sync_claude_files.py:function:sync_user_skills",
+      "scripts/sync_claude_files.py:function:sync_user_skills:kind=function",
+      "scripts/sync_claude_files.py:function:sync_user_skills:returns=None",
+      "tests/cli/test_skills_antigravity_install.py:test_install_onboard_skill_delivers_antigravity_under_gemini_config_and_links",
+      "tests/cli/test_skills_antigravity_install.py:test_install_onboard_skill_delivers_antigravity_under_gemini_config_and_links:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_skills_antigravity_install.py:test_install_onboard_skill_delivers_antigravity_under_gemini_config_and_links:kind=test_function",
+      "tests/cli/test_skills_antigravity_install.py:test_install_onboard_skill_delivers_antigravity_under_gemini_config_and_links:returns=None",
+      "tests/cli/test_skills_antigravity_install.py:test_skills_cli_install_and_uninstall_cover_antigravity_and_docs",
+      "tests/cli/test_skills_antigravity_install.py:test_skills_cli_install_and_uninstall_cover_antigravity_and_docs:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_skills_antigravity_install.py:test_skills_cli_install_and_uninstall_cover_antigravity_and_docs:kind=test_function",
+      "tests/cli/test_skills_antigravity_install.py:test_skills_cli_install_and_uninstall_cover_antigravity_and_docs:returns=None",
+      "tests/cli/test_skills_antigravity_install.py:test_sync_user_skills_packages_antigravity_onboard_from_canonical_source",
+      "tests/cli/test_skills_antigravity_install.py:test_sync_user_skills_packages_antigravity_onboard_from_canonical_source:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_skills_antigravity_install.py:test_sync_user_skills_packages_antigravity_onboard_from_canonical_source:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_skills_antigravity_install.py:test_sync_user_skills_packages_antigravity_onboard_from_canonical_source:kind=test_function",
+      "tests/cli/test_skills_antigravity_install.py:test_sync_user_skills_packages_antigravity_onboard_from_canonical_source:returns=None",
+      "tests/cli/test_skills_antigravity_install.py:test_uninstall_onboard_skill_removes_antigravity_and_respects_modifications_and_symlinks",
+      "tests/cli/test_skills_antigravity_install.py:test_uninstall_onboard_skill_removes_antigravity_and_respects_modifications_and_symlinks:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_skills_antigravity_install.py:test_uninstall_onboard_skill_removes_antigravity_and_respects_modifications_and_symlinks:kind=test_function",
+      "tests/cli/test_skills_antigravity_install.py:test_uninstall_onboard_skill_removes_antigravity_and_respects_modifications_and_symlinks:returns=None",
+      "tests/cli/test_verify_profile_distribution.py:test_verify_payload_inventory_and_generated_copies_are_synchronized",
+      "tests/cli/test_verify_profile_distribution.py:test_verify_payload_inventory_and_generated_copies_are_synchronized:kind=test_function",
+      "tests/cli/test_verify_profile_distribution.py:test_verify_payload_inventory_and_generated_copies_are_synchronized:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_skills_antigravity_install.py"
+      ],
+      "edit": [
+        "maid_runner/core/skill_install.py",
+        "scripts/sync_claude_files.py",
+        "tests/cli/test_verify_profile_distribution.py"
+      ],
+      "read": [
+        "maid_runner/antigravity/manifest.json",
+        "maid_runner/cli/commands/skills.py",
+        "manifests/add-skills-install-command.manifest.yaml",
+        "manifests/antigravity-hook-scope-check-envelope.manifest.yaml",
+        "manifests/antigravity-init-payload.manifest.yaml",
+        "tests/cli/test_skills_install.py"
+      ],
+      "scope": [
+        ".claude/skills/maid-onboard/SKILL.md",
+        ".codex/skills/maid-onboard/SKILL.md",
+        "README.md",
+        "maid_runner/user_skills/antigravity/maid-onboard/SKILL.md",
+        "maid_runner/user_skills/claude/maid-onboard/SKILL.md",
+        "maid_runner/user_skills/codex/maid-onboard/SKILL.md",
+        "manifests/drafts/antigravity-support.epic.yaml",
+        "pyproject.toml"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_skills_antigravity_install.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_sync_user_skills_packages_antigravity_onboard_from_canonical_source",
+              "description": "`sync_user_skills` generates `maid_runner/user_skills/antigravity/maid-onboard/SKILL.md` from `.claude/skills/maid-onboard`, matches the committed package copy, updates `pyproject.toml`, and keeps `maid-onboard` out of per-repo `maid_runner/antigravity/manifest.json`.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_install_onboard_skill_delivers_antigravity_under_gemini_config_and_links",
+              "description": "`install_onboard_skill` copies or symlinks the Antigravity onboard skill into `<target_root>/.gemini/config/skills/maid-onboard/`, prunes stale files on reinstall, and stays compatible with 2-tool payloads.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_uninstall_onboard_skill_removes_antigravity_and_respects_modifications_and_symlinks",
+              "description": "`uninstall_onboard_skill` previews and removes unchanged `.gemini/config/skills/maid-onboard`, preserves custom skills, modified files, symlinked ancestor directories (`.gemini`, `.gemini/config`, `.gemini/config/skills`), and installed copies when payload lacks `antigravity`.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_skills_cli_install_and_uninstall_cover_antigravity_and_docs",
+              "description": "`maid skills install` and `maid skills uninstall` deliver and cleanly remove `.gemini/config/skills/maid-onboard/SKILL.md` end-to-end, and `README.md` documents `~/.gemini/config`.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/core/skill_install.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "install_onboard_skill",
+              "description": "Install `maid-onboard` into `.claude/skills/maid-onboard`, `.codex/skills/maid-onboard`, and (when present in `payload_root`) `.gemini/config/skills/maid-onboard`.",
+              "args": [
+                {
+                  "name": "target_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "payload_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "link",
+                  "type": "bool"
+                }
+              ],
+              "returns": "list[str]"
+            },
+            {
+              "kind": "function",
+              "name": "uninstall_onboard_skill",
+              "description": "Safely preview and remove unchanged `maid-onboard` installs across `.claude/skills`, `.codex/skills`, and `.gemini/config/skills` without crossing symlink boundaries.",
+              "args": [
+                {
+                  "name": "target_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "payload_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "dry_run",
+                  "type": "bool"
+                }
+              ],
+              "returns": "UninstallReport"
+            }
+          ]
+        },
+        {
+          "path": "scripts/sync_claude_files.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "sync_user_skills",
+              "description": "Copy repo `maid-onboard` sources into `maid_runner/user_skills/{claude,codex,antigravity}/maid-onboard`.",
+              "returns": "None"
+            }
+          ]
+        },
+        {
+          "path": "tests/cli/test_verify_profile_distribution.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_verify_payload_inventory_and_generated_copies_are_synchronized",
+              "description": "Found packaged verify payloads match `PACKAGED_VERIFY_PAYLOADS` including `maid_runner/user_skills/antigravity/maid-onboard/SKILL.md`.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/antigravity-hook-scope-check-envelope.manifest.yaml",
+        "manifests/antigravity-init-payload.manifest.yaml",
+        "manifests/add-skills-install-command.manifest.yaml",
+        "maid_runner/cli/commands/skills.py",
+        "maid_runner/antigravity/manifest.json",
+        "tests/cli/test_skills_install.py"
+      ],
+      "scope": [
+        {
+          "path": ".claude/skills/maid-onboard/SKILL.md",
+          "reason": "Document `--tool antigravity`, `.agents/skills`, and `~/.gemini/config/skills` in canonical `maid-onboard` guidance."
+        },
+        {
+          "path": ".codex/skills/maid-onboard/SKILL.md",
+          "reason": "Keep Codex `maid-onboard` source aligned with canonical `maid-onboard` guidance."
+        },
+        {
+          "path": "maid_runner/user_skills/claude/maid-onboard/SKILL.md",
+          "reason": "Synced packaged Claude `maid-onboard` skill."
+        },
+        {
+          "path": "maid_runner/user_skills/codex/maid-onboard/SKILL.md",
+          "reason": "Synced packaged Codex `maid-onboard` skill."
+        },
+        {
+          "path": "maid_runner/user_skills/antigravity/maid-onboard/SKILL.md",
+          "reason": "Synced packaged Antigravity `maid-onboard` skill derived from canonical `.claude/skills/maid-onboard`."
+        },
+        {
+          "path": "pyproject.toml",
+          "reason": "Add `user_skills/antigravity/*/SKILL.md` to setuptools package-data."
+        },
+        {
+          "path": "README.md",
+          "reason": "Update `maid skills install` CLI reference row to include `~/.gemini/config`."
+        },
+        {
+          "path": "manifests/drafts/antigravity-support.epic.yaml",
+          "reason": "Archive the consumed 3-slice Antigravity support epic once Slice 3 lands."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_skills_antigravity_install.py",
+      "tests/cli/test_skills_install.py",
+      "tests/cli/test_verify_profile_distribution.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_skills_antigravity_install.py",
+      "uv run python -m pytest -q tests/cli/test_skills_install.py tests/cli/test_verify_profile_distribution.py",
+      "uv run maid validate manifests/antigravity-user-skills-install.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/antigravity-user-skills-install.manifest.yaml --mode schema --quiet"
+    ],
+    "acceptance_commands": []
+  }
+}

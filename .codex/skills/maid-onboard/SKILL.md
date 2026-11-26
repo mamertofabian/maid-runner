@@ -1,6 +1,6 @@
 ---
 name: maid-onboard
-description: Bring the current repository up to full MAID adoption, or refresh a repo that was onboarded before plan-lock/verify existed. Detects how the repo invokes maid-runner (a scripts/maid wrapper, uvx, or a project dependency), runs `maid init` for the agents in use (Claude and/or Codex) so skills/agents/config are installed as repo-local files, reconciles stale hand-written MAID guidance in CLAUDE.md/AGENTS.md, verifies the payload is clean, and stops for explicit commit approval. Use when asked to "set up MAID here", "onboard this repo to MAID", "bring this repo up to full MAID", "refresh MAID tooling", "fix stale MAID setup", or "the repo isn't running maid verify / plan lock".
+description: Bring the current repository up to full MAID adoption, or refresh a repo that was onboarded before plan-lock/verify existed. Detects how the repo invokes maid-runner (a scripts/maid wrapper, uvx, or a project dependency), runs `maid init` for the agents in use (Claude, Codex, and/or Antigravity) so skills/agents/config are installed as repo-local files, reconciles stale hand-written MAID guidance in CLAUDE.md/AGENTS.md, verifies the payload is clean, and stops for explicit commit approval. Use when asked to "set up MAID here", "onboard this repo to MAID", "bring this repo up to full MAID", "refresh MAID tooling", "fix stale MAID setup", or "the repo isn't running maid verify / plan lock".
 ---
 
 # MAID Onboard
@@ -14,7 +14,7 @@ and aligns the repo's guidance docs with the current plan-lock/verify workflow.
 `maid init` installs MAID skills, agents, config, and a marked guidance section
 as **repo-local files**. A repo that never ran init (or ran an old version)
 silently falls back to stale **user-level** skills (`~/.claude/skills`,
-`~/.codex/skills`) and to a hand-written CLAUDE.md/AGENTS.md that predates
+`~/.codex/skills`, `~/.gemini/config/skills`) and to a hand-written CLAUDE.md/AGENTS.md that predates
 `maid plan lock` and `maid verify`. The result: the repo skips plan-lock, the
 verify handoff gate, and other current workflow steps. This skill closes that
 gap. Per-repo install is the isolation model — never rely on user-level skills.
@@ -58,13 +58,13 @@ do not generate profile commands for a hook that resolves an older executable.
 
 ```bash
 ls .maidrc.yaml manifests 2>/dev/null
-ls .claude/skills .codex/skills 2>/dev/null     # existing repo-local payload?
-ls CLAUDE.md AGENTS.md 2>/dev/null               # guidance files present?
+ls .claude/skills .codex/skills .agents/skills 2>/dev/null   # existing repo-local payload?
+ls CLAUDE.md AGENTS.md 2>/dev/null                           # guidance files present?
 ```
 
 Classify the repo:
 - **Fresh adopt** — no `manifests/` / `.maidrc.yaml`.
-- **Stale refresh** — has MAID but no `.claude/skills`/`.codex/skills` (relying
+- **Stale refresh** — has MAID but no `.claude/skills`/`.codex/skills`/`.agents/skills` (relying
   on user-level fallback), or guidance docs predate plan-lock/verify.
 - **Current** — already has repo-local skills referencing plan-lock/verify.
 
@@ -96,10 +96,11 @@ For each chosen agent:
 ```bash
 <maid> init --tool claude --force --dry-run
 <maid> init --tool codex  --force --dry-run
+<maid> init --tool antigravity --force --dry-run   # if using Antigravity
 ```
 
 Sanity-check before installing:
-- Codex must list **only generic** skills (`maid-planner`, `maid-plan-review`,
+- Codex and Antigravity must list **only generic** skills (`maid-planner`, `maid-plan-review`,
   `maid-implement-draft`, `maid-implementer`, `maid-implementation-review`,
   `maid-auditor`, `maid-outcome-enrich`, `maid-run-review`) — **no**
   `maid-runner-*` or `maid-validate-hardening`. If repo-internal skills appear, the maid-runner in
@@ -109,8 +110,9 @@ Sanity-check before installing:
 ## Phase 5 — Install
 
 ```bash
-<maid> init --tool claude --force    # if using Claude Code
-<maid> init --tool codex  --force    # if using Codex
+<maid> init --tool claude --force        # if using Claude Code
+<maid> init --tool codex  --force        # if using Codex
+<maid> init --tool antigravity --force   # if using Antigravity
 ```
 (Omit `--force` only on a truly fresh adopt where nothing exists yet.)
 
@@ -164,14 +166,14 @@ initialization, validation, or ordinary MAID work.
 
 Run the repo's quality gate if present (`make check`, or lint/type/test), show
 `git status` and the doc diffs, and summarize what changed. Stage the payload
-(`.claude/`, `.codex/`, `.maidrc.yaml`, updated CLAUDE.md/AGENTS.md) but **stop
+(`.claude/`, `.codex/`, `.agents/`, `.maidrc.yaml`, updated CLAUDE.md/AGENTS.md) but **stop
 and ask for explicit approval** before committing. For a project-dependency repo
 built from a local path, remind the user that durability across fresh clones
 depends on publishing maid-runner (or pinning to the released version).
 
 ## Optional — refresh the user-level fallback
 
-The user-level `~/.codex/skills` / `~/.claude/skills` are the global fallback for
+The user-level `~/.codex/skills` / `~/.claude/skills` / `~/.gemini/config/skills` are the global fallback for
 any repo not yet onboarded and may be stale. Mention this once; offer to
 re-sync them from the current maid-runner payload, but treat per-repo init as
 the supported path.

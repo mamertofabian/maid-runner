@@ -124,7 +124,7 @@ dead-code:
 
 # Sync agent integration files for package distribution
 sync-agent-payloads:
-	@echo "Syncing Claude, Codex, and Cursor integration files..."
+	@echo "Syncing Claude, Codex, Cursor, and Antigravity integration files..."
 	@uv run python scripts/sync_claude_files.py
 
 sync-claude: sync-agent-payloads
@@ -137,5 +137,5 @@ build: sync-agent-payloads
 # Clean generated files
 clean:
 	@echo "Cleaning generated files..."
-	@rm -rf maid_runner/claude/ maid_runner/codex/ maid_runner/cursor/ dist/ build/ *.egg-info
+	@rm -rf maid_runner/claude/ maid_runner/codex/ maid_runner/cursor/ maid_runner/antigravity/ dist/ build/ *.egg-info
 	@echo "✓ Clean complete"

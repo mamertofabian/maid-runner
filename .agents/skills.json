@@ -1,0 +1,17 @@
+{
+  "entries": [
+    {
+      "path": "maid_runner/antigravity/skills"
+    },
+    {
+      "path": ".claude/skills",
+      "include_only": [
+        "maid-runner-cleanup-and-refactor",
+        "maid-runner-draft-implement",
+        "maid-runner-performance-optimization",
+        "maid-runner-self-improvement",
+        "maid-validate-hardening"
+      ]
+    }
+  ]
+}
