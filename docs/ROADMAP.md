@@ -2,7 +2,7 @@
 
 **Project:** MAID Runner - validation framework for Manifest-driven AI Development
 **Status:** Active v2 development
-**Current Version:** 2.28.2
+**Current Version:** 2.29.0
 **Last Updated:** 2026-11-26
 
 ## Purpose
@@ -18,7 +18,7 @@ agent orchestration, code generation, or product workflows outside validation.
 ## Current State
 
 MAID Runner is now a v2 YAML-manifest package published as `maid-runner`.
-The local CLI reports `maid 2.28.2`.
+The local CLI reports `maid 2.29.0`.
 
 Supported languages:
 
@@ -83,8 +83,8 @@ Current CLI commands:
 Current command options include explicit parallel test-stage controls:
 `maid test --jobs N` for independent implementation command groups and
 `maid verify --test-jobs N` for the verify test stage. `maid init --tool`
-currently accepts `claude`, `codex`, `cursor`, `windsurf`, `generic`, and
-`auto`.
+currently accepts `claude`, `codex`, `antigravity`, `cursor`, `windsurf`,
+`generic`, and `auto`.
 
 ## Active Workstreams
 

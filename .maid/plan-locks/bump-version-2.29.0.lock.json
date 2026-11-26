@@ -1,0 +1,173 @@
+{
+  "manifest_path": "manifests/bump-version-2.29.0.manifest.yaml",
+  "manifest_hash": "sha256-contract:a216c9aee56fb59cf8c40ffbe324af39dc9afa01cf3b86b48c5312e102d38e17",
+  "test_hashes": {
+    "tests/integration/test_library_api.py": "sha256-pyast:v2:afd9ea020575cd6aecfe8ba433c05196578fdb978f9c0102608ce850b669feb0",
+    "tests/integration/test_release_2_29_0.py": "sha256-pyast:v2:2c17d62455ca47cf9ce267b6cbe220f48bc8c7aabaa43d93177f65fd60f2f89e"
+  },
+  "created_at": "2026-11-26T09:40:40.308576+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:797d7b1fb51d1fc0767b7cf79290b2cff6a527383efaeccdd4f501bd7c27814b",
+      "prior_test_hashes": {
+        "tests/integration/test_library_api.py": "sha256-pyast:v2:afd9ea020575cd6aecfe8ba433c05196578fdb978f9c0102608ce850b669feb0",
+        "tests/integration/test_release_2_29_0.py": "sha256-pyast:v2:2c17d62455ca47cf9ce267b6cbe220f48bc8c7aabaa43d93177f65fd60f2f89e"
+      },
+      "revised_at": "2026-11-26T09:40:41.511392+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/bump-version-2.29.0.manifest.yaml -> manifests/bump-version-2.29.0.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-11-26T09:40:41.196689+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/integration/test_release_2_29_0.py tests/integration/test_library_api.py",
+        "exit_code": 1,
+        "output_tail": "        )\nE       AssertionError: assert '[Unreleased]: https://github.com/mamertofabian/maid-runner/compare/v2.29.0...HEAD' in '# Changelog\\n\\nAll notable changes to this project will be documented in this file.\\n\\nThe format is based on [Keep a...n/maid-runner/compare/v2.5.2...v2.6.0\\n[2.5.2]: https://github.com/mamertofabian/maid-runner/compare/v2.5.1...v2.5.2\\n'\n\ntests/integration/test_release_2_29_0.py:89: AssertionError\n____ test_roadmap_reports_prepared_minor_version_and_antigravity_init_tool _____\n\n    def test_roadmap_reports_prepared_minor_version_and_antigravity_init_tool() -> None:\n        roadmap = (_ROOT / \"docs/ROADMAP.md\").read_text()\n    \n>       assert \"**Current Version:** 2.29.0\" in roadmap\nE       AssertionError: assert '**Current Version:** 2.29.0' in '# MAID Runner Roadmap\\n\\n**Project:** MAID Runner - validation framework for Manifest-driven AI Development\\n**Status...should name the owning lane, current evidence, and the next\\nmanifest or spec needed to make the work implementable.\\n'\n\ntests/integration/test_release_2_29_0.py:107: AssertionError\n=========================== short test summary info ============================\nFAILED tests/integration/test_release_2_29_0.py::test_package_lock_and_cli_report_2_29_0\nFAILED tests/integration/test_release_2_29_0.py::test_changelog_places_minor_release_after_empty_unreleased_section\nFAILED tests/integration/test_release_2_29_0.py::test_release_notes_cover_antigravity_features_and_typescript_reexport_fix\nFAILED tests/integration/test_release_2_29_0.py::test_changelog_preserves_prior_release_and_compare_links\nFAILED tests/integration/test_release_2_29_0.py::test_roadmap_reports_prepared_minor_version_and_antigravity_init_tool\n5 failed, 29 passed in 0.62s",
+        "classification": "red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/integration/test_release_2_29_0.py:test_changelog_places_minor_release_after_empty_unreleased_section",
+      "tests/integration/test_release_2_29_0.py:test_changelog_places_minor_release_after_empty_unreleased_section:kind=test_function",
+      "tests/integration/test_release_2_29_0.py:test_changelog_places_minor_release_after_empty_unreleased_section:returns=None",
+      "tests/integration/test_release_2_29_0.py:test_changelog_preserves_prior_release_and_compare_links",
+      "tests/integration/test_release_2_29_0.py:test_changelog_preserves_prior_release_and_compare_links:kind=test_function",
+      "tests/integration/test_release_2_29_0.py:test_changelog_preserves_prior_release_and_compare_links:returns=None",
+      "tests/integration/test_release_2_29_0.py:test_package_lock_and_cli_report_2_29_0",
+      "tests/integration/test_release_2_29_0.py:test_package_lock_and_cli_report_2_29_0:kind=test_function",
+      "tests/integration/test_release_2_29_0.py:test_package_lock_and_cli_report_2_29_0:returns=None",
+      "tests/integration/test_release_2_29_0.py:test_release_notes_cover_antigravity_features_and_typescript_reexport_fix",
+      "tests/integration/test_release_2_29_0.py:test_release_notes_cover_antigravity_features_and_typescript_reexport_fix:kind=test_function",
+      "tests/integration/test_release_2_29_0.py:test_release_notes_cover_antigravity_features_and_typescript_reexport_fix:returns=None",
+      "tests/integration/test_release_2_29_0.py:test_roadmap_reports_prepared_minor_version_and_antigravity_init_tool",
+      "tests/integration/test_release_2_29_0.py:test_roadmap_reports_prepared_minor_version_and_antigravity_init_tool:kind=test_function",
+      "tests/integration/test_release_2_29_0.py:test_roadmap_reports_prepared_minor_version_and_antigravity_init_tool:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/integration/test_release_2_29_0.py"
+      ],
+      "edit": [],
+      "read": [
+        "maid_runner/__version__.py",
+        "manifests/antigravity-hook-scope-check-envelope.manifest.yaml",
+        "manifests/antigravity-init-payload.manifest.yaml",
+        "manifests/antigravity-user-skills-install.manifest.yaml",
+        "manifests/bump-version-2.28.2.manifest.yaml",
+        "manifests/snapshot-cli-commands--main-2.manifest.yaml",
+        "tests/integration/test_library_api.py"
+      ],
+      "scope": [
+        ".maid/plan-locks/snapshot-cli-commands--main-2.lock.json",
+        "CHANGELOG.md",
+        "docs/ROADMAP.md",
+        "pyproject.toml",
+        "uv.lock"
+      ],
+      "delete": [
+        "tests/integration/test_release_2_28_2.py"
+      ],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/integration/test_release_2_29_0.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_package_lock_and_cli_report_2_29_0",
+              "description": "pyproject.toml, editable uv.lock, maid_runner.__version__, and maid --version all report 2.29.0.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_changelog_places_minor_release_after_empty_unreleased_section",
+              "description": "CHANGELOG.md places ## [2.29.0] - 2026-11-26 after an empty ## [Unreleased] section and omits any unpublished 2.28.2 section.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_release_notes_cover_antigravity_features_and_typescript_reexport_fix",
+              "description": "The 2.29.0 release section documents the three Antigravity Added capabilities and the TypeScript named-function re-export Fixed entry accurately.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_changelog_preserves_prior_release_and_compare_links",
+              "description": "CHANGELOG.md preserves 2.28.1 notes and links [Unreleased] to v2.29.0...HEAD and [2.29.0] to v2.28.1...v2.29.0 without dangling 2.28.2 links.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_roadmap_reports_prepared_minor_version_and_antigravity_init_tool",
+              "description": "docs/ROADMAP.md reports Current Version 2.29.0, Last Updated 2026-11-26, maid 2.29.0, and antigravity among maid init --tool choices.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "tests/integration/test_library_api.py",
+        "maid_runner/__version__.py",
+        "manifests/bump-version-2.28.2.manifest.yaml",
+        "manifests/antigravity-hook-scope-check-envelope.manifest.yaml",
+        "manifests/antigravity-init-payload.manifest.yaml",
+        "manifests/antigravity-user-skills-install.manifest.yaml",
+        "manifests/snapshot-cli-commands--main-2.manifest.yaml"
+      ],
+      "scope": [
+        {
+          "path": "pyproject.toml",
+          "reason": "Advance the packaged project version to 2.29.0."
+        },
+        {
+          "path": "uv.lock",
+          "reason": "Regenerate editable package metadata for 2.29.0."
+        },
+        {
+          "path": "CHANGELOG.md",
+          "reason": "Record the 2.29.0 minor release notes, fold the unpublished 2.28.2 fix, and update comparison links."
+        },
+        {
+          "path": "docs/ROADMAP.md",
+          "reason": "Synchronize the documented current CLI version, date, and maid init --tool choices."
+        },
+        {
+          "path": ".maid/plan-locks/snapshot-cli-commands--main-2.lock.json",
+          "reason": "Refresh the existing broad lock after replacing its version-pinned release test."
+        }
+      ],
+      "delete": [
+        {
+          "path": "tests/integration/test_release_2_28_2.py",
+          "reason": "Replace the superseded test that pins unpublished 2.28.2 as the current version."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/integration/test_library_api.py",
+      "tests/integration/test_release_2_29_0.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/integration/test_release_2_29_0.py tests/integration/test_library_api.py"
+    ],
+    "acceptance_commands": []
+  }
+}
