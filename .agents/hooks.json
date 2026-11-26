@@ -1,0 +1,15 @@
+{
+  "maid-scope-check": {
+    "PreToolUse": [
+      {
+        "matcher": "write_file|edit_file|write_to_file|replace_file_content|multi_replace_file_content",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run maid hook scope-check --stdin --format antigravity"
+          }
+        ]
+      }
+    ]
+  }
+}
