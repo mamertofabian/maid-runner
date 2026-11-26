@@ -163,7 +163,7 @@ MAID Runner section in `AGENTS.md`.
 | `maid assess` | Recommend an advisory verify profile from deterministic change signals | `--since`, `--base-ref`, `--json` |
 | `maid plan lock\|revise\|status <manifest>` | Tamper-evident plan locks over a manifest and its behavioral tests | `--legacy-baseline --reason` (tracked legacy lock), `--reason` (revise), `--stash-implementation`, `--preserve-red-evidence`, `--json` (status), `--project-root` |
 | `maid task start\|stop\|status` | Manage the active task manifest pointer in `.maid/active-manifest` | `start <manifest-path>`, `status --json` |
-| `maid hook scope-check` | Check whether a file path is inside the active task manifest scope | `--path <file-path>`, `--stdin`, `--strict` |
+| `maid hook scope-check` | Check whether a file path is inside the active task manifest scope | `--path <file-path>`, `--stdin`, `--strict`, `--format default\|antigravity` |
 | `maid benchmark [project ...]` | Run local benchmark timings for MAID validation gates | `--manifest-dir`, `--command-prefix`, `--repeat`, `--json-output`, `--markdown-output`, `--json` |
 | `maid incident capture\|update\|list` | Store and review caller-asserted gaming incident records | `capture --manifest <path> --packet <path> --rejected-diff <path> --tags <comma-list>`, `update <incident-path> --chosen-diff <path>`, `list --tag <tag> --json` |
 | `maid snapshot <file>` | Generate manifest from existing code | `--output-dir`, `--output`, `--with-tests`, `--force`, `--dry-run`, `--json` |

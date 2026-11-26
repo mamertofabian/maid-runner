@@ -1,0 +1,99 @@
+# manifest-kind: epic
+# promotion: split-before-promote
+schema: "2"
+goal: "Add first-class Google Antigravity support to MAID Runner across edit-time scope hooks, repo-local `maid init --tool antigravity` payloads, and user-level `maid skills install` onboarding."
+type: feature
+created: "2026-11-26T12:40:00Z"
+metadata:
+  status: planned
+  priority: medium
+  tags:
+    - antigravity
+    - hooks
+    - init-payloads
+    - agent-integration
+    - user-skills
+description: |
+  Add native support for Google Antigravity (CLI `agy`, Antigravity IDE, and
+  Antigravity 2.0 App) to MAID Runner without duplicating identical SKILL.md
+  sources across three tools.
+
+  PINNED DECISIONS (confirmed with user):
+
+  1. CLI tool name: `antigravity` (`maid init --tool antigravity`), matching
+     full tool names (`claude`, `codex`, `cursor`, `windsurf`).
+  2. Workspace layout: direct `.agents/` layout (`.agents/skills/`,
+     merged `.agents/hooks.json`, `.agents/manifest.json`, and the shared
+     managed `<!-- BEGIN MAID RUNNER -->` block in root `AGENTS.md`). This
+     matches `_AGENT_TARGETS` in `maid_runner/cli/commands/init.py` and avoids
+     duplicate rule loading when Codex and Antigravity coexist in the same repo.
+  3. Skill source maintenance: generate Antigravity skills inside
+     `scripts/sync_claude_files.py` from canonical `.claude/skills/` plus a
+     small Antigravity-specific overlay for `maid-implementation-review`
+     (describing Antigravity's fresh read-only `research` subagent mechanics),
+     avoiding a third manually-maintained copy of identical `SKILL.md` files.
+  4. Edit-time scope hook protocol: Antigravity runs `hooks.json` commands with
+     process CWD set to the directory containing `hooks.json` (`.agents/`),
+     passes camelCase protojson on stdin (`toolCall.args.Path` / `TargetFile`,
+     `cwd`), and reads `{"decision": "allow"|"deny", "reason": "..."}` from
+     stdout on exit 0.
+
+  CHILD SLICE ORDER:
+
+  1. `antigravity-hook-scope-check-envelope` (Slice 1 — ready to harden first):
+     Extend `maid hook scope-check --stdin` to parse Antigravity PreToolUse
+     envelopes (`toolCall.args.Path`, `TargetFile`, `path`, `file_path`) and
+     honor harness-supplied `cwd` as the explicit project root (zero heuristic
+     root walking), plus add `--format default|antigravity` where `antigravity`
+     emits strict protojson-compatible `{"decision", "reason"}` on stdout and
+     exits 0 for allow/deny/fail-open/fail-closed decisions.
+  2. `antigravity-init-payload` (Slice 2 — depends on Slice 1):
+     Generate `maid_runner/antigravity/` payload in `scripts/sync_claude_files.py`
+     (skills derived from `.claude/skills/` + `maid-implementation-review`
+     overlay, `.agents/hooks.json` invoking `maid hook scope-check --stdin
+     --format antigravity`, `manifest.json`), wire `--tool antigravity` into
+     `maid_runner/cli/commands/init.py` (install, merge `.agents/hooks.json`,
+     shared `AGENTS.md` managed block, `--dry-run`, `--check`, `--uninstall`,
+     project-launcher rewriting), update `pyproject.toml`, `Makefile`, docs,
+     and `maid-onboard`.
+  3. `antigravity-user-skills-install` (Slice 3 — depends on Slice 2):
+     Extend `maid_runner/core/skill_install.py`, `scripts/sync_claude_files.py`,
+     and `pyproject.toml` so `maid skills install` / `uninstall` also delivers
+     and cleans up `maid-onboard` under `<target_root>/.gemini/config/skills/maid-onboard/`.
+
+  NON-GOALS FOR THIS EPIC:
+  - Adding an Antigravity autonomous loop (`tools/agy_maid_loop.py`) — defer to
+    a follow-up after interactive support is proven.
+  - Migrating Claude/Codex to a single unified source directory — keep existing
+    `.claude/` and `.codex/` sources intact while avoiding a third manual copy.
+temptations:
+  - risk: "Do not guess the project root with directory-walking heuristics in `maid hook scope-check`."
+    instead: "Accept only the harness-supplied `cwd` field from stdin JSON and preserve `scope_check_path`'s active-manifest ownership invariant."
+  - risk: "Do not break existing Claude/Cursor/legacy `maid hook scope-check` exit codes or stdout keys."
+    instead: "Keep `--format default` unchanged (keys `decision`, `reason`, `active_manifest`, exit 0/2/1) and gate Antigravity's protojson stdout + exit-0 behavior behind `--format antigravity`."
+  - risk: "Do not copy a third manual tree of identical `SKILL.md` files into the repo."
+    instead: "Generate `maid_runner/antigravity/skills/` during `scripts/sync_claude_files.py` from canonical `.claude/skills/` with a targeted overlay for `maid-implementation-review`."
+  - risk: "Do not clobber unrelated user hooks in `.agents/hooks.json` during `maid init --tool antigravity`."
+    instead: "Merge and uninstall only the named `maid-scope-check` top-level hook entry while preserving other user-defined hooks."
+files:
+  create:
+    - path: manifests/drafts/antigravity-support.epic.yaml
+      artifacts:
+        - kind: attribute
+          name: _antigravity_support_roadmap
+          of: manifest
+          type: draft epic
+          description: "Split-before-promote roadmap for Google Antigravity support across hooks, `maid init --tool antigravity`, and `maid skills install`."
+  read:
+    - manifests/069-02-add-hook-scope-check-command.manifest.yaml
+    - manifests/069-03-wire-hooks-into-init-payloads.manifest.yaml
+    - manifests/fix-claude-scope-check-stdin-envelope.manifest.yaml
+    - manifests/fix-scope-check-outside-project-root.manifest.yaml
+    - manifests/add-skills-install-command.manifest.yaml
+    - maid_runner/cli/commands/hook.py
+    - maid_runner/cli/commands/init.py
+    - maid_runner/core/skill_install.py
+    - scripts/sync_claude_files.py
+    - AGENTS.md
+validate:
+  - uv run maid validate manifests/drafts/antigravity-support.epic.yaml --mode schema --quiet

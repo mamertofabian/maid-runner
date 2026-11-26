@@ -1,0 +1,300 @@
+{
+  "manifest_path": "manifests/antigravity-hook-scope-check-envelope.manifest.yaml",
+  "manifest_hash": "sha256-contract:f4d782abccf0b04af005dc72cb5625b58fc7696e12e92e5af189f85bfc4dbc23",
+  "test_hashes": {
+    "tests/cli/test_hook_cmd.py": "sha256-pyast:v2:c484f5375975de7596a7f37f29fc21a70515623e414d01c5094e9902aa8bc641",
+    "tests/cli/test_hook_claude_stdin_envelope.py": "sha256-pyast:v2:7936c4221a97ac52546b95165b94f82474e6d1438fa027382e51b69c0a851b02",
+    "tests/core/test_scope_check_outside_project_root.py": "sha256-pyast:v2:b1e9592ad9e780a89cea7a54784b47424eebce4d80af75cac30ac9e2195a0d5e",
+    "tests/cli/test_hook_antigravity_envelope.py": "sha256-pyast:v2:4927a926c4c6029ab056a3e6a9a8be359f8d1127168876ca0e5003bdaa754206"
+  },
+  "created_at": "2026-11-26T04:44:29.708453+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:971e65fb7b1274855efe22d82b237df2d6f9bc65c30efd60040baebbd36679eb",
+      "prior_test_hashes": {
+        "tests/cli/test_hook_cmd.py": "sha256-pyast:v2:c484f5375975de7596a7f37f29fc21a70515623e414d01c5094e9902aa8bc641",
+        "tests/cli/test_hook_claude_stdin_envelope.py": "sha256-pyast:v2:7936c4221a97ac52546b95165b94f82474e6d1438fa027382e51b69c0a851b02",
+        "tests/core/test_scope_check_outside_project_root.py": "sha256-pyast:v2:b1e9592ad9e780a89cea7a54784b47424eebce4d80af75cac30ac9e2195a0d5e",
+        "tests/cli/test_hook_antigravity_envelope.py": "sha256-pyast:v2:4927a926c4c6029ab056a3e6a9a8be359f8d1127168876ca0e5003bdaa754206"
+      },
+      "revised_at": "2026-11-26T04:44:37.886243+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/antigravity-hook-scope-check-envelope.manifest.yaml -> manifests/antigravity-hook-scope-check-envelope.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/antigravity-hook-scope-check-envelope.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/antigravity-hook-scope-check-envelope.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/antigravity-hook-scope-check-envelope.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/antigravity-hook-scope-check-envelope.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-11-26T04:44:44.931943+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_hook_antigravity_envelope.py tests/cli/test_hook_cmd.py tests/cli/test_hook_claude_stdin_envelope.py tests/core/test_scope_check_outside_project_root.py",
+        "exit_code": 1,
+        "output_tail": "\n    def exit(self, status=0, message=None):\n        if message:\n            self._print_message(message, _sys.stderr)\n>       _sys.exit(status)\nE       SystemExit: 2\n\n/home/atomrem/.local/share/uv/python/cpython-3.12.8-linux-x86_64-gnu/lib/python3.12/argparse.py:2637: SystemExit\n----------------------------- Captured stderr call -----------------------------\nusage: maid [-h] [--version] <command> ...\nmaid: error: unrecognized arguments: --format antigravity\n=========================== short test summary info ============================\nFAILED tests/cli/test_hook_antigravity_envelope.py::test_build_parser_registers_hook_scope_check_format_option\nFAILED tests/cli/test_hook_antigravity_envelope.py::test_scope_check_accepts_antigravity_pretooluse_envelopes_with_cwd\nFAILED tests/cli/test_hook_antigravity_envelope.py::test_scope_check_antigravity_envelope_default_format_preserves_legacy_contract\nFAILED tests/cli/test_hook_antigravity_envelope.py::test_scope_check_antigravity_format_respects_outside_root_and_subdir_cwd_guard\nFAILED tests/cli/test_hook_antigravity_envelope.py::test_scope_check_antigravity_format_no_active_task_and_internal_errors\n5 failed, 19 passed in 0.78s\n\nwarning: Invalid entries in `SSL_CERT_DIR`. The following directory does not exist:: /home/atomrem/.aspnet/dev-certs/trust.",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/antigravity-hook-scope-check-envelope.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "warning: Invalid entries in `SSL_CERT_DIR`. The following directory does not exist:: /home/atomrem/.aspnet/dev-certs/trust.",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/antigravity-hook-scope-check-envelope.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "warning: Invalid entries in `SSL_CERT_DIR`. The following directory does not exist:: /home/atomrem/.aspnet/dev-certs/trust.",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/_main.py:function:main",
+      "maid_runner/cli/commands/_main.py:function:main:arg=argv:type=list[str] | None:default=None",
+      "maid_runner/cli/commands/_main.py:function:main:kind=function",
+      "maid_runner/cli/commands/_main.py:function:main:returns=int",
+      "maid_runner/cli/commands/hook.py:function:cmd_hook",
+      "maid_runner/cli/commands/hook.py:function:cmd_hook:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/hook.py:function:cmd_hook:kind=function",
+      "maid_runner/cli/commands/hook.py:function:cmd_hook:returns=int",
+      "tests/cli/test_hook_antigravity_envelope.py:test_build_parser_registers_hook_scope_check_format_option",
+      "tests/cli/test_hook_antigravity_envelope.py:test_build_parser_registers_hook_scope_check_format_option:kind=test_function",
+      "tests/cli/test_hook_antigravity_envelope.py:test_build_parser_registers_hook_scope_check_format_option:returns=None",
+      "tests/cli/test_hook_antigravity_envelope.py:test_scope_check_accepts_antigravity_pretooluse_envelopes_with_cwd",
+      "tests/cli/test_hook_antigravity_envelope.py:test_scope_check_accepts_antigravity_pretooluse_envelopes_with_cwd:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/cli/test_hook_antigravity_envelope.py:test_scope_check_accepts_antigravity_pretooluse_envelopes_with_cwd:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_hook_antigravity_envelope.py:test_scope_check_accepts_antigravity_pretooluse_envelopes_with_cwd:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_hook_antigravity_envelope.py:test_scope_check_accepts_antigravity_pretooluse_envelopes_with_cwd:kind=test_function",
+      "tests/cli/test_hook_antigravity_envelope.py:test_scope_check_accepts_antigravity_pretooluse_envelopes_with_cwd:returns=None",
+      "tests/cli/test_hook_antigravity_envelope.py:test_scope_check_antigravity_envelope_default_format_preserves_legacy_contract",
+      "tests/cli/test_hook_antigravity_envelope.py:test_scope_check_antigravity_envelope_default_format_preserves_legacy_contract:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/cli/test_hook_antigravity_envelope.py:test_scope_check_antigravity_envelope_default_format_preserves_legacy_contract:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_hook_antigravity_envelope.py:test_scope_check_antigravity_envelope_default_format_preserves_legacy_contract:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_hook_antigravity_envelope.py:test_scope_check_antigravity_envelope_default_format_preserves_legacy_contract:kind=test_function",
+      "tests/cli/test_hook_antigravity_envelope.py:test_scope_check_antigravity_envelope_default_format_preserves_legacy_contract:returns=None",
+      "tests/cli/test_hook_antigravity_envelope.py:test_scope_check_antigravity_format_no_active_task_and_internal_errors",
+      "tests/cli/test_hook_antigravity_envelope.py:test_scope_check_antigravity_format_no_active_task_and_internal_errors:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/cli/test_hook_antigravity_envelope.py:test_scope_check_antigravity_format_no_active_task_and_internal_errors:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_hook_antigravity_envelope.py:test_scope_check_antigravity_format_no_active_task_and_internal_errors:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_hook_antigravity_envelope.py:test_scope_check_antigravity_format_no_active_task_and_internal_errors:kind=test_function",
+      "tests/cli/test_hook_antigravity_envelope.py:test_scope_check_antigravity_format_no_active_task_and_internal_errors:returns=None",
+      "tests/cli/test_hook_antigravity_envelope.py:test_scope_check_antigravity_format_respects_outside_root_and_subdir_cwd_guard",
+      "tests/cli/test_hook_antigravity_envelope.py:test_scope_check_antigravity_format_respects_outside_root_and_subdir_cwd_guard:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/cli/test_hook_antigravity_envelope.py:test_scope_check_antigravity_format_respects_outside_root_and_subdir_cwd_guard:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_hook_antigravity_envelope.py:test_scope_check_antigravity_format_respects_outside_root_and_subdir_cwd_guard:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_hook_antigravity_envelope.py:test_scope_check_antigravity_format_respects_outside_root_and_subdir_cwd_guard:kind=test_function",
+      "tests/cli/test_hook_antigravity_envelope.py:test_scope_check_antigravity_format_respects_outside_root_and_subdir_cwd_guard:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_hook_antigravity_envelope.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/hook.py"
+      ],
+      "read": [
+        "maid_runner/core/active_task.py",
+        "maid_runner/core/scope_check.py",
+        "manifests/069-02-add-hook-scope-check-command.manifest.yaml",
+        "manifests/drafts/antigravity-support.epic.yaml",
+        "manifests/fix-claude-scope-check-stdin-envelope.manifest.yaml",
+        "manifests/fix-scope-check-outside-project-root.manifest.yaml",
+        "tests/cli/test_hook_claude_stdin_envelope.py",
+        "tests/cli/test_hook_cmd.py",
+        "tests/core/test_scope_check_outside_project_root.py"
+      ],
+      "scope": [
+        "README.md"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_hook_antigravity_envelope.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_build_parser_registers_hook_scope_check_format_option",
+              "description": "The CLI parser exposes `--format` on `maid hook scope-check` with choices default and antigravity (defaulting to default) and rejects unknown values.",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_scope_check_accepts_antigravity_pretooluse_envelopes_with_cwd",
+              "description": "Antigravity PreToolUse envelopes (`write_file`/`edit_file` Path and IDE TargetFile) invoked from `.agents/` with stdin `cwd` pointing to the repo root return exit 0 and strict `{\"decision\", \"reason\"}` JSON under `--format antigravity` for both allow and deny.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_scope_check_antigravity_envelope_default_format_preserves_legacy_contract",
+              "description": "An Antigravity PreToolUse envelope with `--format default` (or omitted `format` attribute) resolves `toolCall.args.Path` and `cwd` while preserving `{\"decision\", \"reason\", \"active_manifest\"}` and exit codes 0 (allow) / 2 (deny).",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_scope_check_antigravity_format_respects_outside_root_and_subdir_cwd_guard",
+              "description": "Under `--format antigravity`, out-of-repo paths are allowed when stdin `cwd` owns the active manifest, while a subdirectory `cwd` that does not own the manifest still denies undeclared repo files under `--strict`.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_scope_check_antigravity_format_no_active_task_and_internal_errors",
+              "description": "Under `--format antigravity`, missing active task, unloadable active manifest, corrupt active-task state, and malformed envelopes (missing/empty Path, empty/whitespace/falsy/non-string cwd) emit strict `{\"decision\", \"reason\"}` JSON with exit 0, failing open by default and denying under `--strict`; explicit `cwd: null` falls back to `.`, and a programmatic unknown format fails through the default internal-error path.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                }
+              ],
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/hook.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_hook",
+              "description": "Handle `maid hook scope-check`, accepting legacy `{\"path\": ...}`, Claude `tool_input.file_path`, and Antigravity `toolCall.args` (`Path`/`TargetFile`/`path`/`file_path`) plus explicit stdin `cwd` as `project_root`, and formatting output as either default (`{\"decision\", \"reason\", \"active_manifest\"}`, exit 0/2/1) or antigravity (`{\"decision\", \"reason\"}`, exit 0).",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "build_parser",
+              "description": "Parser registers `--format` (`default` or `antigravity`, defaulting to `default`) on `maid hook scope-check` alongside `--path`, `--stdin`, and `--strict`.",
+              "returns": "argparse.ArgumentParser"
+            },
+            {
+              "kind": "function",
+              "name": "main",
+              "description": "CLI dispatches `maid hook scope-check` including `--format` to `maid_runner.cli.commands.hook.cmd_hook`.",
+              "args": [
+                {
+                  "name": "argv",
+                  "type": "list[str] | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/drafts/antigravity-support.epic.yaml",
+        "manifests/069-02-add-hook-scope-check-command.manifest.yaml",
+        "manifests/fix-claude-scope-check-stdin-envelope.manifest.yaml",
+        "manifests/fix-scope-check-outside-project-root.manifest.yaml",
+        "maid_runner/core/active_task.py",
+        "maid_runner/core/scope_check.py",
+        "tests/cli/test_hook_cmd.py",
+        "tests/cli/test_hook_claude_stdin_envelope.py",
+        "tests/core/test_scope_check_outside_project_root.py"
+      ],
+      "scope": [
+        {
+          "path": "README.md",
+          "reason": "Document the `--format default|antigravity` option in the `maid hook scope-check` CLI reference row."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/cli/test_hook_antigravity_envelope.py",
+      "tests/cli/test_hook_claude_stdin_envelope.py",
+      "tests/cli/test_hook_cmd.py",
+      "tests/core/test_scope_check_outside_project_root.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_hook_antigravity_envelope.py tests/cli/test_hook_cmd.py tests/cli/test_hook_claude_stdin_envelope.py tests/core/test_scope_check_outside_project_root.py",
+      "uv run maid validate manifests/antigravity-hook-scope-check-envelope.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/antigravity-hook-scope-check-envelope.manifest.yaml --mode schema --quiet"
+    ],
+    "acceptance_commands": []
+  }
+}
