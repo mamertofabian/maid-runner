@@ -56,6 +56,9 @@ _CHECKED_AGENT_MANIFESTS = {
     "claude": Path(".claude/manifest.json"),
     "codex": Path(".codex/manifest.json"),
 }
+_OPTIONAL_CHECKED_AGENT_MANIFESTS = {
+    "antigravity": Path(".agents/manifest.json"),
+}
 _PAYLOAD_PATH_PREFIXES = {
     "root": "",
     "agents": "agents",
@@ -77,6 +80,7 @@ _INIT_CONFIG_CONTENT = (
 _AGENT_TARGETS = {
     "claude": (Path(".claude"), Path("CLAUDE.md")),
     "codex": (Path(".codex"), Path("AGENTS.md")),
+    "antigravity": (Path(".agents"), Path("AGENTS.md")),
     "cursor": (Path(".cursor"), None),
 }
 
@@ -101,6 +105,7 @@ def cmd_init(args: argparse.Namespace) -> int:
     config_file = Path(".maidrc.yaml")
     install_claude = args.tool in {"auto", "claude"}
     install_codex = args.tool == "codex"
+    install_antigravity = args.tool == "antigravity"
     install_cursor = args.tool == "cursor"
 
     if not args.force:
@@ -146,6 +151,8 @@ def cmd_init(args: argparse.Namespace) -> int:
             _print_agent_dry_run("claude", ".claude", "CLAUDE.md")
         if install_codex:
             _print_agent_dry_run("codex", ".codex", "AGENTS.md")
+        if install_antigravity:
+            _print_agent_dry_run("antigravity", ".agents", "AGENTS.md")
         if install_cursor:
             _print_agent_dry_run("cursor", ".cursor", None)
         return 0
@@ -172,6 +179,8 @@ def cmd_init(args: argparse.Namespace) -> int:
         _install_agent_payload(Path.cwd(), "claude", ".claude", "CLAUDE.md")
     if install_codex:
         _install_agent_payload(Path.cwd(), "codex", ".codex", "AGENTS.md")
+    if install_antigravity:
+        _install_agent_payload(Path.cwd(), "antigravity", ".agents", "AGENTS.md")
     if install_cursor:
         _install_agent_payload(Path.cwd(), "cursor", ".cursor", None)
 
@@ -199,6 +208,9 @@ def cmd_init(args: argparse.Namespace) -> int:
     if install_codex:
         print("  Updated: .codex/")
         print("  Updated: AGENTS.md")
+    if install_antigravity:
+        print("  Updated: .agents/")
+        print("  Updated: AGENTS.md")
     if install_cursor:
         print("  Updated: .cursor/")
     print(
@@ -217,7 +229,11 @@ def cmd_init(args: argparse.Namespace) -> int:
 
 def _cmd_init_uninstall(args: argparse.Namespace) -> int:
     tool = getattr(args, "tool", "auto")
-    tools = ("claude", "codex", "cursor", "generic") if tool == "auto" else (tool,)
+    tools = (
+        ("claude", "codex", "antigravity", "cursor", "generic")
+        if tool == "auto"
+        else (tool,)
+    )
     try:
         report = uninstall_init_payload(Path.cwd(), tools, bool(args.dry_run))
     except (OSError, ValueError, json.JSONDecodeError) as exc:
@@ -249,11 +265,13 @@ def uninstall_init_payload(
     preserved: list[str] = []
     missing: list[str] = []
 
+    selected_tools = set(tools)
     for tool in tools:
         if tool in _AGENT_TARGETS:
             _plan_agent_uninstall(
                 project_root,
                 tool,
+                selected_tools,
                 operations,
                 removed,
                 preserved,
@@ -281,6 +299,7 @@ def uninstall_init_payload(
 def _plan_agent_uninstall(
     project_root: Path,
     tool: str,
+    selected_tools: set[str],
     operations: list[_UninstallOperation],
     removed: list[str],
     preserved: list[str],
@@ -308,6 +327,11 @@ def _plan_agent_uninstall(
                     destination, label, operations, removed, missing
                 )
                 continue
+            if tool == "antigravity" and relative == Path("hooks.json"):
+                _plan_antigravity_hooks_cleanup(
+                    destination, label, operations, removed, missing
+                )
+                continue
             if not os.path.lexists(destination):
                 missing.append(label)
                 continue
@@ -319,7 +343,9 @@ def _plan_agent_uninstall(
         )
         removed.append(manifest_label)
 
-    if guidance_relative is not None:
+    if guidance_relative is not None and not _has_remaining_guidance_owner(
+        project_root, tool, guidance_relative, selected_tools
+    ):
         _plan_marker_cleanup(
             project_root,
             guidance_relative,
@@ -329,6 +355,22 @@ def _plan_agent_uninstall(
             removed,
             missing,
         )
+
+
+def _has_remaining_guidance_owner(
+    project_root: Path,
+    tool: str,
+    guidance_relative: Path,
+    selected_tools: set[str],
+) -> bool:
+    for other_tool, (other_target, other_guidance) in _AGENT_TARGETS.items():
+        if other_tool == tool or other_tool in selected_tools:
+            continue
+        if other_guidance != guidance_relative:
+            continue
+        if os.path.lexists(project_root / other_target / "manifest.json"):
+            return True
+    return False
 
 
 def _plan_generic_uninstall(
@@ -466,6 +508,64 @@ def _plan_claude_settings_cleanup(
         _new_uninstall_operation(
             path,
             (json.dumps(cleaned_settings, indent=2) + "\n").encode(),
+            expected_source=source_bytes,
+        )
+    )
+    removed.append(f"{label}#maid-scope-check")
+
+
+def _plan_antigravity_hooks_cleanup(
+    path: Path,
+    label: str,
+    operations: list[_UninstallOperation],
+    removed: list[str],
+    missing: list[str],
+) -> None:
+    if not os.path.lexists(path):
+        missing.append(label)
+        return
+    _assert_no_symlink_boundary(path.parent, path, include_leaf=True)
+    try:
+        source_bytes = path.read_bytes()
+        hooks_config = json.loads(source_bytes)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"{label} contains invalid JSON: {exc}") from exc
+    if not isinstance(hooks_config, dict):
+        raise ValueError(f"{label} must contain a JSON object")
+
+    cleaned_config: dict[str, object] = {}
+    removed_any = False
+    for hook_name, spec in hooks_config.items():
+        if hook_name != "maid-scope-check" or not isinstance(spec, dict):
+            cleaned_config[hook_name] = spec
+            continue
+        cleaned_spec: dict[str, object] = {}
+        spec_removed = False
+        for event_name, entries in spec.items():
+            if not isinstance(entries, list):
+                cleaned_spec[event_name] = entries
+                continue
+            cleaned_entries: list[object] = []
+            event_removed = False
+            for entry in entries:
+                cleaned_entry, was_removed = _without_maid_scope_check_hooks(entry)
+                event_removed = event_removed or was_removed
+                if cleaned_entry is not None:
+                    cleaned_entries.append(cleaned_entry)
+            spec_removed = spec_removed or event_removed
+            if cleaned_entries or not event_removed:
+                cleaned_spec[event_name] = cleaned_entries
+        removed_any = removed_any or spec_removed
+        if cleaned_spec or not spec_removed:
+            cleaned_config[hook_name] = cleaned_spec
+
+    if not removed_any:
+        missing.append(f"{label}#maid-scope-check")
+        return
+    operations.append(
+        _new_uninstall_operation(
+            path,
+            (json.dumps(cleaned_config, indent=2) + "\n").encode(),
             expected_source=source_bytes,
         )
     )
@@ -1203,7 +1303,7 @@ def _install_agent_payload(
 ) -> None:
     target_dir = project_root / target_dir_name
     manifest = _agent_manifest(tool)
-    if tool in _CHECKED_AGENT_MANIFESTS:
+    if tool in _CHECKED_AGENT_MANIFESTS or tool in _OPTIONAL_CHECKED_AGENT_MANIFESTS:
         manifest = _stamp_instruction_payload_metadata(manifest)
     payload_files = list(_installable_payload_files(tool, manifest))
     _prune_agent_payload(
@@ -1220,6 +1320,12 @@ def _install_agent_payload(
                 destination,
                 _settings_for_project_launcher(packaged_settings, project_root),
             )
+        elif tool == "antigravity" and relative_path == Path("hooks.json"):
+            packaged_hooks = json.loads(source_file.read_text())
+            _merge_antigravity_hooks(
+                destination,
+                _antigravity_hooks_for_project_launcher(packaged_hooks, project_root),
+            )
         else:
             destination.write_bytes(source_file.read_bytes())
 
@@ -1228,6 +1334,8 @@ def _install_agent_payload(
 
     if tool == "claude":
         section = _render_claude_md_section(manifest)
+    elif tool == "antigravity":
+        section = _render_antigravity_agents_md_section(manifest)
     else:
         section = _render_agents_md_section(manifest)
     if (project_root / "scripts" / "maid").is_file():
@@ -1347,7 +1455,85 @@ def _is_maid_scope_check_command(value: object) -> bool:
     return value in {
         "maid hook scope-check --stdin",
         "./scripts/maid hook scope-check --stdin",
+        "maid hook scope-check --stdin --format antigravity",
+        "../scripts/maid hook scope-check --stdin --format antigravity",
     }
+
+
+def _merge_antigravity_hooks(destination: Path, packaged_hooks: dict) -> None:
+    if destination.exists():
+        existing_hooks = json.loads(destination.read_text())
+        if not isinstance(existing_hooks, dict):
+            raise ValueError(
+                f"Existing Antigravity hooks must be a JSON object: {destination}"
+            )
+    else:
+        existing_hooks = {}
+
+    merged = dict(existing_hooks)
+    for hook_name, packaged_spec in packaged_hooks.items():
+        if not isinstance(packaged_spec, dict):
+            merged[hook_name] = packaged_spec
+            continue
+        existing_spec = merged.get(hook_name)
+        if existing_spec is not None and not isinstance(existing_spec, dict):
+            raise ValueError(
+                f"Existing Antigravity hook {hook_name!r} must be a JSON object: "
+                f"{destination}"
+            )
+        merged_spec = dict(existing_spec) if isinstance(existing_spec, dict) else {}
+        for event_name, packaged_entries in packaged_spec.items():
+            if not isinstance(packaged_entries, list):
+                merged_spec[event_name] = packaged_entries
+                continue
+            raw_existing = merged_spec.get(event_name, [])
+            if not isinstance(raw_existing, list):
+                raise ValueError(
+                    f"Existing Antigravity hook {hook_name}.{event_name} must be a "
+                    f"JSON array: {destination}"
+                )
+            existing_entries = list(raw_existing)
+            for packaged_entry in packaged_entries:
+                if _contains_maid_scope_check_hook(packaged_entry):
+                    cleaned_entries = (
+                        _without_maid_scope_check_hooks(entry)
+                        for entry in existing_entries
+                    )
+                    existing_entries = [
+                        entry
+                        for entry, _removed in cleaned_entries
+                        if entry is not None
+                    ]
+                if packaged_entry not in existing_entries:
+                    existing_entries.append(packaged_entry)
+            merged_spec[event_name] = existing_entries
+        merged[hook_name] = merged_spec
+    destination.write_text(json.dumps(merged, indent=2) + "\n")
+
+
+def _antigravity_hooks_for_project_launcher(hooks: dict, project_root: Path) -> dict:
+    """Route Antigravity hook commands through ../scripts/maid when present."""
+    if not (project_root / "scripts" / "maid").is_file():
+        return hooks
+
+    transformed = json.loads(json.dumps(hooks))
+
+    def rewrite(value: object) -> None:
+        if isinstance(value, dict):
+            if value.get("command") == (
+                "maid hook scope-check --stdin --format antigravity"
+            ):
+                value["command"] = (
+                    "../scripts/maid hook scope-check --stdin --format antigravity"
+                )
+            for child in value.values():
+                rewrite(child)
+        elif isinstance(value, list):
+            for child in value:
+                rewrite(child)
+
+    rewrite(transformed)
+    return transformed
 
 
 def _settings_for_project_launcher(settings: dict, project_root: Path) -> dict:
@@ -1454,6 +1640,31 @@ def _render_agents_md_section(manifest: dict) -> str:
     )
 
 
+def _render_antigravity_agents_md_section(manifest: dict) -> str:
+    skills = ", ".join(f"`{name}`" for name in manifest["skills"]["distributable"])
+    return (
+        f"{_MAID_SECTION_START}\n"
+        "## MAID Runner\n\n"
+        f"Instruction payload version: {INSTRUCTION_PAYLOAD_VERSION}\n\n"
+        "### MAID Antigravity Skills Workflow\n"
+        "Use the installed MAID Antigravity skills under `.agents/skills/` for "
+        f"manifest-driven development: {skills}.\n\n"
+        "For new features, bug fixes, and refactors, plan with `maid-planner`, "
+        "review with `maid-plan-review`, implement with `maid-implementer`, and "
+        "review the result with `maid-implementation-review` before handoff. "
+        "When continuing from `manifests/drafts/*.manifest.yaml`, use "
+        "`maid-implement-draft` to harden, lock, promote, implement, review, "
+        "and capture Outcome.\n\n"
+        "Edit-time scope enforcement is wired through `.agents/hooks.json` "
+        "using `maid hook scope-check --stdin --format antigravity`. This "
+        "pre-edit hook check is advisory and does not replace `maid verify` "
+        "changed-scope validation.\n\n"
+        f"{_render_validator_plugin_guidance()}"
+        f"{_render_draft_outcome_guidance()}\n"
+        f"{_MAID_SECTION_END}\n"
+    )
+
+
 def _render_validator_plugin_guidance() -> str:
     return (
         "Before treating a file's language as unsupported, run "
@@ -1555,6 +1766,10 @@ def _instruction_payload_status(project_root: Path) -> dict:
         tool: _installed_agent_payload_status(project_root, manifest_path)
         for tool, manifest_path in _CHECKED_AGENT_MANIFESTS.items()
     }
+    for tool, manifest_path in _OPTIONAL_CHECKED_AGENT_MANIFESTS.items():
+        optional_info = _installed_agent_payload_status(project_root, manifest_path)
+        if optional_info["present"]:
+            installed[tool] = optional_info
     present = [info for info in installed.values() if info["present"]]
     if not present:
         status = "missing"

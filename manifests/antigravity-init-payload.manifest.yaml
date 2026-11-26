@@ -1,0 +1,325 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Package generated Antigravity skills and `.agents/hooks.json` and wire `maid init --tool antigravity` with check, merge, launcher-rewrite, and safe uninstall support"
+type: feature
+created: "2026-11-26T05:07:33Z"
+metadata:
+  epic: antigravity-support
+  tags:
+    - antigravity
+    - init-payloads
+    - hooks
+    - agent-integration
+  priority: medium
+description: |
+  Slice 2 of `manifests/drafts/antigravity-support.epic.yaml`.
+
+  Adds first-class repo-level Antigravity initialization (`maid init --tool
+  antigravity`) using Antigravity's native `.agents/` workspace customization
+  root and shared `AGENTS.md` rules without introducing a third manually
+  maintained copy of identical `SKILL.md` files.
+
+  Design decisions (rationale):
+
+  1. Generated skill payload with targeted overlay (`scripts/sync_claude_files.py`):
+     `sync_antigravity_payload()` reads the distributable skill list from
+     `.claude/manifest.json` (falling back to `CODEX_DISTRIBUTABLE_SKILLS`),
+     copies the generic `SKILL.md` files from canonical `.claude/skills/` into
+     `maid_runner/antigravity/skills/`, and applies an explicit deterministic
+     overlay to `maid-implementation-review/SKILL.md` replacing Claude's
+     `subagent_type: "maid-implementation-reviewer"` bullets with Antigravity's
+     fresh read-only `invoke_subagent` (`TypeName: "research"`,
+     `Model: "inherit"`, `manage_subagents` cleanup) mechanics. If the expected
+     source block is missing, `sync_antigravity_payload()` raises `ValueError`
+     rather than silently shipping stale Claude instructions.
+  2. Antigravity `hooks.json` schema & working directory:
+     `maid_runner/antigravity/hooks.json` uses Antigravity's named-hook schema
+     (`{"maid-scope-check": {"PreToolUse": [{"matcher": "write_file|edit_file|write_to_file|replace_file_content|multi_replace_file_content", "hooks": [{"type": "command", "command": "maid hook scope-check --stdin --format antigravity"}]}]}}`).
+     Because Antigravity executes command hooks with process CWD set to the
+     directory containing `hooks.json` (`.agents/`), when a project-local
+     `scripts/maid` launcher exists, `maid init --tool antigravity` rewrites
+     the hook command to `../scripts/maid hook scope-check --stdin --format
+     antigravity` (while `AGENTS.md` command examples continue using
+     `./scripts/maid`).
+  3. Non-destructive `.agents/hooks.json` merge & safe uninstall:
+     Installing or force-reinitializing merges `"maid-scope-check"` into any
+     existing `.agents/hooks.json` without clobbering unrelated user hooks or
+     sibling hooks. Uninstalling removes only the MAID scope-check command leaf
+     (pruning empty MAID containers while preserving user hooks), removes
+     MAID-owned `.agents/skills/*` and `.agents/manifest.json`, and cleans the
+     `AGENTS.md` marker block. `maid init --uninstall` (`--tool auto`) includes
+     `antigravity` alongside `claude`, `codex`, `cursor`, and `generic` and
+     deduplicates shared `AGENTS.md` cleanup cleanly.
+  4. Backward-compatible `maid init --check`:
+     `maid init --tool antigravity` stamps `instruction_payload_metadata()` into
+     `.agents/manifest.json`. `_instruction_payload_status()` always reports
+     `claude` and `codex` (preserving exact-dict compatibility with plan-locked
+     `tests/cli/test_init_instruction_payload_version.py`) and includes
+     `antigravity` whenever `.agents/manifest.json` is present, reporting
+     `current` or `stale` and participating in the overall status and exit code.
+  5. Documentation sync:
+     Updates `README.md` (Multi-Tool Support, CLI Reference, Repo-Level
+     Antigravity Install, and Edit-Time Scope Enforcement prose) and
+     `docs/agent-skills.md` while preserving all existing test-locked doc
+     anchors.
+
+  Outcome recall digestion:
+  - Applied lesson from `069-03`: keep source/generator, generated package tree
+    (`maid_runner/antigravity/`), `pyproject.toml` package-data globs, `Makefile`
+    sync/clean targets, and isolated parity tests in the same child; declare
+    new tests in a dedicated file so older plan locks remain intact.
+  - Applied lesson from `fix-init-payload-portability`: hook merge and cleanup
+    must target only the owned MAID scope-check command leaf without clobbering
+    user-owned sibling hooks or empty user containers.
+  - Applied lesson from `fix-claude-scope-check-stdin-envelope`: exercise the
+    exact installed `.agents/hooks.json` command against a realistic
+    Antigravity `PreToolUse` stdin envelope from `.agents/` in tests.
+
+  Out of scope for Slice 2: `maid skills install` / `uninstall` user-level
+  Antigravity support under `~/.gemini/config/skills/maid-onboard` (Slice 3).
+temptations:
+  - risk: "Do not add a third manually-maintained `.agents/skills/` tree to the repo."
+    instead: "Generate `maid_runner/antigravity/skills/` from canonical `.claude/skills/` in `sync_antigravity_payload()` with an explicit overlay for `maid-implementation-review/SKILL.md`."
+  - risk: "Do not rewrite Antigravity hook commands to `./scripts/maid` when `scripts/maid` exists."
+    instead: "Rewrite Antigravity `.agents/hooks.json` commands to `../scripts/maid hook scope-check --stdin --format antigravity` because Antigravity runs hooks from the directory containing `hooks.json`."
+  - risk: "Do not add an unconditional absent `antigravity` key to `maid init --check --json` output."
+    instead: "Include `antigravity` in `installed` whenever `.agents/manifest.json` is present so existing plan-locked `test_init_instruction_payload_version.py` assertions remain green."
+  - risk: "Do not clobber user hooks in `.agents/hooks.json` during install, force-reinit, or uninstall."
+    instead: "Merge and clean only the MAID scope-check command leaf under `maid-scope-check`, preserving unrelated top-level hooks and sibling entries."
+files:
+  create:
+    - path: tests/cli/test_init_antigravity_payload.py
+      artifacts:
+        - kind: test_function
+          name: test_sync_antigravity_payload_derives_skills_overlay_and_hooks
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+          returns: None
+          description: "`sync_antigravity_payload` and `sync_claude_files.main` generate `maid_runner/antigravity/` from `.claude/skills/` with the Antigravity reviewer-subagent overlay, named `hooks.json`, fail-loud overlay guard, and matching `pyproject.toml` / `Makefile` packaging entries."
+        - kind: test_function
+          name: test_init_antigravity_installs_agents_skills_hooks_and_shared_agents_md
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+            - name: capsys
+              type: pytest.CaptureFixture[str]
+          returns: None
+          description: "`build_parser`, `cmd_init`, and `main` support `--tool antigravity` (including `--dry-run`), install `.agents/` skills, hooks, and stamped manifest plus managed `AGENTS.md`, exclude `maid-onboard`/repo-internal skills, and execute the installed hook command against a real Antigravity PreToolUse envelope from `.agents/`."
+        - kind: test_function
+          name: test_init_antigravity_merges_existing_hooks_rewrites_launcher_and_prunes_stale
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+          returns: None
+          description: "Force-reinitializing `--tool antigravity` preserves user hooks in `.agents/hooks.json`, migrates the hook command to `../scripts/maid` when `scripts/maid` exists, prunes stale MAID skills while keeping custom skills, and preserves user content in `AGENTS.md`."
+        - kind: test_function
+          name: test_init_check_reports_antigravity_current_and_stale
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+            - name: capsys
+              type: pytest.CaptureFixture[str]
+          returns: None
+          description: "`maid init --check` and `--check --json` report `antigravity` as current after install and stale when `.agents/manifest.json` carries an older payload version."
+        - kind: test_function
+          name: test_init_uninstall_antigravity_removes_only_owned_payload_and_preserves_user_hooks
+          args:
+            - name: tmp_path
+              type: Path
+            - name: monkeypatch
+              type: pytest.MonkeyPatch
+          returns: None
+          description: "`uninstall_init_payload` and `maid init --uninstall` remove only MAID-owned `.agents/` files, the MAID hook leaf inside `.agents/hooks.json`, and the `AGENTS.md` marker block while preserving custom skills, user hooks, sibling hooks, and cleanly deduplicating when both `codex` and `antigravity` are installed."
+        - kind: test_function
+          name: test_antigravity_docs_cover_init_and_hook_format
+          args: []
+          returns: None
+          description: "`README.md` and `docs/agent-skills.md` document `maid init --tool antigravity`, `.agents/hooks.json`, and `--format antigravity`."
+  edit:
+    - path: maid_runner/cli/commands/_main.py
+      artifacts:
+        - kind: function
+          name: build_parser
+          args: []
+          returns: argparse.ArgumentParser
+          description: "Parser registers `antigravity` in `maid init --tool` choices alongside claude, codex, cursor, windsurf, generic, and auto."
+        - kind: function
+          name: main
+          args:
+            - name: argv
+              type: list[str] | None
+              default: None
+          returns: int
+          description: "CLI dispatches `maid init --tool antigravity`, `--check`, and `--uninstall` through `cmd_init`."
+    - path: maid_runner/cli/commands/init.py
+      artifacts:
+        - kind: function
+          name: cmd_init
+          args:
+            - name: args
+              type: argparse.Namespace
+          returns: int
+          description: "Install, preview (`--dry-run`), check (`--check`), and uninstall (`--uninstall`) the packaged Antigravity `.agents/` payload and shared `AGENTS.md` managed block, merging `.agents/hooks.json` and adapting `../scripts/maid` when a project launcher exists."
+        - kind: function
+          name: uninstall_init_payload
+          args:
+            - name: project_root
+              type: Path
+            - name: tools
+              type: tuple[str, ...]
+            - name: dry_run
+              type: bool
+          returns: UninstallReport
+          description: "Support `antigravity` in safe ownership-checked payload uninstall, cleaning only the MAID scope-check hook leaf in `.agents/hooks.json`, owned `.agents/skills/*`, `.agents/manifest.json`, and the `AGENTS.md` managed block."
+    - path: scripts/sync_claude_files.py
+      artifacts:
+        - kind: function
+          name: sync_antigravity_payload
+          args: []
+          returns: None
+          description: "Generate `maid_runner/antigravity/` (`manifest.json`, `hooks.json`, and distributable `skills/*/SKILL.md` derived from `.claude/skills/` with the Antigravity `maid-implementation-review` reviewer-subagent overlay)."
+        - kind: function
+          name: main
+          args: []
+          returns: None
+          description: "Run `sync_antigravity_payload()` alongside existing Claude, Codex, Cursor, user-skill, and workflow payload sync steps."
+  scope:
+    - path: maid_runner/antigravity/manifest.json
+      reason: "Generated packaged Antigravity payload manifest."
+    - path: maid_runner/antigravity/hooks.json
+      reason: "Generated packaged Antigravity PreToolUse scope-check hook configuration."
+    - path: maid_runner/antigravity/skills/maid-planner/SKILL.md
+      reason: "Generated packaged Antigravity skill derived from canonical `.claude/skills/`."
+    - path: maid_runner/antigravity/skills/maid-plan-review/SKILL.md
+      reason: "Generated packaged Antigravity skill derived from canonical `.claude/skills/`."
+    - path: maid_runner/antigravity/skills/maid-implement-draft/SKILL.md
+      reason: "Generated packaged Antigravity skill derived from canonical `.claude/skills/`."
+    - path: maid_runner/antigravity/skills/maid-implementer/SKILL.md
+      reason: "Generated packaged Antigravity skill derived from canonical `.claude/skills/`."
+    - path: maid_runner/antigravity/skills/maid-implementation-review/SKILL.md
+      reason: "Generated packaged Antigravity skill with Antigravity subagent reviewer overlay."
+    - path: maid_runner/antigravity/skills/maid-evolver/SKILL.md
+      reason: "Generated packaged Antigravity skill derived from canonical `.claude/skills/`."
+    - path: maid_runner/antigravity/skills/maid-auditor/SKILL.md
+      reason: "Generated packaged Antigravity skill derived from canonical `.claude/skills/`."
+    - path: maid_runner/antigravity/skills/maid-incident-logger/SKILL.md
+      reason: "Generated packaged Antigravity skill derived from canonical `.claude/skills/`."
+    - path: maid_runner/antigravity/skills/maid-outcome-enrich/SKILL.md
+      reason: "Generated packaged Antigravity skill derived from canonical `.claude/skills/`."
+    - path: maid_runner/antigravity/skills/maid-run-review/SKILL.md
+      reason: "Generated packaged Antigravity skill derived from canonical `.claude/skills/`."
+    - path: pyproject.toml
+      reason: "Add `antigravity/manifest.json`, `antigravity/hooks.json`, and `antigravity/skills/*/SKILL.md` to setuptools package-data."
+    - path: Makefile
+      reason: "Include `maid_runner/antigravity/` in sync messaging and `clean` target."
+    - path: README.md
+      reason: "Document `maid init --tool antigravity`, Repo-Level Antigravity Install, and Antigravity hook format in Edit-Time Scope Enforcement."
+    - path: docs/agent-skills.md
+      reason: "Document Antigravity skill distribution and `.agents/hooks.json` scope-check wiring."
+  read:
+    - manifests/drafts/antigravity-support.epic.yaml
+    - manifests/antigravity-hook-scope-check-envelope.manifest.yaml
+    - manifests/069-03-wire-hooks-into-init-payloads.manifest.yaml
+    - .claude/manifest.json
+    - .claude/skills/maid-implementation-review/SKILL.md
+    - maid_runner/instruction_payload.py
+    - tests/ci/test_claude_sync.py
+    - tests/test_agent_payload_distribution.py
+validate:
+  - uv run python -m pytest -q tests/cli/test_init_antigravity_payload.py tests/ci/test_claude_sync.py tests/test_agent_payload_distribution.py
+  - uv run maid validate manifests/antigravity-init-payload.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/antigravity-init-payload.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-11-26T05:39:00Z"
+  summary: "Packaged generated Antigravity skills and `.agents/hooks.json` in `maid_runner/antigravity/` via `scripts/sync_claude_files.py`, wired `maid init --tool antigravity` (install, `--dry-run`, `--check`, `--uninstall`, `.agents/hooks.json` merge, `../scripts/maid` launcher rewriting, shared `AGENTS.md` co-owner isolation), updated `pyproject.toml`, `Makefile`, `README.md`, and `docs/agent-skills.md`."
+  rationale: "Generating `maid_runner/antigravity/skills/` from canonical `.claude/skills/` with a fail-loud overlay for `maid-implementation-review/SKILL.md` avoids maintaining a third copy of identical skill bodies. Antigravity runs command hooks from the directory containing `hooks.json` (`.agents/`), so project wrappers rewrite to `../scripts/maid`. Conditional `antigravity` reporting in `maid init --check` and co-owner checks for shared `AGENTS.md` uninstall keep existing Claude/Codex contracts intact."
+  lessons:
+    - lesson_type: design
+      summary: "When two init tools share a guidance file (`codex` and `antigravity` both target `AGENTS.md`), single-tool uninstall must check whether another co-owner's manifest remains installed before stripping the shared managed marker block."
+      tags:
+        - init-payloads
+        - uninstall
+        - antigravity
+      paths:
+        - maid_runner/cli/commands/init.py
+        - tests/cli/test_init_antigravity_payload.py
+    - lesson_type: validation
+      summary: "Manifest `validate:` commands run inside isolated knockout snapshots that exclude gitignored `maid_runner/claude/`; keep manifest `validate:` commands scoped to knockout-hermetic test suites and run Claude-payload regression suites alongside them."
+      tags:
+        - knockout
+        - init-payloads
+        - testing
+      paths:
+        - manifests/antigravity-init-payload.manifest.yaml
+        - tests/cli/test_init_antigravity_payload.py
+    - lesson_type: implementation
+      summary: "Top-level named hooks in `.agents/hooks.json` must scope uninstall leaf cleanup strictly to `maid-scope-check` so user-named hooks invoking `maid hook scope-check` are never mutated."
+      tags:
+        - hooks
+        - uninstall
+        - antigravity
+      paths:
+        - maid_runner/cli/commands/init.py
+        - tests/cli/test_init_antigravity_payload.py
+  review_notes:
+    - source: plan-reviewer-6acd977f-aada-42e9-b66e-860a0218d6a5
+      severity: blocking
+      summary: "Plan review caught 4 test-strength gaps before locking (clean `dest_root` for `sync_main()`, full canonical section preservation in `maid-implementation-review` overlay, committed `maid_runner/antigravity/` parity, and empty-container/launcher/malformed-JSON uninstall coverage); all were addressed prior to `maid plan lock`."
+    - source: implementation-reviewer-ddaee23b-6bf7-49da-a5e0-67db914bb591
+      severity: blocking
+      summary: "Round 1 review caught 2 P1 uninstall isolation bugs: shared `AGENTS.md` marker removal when a co-owner (`codex`/`antigravity`) remains installed, and `.agents/hooks.json` cleanup scanning all top-level hook names instead of only `maid-scope-check`. Both were fixed with behavioral assertions and plan-lock revision 5."
+    - source: implementation-reviewer-f67fe271-c69c-429e-946a-ed6970c7206a
+      severity: info
+      summary: "Round 2 independent read-only review found 0 blocking issues and returned verdict ready."
+  validation:
+    - command:
+        - uv
+        - run
+        - maid
+        - verify
+        - --profile
+        - handoff
+        - --manifest-dir
+        - manifests
+        - --file-tracking-scope
+        - task
+        - --plan-lock-scope
+        - task
+        - --test-scope
+        - task
+        - --since
+        - HEAD
+      status: passed
+      summary: "Handoff verify passed all 9 stages (schema, behavioral, implementation, coherence, file_tracking, plan_lock, worktree_scope, changed_scope, tests; 0 blocking)."
+    - command:
+        - uv
+        - run
+        - python
+        - -m
+        - pytest
+        - -q
+        - tests/cli/test_init_antigravity_payload.py
+        - tests/cli/test_init_cmd.py
+        - tests/cli/test_init_hook_payloads.py
+        - tests/cli/test_init_instruction_payload_version.py
+        - tests/cli/test_init_payload_portability.py
+        - tests/cli/test_uninstall_cmd.py
+        - tests/ci/test_claude_sync.py
+        - tests/test_agent_payload_distribution.py
+        - tests/test_edit_time_scope_docs.py
+      status: passed
+      summary: "All 9 init, sync, uninstall, distribution, and docs test suites passed (59 passed)."

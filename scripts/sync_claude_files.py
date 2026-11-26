@@ -50,6 +50,36 @@ CODEX_PACKAGED_SKILLS = [
     "maid-validate-hardening",
 ]
 
+_ANTIGRAVITY_SCOPE_CHECK_HOOK_NAME = "maid-scope-check"
+_ANTIGRAVITY_SCOPE_CHECK_MATCHER = (
+    "write_file|edit_file|write_to_file|replace_file_content|"
+    "multi_replace_file_content"
+)
+_ANTIGRAVITY_SCOPE_CHECK_COMMAND = "maid hook scope-check --stdin --format antigravity"
+_CLAUDE_REVIEWER_SUBAGENT_BLOCK = (
+    '- use `subagent_type: "maid-implementation-reviewer"`\n'
+    "- use a fresh agent; never fork the full session context into an independent\n"
+    "  reviewer\n"
+    "- leave the model unset unless the user or local project instructions require a\n"
+    "  specific model\n"
+    "- pass the review packet explicitly\n"
+    "- instruct the subagent not to edit files and not to spawn further subagents\n"
+    "- wait for the subagent verdict before final handoff\n"
+    "- close the subagent thread after consuming the verdict"
+)
+_ANTIGRAVITY_REVIEWER_SUBAGENT_BLOCK = (
+    '- use `invoke_subagent` with `TypeName: "research"` (fresh read-only subagent;\n'
+    "  never inherit or pass the implementation transcript)\n"
+    '- pass `Model: "inherit"` unless the user or local project instructions require a\n'
+    "  specific model\n"
+    "- pass the complete verdict-neutral review packet explicitly (including factual\n"
+    "  validation outputs, since `research` is read-only)\n"
+    "- instruct the subagent not to edit files and not to spawn further subagents\n"
+    "- wait for the subagent verdict before final handoff\n"
+    '- close the subagent with `manage_subagents` (`Action: "kill"`) after consuming\n'
+    "  the verdict"
+)
+
 
 def _project_root() -> Path:
     return Path.cwd()
@@ -65,6 +95,10 @@ def _codex_dest_root() -> Path:
 
 def _cursor_dest_root() -> Path:
     return _project_root() / "maid_runner" / "cursor"
+
+
+def _antigravity_dest_root() -> Path:
+    return _project_root() / "maid_runner" / "antigravity"
 
 
 def _copy_file(source: Path, destination: Path) -> bool:
@@ -370,6 +404,124 @@ def sync_cursor_payload() -> None:
     print(f"✓ Synced Cursor manifest.json to {dest_root / 'manifest.json'}")
 
 
+def _antigravity_hooks() -> dict:
+    return {
+        _ANTIGRAVITY_SCOPE_CHECK_HOOK_NAME: {
+            "PreToolUse": [
+                {
+                    "matcher": _ANTIGRAVITY_SCOPE_CHECK_MATCHER,
+                    "hooks": [
+                        {
+                            "type": "command",
+                            "command": _ANTIGRAVITY_SCOPE_CHECK_COMMAND,
+                        }
+                    ],
+                }
+            ]
+        }
+    }
+
+
+def _apply_antigravity_review_overlay(skill_text: str) -> str:
+    if _CLAUDE_REVIEWER_SUBAGENT_BLOCK not in skill_text:
+        raise ValueError(
+            "Cannot generate Antigravity maid-implementation-review skill: "
+            "expected Claude reviewer subagent block was not found in source SKILL.md."
+        )
+    return skill_text.replace(
+        _CLAUDE_REVIEWER_SUBAGENT_BLOCK,
+        _ANTIGRAVITY_REVIEWER_SUBAGENT_BLOCK,
+        1,
+    )
+
+
+def _antigravity_manifest(skill_names: list[str]) -> dict:
+    claude_descriptions = (
+        _load_claude_manifest().get("skills", {}).get("descriptions", {})
+    )
+    descriptions = {
+        name: str(claude_descriptions[name])
+        for name in skill_names
+        if name in claude_descriptions
+    }
+    return {
+        "root": {
+            "distributable": ["hooks.json"],
+            "descriptions": {
+                "hooks.json": (
+                    "Antigravity hooks configuration that runs MAID scope checks "
+                    "before write/edit tool events"
+                )
+            },
+        },
+        "skills": {
+            "distributable": skill_names,
+            "descriptions": descriptions,
+        },
+    }
+
+
+def sync_antigravity_payload() -> None:
+    """Generate maid_runner/antigravity/ from canonical .claude/skills/ + overlay."""
+    project_root = _project_root()
+    source_skills = project_root / ".claude" / "skills"
+    dest_root = _antigravity_dest_root()
+    dest_skills = dest_root / "skills"
+
+    if not source_skills.exists():
+        print(
+            f"⚠️  Warning: Source directory not found: {source_skills}. "
+            "Skipping Antigravity sync."
+        )
+        return
+
+    skill_names = _declared_claude_items("skills", list(CODEX_DISTRIBUTABLE_SKILLS))
+    overlaid_review_text: str | None = None
+    if "maid-implementation-review" in skill_names:
+        review_source_dir = source_skills / "maid-implementation-review"
+        if review_source_dir.exists():
+            review_skill_md = review_source_dir / "SKILL.md"
+            if not review_skill_md.is_file():
+                raise ValueError(
+                    "Cannot generate Antigravity maid-implementation-review skill: "
+                    f"missing source SKILL.md at {review_skill_md}."
+                )
+            overlaid_review_text = _apply_antigravity_review_overlay(
+                review_skill_md.read_text(encoding="utf-8")
+            )
+
+    _replace_directory(dest_root)
+    dest_skills.mkdir(parents=True, exist_ok=True)
+
+    installed_skill_names: list[str] = []
+    for skill_name in skill_names:
+        source_dir = source_skills / skill_name
+        if not source_dir.exists():
+            continue
+        target_dir = dest_skills / skill_name
+        shutil.copytree(source_dir, target_dir)
+        if (
+            skill_name == "maid-implementation-review"
+            and overlaid_review_text is not None
+        ):
+            (target_dir / "SKILL.md").write_text(overlaid_review_text, encoding="utf-8")
+        installed_skill_names.append(skill_name)
+
+    (dest_root / "hooks.json").write_text(
+        json.dumps(_antigravity_hooks(), indent=2) + "\n", encoding="utf-8"
+    )
+    manifest = _antigravity_manifest(installed_skill_names)
+    (dest_root / "manifest.json").write_text(
+        json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
+    )
+
+    print(
+        f"✓ Synced {len(installed_skill_names)} Antigravity skill directories to {dest_skills}"
+    )
+    print(f"✓ Synced Antigravity hooks.json to {dest_root / 'hooks.json'}")
+    print(f"✓ Synced Antigravity manifest.json to {dest_root / 'manifest.json'}")
+
+
 def sync_user_skills() -> None:
     """Copy the repo maid-onboard skill sources into maid_runner/user_skills/.
 
@@ -432,6 +584,7 @@ def main() -> None:
     sync_skills()
     sync_codex_payload()
     sync_cursor_payload()
+    sync_antigravity_payload()
     sync_user_skills()
     sync_init_workflow_payloads()
 

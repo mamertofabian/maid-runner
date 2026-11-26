@@ -106,6 +106,7 @@ validator. For all language and quality extras, use
 ```bash
 maid init                        # Claude Code (default)
 maid init --tool codex           # Codex repo skills
+maid init --tool antigravity     # Antigravity (.agents/) skills & hooks
 maid init --tool cursor          # Cursor IDE
 maid init --tool windsurf        # Windsurf IDE
 maid init --tool generic         # Generic MAID.md
@@ -151,6 +152,14 @@ repo-owned Codex MAID skills. It installs `.codex/manifest.json`, the
 distributed `.codex/skills` payload, skill-local agent metadata, and a marked
 MAID Runner section in `AGENTS.md`.
 
+### Repo-Level Antigravity Install
+
+Use `maid init --tool antigravity` inside repositories using Google Antigravity
+(CLI `agy`, Antigravity IDE, or Antigravity 2.0 App). It installs
+`.agents/manifest.json`, the distributed `.agents/skills` payload, a merged
+`.agents/hooks.json` PreToolUse scope-check hook, and a marked MAID Runner
+section in `AGENTS.md`.
+
 ## CLI Reference
 
 | Command | Purpose | Key Options |
@@ -182,7 +191,7 @@ MAID Runner section in `AGENTS.md`.
 | `maid coherence` | Run coherence checks | `--checks`, `--exclude`, `--json` |
 | `maid schema` | Display manifest JSON Schema | |
 | `maid audit supersessions` | Audit supersession artifact preservation | `--manifest-dir`, `--seal`, `--unseal`, `--lock`, `--json`, `--quiet` |
-| `maid init` | Initialize MAID in project | `--tool claude\|codex\|cursor\|windsurf\|generic\|auto` |
+| `maid init` | Initialize MAID in project | `--tool claude\|codex\|antigravity\|cursor\|windsurf\|generic\|auto` |
 | `maid howto` | Interactive methodology guide | `--section quickstart\|create\|validate\|workflow\|commands\|brownfield\|snapshot\|migrate\|troubleshooting\|serve` |
 | `maid manifest create <file>` | Create manifest for a file | `--goal`, `--artifacts`, `--dry-run` |
 | `maid chain log` | Show manifest event log | `--until-seq N`, `--version-tag TAG`, `--active`, `--json` |
@@ -274,6 +283,7 @@ the authoritative handoff evidence, and hook decisions do not add `ErrorCode`
 entries.
 
 Hook wiring is installed by `maid init` payloads. Claude receives PreToolUse settings for write/edit tool events.
+Antigravity receives `.agents/hooks.json` wired to `maid hook scope-check --stdin --format antigravity` (which parses Antigravity `toolCall.args` and stdin `cwd`, prints protojson-safe `{"decision", "reason"}`, and exits 0).
 Cursor receives `hooks.json`, and Codex receives managed `AGENTS.md` guidance
 for the same pre-edit decision semantics.
 

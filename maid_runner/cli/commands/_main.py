@@ -1659,7 +1659,15 @@ def _register_init_parser(sub: argparse._SubParsersAction) -> None:
     p.add_argument(
         "--tool",
         default="auto",
-        choices=["claude", "codex", "cursor", "windsurf", "generic", "auto"],
+        choices=[
+            "claude",
+            "codex",
+            "antigravity",
+            "cursor",
+            "windsurf",
+            "generic",
+            "auto",
+        ],
         help="Agent tool payload to initialize",
     )
     p.add_argument(

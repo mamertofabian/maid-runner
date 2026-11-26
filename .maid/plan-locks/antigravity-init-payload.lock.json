@@ -1,0 +1,517 @@
+{
+  "manifest_path": "manifests/antigravity-init-payload.manifest.yaml",
+  "manifest_hash": "sha256-contract:0d70dce000623abe4b1dffbd91f5c044ea53aac76d78cf68d9a332be28a1fb35",
+  "test_hashes": {
+    "tests/ci/test_claude_sync.py": "sha256-pyast:v2:dd725b112d49b41e4cfd445c297ddc3501f7ffeb650e3f710508fac09f2bc4c4",
+    "tests/test_agent_payload_distribution.py": "sha256-pyast:v2:a95404b58b1be8cc25b059b8c8b2c737d33130e5b1d0394c02721cefa9d1a667",
+    "tests/cli/test_init_antigravity_payload.py": "sha256-pyast:v2:a37a1ddf42f3785f54a1b665ae6494cce248b7531152925b399d9a53674528c2"
+  },
+  "created_at": "2026-11-26T05:07:21.631151+00:00",
+  "revision": 5,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:5ae3b9cd16000262dd44630e36703e96934f74a67b88af9dbf2d96e8bc3f5ae0",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256-pyast:v2:b5dd22dc7087908b789c52c60bdfd5f0e027487dfcb5b7ca910cbe5e3ad8801e",
+        "tests/cli/test_init_hook_payloads.py": "sha256-pyast:v2:9f10a769ca952c8e8937e91ee7958f0c0a33588f3c34164be90bd8a50755e16a",
+        "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:v2:cc5d9cee1cf655f34e3cc4a71c4ffa3ccc83263687ca04e269d0a13f41cb563c",
+        "tests/cli/test_init_payload_portability.py": "sha256-pyast:v2:dd65b53bd7df51414718770fcc73646db987b0d30c782be73dcc31cd10d79ea0",
+        "tests/cli/test_uninstall_cmd.py": "sha256-pyast:v2:ded2a1de2df0bff6b0032246fa5f5a67679e6d8ac9d3f89080d3432d9fd219ff",
+        "tests/ci/test_claude_sync.py": "sha256-pyast:v2:dd725b112d49b41e4cfd445c297ddc3501f7ffeb650e3f710508fac09f2bc4c4",
+        "tests/test_agent_payload_distribution.py": "sha256-pyast:v2:a95404b58b1be8cc25b059b8c8b2c737d33130e5b1d0394c02721cefa9d1a667",
+        "tests/test_edit_time_scope_docs.py": "sha256-pyast:v2:1f95ab35c3c413f290d0952810d4d5f1f940ddb957db892d2832a90147cd0160",
+        "tests/cli/test_init_antigravity_payload.py": "sha256-pyast:v2:0485cc6900651de0be73c74bfc82f7fc1ab2088aca12358adb40181fa10fb8d1"
+      },
+      "revised_at": "2026-11-26T05:07:33.345493+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/antigravity-init-payload.manifest.yaml -> manifests/antigravity-init-payload.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/antigravity-init-payload.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/antigravity-init-payload.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/antigravity-init-payload.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/antigravity-init-payload.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:fb5fe677f508fcfc610203259965ec5405cdbc07f1de8751f6e5c94eeedb752d",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256-pyast:v2:b5dd22dc7087908b789c52c60bdfd5f0e027487dfcb5b7ca910cbe5e3ad8801e",
+        "tests/cli/test_init_hook_payloads.py": "sha256-pyast:v2:9f10a769ca952c8e8937e91ee7958f0c0a33588f3c34164be90bd8a50755e16a",
+        "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:v2:cc5d9cee1cf655f34e3cc4a71c4ffa3ccc83263687ca04e269d0a13f41cb563c",
+        "tests/cli/test_init_payload_portability.py": "sha256-pyast:v2:dd65b53bd7df51414718770fcc73646db987b0d30c782be73dcc31cd10d79ea0",
+        "tests/cli/test_uninstall_cmd.py": "sha256-pyast:v2:ded2a1de2df0bff6b0032246fa5f5a67679e6d8ac9d3f89080d3432d9fd219ff",
+        "tests/ci/test_claude_sync.py": "sha256-pyast:v2:dd725b112d49b41e4cfd445c297ddc3501f7ffeb650e3f710508fac09f2bc4c4",
+        "tests/test_agent_payload_distribution.py": "sha256-pyast:v2:a95404b58b1be8cc25b059b8c8b2c737d33130e5b1d0394c02721cefa9d1a667",
+        "tests/test_edit_time_scope_docs.py": "sha256-pyast:v2:1f95ab35c3c413f290d0952810d4d5f1f940ddb957db892d2832a90147cd0160",
+        "tests/cli/test_init_antigravity_payload.py": "sha256-pyast:v2:0485cc6900651de0be73c74bfc82f7fc1ab2088aca12358adb40181fa10fb8d1"
+      },
+      "revised_at": "2026-11-26T05:17:39.819147+00:00",
+      "reason": "Scope manifest validate command to knockout-hermetic test modules that do not depend on gitignored maid_runner/claude/",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run python -m pytest -q tests/cli/test_init_antigravity_payload.py tests/ci/test_claude_sync.py tests/test_agent_payload_distribution.py"
+        ],
+        "validate_commands_removed": [
+          "uv run python -m pytest -q tests/cli/test_init_antigravity_payload.py tests/cli/test_init_cmd.py tests/cli/test_init_hook_payloads.py tests/cli/test_init_instruction_payload_version.py tests/cli/test_init_payload_portability.py tests/cli/test_uninstall_cmd.py tests/ci/test_claude_sync.py tests/test_agent_payload_distribution.py tests/test_edit_time_scope_docs.py"
+        ]
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:f83c1c09cf56a67cac413aba0f9dbf8bebb38789337268cf0708a4273b71e8e1",
+      "prior_test_hashes": {
+        "tests/cli/test_init_cmd.py": "sha256-pyast:v2:b5dd22dc7087908b789c52c60bdfd5f0e027487dfcb5b7ca910cbe5e3ad8801e",
+        "tests/cli/test_init_hook_payloads.py": "sha256-pyast:v2:9f10a769ca952c8e8937e91ee7958f0c0a33588f3c34164be90bd8a50755e16a",
+        "tests/cli/test_init_instruction_payload_version.py": "sha256-pyast:v2:cc5d9cee1cf655f34e3cc4a71c4ffa3ccc83263687ca04e269d0a13f41cb563c",
+        "tests/cli/test_init_payload_portability.py": "sha256-pyast:v2:dd65b53bd7df51414718770fcc73646db987b0d30c782be73dcc31cd10d79ea0",
+        "tests/cli/test_uninstall_cmd.py": "sha256-pyast:v2:ded2a1de2df0bff6b0032246fa5f5a67679e6d8ac9d3f89080d3432d9fd219ff",
+        "tests/ci/test_claude_sync.py": "sha256-pyast:v2:dd725b112d49b41e4cfd445c297ddc3501f7ffeb650e3f710508fac09f2bc4c4",
+        "tests/test_agent_payload_distribution.py": "sha256-pyast:v2:a95404b58b1be8cc25b059b8c8b2c737d33130e5b1d0394c02721cefa9d1a667",
+        "tests/test_edit_time_scope_docs.py": "sha256-pyast:v2:1f95ab35c3c413f290d0952810d4d5f1f940ddb957db892d2832a90147cd0160",
+        "tests/cli/test_init_antigravity_payload.py": "sha256-pyast:v2:0485cc6900651de0be73c74bfc82f7fc1ab2088aca12358adb40181fa10fb8d1"
+      },
+      "revised_at": "2026-11-26T05:22:05.217996+00:00",
+      "reason": "Remove Claude-payload regression test paths from files.read so discovered behavioral test files match knockout-hermetic validate commands",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [
+          "read:tests/cli/test_init_cmd.py",
+          "read:tests/cli/test_init_hook_payloads.py",
+          "read:tests/cli/test_init_instruction_payload_version.py",
+          "read:tests/cli/test_init_payload_portability.py",
+          "read:tests/cli/test_uninstall_cmd.py",
+          "read:tests/test_edit_time_scope_docs.py"
+        ],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    },
+    {
+      "prior_manifest_hash": "sha256-contract:0d70dce000623abe4b1dffbd91f5c044ea53aac76d78cf68d9a332be28a1fb35",
+      "prior_test_hashes": {
+        "tests/ci/test_claude_sync.py": "sha256-pyast:v2:dd725b112d49b41e4cfd445c297ddc3501f7ffeb650e3f710508fac09f2bc4c4",
+        "tests/test_agent_payload_distribution.py": "sha256-pyast:v2:a95404b58b1be8cc25b059b8c8b2c737d33130e5b1d0394c02721cefa9d1a667",
+        "tests/cli/test_init_antigravity_payload.py": "sha256-pyast:v2:0485cc6900651de0be73c74bfc82f7fc1ab2088aca12358adb40181fa10fb8d1"
+      },
+      "revised_at": "2026-11-26T05:31:02.222177+00:00",
+      "reason": "Add behavioral assertions for shared AGENTS.md single-tool uninstall isolation and top-level maid-scope-check hook boundary",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [],
+        "validate_commands_removed": []
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-11-26T05:31:15.630063+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/cli/test_init_antigravity_payload.py tests/ci/test_claude_sync.py tests/test_agent_payload_distribution.py",
+        "exit_code": 1,
+        "output_tail": "            encoding=\"utf-8\"\n        )\n    \n>       assert \"maid init --tool antigravity\" in readme\nE       AssertionError: assert 'maid init --tool antigravity' in '# MAID Runner\\n\\n[![PyPI version](https://badge.fury.io/py/maid-runner.svg)](https://badge.fury.io/py/maid-runner)\\n[...ING.md) and [CLAUDE.md](CLAUDE.md) for guidelines.\\n\\n## License\\n\\nMIT License. See [LICENSE](LICENSE) for details.\\n'\n\ntests/cli/test_init_antigravity_payload.py:576: AssertionError\n=========================== short test summary info ============================\nFAILED tests/cli/test_init_antigravity_payload.py::test_sync_antigravity_payload_derives_skills_overlay_and_hooks\nFAILED tests/cli/test_init_antigravity_payload.py::test_init_antigravity_installs_agents_skills_hooks_and_shared_agents_md\nFAILED tests/cli/test_init_antigravity_payload.py::test_init_antigravity_merges_existing_hooks_rewrites_launcher_and_prunes_stale\nFAILED tests/cli/test_init_antigravity_payload.py::test_init_check_reports_antigravity_current_and_stale\nFAILED tests/cli/test_init_antigravity_payload.py::test_init_uninstall_antigravity_removes_only_owned_payload_and_preserves_user_hooks\nFAILED tests/cli/test_init_antigravity_payload.py::test_antigravity_docs_cover_init_and_hook_format\n6 failed, 7 passed in 4.21s\n\n   Building maid-runner @ file:///home/atomrem/projects/codefrost-dev/maid-runner\n      Built maid-runner @ file:///home/atomrem/projects/codefrost-dev/maid-runner\nUninstalled 1 package in 1ms\nInstalled 1 package in 14ms",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/antigravity-init-payload.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/antigravity-init-payload.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "maid_runner/cli/commands/_main.py:function:build_parser",
+      "maid_runner/cli/commands/_main.py:function:build_parser:kind=function",
+      "maid_runner/cli/commands/_main.py:function:build_parser:returns=argparse.ArgumentParser",
+      "maid_runner/cli/commands/_main.py:function:main",
+      "maid_runner/cli/commands/_main.py:function:main:arg=argv:type=list[str] | None:default=None",
+      "maid_runner/cli/commands/_main.py:function:main:kind=function",
+      "maid_runner/cli/commands/_main.py:function:main:returns=int",
+      "maid_runner/cli/commands/init.py:function:cmd_init",
+      "maid_runner/cli/commands/init.py:function:cmd_init:arg=args:type=argparse.Namespace:default=None",
+      "maid_runner/cli/commands/init.py:function:cmd_init:kind=function",
+      "maid_runner/cli/commands/init.py:function:cmd_init:returns=int",
+      "maid_runner/cli/commands/init.py:function:uninstall_init_payload",
+      "maid_runner/cli/commands/init.py:function:uninstall_init_payload:arg=dry_run:type=bool:default=None",
+      "maid_runner/cli/commands/init.py:function:uninstall_init_payload:arg=project_root:type=Path:default=None",
+      "maid_runner/cli/commands/init.py:function:uninstall_init_payload:arg=tools:type=tuple[str, ...]:default=None",
+      "maid_runner/cli/commands/init.py:function:uninstall_init_payload:kind=function",
+      "maid_runner/cli/commands/init.py:function:uninstall_init_payload:returns=UninstallReport",
+      "scripts/sync_claude_files.py:function:main",
+      "scripts/sync_claude_files.py:function:main:kind=function",
+      "scripts/sync_claude_files.py:function:main:returns=None",
+      "scripts/sync_claude_files.py:function:sync_antigravity_payload",
+      "scripts/sync_claude_files.py:function:sync_antigravity_payload:kind=function",
+      "scripts/sync_claude_files.py:function:sync_antigravity_payload:returns=None",
+      "tests/cli/test_init_antigravity_payload.py:test_antigravity_docs_cover_init_and_hook_format",
+      "tests/cli/test_init_antigravity_payload.py:test_antigravity_docs_cover_init_and_hook_format:kind=test_function",
+      "tests/cli/test_init_antigravity_payload.py:test_antigravity_docs_cover_init_and_hook_format:returns=None",
+      "tests/cli/test_init_antigravity_payload.py:test_init_antigravity_installs_agents_skills_hooks_and_shared_agents_md",
+      "tests/cli/test_init_antigravity_payload.py:test_init_antigravity_installs_agents_skills_hooks_and_shared_agents_md:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/cli/test_init_antigravity_payload.py:test_init_antigravity_installs_agents_skills_hooks_and_shared_agents_md:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_antigravity_payload.py:test_init_antigravity_installs_agents_skills_hooks_and_shared_agents_md:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_antigravity_payload.py:test_init_antigravity_installs_agents_skills_hooks_and_shared_agents_md:kind=test_function",
+      "tests/cli/test_init_antigravity_payload.py:test_init_antigravity_installs_agents_skills_hooks_and_shared_agents_md:returns=None",
+      "tests/cli/test_init_antigravity_payload.py:test_init_antigravity_merges_existing_hooks_rewrites_launcher_and_prunes_stale",
+      "tests/cli/test_init_antigravity_payload.py:test_init_antigravity_merges_existing_hooks_rewrites_launcher_and_prunes_stale:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_antigravity_payload.py:test_init_antigravity_merges_existing_hooks_rewrites_launcher_and_prunes_stale:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_antigravity_payload.py:test_init_antigravity_merges_existing_hooks_rewrites_launcher_and_prunes_stale:kind=test_function",
+      "tests/cli/test_init_antigravity_payload.py:test_init_antigravity_merges_existing_hooks_rewrites_launcher_and_prunes_stale:returns=None",
+      "tests/cli/test_init_antigravity_payload.py:test_init_check_reports_antigravity_current_and_stale",
+      "tests/cli/test_init_antigravity_payload.py:test_init_check_reports_antigravity_current_and_stale:arg=capsys:type=pytest.CaptureFixture[str]:default=None",
+      "tests/cli/test_init_antigravity_payload.py:test_init_check_reports_antigravity_current_and_stale:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_antigravity_payload.py:test_init_check_reports_antigravity_current_and_stale:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_antigravity_payload.py:test_init_check_reports_antigravity_current_and_stale:kind=test_function",
+      "tests/cli/test_init_antigravity_payload.py:test_init_check_reports_antigravity_current_and_stale:returns=None",
+      "tests/cli/test_init_antigravity_payload.py:test_init_uninstall_antigravity_removes_only_owned_payload_and_preserves_user_hooks",
+      "tests/cli/test_init_antigravity_payload.py:test_init_uninstall_antigravity_removes_only_owned_payload_and_preserves_user_hooks:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_antigravity_payload.py:test_init_uninstall_antigravity_removes_only_owned_payload_and_preserves_user_hooks:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_antigravity_payload.py:test_init_uninstall_antigravity_removes_only_owned_payload_and_preserves_user_hooks:kind=test_function",
+      "tests/cli/test_init_antigravity_payload.py:test_init_uninstall_antigravity_removes_only_owned_payload_and_preserves_user_hooks:returns=None",
+      "tests/cli/test_init_antigravity_payload.py:test_sync_antigravity_payload_derives_skills_overlay_and_hooks",
+      "tests/cli/test_init_antigravity_payload.py:test_sync_antigravity_payload_derives_skills_overlay_and_hooks:arg=monkeypatch:type=pytest.MonkeyPatch:default=None",
+      "tests/cli/test_init_antigravity_payload.py:test_sync_antigravity_payload_derives_skills_overlay_and_hooks:arg=tmp_path:type=Path:default=None",
+      "tests/cli/test_init_antigravity_payload.py:test_sync_antigravity_payload_derives_skills_overlay_and_hooks:kind=test_function",
+      "tests/cli/test_init_antigravity_payload.py:test_sync_antigravity_payload_derives_skills_overlay_and_hooks:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/cli/test_init_antigravity_payload.py"
+      ],
+      "edit": [
+        "maid_runner/cli/commands/_main.py",
+        "maid_runner/cli/commands/init.py",
+        "scripts/sync_claude_files.py"
+      ],
+      "read": [
+        ".claude/manifest.json",
+        ".claude/skills/maid-implementation-review/SKILL.md",
+        "maid_runner/instruction_payload.py",
+        "manifests/069-03-wire-hooks-into-init-payloads.manifest.yaml",
+        "manifests/antigravity-hook-scope-check-envelope.manifest.yaml",
+        "manifests/drafts/antigravity-support.epic.yaml",
+        "tests/ci/test_claude_sync.py",
+        "tests/test_agent_payload_distribution.py"
+      ],
+      "scope": [
+        "Makefile",
+        "README.md",
+        "docs/agent-skills.md",
+        "maid_runner/antigravity/hooks.json",
+        "maid_runner/antigravity/manifest.json",
+        "maid_runner/antigravity/skills/maid-auditor/SKILL.md",
+        "maid_runner/antigravity/skills/maid-evolver/SKILL.md",
+        "maid_runner/antigravity/skills/maid-implement-draft/SKILL.md",
+        "maid_runner/antigravity/skills/maid-implementation-review/SKILL.md",
+        "maid_runner/antigravity/skills/maid-implementer/SKILL.md",
+        "maid_runner/antigravity/skills/maid-incident-logger/SKILL.md",
+        "maid_runner/antigravity/skills/maid-outcome-enrich/SKILL.md",
+        "maid_runner/antigravity/skills/maid-plan-review/SKILL.md",
+        "maid_runner/antigravity/skills/maid-planner/SKILL.md",
+        "maid_runner/antigravity/skills/maid-run-review/SKILL.md",
+        "pyproject.toml"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/cli/test_init_antigravity_payload.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_sync_antigravity_payload_derives_skills_overlay_and_hooks",
+              "description": "`sync_antigravity_payload` and `sync_claude_files.main` generate `maid_runner/antigravity/` from `.claude/skills/` with the Antigravity reviewer-subagent overlay, named `hooks.json`, fail-loud overlay guard, and matching `pyproject.toml` / `Makefile` packaging entries.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_antigravity_installs_agents_skills_hooks_and_shared_agents_md",
+              "description": "`build_parser`, `cmd_init`, and `main` support `--tool antigravity` (including `--dry-run`), install `.agents/` skills, hooks, and stamped manifest plus managed `AGENTS.md`, exclude `maid-onboard`/repo-internal skills, and execute the installed hook command against a real Antigravity PreToolUse envelope from `.agents/`.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_antigravity_merges_existing_hooks_rewrites_launcher_and_prunes_stale",
+              "description": "Force-reinitializing `--tool antigravity` preserves user hooks in `.agents/hooks.json`, migrates the hook command to `../scripts/maid` when `scripts/maid` exists, prunes stale MAID skills while keeping custom skills, and preserves user content in `AGENTS.md`.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_check_reports_antigravity_current_and_stale",
+              "description": "`maid init --check` and `--check --json` report `antigravity` as current after install and stale when `.agents/manifest.json` carries an older payload version.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                },
+                {
+                  "name": "capsys",
+                  "type": "pytest.CaptureFixture[str]"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_init_uninstall_antigravity_removes_only_owned_payload_and_preserves_user_hooks",
+              "description": "`uninstall_init_payload` and `maid init --uninstall` remove only MAID-owned `.agents/` files, the MAID hook leaf inside `.agents/hooks.json`, and the `AGENTS.md` marker block while preserving custom skills, user hooks, sibling hooks, and cleanly deduplicating when both `codex` and `antigravity` are installed.",
+              "args": [
+                {
+                  "name": "tmp_path",
+                  "type": "Path"
+                },
+                {
+                  "name": "monkeypatch",
+                  "type": "pytest.MonkeyPatch"
+                }
+              ],
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_antigravity_docs_cover_init_and_hook_format",
+              "description": "`README.md` and `docs/agent-skills.md` document `maid init --tool antigravity`, `.agents/hooks.json`, and `--format antigravity`.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "edit": [
+        {
+          "path": "maid_runner/cli/commands/_main.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "build_parser",
+              "description": "Parser registers `antigravity` in `maid init --tool` choices alongside claude, codex, cursor, windsurf, generic, and auto.",
+              "returns": "argparse.ArgumentParser"
+            },
+            {
+              "kind": "function",
+              "name": "main",
+              "description": "CLI dispatches `maid init --tool antigravity`, `--check`, and `--uninstall` through `cmd_init`.",
+              "args": [
+                {
+                  "name": "argv",
+                  "type": "list[str] | None",
+                  "default": "None"
+                }
+              ],
+              "returns": "int"
+            }
+          ]
+        },
+        {
+          "path": "maid_runner/cli/commands/init.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "cmd_init",
+              "description": "Install, preview (`--dry-run`), check (`--check`), and uninstall (`--uninstall`) the packaged Antigravity `.agents/` payload and shared `AGENTS.md` managed block, merging `.agents/hooks.json` and adapting `../scripts/maid` when a project launcher exists.",
+              "args": [
+                {
+                  "name": "args",
+                  "type": "argparse.Namespace"
+                }
+              ],
+              "returns": "int"
+            },
+            {
+              "kind": "function",
+              "name": "uninstall_init_payload",
+              "description": "Support `antigravity` in safe ownership-checked payload uninstall, cleaning only the MAID scope-check hook leaf in `.agents/hooks.json`, owned `.agents/skills/*`, `.agents/manifest.json`, and the `AGENTS.md` managed block.",
+              "args": [
+                {
+                  "name": "project_root",
+                  "type": "Path"
+                },
+                {
+                  "name": "tools",
+                  "type": "tuple[str, ...]"
+                },
+                {
+                  "name": "dry_run",
+                  "type": "bool"
+                }
+              ],
+              "returns": "UninstallReport"
+            }
+          ]
+        },
+        {
+          "path": "scripts/sync_claude_files.py",
+          "artifacts": [
+            {
+              "kind": "function",
+              "name": "sync_antigravity_payload",
+              "description": "Generate `maid_runner/antigravity/` (`manifest.json`, `hooks.json`, and distributable `skills/*/SKILL.md` derived from `.claude/skills/` with the Antigravity `maid-implementation-review` reviewer-subagent overlay).",
+              "returns": "None"
+            },
+            {
+              "kind": "function",
+              "name": "main",
+              "description": "Run `sync_antigravity_payload()` alongside existing Claude, Codex, Cursor, user-skill, and workflow payload sync steps.",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "manifests/drafts/antigravity-support.epic.yaml",
+        "manifests/antigravity-hook-scope-check-envelope.manifest.yaml",
+        "manifests/069-03-wire-hooks-into-init-payloads.manifest.yaml",
+        ".claude/manifest.json",
+        ".claude/skills/maid-implementation-review/SKILL.md",
+        "maid_runner/instruction_payload.py",
+        "tests/ci/test_claude_sync.py",
+        "tests/test_agent_payload_distribution.py"
+      ],
+      "scope": [
+        {
+          "path": "maid_runner/antigravity/manifest.json",
+          "reason": "Generated packaged Antigravity payload manifest."
+        },
+        {
+          "path": "maid_runner/antigravity/hooks.json",
+          "reason": "Generated packaged Antigravity PreToolUse scope-check hook configuration."
+        },
+        {
+          "path": "maid_runner/antigravity/skills/maid-planner/SKILL.md",
+          "reason": "Generated packaged Antigravity skill derived from canonical `.claude/skills/`."
+        },
+        {
+          "path": "maid_runner/antigravity/skills/maid-plan-review/SKILL.md",
+          "reason": "Generated packaged Antigravity skill derived from canonical `.claude/skills/`."
+        },
+        {
+          "path": "maid_runner/antigravity/skills/maid-implement-draft/SKILL.md",
+          "reason": "Generated packaged Antigravity skill derived from canonical `.claude/skills/`."
+        },
+        {
+          "path": "maid_runner/antigravity/skills/maid-implementer/SKILL.md",
+          "reason": "Generated packaged Antigravity skill derived from canonical `.claude/skills/`."
+        },
+        {
+          "path": "maid_runner/antigravity/skills/maid-implementation-review/SKILL.md",
+          "reason": "Generated packaged Antigravity skill with Antigravity subagent reviewer overlay."
+        },
+        {
+          "path": "maid_runner/antigravity/skills/maid-evolver/SKILL.md",
+          "reason": "Generated packaged Antigravity skill derived from canonical `.claude/skills/`."
+        },
+        {
+          "path": "maid_runner/antigravity/skills/maid-auditor/SKILL.md",
+          "reason": "Generated packaged Antigravity skill derived from canonical `.claude/skills/`."
+        },
+        {
+          "path": "maid_runner/antigravity/skills/maid-incident-logger/SKILL.md",
+          "reason": "Generated packaged Antigravity skill derived from canonical `.claude/skills/`."
+        },
+        {
+          "path": "maid_runner/antigravity/skills/maid-outcome-enrich/SKILL.md",
+          "reason": "Generated packaged Antigravity skill derived from canonical `.claude/skills/`."
+        },
+        {
+          "path": "maid_runner/antigravity/skills/maid-run-review/SKILL.md",
+          "reason": "Generated packaged Antigravity skill derived from canonical `.claude/skills/`."
+        },
+        {
+          "path": "pyproject.toml",
+          "reason": "Add `antigravity/manifest.json`, `antigravity/hooks.json`, and `antigravity/skills/*/SKILL.md` to setuptools package-data."
+        },
+        {
+          "path": "Makefile",
+          "reason": "Include `maid_runner/antigravity/` in sync messaging and `clean` target."
+        },
+        {
+          "path": "README.md",
+          "reason": "Document `maid init --tool antigravity`, Repo-Level Antigravity Install, and Antigravity hook format in Edit-Time Scope Enforcement."
+        },
+        {
+          "path": "docs/agent-skills.md",
+          "reason": "Document Antigravity skill distribution and `.agents/hooks.json` scope-check wiring."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/ci/test_claude_sync.py",
+      "tests/cli/test_init_antigravity_payload.py",
+      "tests/test_agent_payload_distribution.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/cli/test_init_antigravity_payload.py tests/ci/test_claude_sync.py tests/test_agent_payload_distribution.py",
+      "uv run maid validate manifests/antigravity-init-payload.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/antigravity-init-payload.manifest.yaml --mode schema --quiet"
+    ],
+    "acceptance_commands": []
+  }
+}

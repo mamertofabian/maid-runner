@@ -64,6 +64,7 @@ project root are allowed with reason `outside-project-root` in both modes,
 because no repository manifest governs them.
 
 `maid init` installs the hook wiring through managed payloads. Claude PreToolUse settings handle write/edit tool events.
+Antigravity `.agents/hooks.json` wires `maid hook scope-check --stdin --format antigravity` for Antigravity write/edit tools.
 Cursor `hooks.json` and Codex managed `AGENTS.md` guidance cover pre-edit scope
 checks.
 
@@ -143,7 +144,12 @@ The Codex distribution installed by `maid init --tool codex` places the same
 generic MAID workflow and audit skills into `.codex/skills/`: `maid-planner`,
 `maid-plan-review`, `maid-implement-draft`, `maid-implementer`,
 `maid-implementation-review`, `maid-evolver`, `maid-auditor`,
-`maid-incident-logger`, `maid-outcome-enrich`, and `maid-run-review`. The Claude
+`maid-incident-logger`, `maid-outcome-enrich`, and `maid-run-review`. The
+Antigravity distribution installed by `maid init --tool antigravity` places the
+same generic skill set into `.agents/skills/` (generated from canonical
+`.claude/skills/` with an Antigravity `invoke_subagent` overlay for
+`maid-implementation-review`) plus a merged `.agents/hooks.json` PreToolUse
+scope-check hook and shared `AGENTS.md` guidance. The Claude
 and Codex distributions ship the same skill set with the same skill bodies; the
 only intended differences are tool-specific reviewer-subagent mechanics and the
 pre-edit scope-check guidance that Claude receives through `.claude/settings.json`
