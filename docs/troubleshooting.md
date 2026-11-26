@@ -189,9 +189,27 @@ tokens containing braces, quotes, or slash characters. Assertions are checked
 in each callback's original text, so duplicate test labels remain independent
 and assertion-free regex callbacks still report E210.
 
+With the optional parser, a test can also directly await a same-file named
+function declared in an enclosing suite or at module scope, including exported
+functions and `describe.only` or `describe.each` suites. The await may be a
+statement, return value, or local initializer. A direct or returned
+`expect(actual)` call ending in a standard Vitest/Jest matcher in that helper
+counts for the test, including `not`, `resolves`, and `rejects` chains. Custom
+matchers are outside this check.
+
+This is a bounded syntax check, not proof of execution. Imported helpers,
+aliases, arrow-bound helpers, helper chains, optional calls, and nested calls or
+assertions are not resolved. The checker retains E210 when it detects shadowed
+bindings or direct writes to a helper or `expect`, when a computed global write
+has an unknown key, when an identifier uses Unicode escapes, or when an
+`expect` import is not from Vitest or `@jest/globals`. Other runtime changes to
+bindings are not inferred. Keep a direct assertion in the test when using those
+forms.
+
 Install `maid-runner[typescript]` or `maid-runner[all]` for grammar-aware regex
-boundaries. Without those optional parsers, core assertion checking retains
-the legacy scanner and emits a `RuntimeWarning` explaining its lexical limits.
+boundaries and local-helper recognition. Without those optional parsers, core
+assertion checking retains the legacy scanner and emits a `RuntimeWarning`
+explaining its lexical limits; helper-only assertions may still report E210.
 Unexpected parser failures are not silently converted into successful scans.
 
 ### 16. No test files are declared (`E220`)

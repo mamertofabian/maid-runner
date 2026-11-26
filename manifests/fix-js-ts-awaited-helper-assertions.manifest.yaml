@@ -1,0 +1,135 @@
+# manifest-kind: draft
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: '2'
+goal: Recognize assertions in directly awaited local JS and TS test helpers
+type: fix
+created: '2026-11-26T10:19:42Z'
+metadata:
+  priority: high
+  tags: [javascript, typescript, assertion-checking, e210]
+description: |-
+  Resolve report 20261126-064610-tma-helper-assertion-detection. A test may
+  directly await a same-file named function declared in its enclosing module or
+  suite; that helper can contain the observable expect(subject).matcher(...)
+  assertion. Recognize this bounded shape with the existing optional TypeScript
+  parser, including nested suites and JS/JSX/TS/TSX, without changing the
+  existing direct-callback substring policy, diagnostics, or Python behavior.
+  Handle direct awaits used as expression statements, return values, or local
+  initializers; recognize direct or returned standard Vitest/Jest matcher calls,
+  exported helpers, and suite modifiers. Use a bounded matcher vocabulary and
+  reject locally shadowed expect bindings. Index scoped declarations and writes
+  so repeated tests do not rescan an entire file for each helper call.
+  Treat lexical shadowing, ambiguous bindings, unrelated scopes, unawaited or
+  nested calls, and assertions merely mentioned in strings, comments, or
+  uncalled functions conservatively. Require a direct matcher call in the
+  helper's function body and a directly awaited identifier call in the test
+  callback. Do not infer general control flow, helper chains, imported helpers,
+  aliases, variable-bound arrow helpers, or proof that code executes.
+  Reuse the same parser result for regex token shielding and helper recognition;
+  without the optional parser retain legacy scanning and its visible warning.
+  Preserve source positions, duplicate labels and the existing severity.
+  Prior assertion-check Outcomes advise reusing parser evidence, independently
+  testing negative cases, and preserving diagnostic locations and fallback.
+temptations:
+- risk: Silence E210 for all tests that call any function or for a whole file.
+  instead: Match an awaited local function and its direct matcher using parser nodes and retain assertion-free controls.
+- risk: Search helper text for expect or model arbitrary program execution.
+  instead: Check the bounded direct syntax shape, reject ambiguous bindings, and document the remaining limits.
+- risk: Hide parser absence or change existing assertion behavior.
+  instead: Reuse the existing parser and observable legacy fallback, preserving current callback diagnostics and direct assertion policy.
+files:
+  edit:
+  - path: maid_runner/core/_test_assertions.py
+    artifacts:
+    - kind: function
+      name: check_test_assertions
+      args:
+      - name: source
+        type: str
+      - name: test_path
+        type: str
+      returns: list[ValidationError]
+      description: Recognize bounded directly awaited local helper assertions while preserving existing diagnostics and language behavior.
+  scope:
+  - path: docs/troubleshooting.md
+    reason: Describe the supported local-helper syntax and its parser and analysis limits.
+  create:
+  - path: tests/core/validation/test_js_ts_awaited_helper_assertions.py
+    artifacts:
+    - kind: test_function
+      name: test_awaited_local_helpers_with_direct_expect_are_recognized
+    - kind: test_function
+      name: test_nonasserting_or_indirect_helpers_keep_e210
+    - kind: test_function
+      name: test_lexical_scope_and_shadowing_keep_e210
+    - kind: test_function
+      name: test_duplicate_labels_and_unicode_keep_precise_diagnostics
+    - kind: test_function
+      name: test_missing_parser_retains_legacy_warning_and_e210
+    - kind: test_function
+      name: test_non_matchers_and_shadowed_expect_keep_e210
+    - kind: test_function
+      name: test_suite_parameter_shadowing_expect_keeps_e210
+    - kind: test_function
+      name: test_top_level_block_var_shadowing_does_not_reuse_program_scope
+    - kind: test_function
+      name: test_unrelated_scopes_and_property_reads_do_not_hide_helper
+    - kind: test_function
+      name: test_awaited_calls_and_matchers_in_direct_statement_forms_count
+    - kind: test_function
+      name: test_exported_helpers_work_through_suite_modifiers
+    - kind: test_function
+      name: test_assigned_test_and_suite_registrations_remain_supported
+    - kind: test_function
+      name: test_many_tests_share_local_helper_without_losing_individual_results
+    - kind: test_function
+      name: test_many_scoped_helpers_do_not_cross_contaminate
+    - kind: test_function
+      name: test_behavioral_validation_accepts_awaited_helper_assertion
+  read:
+  - maid_runner/validators/_typescript_parse.py
+  - maid_runner/core/result.py
+  - maid_runner/core/_behavioral_validation.py
+  - manifests/fix-js-ts-regex-assertion-boundaries.manifest.yaml
+validate:
+- uv run python -m pytest -q tests/core/validation/test_js_ts_awaited_helper_assertions.py
+outcome:
+  status: completed
+  completed_at: '2026-11-26T11:56:29Z'
+  summary: >-
+    JS and TS assertion checking recognizes bounded directly awaited local
+    helper assertions, including the reported export tests, while retaining
+    E210 for covered assertion-free and ambiguous cases.
+  rationale: >-
+    Reuse the existing optional parser to recognize direct helper and matcher
+    syntax, preserve existing callback diagnostics, and document the legacy
+    fallback and limits of source-based inference.
+  lessons:
+  - lesson_type: validation
+    summary: >-
+      Pair helper assertion recognition with negative binding and matcher cases,
+      original diagnostic locations, optional-parser fallback, and scoped-index
+      performance checks; source syntax alone does not establish execution.
+    tags: [assertion-checking, parser-reuse, e210]
+    paths:
+    - maid_runner/core/_test_assertions.py
+    - tests/core/validation/test_js_ts_awaited_helper_assertions.py
+  review_notes:
+  - source: independent-implementation-review
+    severity: ready
+    summary: >-
+      Independent read-only review of the complete staged change returned ready
+      with no blocking or advisory findings after focused scope and binding probes.
+  validation:
+  - command: [uv, run, python, -m, pytest, -q, tests/core/validation/test_js_ts_awaited_helper_assertions.py, tests/core/validation/test_js_ts_regex_assertion_boundaries.py, tests/core/validation/test_assertion_checking.py, tests/core/validation/test_assertion_cache.py, tests/core/validation/test_python_playwright_assertions.py]
+    status: passed
+    summary: 310 focused assertion-checking tests passed.
+  - command: [uv, run, maid, test, --manifest, manifests/fix-js-ts-awaited-helper-assertions.manifest.yaml]
+    status: passed
+    summary: The manifest's declared test command passed.
+  - command: [uv, run, maid, verify, --profile, handoff, --manifest-dir, manifests, --file-tracking-scope, task, --plan-lock-scope, task, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, 2c9ff749e27b4f7f6f51122bee38182fe122368b, --summary, --packet]
+    status: passed
+    summary: Nine task-scoped handoff gates passed; one existing E307 warning remained nonblocking.
