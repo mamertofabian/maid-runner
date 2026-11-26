@@ -1,0 +1,244 @@
+# manifest-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Validate imported and re-exported TypeScript functions against their real declarations"
+type: fix
+created: "2026-11-26T00:25:01Z"
+metadata:
+  bug_report: ~/.maid/bug-report/20261126-055402-tma-typescript-reexport.md
+  tags: [typescript, reexport, implementation-validation]
+description: |
+  Implementation validation currently reports E300 when a TypeScript module
+  imports a named function and re-exports the binding. Resolve this bounded
+  value-import and named-export form to a directly exported, project-local
+  declaration, then compare the actual function signature and stub status using
+  existing validation rules, including configured compiler return proofs on the
+  originating file. Preserve names through import and export aliases, including
+  an alias in the originating module, by tracing each public name to the
+  specific declaration it exposes. Distinguish TypeScript's type and value
+  namespaces and inspect the top-level runtime declaration itself, excluding
+  nested functions, object methods, ambient-only declarations, and ambiguous
+  repeated value declarations. Preserve JavaScript JSDoc return contracts and
+  accept parenthesized arrow functions, including project-local .mjs sources.
+  Reject
+  unsupported string-literal specifiers rather than dropping a side of a binding.
+  Support relative imports and aliases resolved by the owning nested TypeScript
+  project, including SvelteKit's inherited generated config. Resolve aliases
+  through the owning compiler rather than an incorrectly rebased inherited
+  config, and retain the compiler's exact resolved source file and usage mode.
+  Follow referenced TypeScript project configs to the unique owning project;
+  fail closed if the owning config cannot be determined, including when the
+  compiler is unavailable. Determine project membership through TypeScript's
+  program, including transitively imported source files. Distinguish destructuring
+  binding positions from property keys and expressions and distinguish namespace
+  scopes from module-scoped bindings.
+  Resolve a shared imported module once per validation rather than starting a
+  compiler process for each of its named bindings.
+  This permits project-local sibling packages while rejecting unresolved
+  NodeNext ESM imports and invalid inherited configurations. Use the compiler
+  without a config when available; otherwise bound relative resolution to
+  unambiguous files rather than guessing package-directory entry points.
+  Use Tree-sitter for the bounded binding syntax and existing TypeScript resolution;
+  use the existing normalized parse session so valid grammar workarounds remain
+  consistent with ordinary implementation collection.
+  project compiler resolution is allowed for aliases but not required for
+  ordinary relative imports. Reject type-only, unexported, unresolved,
+  external, and outside-project targets rather than crediting them as runtime
+  function definitions. Do not assert behavior for arbitrary transitive barrels,
+  namespace/default exports, overload sets, separately typed callable bindings,
+  or type artifacts in this narrow fix. Strict create-mode checks must still
+  report undeclared re-exported functions.
+
+  Previous TypeScript collector outcomes emphasize collecting real declarations
+  through the existing language boundary and keeping comparison policy intact.
+  Accordingly the new tests exercise implementation validation end to end,
+  including negative signature and visibility controls, rather than parser
+  internals or a blanket E300 suppression.
+temptations:
+  - risk: "Do not credit an import spelling, nested function, object method, or ambient declaration as proof of a runtime function."
+    instead: "Trace each export to its exact top-level runtime declaration, ignoring unrelated collected lookalikes and rejecting unsupported callable signatures."
+  - risk: "Do not hard-code the report's Svelte alias or require Node for relative imports."
+    instead: "Use existing TypeScript resolution for the owning package and exercise both relative imports and a nested inherited-config alias."
+  - risk: "Do not silently accept type-only, external, escaped, or unreadable targets."
+    instead: "Fail closed and retain the existing missing-artifact diagnostic when the bounded source declaration cannot be verified."
+  - risk: "Do not infer a target from an incorrectly rebased inherited alias or select a different sibling extension."
+    instead: "Use the TypeScript compiler's exact resolved file and usage mode when available; reject ambiguous package directories in the no-compiler fallback."
+  - risk: "Do not run compiler return proofs against the re-export line."
+    instead: "Retain the actual declaration's file, name, source and line for configured compiler proofs and map the result to the public contract."
+files:
+  create:
+    - path: tests/core/test_typescript_imported_function_reexports.py
+      artifacts:
+        - kind: test_function
+          name: test_named_import_reexport_uses_real_function_contract
+        - kind: test_function
+          name: test_renamed_import_and_export_use_public_identity
+        - kind: test_function
+          name: test_reexport_signature_mismatch_is_rejected
+        - kind: test_function
+          name: test_non_runtime_or_unavailable_bindings_are_rejected
+        - kind: test_function
+          name: test_nested_inherited_tsconfig_alias_resolves_real_declaration
+        - kind: test_function
+          name: test_reexport_outside_project_via_symlink_is_rejected
+        - kind: test_function
+          name: test_reexported_stub_is_reported
+        - kind: test_function
+          name: test_reexport_source_changes_are_not_cached_as_stale_contracts
+        - kind: test_function
+          name: test_origin_alias_selects_its_actual_local_declaration
+        - kind: test_function
+          name: test_origin_public_export_cannot_credit_a_different_declaration
+        - kind: test_function
+          name: test_inherited_alias_ignores_misrebased_decoy
+        - kind: test_function
+          name: test_typescript_file_precedence_rejects_a_matching_sibling_decoy
+        - kind: test_function
+          name: test_reexport_uses_origin_for_compiler_return_proof
+        - kind: test_function
+          name: test_same_named_interface_does_not_hide_function_reexport
+        - kind: test_function
+          name: test_string_literal_specifiers_do_not_certify_wrong_bindings
+        - kind: test_function
+          name: test_extensionless_import_does_not_claim_mts_source
+        - kind: test_function
+          name: test_mjs_import_uses_the_mts_declaration
+        - kind: test_function
+          name: test_aliased_module_extensions_use_compiler_resolved_file
+        - kind: test_function
+          name: test_nested_and_ambient_functions_do_not_satisfy_value_export
+        - kind: test_function
+          name: test_top_level_exported_arrow_function_is_recognized
+        - kind: test_function
+          name: test_nodenext_requires_resolvable_import_for_package_mode
+        - kind: test_function
+          name: test_nested_config_alias_can_resolve_project_sibling
+        - kind: test_function
+          name: test_unconfigured_package_import_uses_compiler_target
+        - kind: test_function
+          name: test_no_compiler_relative_resolution_rejects_directory
+        - kind: test_function
+          name: test_no_compiler_relative_file_resolution_still_works
+        - kind: test_function
+          name: test_unsupported_callable_contracts_do_not_match_implementation
+        - kind: test_function
+          name: test_exporter_nested_function_cannot_mask_imported_binding
+        - kind: test_function
+          name: test_invalid_inherited_tsconfig_does_not_resolve_alias
+        - kind: test_function
+          name: test_strict_manifest_rejects_undeclared_function_reexport
+        - kind: test_function
+          name: test_unsupported_imports_and_exports_do_not_credit_nested_functions
+        - kind: test_function
+          name: test_type_only_import_does_not_hide_real_local_function
+        - kind: test_function
+          name: test_repeated_value_declarations_do_not_certify_function
+        - kind: test_function
+          name: test_no_compiler_prefers_direct_typescript_file_to_directory
+        - kind: test_function
+          name: test_javascript_jsdoc_return_type_is_compared
+        - kind: test_function
+          name: test_parenthesized_arrow_function_is_recognized
+        - kind: test_function
+          name: test_destructured_redeclarations_do_not_certify_function
+        - kind: test_function
+          name: test_inline_javascript_jsdoc_return_type_is_compared
+        - kind: test_function
+          name: test_mjs_source_preserves_jsdoc_contract
+        - kind: test_function
+          name: test_mts_and_cts_origin_supports_compiler_return_proof
+        - kind: test_function
+          name: test_shared_import_source_is_resolved_once
+        - kind: test_function
+          name: test_normalized_typescript_syntax_preserves_binding_validation
+        - kind: test_function
+          name: test_module_scoped_var_redeclarations_do_not_certify_function
+        - kind: test_function
+          name: test_parenthesized_inline_jsdoc_return_type_is_compared
+        - kind: test_function
+          name: test_referenced_project_config_resolves_owning_alias
+        - kind: test_function
+          name: test_referenced_nodenext_project_uses_owning_module_mode
+        - kind: test_function
+          name: test_ambiguous_referenced_project_ownership_fails_closed
+        - kind: test_function
+          name: test_destructuring_property_keys_do_not_shadow_function
+        - kind: test_function
+          name: test_no_compiler_referenced_ownership_fails_closed
+        - kind: test_function
+          name: test_no_compiler_simple_config_keeps_relative_file_resolution
+        - kind: test_function
+          name: test_no_compiler_config_rejects_nonmember_importer
+        - kind: test_function
+          name: test_compiler_project_transitively_includes_reexporter
+        - kind: test_function
+          name: test_compiler_return_proof_accepts_transitive_origin
+        - kind: test_function
+          name: test_conflicting_value_bindings_do_not_certify_function
+        - kind: test_function
+          name: test_jsdoc_callable_type_and_overload_are_unsupported
+        - kind: test_function
+          name: test_namespace_and_ambient_var_do_not_shadow_top_level_function
+  scope:
+    - path: maid_runner/core/_implementation_validation.py
+      reason: "Integrate resolved function artifacts into existing per-file comparison and stub checks."
+    - path: maid_runner/core/_ts_implementation_reexports.py
+      reason: "Private bounded value-binding resolution and project-local source collection, with no public API."
+    - path: maid_runner/core/ts_compiler_resolver.cjs
+      reason: "Return the compiler's exact, project-local resolved source file using the importer's module mode and owning config."
+    - path: maid_runner/core/ts_compiler_resolver.py
+      reason: "Allow bounded compiler time for program-backed source membership checks."
+  read:
+    - maid_runner/core/ts_module_paths.py
+    - maid_runner/core/_ts_export_scanner.py
+    - maid_runner/core/_artifact_collection_cache.py
+    - maid_runner/validators/typescript.py
+    - maid_runner/validators/_jsdoc.py
+    - maid_runner/validators/_typescript_parse.py
+    - maid_runner/validators/base.py
+    - maid_runner/core/validate.py
+    - docs/unit-testing-rules.md
+validate:
+  - ["uv", "run", "python", "-m", "pytest", "tests/core/test_typescript_imported_function_reexports.py", "-q"]
+outcome:
+  status: completed
+  summary: "Implementation validation recognizes the reported imported TypeScript function re-export and compares the originating declaration's contract."
+  rationale: "Named value bindings are traced to project-local declarations using normalized TypeScript parsing and compiler resolution when available. Unsupported or ambiguous callable contracts fail closed; configured return proofs run against the origin."
+  completed_at: "2026-11-26T09:53:44+08:00"
+  lessons:
+    - lesson_type: validation-boundary
+      summary: "A public re-export needs both source binding identity and the originating signature; compiler-resolved file paths and owning project membership prevent unrelated same-named declarations from satisfying the contract."
+      tags: [typescript, reexport, implementation-validation]
+      paths:
+        - maid_runner/core/_ts_implementation_reexports.py
+        - maid_runner/core/ts_compiler_resolver.cjs
+        - tests/core/test_typescript_imported_function_reexports.py
+  review_notes:
+    - source: independent-read-only-review
+      severity: ready
+      summary: "The final review found no material blocker for the reported SvelteKit re-export and ordinary named-function re-exports."
+    - source: independent-read-only-review
+      severity: advisory
+      summary: "A nearer tsconfig that excludes a file can prevent discovery of an enclosing project that includes it; that separate compatibility case remains outside this fix."
+  validation:
+    - command: ["uv", "run", "python", "-m", "pytest", "tests/core/test_typescript_imported_function_reexports.py", "-q"]
+      status: passed
+      summary: "101 focused cases passed after test-first red evidence."
+    - command: ["uv", "run", "python", "-m", "pytest", "tests/core/test_implementation_validation.py", "tests/core/test_typescript_return_validation.py", "tests/validators/test_typescript.py", "tests/validators/test_typescript_artifact_edge_cases.py", "tests/validators/test_typescript_identity.py", "tests/core/test_ts_compiler_resolver.py", "tests/core/test_ts_compiler_resolver_session.py", "tests/core/test_ts_return_contracts.py", "-q"]
+      status: passed
+      summary: "266 adjacent validator, compiler resolver, and return-proof tests passed."
+    - command: ["uv", "run", "maid", "validate"]
+      status: passed
+      summary: "357 active manifests passed; 372 superseded manifests were skipped."
+    - command: ["uv", "run", "maid", "test", "--jobs", "1", "--pytest-workers", "4"]
+      status: passed
+      summary: "All 326 manifest test commands passed."
+    - command: ["uv", "run", "maid", "verify", "--profile", "deep", "--manifest-dir", "manifests", "--file-tracking-scope", "task", "--plan-lock-scope", "task", "--test-scope", "task", "--require-plan-lock", "--require-red-evidence", "--since", "4fb0822e088ddefa3bd2b9dd374e22f2831a52eb"]
+      status: passed
+      summary: "All 11 deep verification stages passed; the existing CJS validator-availability warning remained non-blocking."
+    - command: ["uv", "run", "--project", "/home/atomrem/projects/codefrost-dev/maid-runner", "maid", "validate", "manifests/376453-cascade-delete-nested-sequences-studio-document-2-9-1.manifest.yaml", "--mode", "implementation"]
+      status: passed
+      summary: "The original TMA manifest passed against the local runner."

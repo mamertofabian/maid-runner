@@ -22,7 +22,23 @@ function main() {
   const raw = fs.readFileSync(0, "utf8");
   const request = JSON.parse(raw);
   const projectRoot = path.resolve(String(request.projectRoot || "."));
-  const ts = loadTypescript(projectRoot);
+  const compilerRoot = request.command === "resolveImportFile"
+    ? path.resolve(String(request.compilerRoot || projectRoot))
+    : projectRoot;
+  if (!isInsideOrEqual(projectRoot, compilerRoot)) {
+    return null;
+  }
+  const ts = loadTypescript(compilerRoot);
+
+  if (request.command === "resolveImportFile") {
+    if (ts === null) {
+      return { status: "unavailable" };
+    }
+    const resolved = resolveImportFile(ts, projectRoot, compilerRoot, request);
+    return resolved === null
+      ? { status: "unresolved" }
+      : { status: "resolved", path: resolved };
+  }
 
   if (request.command === "checkReturnContracts") {
     return checkReturnContracts(ts, projectRoot, request);
@@ -138,10 +154,10 @@ function checkReturnContracts(ts, projectRoot, request) {
   if (config.error) return fail(diagnosticText(config.error));
   const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, path.dirname(configPath), undefined, configPath);
   if (parsed.errors.length) return fail(parsed.errors.map(diagnosticText).join("\n"));
-  if (!parsed.fileNames.some(name => path.resolve(name) === sourcePath)) {
+  if (!programIncludesFile(ts, parsed, sourcePath)) {
     return fail("Source file is not included in the explicitly supplied owning config");
   }
-  if (!/\.tsx?$/.test(sourcePath)) return fail("Return proofs require a TypeScript source file");
+  if (!/\.(?:ts|tsx|mts|cts)$/.test(sourcePath)) return fail("Return proofs require a TypeScript source file");
   if (parsed.options.noCheck) return fail("Compiler noCheck disables semantic proof checking");
   // Library-check flags are performance shortcuts, not return-type semantics.
   // Disable them so diagnostics cannot skip the requested target file.
@@ -467,6 +483,121 @@ function resolveImport(ts, projectRoot, request) {
   return moduleIdFromFile(projectRoot, resolved.resolvedFileName, {
     collapseIndex: !specifierTargetsIndex(specifier),
   });
+}
+
+function resolveImportFile(ts, projectRoot, compilerRoot, request) {
+  const specifier = String(request.specifier || "");
+  const importerFile = path.resolve(projectRoot, String(request.importerFile || ""));
+  if (
+    !specifier ||
+    !isInsideProject(path.relative(projectRoot, importerFile)) ||
+    typeof ts.getModeForUsageLocation !== "function" ||
+    typeof ts.getImpliedNodeFormatForFile !== "function"
+  ) {
+    return null;
+  }
+  const configPath = path.join(compilerRoot, "tsconfig.json");
+  let options = {
+    allowJs: true,
+    jsx: ts.JsxEmit.ReactJSX,
+    moduleResolution: ts.ModuleResolutionKind.Node10,
+  };
+  if (fs.existsSync(configPath)) {
+    options = owningImportOptions(ts, projectRoot, configPath, importerFile);
+    if (options === null) {
+      return null;
+    }
+  }
+  const source = ts.createSourceFile(
+    importerFile,
+    `import {} from ${JSON.stringify(specifier)};`,
+    ts.ScriptTarget.Latest,
+    true
+  );
+  source.impliedNodeFormat = ts.getImpliedNodeFormatForFile(
+    importerFile, undefined, ts.sys, options
+  );
+  const mode = ts.getModeForUsageLocation(
+    source, source.statements[0].moduleSpecifier, options
+  );
+  const resolved = ts.resolveModuleName(
+    specifier, importerFile, options, ts.sys, undefined, undefined, mode
+  ).resolvedModule;
+  if (!resolved || !resolved.resolvedFileName) {
+    return null;
+  }
+  const realFile = realpathOrSelf(path.resolve(resolved.resolvedFileName));
+  const relative = path.relative(projectRoot, realFile);
+  if (!isInsideProject(relative) || hasPathSegment(relative, "node_modules")) {
+    return null;
+  }
+  return toPosix(relative);
+}
+
+function owningImportOptions(ts, projectRoot, configPath, importerFile) {
+  if (typeof ts.resolveProjectReferencePath !== "function") {
+    return null;
+  }
+  const visited = new Set();
+  const active = new Set();
+  const owners = [];
+  let invalid = false;
+
+  function visit(candidate) {
+    const configFile = realpathOrSelf(path.resolve(candidate));
+    if (
+      !isInsideProject(path.relative(projectRoot, configFile)) ||
+      hasPathSegment(path.relative(projectRoot, configFile), "node_modules") ||
+      active.has(configFile)
+    ) {
+      invalid = true;
+      return;
+    }
+    if (visited.has(configFile)) {
+      return;
+    }
+    visited.add(configFile);
+    active.add(configFile);
+    const config = ts.readConfigFile(configFile, ts.sys.readFile);
+    if (config.error) {
+      invalid = true;
+      active.delete(configFile);
+      return;
+    }
+    const parsed = ts.parseJsonConfigFileContent(
+      config.config, ts.sys, path.dirname(configFile), undefined, configFile
+    );
+    if (parsed.errors.length > 0) {
+      invalid = true;
+      active.delete(configFile);
+      return;
+    }
+    if (programIncludesFile(ts, parsed, importerFile)) {
+      owners.push(parsed.options);
+    }
+    for (const reference of parsed.projectReferences || []) {
+      visit(ts.resolveProjectReferencePath(reference));
+    }
+    active.delete(configFile);
+  }
+
+  visit(configPath);
+  return !invalid && owners.length === 1 ? owners[0] : null;
+}
+
+function programIncludesFile(ts, parsed, fileName) {
+  if (parsed.fileNames.some(name => path.resolve(name) === fileName)) {
+    return true;
+  }
+  if (parsed.fileNames.length === 0) {
+    return false;
+  }
+  const program = ts.createProgram({
+    rootNames: parsed.fileNames,
+    options: parsed.options,
+    projectReferences: parsed.projectReferences,
+  });
+  return program.getSourceFile(fileName) !== undefined;
 }
 
 function resolveReexport(ts, projectRoot, request) {

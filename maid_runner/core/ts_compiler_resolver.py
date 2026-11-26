@@ -15,6 +15,7 @@ from typing import Any, Optional
 
 
 _REQUEST_TIMEOUT_SECONDS = 5
+_PROGRAM_REQUEST_TIMEOUT_SECONDS = 30
 _COMPILER_SESSIONS: dict[str, "TypeScriptCompilerResolverSession"] = {}
 _COMPILER_SESSIONS_LOCK = threading.Lock()
 
@@ -218,7 +219,12 @@ def _run_compiler_request(payload: dict[str, Any]) -> Optional[dict[str, Any]]:
             input=json.dumps(payload),
             capture_output=True,
             text=True,
-            timeout=_REQUEST_TIMEOUT_SECONDS,
+            timeout=(
+                _PROGRAM_REQUEST_TIMEOUT_SECONDS
+                if payload.get("command")
+                in {"resolveImportFile", "checkReturnContracts"}
+                else _REQUEST_TIMEOUT_SECONDS
+            ),
             check=False,
             env=environment,
         )

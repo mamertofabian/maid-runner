@@ -16,6 +16,10 @@ from maid_runner.core._js_ts_imports import (
     import_may_satisfy_required,
 )
 from maid_runner.core._type_compare import types_match
+from maid_runner.core._ts_implementation_reexports import (
+    _collect_reexported_functions,
+    _ResolvedFunction,
+)
 from maid_runner.core._validation_test_artifacts import (
     collection_errors_to_validation_errors,
 )
@@ -130,18 +134,39 @@ class ImplementationFileValidator:
 
         expected = self._expected_artifacts(fs, chain)
         is_strict = self._is_strict(fs, chain)
+        found = collection.artifacts
+        reexported: list[_ResolvedFunction] = []
+        if collection.language == "typescript":
+            masked, reexported = _collect_reexported_functions(
+                source,
+                fs.path,
+                self._project_root,
+                expected,
+                validator,
+                include_unexpected=is_strict,
+            )
+            found = [
+                artifact
+                for artifact in found
+                if not (
+                    artifact.kind == ArtifactKind.FUNCTION
+                    and artifact.of is None
+                    and artifact.name in masked
+                )
+            ] + [item.public for item in reexported]
         return_decisions = _compiler_return_decisions(
             expected,
-            collection.artifacts,
+            found,
             fs.path,
             source,
             self._project_root,
             self._return_contract_checker,
             validator.types_match,
+            reexported,
         )
         errors = _compare_artifacts(
             expected=expected,
-            found=collection.artifacts,
+            found=found,
             file_path=fs.path,
             is_strict=is_strict,
             type_matcher=validator.types_match,
@@ -153,7 +178,7 @@ class ImplementationFileValidator:
             errors.extend(
                 _check_stub_artifacts(
                     expected,
-                    collection.artifacts,
+                    found,
                     fs.path,
                     default_hook_artifacts=default_hook_artifacts,
                     type_matcher=validator.types_match,
@@ -221,9 +246,10 @@ def _compiler_return_decisions(
     project_root: Path,
     checker: _ReturnContractChecker,
     type_matcher: _TypeMatcher,
+    reexported: list[_ResolvedFunction] | None = None,
 ) -> _ReturnDecisions:
     """Batch proof requests and keep their decisions separate from raw artifacts."""
-    if Path(file_path).suffix not in (".ts", ".tsx"):
+    if Path(file_path).suffix not in (".ts", ".tsx", ".mts", ".cts"):
         return {}
     found = _project_canonical_artifacts(expected, found)
     by_key: dict[str, list[FoundArtifact]] = {}
@@ -250,12 +276,20 @@ def _compiler_return_decisions(
         return {}
 
     decisions: _ReturnDecisions = {}
-    supported: list[tuple[ArtifactSpec, FoundArtifact]] = []
+    origins = {id(item.public): item for item in reexported or []}
+    groups: dict[
+        tuple[str, str],
+        list[tuple[ArtifactSpec, FoundArtifact, FoundArtifact]],
+    ] = {}
     for spec, artifact in requested:
+        origin = origins.get(id(artifact))
+        declaration = origin.declaration if origin is not None else artifact
+        declaration_file = origin.file_path if origin is not None else file_path
+        declaration_source = origin.source if origin is not None else source
         if (
             spec.kind != ArtifactKind.FUNCTION
-            or artifact.of is not None
-            or artifact.line is None
+            or declaration.of is not None
+            or declaration.line is None
         ):
             decisions[_return_decision_key(spec, artifact)] = (
                 _return_proof_error(
@@ -267,47 +301,60 @@ def _compiler_return_decisions(
                 ),
             )
         else:
-            supported.append((spec, artifact))
-    if not supported:
-        return decisions
-    expectations = tuple(
-        ReturnContractExpectation(spec.name, artifact.line, spec.returns)
-        for spec, artifact in supported
-    )
-    try:
-        # Compiler mode's validated configuration guarantees an explicit path.
-        if config.tsconfig is None:
-            raise ValueError("Compiler mode requires explicit owning tsconfig")
-        proof = checker(project_root, file_path, config.tsconfig, source, expectations)
-        if len(proof.items) != len(supported):
-            raise ValueError("Compiler proof batch count mismatch")
-    except (OSError, TimeoutError, ValueError) as exc:
-        for spec, artifact in supported:
-            decisions[_return_decision_key(spec, artifact)] = (
-                _return_proof_error(
-                    spec,
-                    artifact,
-                    file_path,
-                    ErrorCode.COMPILER_RETURN_CONTRACT_UNAVAILABLE,
-                    str(exc),
-                ),
+            groups.setdefault((declaration_file, declaration_source), []).append(
+                (spec, artifact, declaration)
             )
+    if not groups:
         return decisions
-    for (spec, artifact), item in zip(supported, proof.items):
-        key = _return_decision_key(spec, artifact)
-        if (item.name, item.line) != (spec.name, artifact.line):
-            code = ErrorCode.COMPILER_RETURN_CONTRACT_UNAVAILABLE
-            detail = "Compiler proof declaration identity mismatch"
-        elif item.status == "matched":
-            decisions[key] = ()
+    for (declaration_file, declaration_source), supported in groups.items():
+        expectations = tuple(
+            ReturnContractExpectation(declaration.name, declaration.line, spec.returns)
+            for spec, _artifact, declaration in supported
+        )
+        try:
+            # Compiler mode's validated configuration guarantees an explicit path.
+            if config.tsconfig is None:
+                raise ValueError("Compiler mode requires explicit owning tsconfig")
+            proof = checker(
+                project_root,
+                declaration_file,
+                config.tsconfig,
+                declaration_source,
+                expectations,
+            )
+            if len(proof.items) != len(supported):
+                raise ValueError("Compiler proof batch count mismatch")
+        except (OSError, TimeoutError, ValueError) as exc:
+            for spec, artifact, declaration in supported:
+                decisions[_return_decision_key(spec, artifact)] = (
+                    _return_proof_error(
+                        spec,
+                        declaration,
+                        declaration_file,
+                        ErrorCode.COMPILER_RETURN_CONTRACT_UNAVAILABLE,
+                        str(exc),
+                    ),
+                )
             continue
-        elif item.status == "mismatched":
-            code = ErrorCode.TYPE_MISMATCH
-            detail = f"Expected '{spec.returns}', inferred '{item.inferred_type}'"
-        else:
-            code = ErrorCode.COMPILER_RETURN_CONTRACT_UNAVAILABLE
-            detail = "; ".join(item.diagnostics) or "Compiler return proof unavailable"
-        decisions[key] = (_return_proof_error(spec, artifact, file_path, code, detail),)
+        for (spec, artifact, declaration), item in zip(supported, proof.items):
+            key = _return_decision_key(spec, artifact)
+            if (item.name, item.line) != (declaration.name, declaration.line):
+                code = ErrorCode.COMPILER_RETURN_CONTRACT_UNAVAILABLE
+                detail = "Compiler proof declaration identity mismatch"
+            elif item.status == "matched":
+                decisions[key] = ()
+                continue
+            elif item.status == "mismatched":
+                code = ErrorCode.TYPE_MISMATCH
+                detail = f"Expected '{spec.returns}', inferred '{item.inferred_type}'"
+            else:
+                code = ErrorCode.COMPILER_RETURN_CONTRACT_UNAVAILABLE
+                detail = (
+                    "; ".join(item.diagnostics) or "Compiler return proof unavailable"
+                )
+            decisions[key] = (
+                _return_proof_error(spec, declaration, declaration_file, code, detail),
+            )
     return decisions
 
 
