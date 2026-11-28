@@ -1,0 +1,210 @@
+{
+  "manifest_path": "manifests/website-download-stats.manifest.yaml",
+  "manifest_hash": "sha256-contract:bfb1b1001df42a8aef5ce0b603e0e80a5b45d1e5b92dbd1be7ac3969072304be",
+  "test_hashes": {
+    "tests/test_website_static_contract.py": "sha256-pyast:v2:8b3dd4990d3962ddd8f8830be5a8fb676128b3848f2dd86fe78e118f225b2f18",
+    "tests/test_website_distilled_story.py": "sha256-pyast:v2:d6fe48b21ea30c4205956fd34d48944d133652d2643a40a8471c878e22613158",
+    "tests/test_website_practice_mobile.py": "sha256-pyast:v2:1637ae41570e483eb21259182a1dd078e00cfac4d5a56aa18aa1a7496817cc59",
+    "tests/test_website_download_stats.py": "sha256-pyast:v2:6af67d82350f45a87a4ceb835fc3a389bb6ef88b69c2cf619cbc6a73483a095e",
+    "tests/test_website_rendered_typography.py": "sha256-pyast:v2:e5c2f19cda149ab54adb560cf6dbe0217992465f59aeff0510795ef85f5056fc"
+  },
+  "created_at": "2026-11-28T15:04:33.465099+00:00",
+  "revision": 2,
+  "revisions": [
+    {
+      "prior_manifest_hash": "sha256-contract:04c8c07eedabdad6699ac5ebacc68f94894b29b5323e5be501bce2e59d48043e",
+      "prior_test_hashes": {
+        "tests/test_website_static_contract.py": "sha256-pyast:v2:8b3dd4990d3962ddd8f8830be5a8fb676128b3848f2dd86fe78e118f225b2f18",
+        "tests/test_website_distilled_story.py": "sha256-pyast:v2:d6fe48b21ea30c4205956fd34d48944d133652d2643a40a8471c878e22613158",
+        "tests/test_website_practice_mobile.py": "sha256-pyast:v2:1637ae41570e483eb21259182a1dd078e00cfac4d5a56aa18aa1a7496817cc59",
+        "tests/test_website_download_stats.py": "sha256-pyast:v2:6af67d82350f45a87a4ceb835fc3a389bb6ef88b69c2cf619cbc6a73483a095e",
+        "tests/test_website_rendered_typography.py": "sha256-pyast:v2:e5c2f19cda149ab54adb560cf6dbe0217992465f59aeff0510795ef85f5056fc"
+      },
+      "revised_at": "2026-11-28T15:05:01.964564+00:00",
+      "reason": "Migrated by maid manifest promote: manifests/drafts/website-download-stats.manifest.yaml -> manifests/website-download-stats.manifest.yaml",
+      "agent": null,
+      "contract_delta": {
+        "artifacts_added": [],
+        "artifacts_removed": [],
+        "files_added": [],
+        "files_removed": [],
+        "validate_commands_added": [
+          "uv run maid validate manifests/website-download-stats.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/website-download-stats.manifest.yaml --mode schema --quiet"
+        ],
+        "validate_commands_removed": [
+          "uv run maid validate manifests/drafts/website-download-stats.manifest.yaml --mode behavioral --quiet",
+          "uv run maid validate manifests/drafts/website-download-stats.manifest.yaml --mode schema --quiet"
+        ]
+      }
+    }
+  ],
+  "red_evidence": {
+    "red": true,
+    "captured_at": "2026-11-28T15:05:29.199040+00:00",
+    "commands": [
+      {
+        "command": "uv run python -m pytest -q tests/test_website_download_stats.py tests/test_website_static_contract.py tests/test_website_distilled_story.py tests/test_website_rendered_typography.py tests/test_website_practice_mobile.py",
+        "exit_code": 1,
+        "output_tail": "E         Left contains 8 more items:\nE         {280: None,\nE          320: None,\nE          390: None,\nE          560: None,\nE          820: None,...\nE         \nE         ...Full output truncated (4 lines hidden), use '-vv' to show\n\ntests/test_website_download_stats.py:305: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_website_download_stats.py::test_download_stats_json_records_source_date_counts_and_caveats\nFAILED tests/test_website_download_stats.py::test_distribution_section_sits_between_hero_and_why_section\nFAILED tests/test_website_download_stats.py::test_distribution_tiles_show_floor_rounded_json_counts\nFAILED tests/test_website_download_stats.py::test_distribution_note_states_source_date_and_limits\nFAILED tests/test_website_download_stats.py::test_distribution_section_links_github_and_pypi\nFAILED tests/test_website_download_stats.py::test_readme_has_download_badges_and_no_user_or_install_badges\nFAILED tests/test_website_download_stats.py::test_readme_download_section_matches_json_with_caveats\nFAILED tests/test_website_download_stats.py::test_distribution_tiles_render_inside_viewport_at_phone_and_desktop_widths\n8 failed, 21 passed in 22.15s",
+        "classification": "red"
+      },
+      {
+        "command": "uv run maid validate manifests/website-download-stats.manifest.yaml --mode behavioral --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      },
+      {
+        "command": "uv run maid validate manifests/website-download-stats.manifest.yaml --mode schema --quiet",
+        "exit_code": 0,
+        "output_tail": "",
+        "classification": "not_red"
+      }
+    ]
+  },
+  "legacy_baseline": null,
+  "agent": null,
+  "_manifest_contract": {
+    "artifacts": [
+      "tests/test_website_download_stats.py:test_distribution_note_states_source_date_and_limits",
+      "tests/test_website_download_stats.py:test_distribution_note_states_source_date_and_limits:kind=test_function",
+      "tests/test_website_download_stats.py:test_distribution_note_states_source_date_and_limits:returns=None",
+      "tests/test_website_download_stats.py:test_distribution_section_links_github_and_pypi",
+      "tests/test_website_download_stats.py:test_distribution_section_links_github_and_pypi:kind=test_function",
+      "tests/test_website_download_stats.py:test_distribution_section_links_github_and_pypi:returns=None",
+      "tests/test_website_download_stats.py:test_distribution_section_sits_between_hero_and_why_section",
+      "tests/test_website_download_stats.py:test_distribution_section_sits_between_hero_and_why_section:kind=test_function",
+      "tests/test_website_download_stats.py:test_distribution_section_sits_between_hero_and_why_section:returns=None",
+      "tests/test_website_download_stats.py:test_distribution_tiles_render_inside_viewport_at_phone_and_desktop_widths",
+      "tests/test_website_download_stats.py:test_distribution_tiles_render_inside_viewport_at_phone_and_desktop_widths:kind=test_function",
+      "tests/test_website_download_stats.py:test_distribution_tiles_render_inside_viewport_at_phone_and_desktop_widths:returns=None",
+      "tests/test_website_download_stats.py:test_distribution_tiles_show_floor_rounded_json_counts",
+      "tests/test_website_download_stats.py:test_distribution_tiles_show_floor_rounded_json_counts:kind=test_function",
+      "tests/test_website_download_stats.py:test_distribution_tiles_show_floor_rounded_json_counts:returns=None",
+      "tests/test_website_download_stats.py:test_download_stats_json_records_source_date_counts_and_caveats",
+      "tests/test_website_download_stats.py:test_download_stats_json_records_source_date_counts_and_caveats:kind=test_function",
+      "tests/test_website_download_stats.py:test_download_stats_json_records_source_date_counts_and_caveats:returns=None",
+      "tests/test_website_download_stats.py:test_page_and_readme_never_claim_users_installs_or_developers",
+      "tests/test_website_download_stats.py:test_page_and_readme_never_claim_users_installs_or_developers:kind=test_function",
+      "tests/test_website_download_stats.py:test_page_and_readme_never_claim_users_installs_or_developers:returns=None",
+      "tests/test_website_download_stats.py:test_readme_download_section_matches_json_with_caveats",
+      "tests/test_website_download_stats.py:test_readme_download_section_matches_json_with_caveats:kind=test_function",
+      "tests/test_website_download_stats.py:test_readme_download_section_matches_json_with_caveats:returns=None",
+      "tests/test_website_download_stats.py:test_readme_has_download_badges_and_no_user_or_install_badges",
+      "tests/test_website_download_stats.py:test_readme_has_download_badges_and_no_user_or_install_badges:kind=test_function",
+      "tests/test_website_download_stats.py:test_readme_has_download_badges_and_no_user_or_install_badges:returns=None"
+    ],
+    "files": {
+      "create": [
+        "tests/test_website_download_stats.py"
+      ],
+      "edit": [],
+      "read": [
+        "tests/test_website_distilled_story.py",
+        "tests/test_website_practice_mobile.py",
+        "tests/test_website_static_contract.py",
+        "website/data/practice-stats.json"
+      ],
+      "scope": [
+        "README.md",
+        "website/data/download-stats.json",
+        "website/index.html",
+        "website/styles.css"
+      ],
+      "delete": [],
+      "snapshot": []
+    },
+    "file_contract": {
+      "create": [
+        {
+          "path": "tests/test_website_download_stats.py",
+          "artifacts": [
+            {
+              "kind": "test_function",
+              "name": "test_download_stats_json_records_source_date_counts_and_caveats",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_distribution_section_sits_between_hero_and_why_section",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_distribution_tiles_show_floor_rounded_json_counts",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_distribution_note_states_source_date_and_limits",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_distribution_section_links_github_and_pypi",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_readme_has_download_badges_and_no_user_or_install_badges",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_readme_download_section_matches_json_with_caveats",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_page_and_readme_never_claim_users_installs_or_developers",
+              "returns": "None"
+            },
+            {
+              "kind": "test_function",
+              "name": "test_distribution_tiles_render_inside_viewport_at_phone_and_desktop_widths",
+              "returns": "None"
+            }
+          ]
+        }
+      ],
+      "read": [
+        "tests/test_website_static_contract.py",
+        "tests/test_website_distilled_story.py",
+        "tests/test_website_practice_mobile.py",
+        "website/data/practice-stats.json"
+      ],
+      "scope": [
+        {
+          "path": "website/index.html",
+          "reason": "New #distribution section after the hero with four tiles, a dated source note, and GitHub/PyPI links."
+        },
+        {
+          "path": "website/styles.css",
+          "reason": "Layout and type for the distribution section, tiles, and source note."
+        },
+        {
+          "path": "README.md",
+          "reason": "pepy.tech download badges and a Downloads and privacy section."
+        },
+        {
+          "path": "website/data/download-stats.json",
+          "reason": "Recorded source, date, counts, and semantics for the published download figures."
+        }
+      ]
+    },
+    "test_files": [
+      "tests/test_website_distilled_story.py",
+      "tests/test_website_download_stats.py",
+      "tests/test_website_practice_mobile.py",
+      "tests/test_website_rendered_typography.py",
+      "tests/test_website_static_contract.py"
+    ],
+    "validate_commands": [
+      "uv run python -m pytest -q tests/test_website_download_stats.py tests/test_website_static_contract.py tests/test_website_distilled_story.py tests/test_website_rendered_typography.py tests/test_website_practice_mobile.py",
+      "uv run maid validate manifests/website-download-stats.manifest.yaml --mode behavioral --quiet",
+      "uv run maid validate manifests/website-download-stats.manifest.yaml --mode schema --quiet"
+    ],
+    "acceptance_commands": []
+  }
+}

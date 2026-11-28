@@ -1060,6 +1060,61 @@ p {
   font-size: var(--type-label);
 }
 
+.distribution-section {
+  padding-block: 36px;
+  border-bottom: 1px solid rgba(74, 97, 108, 0.28);
+}
+
+.section .distribution-title {
+  margin-bottom: 18px;
+  font-size: clamp(1.35rem, 2.4vw, 1.9rem);
+}
+
+.distribution-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.distribution-stat {
+  padding: 14px 14px 13px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.distribution-stat-value {
+  display: block;
+  color: var(--text);
+  font-size: clamp(22px, 2.4vw, 30px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.distribution-stat-label {
+  display: block;
+  margin-top: 6px;
+  color: var(--text-muted);
+  font-size: var(--type-meta);
+  line-height: 1.4;
+}
+
+.distribution-note {
+  max-width: 78ch;
+  margin: 0 0 12px;
+  color: var(--text-muted);
+  font-size: var(--type-meta);
+  line-height: 1.5;
+}
+
+.distribution-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+}
+
 .practice-secondary-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1718,6 +1773,10 @@ body.js .primary-nav.is-open {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .distribution-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .problem-card {
     min-height: 150px;
   }
@@ -1869,6 +1928,18 @@ body.js .primary-nav.is-open {
   .practice-stat-value {
     font-size: 18px;
     hyphens: auto;
+  }
+
+  .distribution-stats {
+    gap: 8px;
+  }
+
+  .distribution-stat {
+    padding: 10px 9px;
+  }
+
+  .distribution-stat-value {
+    font-size: 20px;
   }
 
   .quickstart-card {

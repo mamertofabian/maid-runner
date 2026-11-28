@@ -1,0 +1,156 @@
+# draft-kind: implementation
+# MAID manifest - a machine-checked contract for one change.
+# Declares the intent, the files it may touch, and the commands that verify it.
+# Nothing here is needed to build or run this project; safe to ignore.
+# What it is: https://github.com/mamertofabian/maid-runner
+schema: "2"
+goal: "Show dated, caveated PyPI download statistics on the website and in the README"
+type: feature
+created: "2026-11-28T15:05:01Z"
+metadata:
+  planning_state: draft
+  tags:
+    - website
+    - readme
+    - evidence
+    - distribution
+  priority: medium
+description: |
+  A BigQuery investigation of the PyPI public dataset
+  (bigquery-public-data.pypi.file_downloads), run on 2026-11-28, measured
+  63,063 maid-runner distribution downloads (65,525 unfiltered), 2,654 of
+  them with a standard Python package manager as the installer, from 32
+  countries. These are distribution figures. They include automated and
+  repeated downloads (CI, mirrors) and are not a count of users or installs.
+
+  Publish them without presenting them as adoption:
+  - website/data/download-stats.json records the source, an updatedAt date,
+    the three counts, and semantics text stating the counts include
+    automated and repeated downloads and are not unique users.
+  - website/index.html gains a section id="distribution" directly after the
+    hero and before #why-maid, headed "Open-source. Tool-agnostic. Built for
+    reliability.", with four tiles: distribution downloads, package-manager
+    downloads, countries in download records, and the MIT license. Each
+    count tile carries data-download-stat="<key>" and shows a floor-rounded
+    compact value of the JSON count (63063 -> 63K+, 2654 -> 2.6K+, 32 -> 32),
+    so the page never overstates the JSON. A source note names the PyPI
+    public BigQuery dataset, shows <time datetime="<updatedAt>"> with an
+    English date, says the counts include automated and repeated downloads
+    and are not unique users, and states the CLI collects no usage
+    telemetry. The section links to GitHub and PyPI. The primary navigation
+    is unchanged (test_website_distilled_story pins its four links).
+  - README.md gains pepy.tech total and monthly download badges (downloads,
+    never users or installs) and a "Downloads and privacy" section with the
+    same floor-rounded figures (63,000+, 2,600+, 32 countries), the same
+    date, the same caveats, a note that pepy.tech counts differ from the
+    filtered BigQuery figures, and the no-telemetry statement.
+  - No page or README text claims a number of users, installs, or
+    developers.
+
+  The no-telemetry claim was checked against the package: maid_runner imports
+  no HTTP client, and its only sockets are the local daemon's AF_UNIX socket
+  and loopback TCP listener.
+
+  The figures are a hand-recorded snapshot from that investigation. A
+  scheduled BigQuery refresh script is out of scope; the JSON's updatedAt
+  keeps the snapshot visibly dated. Additive chain-merge onto the active
+  website contracts; it supersedes nothing and does not edit the shared
+  tests/test_website_static_contract.py.
+temptations:
+  - risk: "Do not round the counts up or label them users, installs, or developers."
+    instead: "Floor-round the display values and keep the 'downloads' label; the tests compare each tile and README figure to the JSON."
+  - risk: "Do not drop the source, date, or automated-download caveat to make the section look cleaner."
+    instead: "Keep the dated source note in the section and the caveat paragraph in the README; both are asserted."
+  - risk: "Do not add a nav link or edit the shared website contract test to make room for the section."
+    instead: "Leave the nav and tests/test_website_static_contract.py untouched; the new section is covered by its own test file."
+files:
+  scope:
+    - path: website/index.html
+      reason: "New #distribution section after the hero with four tiles, a dated source note, and GitHub/PyPI links."
+    - path: website/styles.css
+      reason: "Layout and type for the distribution section, tiles, and source note."
+    - path: README.md
+      reason: "pepy.tech download badges and a Downloads and privacy section."
+    - path: website/data/download-stats.json
+      reason: "Recorded source, date, counts, and semantics for the published download figures."
+  create:
+    - path: tests/test_website_download_stats.py
+      artifacts:
+        - kind: test_function
+          name: test_download_stats_json_records_source_date_counts_and_caveats
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_distribution_section_sits_between_hero_and_why_section
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_distribution_tiles_show_floor_rounded_json_counts
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_distribution_note_states_source_date_and_limits
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_distribution_section_links_github_and_pypi
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_readme_has_download_badges_and_no_user_or_install_badges
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_readme_download_section_matches_json_with_caveats
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_page_and_readme_never_claim_users_installs_or_developers
+          args: []
+          returns: None
+        - kind: test_function
+          name: test_distribution_tiles_render_inside_viewport_at_phone_and_desktop_widths
+          args: []
+          returns: None
+  read:
+    - tests/test_website_static_contract.py
+    - tests/test_website_distilled_story.py
+    - tests/test_website_practice_mobile.py
+    - website/data/practice-stats.json
+validate:
+  - uv run python -m pytest -q tests/test_website_download_stats.py tests/test_website_static_contract.py tests/test_website_distilled_story.py tests/test_website_rendered_typography.py tests/test_website_practice_mobile.py
+  - uv run maid validate manifests/website-download-stats.manifest.yaml --mode behavioral --quiet
+  - uv run maid validate manifests/website-download-stats.manifest.yaml --mode schema --quiet
+outcome:
+  status: completed
+  completed_at: "2026-11-28T23:40:00Z"
+  summary: "maidrunner.dev gains a #distribution section after the hero (63K+ PyPI distribution downloads, 2.6K+ package-manager downloads, 32 countries, MIT) with a dated source note, automated-download and not-unique-users caveats, a no-usage-telemetry statement, and GitHub/PyPI links. README.md gains pepy.tech total and monthly download badges and a 'Downloads and privacy' section with the same floor-rounded figures and caveats. Counts are recorded in website/data/download-stats.json as a hand-recorded 2026-11-28 BigQuery snapshot."
+  rationale: "Publish real distribution metrics without presenting downloads as users, installs, or adoption; every displayed figure is floor-rounded from the JSON and dated."
+  lessons:
+    - lesson_type: workflow
+      summary: "Adding a website section through a new test file avoided editing the shared tests/test_website_static_contract.py, which is pinned by several plan locks; no dependent lock needed revision."
+      tags:
+        - website
+        - plan-lock
+      paths:
+        - tests/test_website_download_stats.py
+  review_notes:
+    - source: implementation-review-subagent
+      severity: ready
+      summary: "Ready to merge. Re-ran the scoped pytest (29 passed), implementation validation, and handoff verify (PASS). Applied the advisory fix: role=\"group\" on the distribution stats container. Not applied: the page still mirrors the JSON by hand (matches the practice-stats pattern, tests enforce parity); the README test checks '2,600+' presence rather than its label pairing; the claim regex cannot catch every phrasing."
+    - source: deferred-follow-ups
+      severity: ready
+      summary: "Figures are a manual snapshot that could not be re-queried here (bq auth expired). A scheduled BigQuery refresh script that rewrites download-stats.json and its HTML/README mirrors is a possible future contract."
+  validation:
+    - command: [uv, run, python, -m, pytest, -q, tests/test_website_download_stats.py, tests/test_website_static_contract.py, tests/test_website_distilled_story.py, tests/test_website_rendered_typography.py, tests/test_website_practice_mobile.py]
+      status: passed
+      summary: "29 passed after the review fix; red evidence at lock had 8 of 9 new tests failing."
+    - command: [uv, run, maid, validate]
+      status: passed
+      summary: "737 manifests, 0 failed; implementation mode PASS for this manifest."
+    - command: [uv, run, maid, test]
+      status: passed
+      summary: "336 commands passed, 0 failed."
+    - command: [uv, run, maid, verify, --profile, deep, --manifest-dir, manifests, --file-tracking-scope, task, --plan-lock-scope, task, --test-scope, task, --require-plan-lock, --require-red-evidence, --since, HEAD, --summary]
+      status: passed
+      summary: "PASS, 0 blocking, 11 stages; only pre-existing E307 warnings. Reviewer's handoff-profile verify also PASS."
