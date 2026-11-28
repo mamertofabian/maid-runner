@@ -1,0 +1,16 @@
+{
+  "source": "PyPI public BigQuery dataset (bigquery-public-data.pypi.file_downloads), project maid-runner",
+  "updatedAt": "2026-11-28",
+  "semantics": {
+    "distributionDownloads": "Filtered maid-runner distribution file downloads recorded since the November 2025 release (65,525 unfiltered).",
+    "packageManagerDownloads": "Distribution downloads whose recorded installer is a standard Python package manager.",
+    "countries": "Distinct country codes in the download records.",
+    "limits": "Counts include automated and repeated downloads (CI, mirrors, caches) and are not unique users or installs. The MAID Runner CLI collects no usage telemetry.",
+    "refresh": "Hand-recorded snapshot from a BigQuery investigation; update updatedAt whenever the counts change."
+  },
+  "counts": {
+    "distributionDownloads": 63063,
+    "packageManagerDownloads": 2654,
+    "countries": 32
+  }
+}

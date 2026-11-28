@@ -3,12 +3,26 @@
 [![PyPI version](https://badge.fury.io/py/maid-runner.svg)](https://badge.fury.io/py/maid-runner)
 [![Python Version](https://img.shields.io/pypi/pyversions/maid-runner.svg)](https://pypi.org/project/maid-runner/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PyPI Downloads](https://static.pepy.tech/badge/maid-runner)](https://pepy.tech/project/maid-runner)
+[![Monthly Downloads](https://static.pepy.tech/badge/maid-runner/month)](https://pepy.tech/project/maid-runner)
 
 A tool-agnostic validation framework and Python library for the Manifest-driven AI Development (MAID) methodology. MAID Runner validates that code artifacts align with declarative YAML manifests, ensuring architectural integrity in AI-assisted development. Integrates with [ArchSpec](https://archspec.dev) for spec-to-code pipelines.
 
 **[Watch the introductory video](https://youtu.be/0a9ys-F63fQ)**
 
 > [Full AI Compiler workflow guide](docs/ai-compiler-workflow.md)
+
+## Downloads and privacy
+
+As of November 28, 2026, the PyPI public BigQuery dataset records 63,000+
+distribution downloads of `maid-runner` since its November 2025 release,
+including 2,600+ through standard Python package managers, from 32 countries.
+These counts include automated and repeated downloads (CI, mirrors, caches)
+and are not unique users or installs. The pepy.tech badges above use their own
+counting method, so their totals can differ from these filtered figures.
+
+MAID Runner runs locally and collects no usage telemetry: the CLI does not send
+your source code or usage data anywhere.
 
 ## Why MAID Runner?
 
